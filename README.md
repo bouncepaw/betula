@@ -3,6 +3,9 @@
 
 **Betula** is a self-hosted server software that lets you save links into a collection. This is basically it.
 
+* [Mailing list (with devlog)](https://lists.sr.ht/~bouncepaw/betula)
+* [Donate on Boosty (with more devlog)](https://boosty.to/bouncepaw)
+
 ## Features
 * Publish links, along with optional title and description formatted with [Mycomarkup](https://mycorrhiza.wiki/help/en/mycomarkup).
 * Posts can be public and private. Share only what you want to share!
@@ -14,5 +17,5 @@
 * Federate categories with [Mycorrhiza](https://mycorrhiza.wiki) and other Betula instances.
 
 ## State
-Development is not started.
+Development was started. Not all promised features are done. Do not use unless you really want to.
 
