@@ -34,6 +34,7 @@ footer {
 
 /* Design */
 header ul {
+    padding: 0;
 }
 header li {
     list-style-type: none;

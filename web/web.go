@@ -108,12 +108,10 @@ func handlerLink(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerGo(w http.ResponseWriter, rq *http.Request) {
-	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/link/"))
+	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/go/"))
 	if err != nil {
 		handlerFeed(w, rq)
 		return
 	}
-	log.Println(id)
-	// TODO: get URL for ID
-	http.Redirect(w, rq, "", http.StatusSeeOther)
+	http.Redirect(w, rq, db.URLForID(id), http.StatusSeeOther)
 }

@@ -1,3 +1,6 @@
+// Package db encapsulates all used queries to the database.
+//
+// Do not forget to Initialize and Finalize.
 package db
 
 import (
@@ -87,4 +90,24 @@ func AddPost(ctx context.Context, post types.Post) int64 {
 		log.Fatalln(err)
 	}
 	return id
+}
+
+const sqlURLForID = `
+select url from posts where id = ?;
+`
+
+func URLForID(id int) string {
+	rows, err := db.Query(sqlURLForID, id)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for rows.Next() {
+		var res string
+		err = rows.Scan(&res)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		return res
+	}
+	return ""
 }
