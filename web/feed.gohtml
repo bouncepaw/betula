@@ -1,31 +1,84 @@
-
 <!doctype html>
 <html lang="en">
 <head>
-	<title>Betula alpha</title>
+	<title>Betula ɑ</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<main>
-	<h1>Betula</h1>
-	<h2>Add link</h2>
-	<form method="post" action="/add-link">
-		<p>
-			<label for="link-url">URL</label>
-			<input type="text" id="link-url" name="url" required>
-		</p>
-		<p>
-			<label for="link-title">Title</label>
-			<input type="text" id="link-title" name="title" required>
-		</p>
-		<input type="submit">
-	</form>
-	<h2>Saved links</h2>
-	{{range .YieldAllPosts}}
-		<article>
-			<h3>{{.Title}}</h3>
-			<p><a href="{{.URL}}">{{.URL}}</a></p>
-		</article>
-	{{end}}
-</main>
+	<header>
+		<nav>
+			<ul>
+				<li>
+					<a href="/">
+						Betula
+					</a>
+				</li>
+				<li>
+					<a href="/tags">
+						Tags
+					</a>
+				</li>
+				<li>
+					<a href="/about">
+						About
+					</a>
+				</li>
+				<li>
+					<form>
+						<input type="text">
+						<input type="submit" value="Search">
+					</form>
+				</li>
+			</ul>
+		</nav>
+	</header>
+	<main>
+		<h2>Saved links</h2>
+        {{range .YieldAllPosts}}
+			<article>
+				<h3>{{.Title}}</h3>
+				<p class="src-url"><a href="{{.URL}}">{{.URL}}</a></p>
+				{{if .Description}}
+					<p>{{.Description}}</p>
+				{{end}}
+				<div class="about-post">
+					<div class="globe">
+						{{if .IsPublic}}{{randomGlobe}}{{else}}🔒{{end}}
+					</div>
+					<time>
+						{{timestampToHuman .CreationTime}}
+					</time>
+				</div>
+			</article>
+		{{else}}
+	        <p>No links saved.</p>
+        {{end}}
+	</main>
+	<aside>
+		<h2>Add link</h2>
+		<form method="post" action="/add-link">
+			<p>
+				<label for="link-url">URL</label>
+				<input type="text" id="link-url" name="url" required>
+			</p>
+			<p>
+				<label for="link-title">Title</label>
+				<input type="text" id="link-title" name="title" required>
+			</p>
+			<p>
+				<label for="link-visiblity">Visibility</label>
+				<select id="link-visiblity" name="isPublic">
+					<option value="private" selected>Private</option>
+					<option value="public">Public</option>
+				</select>
+			</p>
+			<input type="submit">
+		</form>
+	</aside>
+	<footer>
+		This website runs Betula.
+	</footer>
 </body>
 </html>

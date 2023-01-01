@@ -27,6 +27,7 @@ func main() {
 	db.Initialize(filename)
 	defer db.Finalize()
 
+	// TODO: make it configurable
 	err = http.ListenAndServe(":1738", nil)
 	if err != nil {
 		log.Fatalln(err)

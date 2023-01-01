@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
+	"time"
 )
 
 var (
@@ -13,10 +14,12 @@ var (
 
 const schema = `
 create table if not exists posts (
-    id integer primary key autoincrement,
-    url text,
-    title text,
-    description text
+    id integer primary key autoincrement not null,
+    url text not null,
+    title text not null,
+    description text not null,
+    isPublic integer not null,
+    creationTime integer not null                   
 );
 
 create table if not exists betula_meta (
@@ -45,13 +48,12 @@ func Finalize() {
 }
 
 const sqlGetAllPosts = `
-select id, url, title, description from posts;
+select id, url, title, description, isPublic, creationTime from posts;
 `
 
 func YieldAllPosts(ctx context.Context) chan types.Post {
 	rows, err := db.QueryContext(ctx, sqlGetAllPosts)
 	if err != nil {
-		log.Println("tapa")
 		log.Fatalln(err)
 	}
 	out := make(chan types.Post)
@@ -59,9 +61,8 @@ func YieldAllPosts(ctx context.Context) chan types.Post {
 	go func() {
 		for rows.Next() {
 			var post types.Post
-			err = rows.Scan(&post.ID, &post.URL, &post.Title, &post.Description)
+			err = rows.Scan(&post.ID, &post.URL, &post.Title, &post.Description, &post.IsPublic, &post.CreationTime)
 			if err != nil {
-				log.Println("muco")
 				log.Fatalln(err)
 			}
 			out <- post
@@ -72,11 +73,12 @@ func YieldAllPosts(ctx context.Context) chan types.Post {
 }
 
 const sqlAddPost = `
-insert into posts (url, title, description) VALUES (?, ?, ?);
+insert into posts (url, title, description, isPublic, creationTime) VALUES (?, ?, ?, ?, ?);
 `
 
 func AddPost(ctx context.Context, post types.Post) {
-	_, err := db.Exec(sqlAddPost, post.URL, post.Title, post.Description)
+	post.CreationTime = time.Now().Unix()
+	_, err := db.Exec(sqlAddPost, post.URL, post.Title, post.Description, post.IsPublic, post.CreationTime)
 	if err != nil {
 		log.Fatalln(err)
 	}
