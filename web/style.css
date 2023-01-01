@@ -1,24 +1,35 @@
 /* Layout */
 body {
     display: grid;
-    grid-template-columns: 300px 1fr;
     font-family: sans-serif;
 }
+
+@media screen and (max-width: 700px) {
+    body {
+        grid-template-areas:
+            "header"
+            "main"
+            "footer";
+    }
+}
+
+@media screen and (min-width: 700px) {
+    body {
+        grid-template-columns: 250px 1fr;
+        grid-template-areas:
+            "header main"
+            "footer main";
+    }
+}
+
 header {
-    grid-column: 1 / span 1;
-    grid-row: 1 / span 1;
+    grid-area: header;
 }
 main {
-    grid-column: 2 / span 1;
-    grid-row: 1 / span 3;
-}
-aside {
-    grid-column: 1 / span 1;
-    grid-row: 2 / span 1;
+    grid-area: main;
 }
 footer {
-    grid-column: 1 / span 1;
-    grid-row: 3 / span 1;
+    grid-area: footer;
 }
 
 /* Design */
