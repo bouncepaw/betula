@@ -1,0 +1,24 @@
+{{define "title"}}Add link{{end}}
+{{define "body"}}
+	<main>
+		<h2>Add link</h2>
+		<form method="post" action="/add-link">
+			<p>
+				<label for="link-url">URL</label>
+				<input type="text" id="link-url" name="url" required>
+			</p>
+			<p>
+				<label for="link-title">Title</label>
+				<input type="text" id="link-title" name="title" required>
+			</p>
+			<p>
+				<label for="link-visiblity">Visibility</label>
+				<select id="link-visiblity" name="visibility">
+					<option value="private" selected>Private</option>
+					<option value="public">Public</option>
+				</select>
+			</p>
+			<input type="submit">
+		</form>
+	</main>
+{{end}}

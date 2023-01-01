@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<title>{{template "title" .}}</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+	<nav>
+		<ul>
+			<li>
+				<a href="/">
+					Betula
+				</a>
+			</li>
+			<li>
+				<a href="/add-link">
+					Add link
+				</a>
+			</li>
+			<li>
+				<a href="/tags">
+					Tags
+				</a>
+			</li>
+			<li>
+				<a href="/about">
+					About
+				</a>
+			</li>
+			<li>
+				<form>
+					<input type="text" aria-label="Search">
+					<input type="submit" value="Search">
+				</form>
+			</li>
+		</ul>
+	</nav>
+</header>
+{{template "body" .}}
+<footer>
+	This website runs Betula.
+</footer>
+</body>
+</html>

@@ -18,7 +18,7 @@ create table if not exists posts (
     url text not null,
     title text not null,
     description text not null,
-    isPublic integer not null,
+    visibility integer not null,
     creationTime integer not null                   
 );
 
@@ -48,7 +48,7 @@ func Finalize() {
 }
 
 const sqlGetAllPosts = `
-select id, url, title, description, isPublic, creationTime from posts;
+select id, url, title, description, visibility, creationTime from posts;
 `
 
 func YieldAllPosts(ctx context.Context) chan types.Post {
@@ -61,7 +61,7 @@ func YieldAllPosts(ctx context.Context) chan types.Post {
 	go func() {
 		for rows.Next() {
 			var post types.Post
-			err = rows.Scan(&post.ID, &post.URL, &post.Title, &post.Description, &post.IsPublic, &post.CreationTime)
+			err = rows.Scan(&post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -73,13 +73,18 @@ func YieldAllPosts(ctx context.Context) chan types.Post {
 }
 
 const sqlAddPost = `
-insert into posts (url, title, description, isPublic, creationTime) VALUES (?, ?, ?, ?, ?);
+insert into posts (url, title, description, visibility, creationTime) VALUES (?, ?, ?, ?, ?);
 `
 
-func AddPost(ctx context.Context, post types.Post) {
+func AddPost(ctx context.Context, post types.Post) int64 {
 	post.CreationTime = time.Now().Unix()
-	_, err := db.Exec(sqlAddPost, post.URL, post.Title, post.Description, post.IsPublic, post.CreationTime)
+	res, err := db.Exec(sqlAddPost, post.URL, post.Title, post.Description, post.Visibility, post.CreationTime)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return id
 }
