@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -26,7 +27,22 @@ func init() {
 	http.HandleFunc("/add-link", handlerAddLink)
 	http.HandleFunc("/post/", handlerPost)
 	http.HandleFunc("/go/", handlerGo)
+	http.HandleFunc("/about", handlerAbout)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+type dataAbout struct {
+	LinkCount  int
+	OldestTime time.Time
+	NewestTime time.Time
+}
+
+func handlerAbout(w http.ResponseWriter, rq *http.Request) {
+	templateExec(templateAbout, dataAbout{
+		LinkCount:  db.LinkCount(),
+		OldestTime: db.OldestTime(),
+		NewestTime: db.NewestTime(),
+	}, w)
 }
 
 type dataAddLink struct {

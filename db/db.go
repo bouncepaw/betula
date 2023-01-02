@@ -142,3 +142,25 @@ func URLForID(id int) (url string, found bool) {
 	}
 	return "", false
 }
+
+const sqlLinkCount = `select count(id) from posts;`
+const sqlOldestTime = `select min(creationTime) from posts;`
+const sqlNewestTime = `select max(creationTime) from posts;`
+
+func LinkCount() int        { return querySingleValue[int](sqlLinkCount) }
+func OldestTime() time.Time { return time.Unix(querySingleValue[int64](sqlOldestTime), 0) }
+func NewestTime() time.Time { return time.Unix(querySingleValue[int64](sqlNewestTime), 0) }
+
+func querySingleValue[T any](query string) T {
+	rows, err := db.Query(query)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	rows.Next()
+	var res T
+	err = rows.Scan(&res)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return res
+}

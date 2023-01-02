@@ -1,0 +1,34 @@
+{{define "title"}}About Betula{{end}}
+{{define "body"}}
+	<main>
+		<article>
+			<h2>About Betula</h2>
+			<p><strong>Betula</strong> is a self-hosted link collection management software.
+				You are accessing an instance of it.</p>
+			<p>Build your own instance of Betula! See <a href="https://sr.ht/~bouncepaw/betula/">Betula on SourceHut</a>.</p>
+
+			<h2>Stats</h2>
+			<dl>
+				<dt>Number of saved links</dt>
+				<dd>{{.LinkCount}}</dd>
+
+				<dt>Oldest link save time</dt>
+				<dd>{{.OldestTime | timeToHuman}}</dd>
+
+				<dt>Newest link save time</dt>
+				<dd>{{.NewestTime | timeToHuman}}</dd>
+			</dl>
+
+			<h3>Licensing</h3>
+			<p>Betula is a free software, licensed under AGPLv3.
+				If this instance is running an official version,
+				then you may want to consult the following:</p>
+			<ul>
+				<li><p><a href="https://git.sr.ht/~bouncepaw/betula/tree/master/item/LICENSE">License</a></p></li>
+				<li><p><a href="https://git.sr.ht/~bouncepaw/betula/tree">Source code</a></p></li>
+			</ul>
+			<p>If this instance is running a modified version,
+				you are free to demand a copy of the software from the administrator.</p>
+		</article>
+	</main>
+{{end}}

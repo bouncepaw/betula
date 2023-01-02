@@ -74,6 +74,12 @@ header a {
 h3 {
     margin-bottom: 4px;
 }
+dt {
+    font-weight: bold;
+}
+dd + dt {
+    margin-top: 8px;
+}
 
 /* Colors */
 html {

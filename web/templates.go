@@ -37,6 +37,7 @@ var templateAddLink = templateFrom("add-link.gohtml", nil)
 var templateAddLinkInvalidURL = templateFrom("add-link-invalid-url.gohtml", nil)
 var templatePost = templateFrom("post.gohtml", funcMapForPosts)
 var templateFeed = templateFrom("feed.gohtml", funcMapForPosts)
+var templateAbout = templateFrom("about.gohtml", funcMapForTime)
 
 var funcMapForPosts = template.FuncMap{
 	"randomGlobe": func() string {
@@ -44,6 +45,12 @@ var funcMapForPosts = template.FuncMap{
 	},
 	"timestampToHuman": func(stamp int64) string {
 		t := time.Unix(stamp, 0)
+		return t.Format("2006-01-02 15:04")
+	},
+}
+
+var funcMapForTime = template.FuncMap{
+	"timeToHuman": func(t time.Time) string {
 		return t.Format("2006-01-02 15:04")
 	},
 }
