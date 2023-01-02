@@ -1,0 +1,18 @@
+{{define "title"}}Link: {{.Post.Title}}{{end}}
+{{define "body"}}
+	<main>
+		<h2><a href="/{{.Post.ID}}">{{.Post.Title}}</a></h2>
+		<p class="src-url"><a href="{{.Post.URL}}">{{.Post.URL}}</a></p>
+        {{if .Post.Description}}
+			<p>{{.Post.Description}}</p>
+        {{end}}
+		<div class="about-post">
+			<div class="globe">
+                {{if .Post.Visibility}}{{randomGlobe}}{{else}}🔒{{end}}
+			</div>
+			<time>
+                {{timestampToHuman .Post.CreationTime}}
+			</time>
+		</div>
+	</main>
+{{end}}

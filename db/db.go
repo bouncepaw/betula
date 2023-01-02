@@ -92,11 +92,31 @@ func AddPost(ctx context.Context, post types.Post) int64 {
 	return id
 }
 
+const sqlPostForID = `
+select id, url, title, description, visibility, creationTime from posts where id = ?;
+`
+
+func PostForID(id int) (post types.Post, found bool) {
+	rows, err := db.Query(sqlPostForID, id)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for rows.Next() {
+		var post types.Post
+		err = rows.Scan(&post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		return post, true
+	}
+	return
+}
+
 const sqlURLForID = `
 select url from posts where id = ?;
 `
 
-func URLForID(id int) string {
+func URLForID(id int) (url string, found bool) {
 	rows, err := db.Query(sqlURLForID, id)
 	if err != nil {
 		log.Fatalln(err)
@@ -107,7 +127,7 @@ func URLForID(id int) string {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		return res
+		return res, true
 	}
-	return ""
+	return "", false
 }

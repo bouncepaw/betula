@@ -24,7 +24,7 @@ var (
 func init() {
 	http.HandleFunc("/", handlerFeed)
 	http.HandleFunc("/add-link", handlerAddLink)
-	http.HandleFunc("/link/", handlerLink)
+	http.HandleFunc("/post/", handlerPost)
 	http.HandleFunc("/go/", handlerGo)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 }
@@ -61,6 +61,48 @@ func handlerAddLink(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
+var templatePost = template.Must(template.New("skeleton.gohtml").Funcs(template.FuncMap{
+	"randomGlobe": func() string {
+		return string([]rune{[]rune("🌍🌎🌏")[rand.Intn(3)]})
+	},
+	"timestampToHuman": func(stamp int64) string {
+		t := time.Unix(stamp, 0)
+		return t.Format("2006-01-02 15:04")
+	},
+}).ParseFS(fs, "post.gohtml", "skeleton.gohtml"))
+
+type dataPost struct {
+	Post       types.Post
+	Authorized bool // TODO: authorize
+}
+
+func handlerPost(w http.ResponseWriter, rq *http.Request) {
+	id, err := strconv.Atoi(strings.TrimPrefix(strings.TrimPrefix(rq.URL.Path, "/"), "post/"))
+	if err != nil {
+		// TODO: Show 404
+		log.Println(err)
+		handlerFeed(w, rq)
+		return
+	}
+	log.Printf("Viewing post %d\n", id)
+	post, found := db.PostForID(id)
+	if !found {
+		// TODO: Show 404
+		log.Println(err)
+		handlerFeed(w, rq)
+		return
+	}
+	err = templatePost.ExecuteTemplate(
+		w,
+		"skeleton.gohtml",
+		dataPost{
+			Post: post,
+		})
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
 var templateFeed = template.Must(template.New("skeleton.gohtml").Funcs(template.FuncMap{
 	"randomGlobe": func() string {
 		return string([]rune{[]rune("🌍🌎🌏")[rand.Intn(3)]})
@@ -76,12 +118,11 @@ type dataFeed struct {
 	Authorized    bool // TODO: authorize
 }
 
-var regexpPost = regexp.MustCompile("^/%d+")
+var regexpPost = regexp.MustCompile("^/[0-9]+")
 
 func handlerFeed(w http.ResponseWriter, rq *http.Request) {
-	// This handler also routes away URL:s like /%d.
 	if regexpPost.MatchString(rq.URL.Path) {
-		handlerLink(w, rq)
+		handlerPost(w, rq)
 		return
 	}
 
@@ -97,21 +138,17 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-func handlerLink(w http.ResponseWriter, rq *http.Request) {
-	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/link/"))
-	if err != nil {
-		handlerFeed(w, rq)
-		return
-	}
-	log.Println(id)
-	// TODO: Implement
-}
-
 func handlerGo(w http.ResponseWriter, rq *http.Request) {
 	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/go/"))
 	if err != nil {
 		handlerFeed(w, rq)
 		return
 	}
-	http.Redirect(w, rq, db.URLForID(id), http.StatusSeeOther)
+
+	if url, found := db.URLForID(id); found {
+		http.Redirect(w, rq, url, http.StatusSeeOther)
+	} else {
+		// TODO: Show 404
+		http.Redirect(w, rq, "/", http.StatusSeeOther)
+	}
 }
