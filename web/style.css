@@ -1,27 +1,43 @@
-/* Layout */
-body {
-    display: grid;
-    font-family: sans-serif;
-}
-
 @media screen and (max-width: 700px) {
     body {
         grid-template-areas:
             "header"
             "main"
             "footer";
+        grid-row-gap: 8px;
+        margin: 0;
+    }
+    main {
+        padding: 8px;
+    }
+    header ul {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 }
 
 @media screen and (min-width: 700px) {
     body {
-        grid-template-columns: 250px 1fr;
+        grid-template-columns: 180px 1fr;
         grid-template-areas:
             "header main"
             "footer main";
+        grid-column-gap: 8px;
+    }
+    main {
+        padding: 8px 32px 32px 32px;
+    }
+    main, header {
+        border-radius: 4px;
     }
 }
 
+body {
+    display: grid;
+    font-family: sans-serif;
+}
 header {
     grid-area: header;
 }
@@ -33,6 +49,9 @@ footer {
 }
 
 /* Design */
+header {
+    padding: 0 4px;
+}
 header ul {
     padding: 0;
 }
@@ -43,12 +62,31 @@ header a {
     display: block;
     padding: 4px 8px;
 }
-header a:hover {
-    background: red;
-}
 .about-post .globe {
     display: inline;
 }
 .about-post time {
     display: inline;
+}
+.src-url {
+    display: block;
+}
+h3 {
+    margin-bottom: 4px;
+}
+
+/* Colors */
+html {
+    background: #eee;
+    padding: 0;
+}
+header,
+main {
+    background: white;
+}
+header a:hover {
+    background: #eee;
+}
+.src-url, .src-url:visited {
+    display: block;
 }

@@ -3,9 +3,9 @@
 	<main>
 		<h2>Saved links</h2>
         {{range .YieldAllPosts}}
-			<article>
+			<article class="post">
 				<h3><a href="/{{.ID}}">{{.Title}}</a></h3>
-				<p class="src-url"><a href="{{.URL}}">{{.URL}}</a></p>
+				<a class="src-url" href="{{.URL}}">{{.URL}}</a>
 				{{if .Description}}
 					<p>{{.Description}}</p>
 				{{end}}

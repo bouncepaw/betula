@@ -1,3 +1,4 @@
+// Package web provides web capabilities. Import this package to initialize the handlers and the templates.
 package web
 
 import (
@@ -54,7 +55,7 @@ func handlerAddLink(w http.ResponseWriter, rq *http.Request) {
 				Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
 			}
 
-			id = db.AddPost(context.Background(), post)
+			id = db.AddPost(post)
 		)
 
 		http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)

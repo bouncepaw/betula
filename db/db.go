@@ -1,6 +1,8 @@
 // Package db encapsulates all used queries to the database.
 //
 // Do not forget to Initialize and Finalize.
+//
+// All functions in this package might crash vividly.
 package db
 
 import (
@@ -34,6 +36,7 @@ insert or replace into betula_meta values
 	('db version', 0);
 `
 
+// Initialize opens a SQLite3 database with the given filename. The connection is encapsulated, you cannot access the database directly, you are to use the functions provided by the package.
 func Initialize(filename string) {
 	var err error
 	db, err = sql.Open("sqlite3", filename)
@@ -46,14 +49,19 @@ func Initialize(filename string) {
 	}
 }
 
+// Finalize closes the connection with the database.
 func Finalize() {
-	_ = db.Close()
+	err := db.Close()
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 
 const sqlGetAllPosts = `
 select id, url, title, description, visibility, creationTime from posts;
 `
 
+// YieldAllPosts returns a channel, from which you can get all posts stored in the database.
 func YieldAllPosts(ctx context.Context) chan types.Post {
 	rows, err := db.QueryContext(ctx, sqlGetAllPosts)
 	if err != nil {
@@ -79,7 +87,8 @@ const sqlAddPost = `
 insert into posts (url, title, description, visibility, creationTime) VALUES (?, ?, ?, ?, ?);
 `
 
-func AddPost(ctx context.Context, post types.Post) int64 {
+// AddPost adds a new post to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
+func AddPost(post types.Post) int64 {
 	post.CreationTime = time.Now().Unix()
 	res, err := db.Exec(sqlAddPost, post.URL, post.Title, post.Description, post.Visibility, post.CreationTime)
 	if err != nil {
@@ -96,6 +105,7 @@ const sqlPostForID = `
 select id, url, title, description, visibility, creationTime from posts where id = ?;
 `
 
+// PostForID returns the post corresponding to the given id, if there is any.
 func PostForID(id int) (post types.Post, found bool) {
 	rows, err := db.Query(sqlPostForID, id)
 	if err != nil {
@@ -116,6 +126,7 @@ const sqlURLForID = `
 select url from posts where id = ?;
 `
 
+// URLForID returns the URL of the post corresponding to the given ID, if there is any post like that.
 func URLForID(id int) (url string, found bool) {
 	rows, err := db.Query(sqlURLForID, id)
 	if err != nil {

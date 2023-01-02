@@ -1,3 +1,4 @@
+// Command betula runs Betula, a personal link collection software.
 package main
 
 import (
