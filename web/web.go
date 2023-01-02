@@ -11,6 +11,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -31,9 +32,16 @@ func init() {
 }
 
 var templateAddLink = template.Must(template.New("skeleton.gohtml").Funcs(template.FuncMap{}).ParseFS(fs, "add-link.gohtml", "skeleton.gohtml"))
+var templateAddLinkInvalidURL = template.Must(template.New("skeleton.gohtml").ParseFS(fs, "add-link-invalid-url.gohtml", "skeleton.gohtml"))
 
 type dataAddLink struct {
 	Authorized bool // TODO: authorize
+
+	// The following three fields can be non-empty, when set through URL parameters or when an erroneous request was made.
+
+	URL        string
+	Title      string
+	Visibility string
 }
 
 func handlerAddLink(w http.ResponseWriter, rq *http.Request) {
@@ -42,17 +50,41 @@ func handlerAddLink(w http.ResponseWriter, rq *http.Request) {
 		err := templateAddLink.ExecuteTemplate(
 			w,
 			"skeleton.gohtml",
-			dataAddLink{})
+			dataAddLink{
+				URL:        rq.FormValue("url"),
+				Title:      rq.FormValue("title"),
+				Visibility: rq.FormValue("visibility"),
+			})
 		if err != nil {
 			log.Fatalln(err)
 		}
 	case http.MethodPost:
+		// TODO: Document the param behaviour
+		addr := rq.FormValue("url")
+		title := rq.FormValue("title")
+		visibility := rq.FormValue("visibility")
+
+		if _, err := url.ParseRequestURI(addr); err != nil {
+			err := templateAddLinkInvalidURL.ExecuteTemplate(
+				w,
+				"skeleton.gohtml",
+				dataAddLink{
+					URL:        addr,
+					Title:      title,
+					Visibility: visibility,
+				})
+			if err != nil {
+				log.Fatalln(err)
+			}
+			return
+		}
+
 		var (
 			post = types.Post{
-				URL:         rq.FormValue("url"),
-				Title:       rq.FormValue("title"),
+				URL:         addr,
+				Title:       title,
 				Description: "",
-				Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
+				Visibility:  types.VisibilityFromString(visibility),
 			}
 
 			id = db.AddPost(post)

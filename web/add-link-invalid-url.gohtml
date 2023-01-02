@@ -1,7 +1,8 @@
-{{define "title"}}Add link{{end}}
+{{define "title"}}Invalid link{{end}}
 {{define "body"}}
 	<main>
-		<h2>Add link</h2>
+		<h2>Invalid link</h2>
+		<p>The URL you have passed, <code>{{.URL}}</code>, is invalid. Please enter a correct URL.</p>
 		<form method="post" action="/add-link">
 			<p>
 				<label for="link-url">URL</label>
