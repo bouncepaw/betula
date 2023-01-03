@@ -30,8 +30,8 @@ type Post struct {
 	ID int
 	// CreationTime is UNIX seconds. Do not set this field by yourself.
 	CreationTime int64
-	// Tags are tags of this post. Do not set this field by yourself.
-	Tags []Tag
+	// Categories are categories of this post. Do not set this field by yourself.
+	Categories []Category
 
 	// URL is a URL with any protocol.
 	URL string
@@ -43,7 +43,7 @@ type Post struct {
 	Visibility Visibility
 }
 
-type Tag struct {
+type Category struct {
 	ID   int
 	Name string
 }

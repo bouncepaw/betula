@@ -26,13 +26,13 @@ create table if not exists Posts (
     CreationTime integer not null                   
 );
 
-create table if not exists Tags (
+create table if not exists Categories (
     ID integer primary key autoincrement not null,
     Name text not null
 );
 
-create table if not exists TagsToPosts (
-    TagID integer not null,
+create table if not exists CategoriesToPosts (
+    CategoryID integer not null,
     PostID integer not null
 );
 
@@ -46,31 +46,31 @@ insert or replace into BetulaMeta values
 	('Admin username', null),
 	('Admin password hash', null);`
 
-const sqlTagsForPost = `
+const sqlCategoriesForPost = `
 select
-    TagID, Name
+    CatID, Name
 from 
-    TagsToPosts
+    CategoriesToPosts
 inner join
-    Tags
+    Categories
 where
-    ID = TagID and PostID = ?;
+    ID = CatID and PostID = ?;
 `
 
-func TagsForPost(id int) (tags []types.Tag) {
-	rows, err := db.Query(sqlTagsForPost, id)
+func CategoriesForPost(id int) (cats []types.Category) {
+	rows, err := db.Query(sqlCategoriesForPost, id)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	for rows.Next() {
-		var tag types.Tag
-		err = rows.Scan(&tag.ID, &tag.Name)
+		var cat types.Category
+		err = rows.Scan(&cat.ID, &cat.Name)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		tags = append(tags, tag)
+		cats = append(cats, cat)
 	}
-	return tags
+	return cats
 }
 
 // Initialize opens a SQLite3 database with the given filename. The connection is encapsulated, you cannot access the database directly, you are to use the functions provided by the package.
@@ -114,7 +114,7 @@ func YieldAllPosts() chan types.Post {
 				log.Fatalln(err)
 			}
 			// TODO: Probably can be optimized with a smart query.
-			post.Tags = TagsForPost(post.ID)
+			post.Categories = CategoriesForPost(post.ID)
 			out <- post
 		}
 		close(out)

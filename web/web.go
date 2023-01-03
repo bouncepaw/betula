@@ -110,7 +110,7 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 		handlerFeed(w, rq)
 		return
 	}
-	post.Tags = db.TagsForPost(id)
+	post.Categories = db.CategoriesForPost(id)
 	templateExec(templatePost, dataPost{
 		Post: post,
 	}, w)

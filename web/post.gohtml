@@ -7,10 +7,10 @@
             {{if .Post.Description}}
 				<p>{{.Post.Description}}</p>
             {{end}}
-			<ul class="tags">
-				{{range .Post.Tags}}
+			<ul class="cats">
+				{{range .Post.Categories}}
 					<li>
-						<a href="/tag/{{.ID}}">{{.Name}}</a>
+						<a href="/cat/{{.ID}}">{{.Name}}</a>
 					</li>
 				{{end}}
 			</ul>
