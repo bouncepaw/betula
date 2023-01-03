@@ -18,23 +18,24 @@ var (
 )
 
 const schema = `
-create table if not exists posts (
-    id integer primary key autoincrement not null,
-    url text not null,
-    title text not null,
-    description text not null,
-    visibility integer not null,
-    creationTime integer not null                   
+create table if not exists Posts (
+    ID integer primary key autoincrement not null,
+    URL text not null,
+    Title text not null,
+    Description text not null,
+    Visibility integer not null,
+    CreationTime integer not null                   
 );
 
-create table if not exists betula_meta (
-    key text primary key,
-    value text
+create table if not exists BetulaMeta (
+    Key text primary key,
+    Value text
 );
 
-insert or replace into betula_meta values
-	('db version', 0);
-`
+insert or replace into BetulaMeta values
+	('DB version', 0),
+	('Admin username', null),
+	('Admin password hash', null);`
 
 // Initialize opens a SQLite3 database with the given filename. The connection is encapsulated, you cannot access the database directly, you are to use the functions provided by the package.
 func Initialize(filename string) {
@@ -58,7 +59,7 @@ func Finalize() {
 }
 
 const sqlGetAllPosts = `
-select id, url, title, description, visibility, creationTime from posts;
+select ID, URL, Title, Description, Visibility, CreationTime from Posts;
 `
 
 // YieldAllPosts returns a channel, from which you can get all posts stored in the database.
@@ -84,7 +85,7 @@ func YieldAllPosts(ctx context.Context) chan types.Post {
 }
 
 const sqlAddPost = `
-insert into posts (url, title, description, visibility, creationTime) VALUES (?, ?, ?, ?, ?);
+insert into Posts (URL, Title, Description, Visibility, CreationTime) VALUES (?, ?, ?, ?, ?);
 `
 
 // AddPost adds a new post to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
@@ -102,7 +103,7 @@ func AddPost(post types.Post) int64 {
 }
 
 const sqlPostForID = `
-select id, url, title, description, visibility, creationTime from posts where id = ?;
+select ID, URL, Title, Description, Visibility, CreationTime from Posts where ID = ?;
 `
 
 // PostForID returns the post corresponding to the given id, if there is any.
@@ -123,7 +124,7 @@ func PostForID(id int) (post types.Post, found bool) {
 }
 
 const sqlURLForID = `
-select url from posts where id = ?;
+select URL from Posts where ID = ?;
 `
 
 // URLForID returns the URL of the post corresponding to the given ID, if there is any post like that.
@@ -143,9 +144,9 @@ func URLForID(id int) (url string, found bool) {
 	return "", false
 }
 
-const sqlLinkCount = `select count(id) from posts;`
-const sqlOldestTime = `select min(creationTime) from posts;`
-const sqlNewestTime = `select max(creationTime) from posts;`
+const sqlLinkCount = `select count(ID) from Posts;`
+const sqlOldestTime = `select min(CreationTime) from Posts;`
+const sqlNewestTime = `select max(CreationTime) from Posts;`
 
 func LinkCount() int        { return querySingleValue[int](sqlLinkCount) }
 func OldestTime() time.Time { return time.Unix(querySingleValue[int64](sqlOldestTime), 0) }
