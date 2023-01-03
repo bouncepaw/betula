@@ -7,7 +7,7 @@
             {{if .Post.Description}}
 				<p>{{.Post.Description}}</p>
             {{end}}
-			<ul class="cats">
+			<ul class="categories">
 				{{range .Post.Categories}}
 					<li>
 						<a href="/cat/{{.ID}}">{{.Name}}</a>

@@ -80,6 +80,27 @@ dt {
 dd + dt {
     margin-top: 8px;
 }
+.src-url, .src-url:visited {
+    display: block;
+}
+.categories {
+    display: flex;
+    padding: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 4px 0;
+}
+.categories li {
+    list-style-type: none;
+}
+.categories li + li {
+    margin-left: 8px;
+}
+.categories a {
+    display: block;
+    padding: 4px 8px;
+    border-radius: 8px;
+}
 
 /* Colors */
 html {
@@ -93,6 +114,6 @@ main {
 header a:hover {
     background: #eee;
 }
-.src-url, .src-url:visited {
-    display: block;
+.categories a {
+    background: #eee;
 }
