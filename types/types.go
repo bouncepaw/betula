@@ -30,6 +30,8 @@ type Post struct {
 	ID int
 	// CreationTime is UNIX seconds. Do not set this field by yourself.
 	CreationTime int64
+	// Tags are tags of this post. Do not set this field by yourself.
+	Tags []Tag
 
 	// URL is a URL with any protocol.
 	URL string
@@ -39,4 +41,9 @@ type Post struct {
 	Description string
 	// Visibility sets who can see the post.
 	Visibility Visibility
+}
+
+type Tag struct {
+	ID   int
+	Name string
 }

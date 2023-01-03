@@ -6,7 +6,6 @@
 package db
 
 import (
-	"context"
 	"database/sql"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
@@ -27,6 +26,16 @@ create table if not exists Posts (
     CreationTime integer not null                   
 );
 
+create table if not exists Tags (
+    ID integer primary key autoincrement not null,
+    Name text not null
+);
+
+create table if not exists TagsToPosts (
+    TagID integer not null,
+    PostID integer not null
+);
+
 create table if not exists BetulaMeta (
     Key text primary key,
     Value text
@@ -36,6 +45,33 @@ insert or replace into BetulaMeta values
 	('DB version', 0),
 	('Admin username', null),
 	('Admin password hash', null);`
+
+const sqlTagsForPost = `
+select
+    TagID, Name
+from 
+    TagsToPosts
+inner join
+    Tags
+where
+    ID = TagID and PostID = ?;
+`
+
+func TagsForPost(id int) (tags []types.Tag) {
+	rows, err := db.Query(sqlTagsForPost, id)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for rows.Next() {
+		var tag types.Tag
+		err = rows.Scan(&tag.ID, &tag.Name)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		tags = append(tags, tag)
+	}
+	return tags
+}
 
 // Initialize opens a SQLite3 database with the given filename. The connection is encapsulated, you cannot access the database directly, you are to use the functions provided by the package.
 func Initialize(filename string) {
@@ -62,9 +98,9 @@ const sqlGetAllPosts = `
 select ID, URL, Title, Description, Visibility, CreationTime from Posts;
 `
 
-// YieldAllPosts returns a channel, from which you can get all posts stored in the database.
-func YieldAllPosts(ctx context.Context) chan types.Post {
-	rows, err := db.QueryContext(ctx, sqlGetAllPosts)
+// YieldAllPosts returns a channel, from which you can get all posts stored in the database, along with their tags.
+func YieldAllPosts() chan types.Post {
+	rows, err := db.Query(sqlGetAllPosts)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -77,6 +113,8 @@ func YieldAllPosts(ctx context.Context) chan types.Post {
 			if err != nil {
 				log.Fatalln(err)
 			}
+			// TODO: Probably can be optimized with a smart query.
+			post.Tags = TagsForPost(post.ID)
 			out <- post
 		}
 		close(out)
@@ -118,6 +156,7 @@ func PostForID(id int) (post types.Post, found bool) {
 		if err != nil {
 			log.Fatalln(err)
 		}
+		_ = rows.Close()
 		return post, true
 	}
 	return

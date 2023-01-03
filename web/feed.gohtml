@@ -9,6 +9,13 @@
 				{{if .Description}}
 					<p>{{.Description}}</p>
 				{{end}}
+				<ul class="tags">
+                    {{range .Tags}}
+						<li>
+							<a href="/tag/{{.ID}}">{{.Name}}</a>
+						</li>
+                    {{end}}
+				</ul>
 				<div class="about-post">
 					<div class="globe">
 						{{if .Visibility}}{{randomGlobe}}{{else}}🔒{{end}}

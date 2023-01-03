@@ -2,7 +2,6 @@
 package web
 
 import (
-	"context"
 	"embed"
 	"fmt"
 	"log"
@@ -111,6 +110,7 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 		handlerFeed(w, rq)
 		return
 	}
+	post.Tags = db.TagsForPost(id)
 	templateExec(templatePost, dataPost{
 		Post: post,
 	}, w)
@@ -129,7 +129,7 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	templateExec(templateFeed, dataFeed{
-		YieldAllPosts: db.YieldAllPosts(context.Background()),
+		YieldAllPosts: db.YieldAllPosts(),
 	}, w)
 }
 
