@@ -16,6 +16,21 @@ var (
 	db *sql.DB
 )
 
+func mustQuery(query string, args ...any) *sql.Rows {
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return rows
+}
+
+func mustScan(rows *sql.Rows, dest ...any) {
+	err := rows.Scan(dest...)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
 const schema = `
 create table if not exists Posts (
     ID integer primary key autoincrement not null,
@@ -62,19 +77,13 @@ select Name from Categories where ID = ? limit 1;
 `
 
 func PostsForCategoryAndNameByID(id int) (name string, out chan types.Post) {
-	rows, err := db.Query(sqlPostsForCategory, id)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	rows := mustQuery(sqlPostsForCategory, id)
 	out = make(chan types.Post)
 
 	go func() {
 		for rows.Next() {
 			var post types.Post
-			err = rows.Scan(&post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
-			if err != nil {
-				log.Fatalln(err)
-			}
+			mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
 			// TODO: Probably can be optimized with a smart query.
 			post.Categories = CategoriesForPost(post.ID)
 			out <- post
@@ -96,16 +105,10 @@ where
 `
 
 func CategoriesForPost(id int) (cats []types.Category) {
-	rows, err := db.Query(sqlCategoriesForPost, id)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	rows := mustQuery(sqlCategoriesForPost, id)
 	for rows.Next() {
 		var cat types.Category
-		err = rows.Scan(&cat.ID, &cat.Name)
-		if err != nil {
-			log.Fatalln(err)
-		}
+		mustScan(rows, &cat.ID, &cat.Name)
 		cats = append(cats, cat)
 	}
 	return cats
@@ -138,19 +141,13 @@ select ID, URL, Title, Description, Visibility, CreationTime from Posts;
 
 // YieldAllPosts returns a channel, from which you can get all posts stored in the database, along with their tags.
 func YieldAllPosts() chan types.Post {
-	rows, err := db.Query(sqlGetAllPosts)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	rows := mustQuery(sqlGetAllPosts)
 	out := make(chan types.Post)
 
 	go func() {
 		for rows.Next() {
 			var post types.Post
-			err = rows.Scan(&post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
-			if err != nil {
-				log.Fatalln(err)
-			}
+			mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
 			// TODO: Probably can be optimized with a smart query.
 			post.Categories = CategoriesForPost(post.ID)
 			out <- post
@@ -184,20 +181,11 @@ select ID, URL, Title, Description, Visibility, CreationTime from Posts where ID
 
 // PostForID returns the post corresponding to the given id, if there is any.
 func PostForID(id int) (post types.Post, found bool) {
-	rows, err := db.Query(sqlPostForID, id)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	for rows.Next() {
-		var post types.Post
-		err = rows.Scan(&post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		_ = rows.Close()
-		return post, true
-	}
-	return
+	rows := mustQuery(sqlPostForID, id)
+	rows.Next()
+	mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+	_ = rows.Close()
+	return post, true
 }
 
 const sqlURLForID = `
@@ -206,19 +194,11 @@ select URL from Posts where ID = ?;
 
 // URLForID returns the URL of the post corresponding to the given ID, if there is any post like that.
 func URLForID(id int) (url string, found bool) {
-	rows, err := db.Query(sqlURLForID, id)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	for rows.Next() {
-		var res string
-		err = rows.Scan(&res)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		return res, true
-	}
-	return "", false
+	rows := mustQuery(sqlURLForID, id)
+	rows.Next()
+	mustScan(rows, &url)
+	_ = rows.Close()
+	return url, true
 }
 
 const sqlLinkCount = `select count(ID) from Posts;`
@@ -230,15 +210,10 @@ func OldestTime() time.Time { return time.Unix(querySingleValue[int64](sqlOldest
 func NewestTime() time.Time { return time.Unix(querySingleValue[int64](sqlNewestTime), 0) }
 
 func querySingleValue[T any](query string, vals ...any) T {
-	rows, err := db.Query(query, vals...)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	rows := mustQuery(query, vals...)
 	rows.Next()
 	var res T
-	err = rows.Scan(&res)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	mustScan(rows, &res)
+	_ = rows.Close()
 	return res
 }
