@@ -3,25 +3,7 @@
 	<main>
 		<article class="post">
 			<h2><a href="/{{.Post.ID}}">{{.Post.Title}}</a></h2>
-			<a class="src-url" href="{{.Post.URL}}">{{.Post.URL}}</a>
-            {{if .Post.Description}}
-				<p>{{.Post.Description}}</p>
-            {{end}}
-			<ul class="categories">
-				{{range .Post.Categories}}
-					<li>
-						<a href="/cat/{{.ID}}">{{.Name}}</a>
-					</li>
-				{{end}}
-			</ul>
-			<div class="about-post">
-				<div class="globe">
-                    {{if .Post.Visibility}}{{randomGlobe}}{{else}}🔒{{end}}
-				</div>
-				<time>
-                    {{timestampToHuman .Post.CreationTime}}
-				</time>
-			</div>
+			{{template "post fragment" .Post}}
 		</article>
 	</main>
 {{end}}

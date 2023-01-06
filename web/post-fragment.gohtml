@@ -1,0 +1,21 @@
+{{define "post fragment"}}
+<a class="src-url" href="{{.URL}}">{{.URL}}</a>
+{{if .Description}}
+	<p>{{.Description}}</p>
+{{end}}
+<ul class="categories">
+    {{range .Categories}}
+		<li>
+			<a href="/cat/{{.ID}}">{{.Name}}</a>
+		</li>
+    {{end}}
+</ul>
+<div class="about-post">
+	<div class="globe">
+        {{if .Visibility}}{{randomGlobe}}{{else}}🔒{{end}}
+	</div>
+	<time>
+        {{timestampToHuman .CreationTime}}
+	</time>
+</div>
+{{end}}

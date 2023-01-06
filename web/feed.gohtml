@@ -5,25 +5,7 @@
         {{range .YieldAllPosts}}
 			<article class="post">
 				<h3><a href="/{{.ID}}">{{.Title}}</a></h3>
-				<a class="src-url" href="{{.URL}}">{{.URL}}</a>
-				{{if .Description}}
-					<p>{{.Description}}</p>
-				{{end}}
-				<ul class="categories">
-                    {{range .Categories}}
-						<li>
-							<a href="/cat/{{.ID}}">{{.Name}}</a>
-						</li>
-                    {{end}}
-				</ul>
-				<div class="about-post">
-					<div class="globe">
-						{{if .Visibility}}{{randomGlobe}}{{else}}🔒{{end}}
-					</div>
-					<time>
-						{{timestampToHuman .CreationTime}}
-					</time>
-				</div>
+				{{template "post fragment" .}}
 			</article>
 		{{else}}
 	        <p>No links saved. <a href="/add-link">Add link</a>.</p>

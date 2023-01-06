@@ -22,8 +22,9 @@ together. This file collects utilities for constructing such templates
 and running them, as well as all such templates.
 */
 
-func templateFrom(filename string, funcMap template.FuncMap) *template.Template {
-	return template.Must(template.New("skeleton.gohtml").Funcs(funcMap).ParseFS(fs, filename, "skeleton.gohtml"))
+func templateFrom(funcMap template.FuncMap, filenames ...string) *template.Template {
+	filenames = append(filenames, "skeleton.gohtml")
+	return template.Must(template.New("skeleton.gohtml").Funcs(funcMap).ParseFS(fs, filenames...))
 }
 
 func templateExec(temp *template.Template, data any, w http.ResponseWriter) {
@@ -33,11 +34,11 @@ func templateExec(temp *template.Template, data any, w http.ResponseWriter) {
 	}
 }
 
-var templateAddLink = templateFrom("add-link.gohtml", nil)
-var templateAddLinkInvalidURL = templateFrom("add-link-invalid-url.gohtml", nil)
-var templatePost = templateFrom("post.gohtml", funcMapForPosts)
-var templateFeed = templateFrom("feed.gohtml", funcMapForPosts)
-var templateAbout = templateFrom("about.gohtml", funcMapForTime)
+var templateAddLink = templateFrom(nil, "add-link.gohtml")
+var templateAddLinkInvalidURL = templateFrom(nil, "add-link-invalid-url.gohtml")
+var templatePost = templateFrom(funcMapForPosts, "post-fragment.gohtml", "post.gohtml")
+var templateFeed = templateFrom(funcMapForPosts, "post-fragment.gohtml", "feed.gohtml")
+var templateAbout = templateFrom(funcMapForTime, "about.gohtml")
 
 var funcMapForPosts = template.FuncMap{
 	"randomGlobe": func() string {
