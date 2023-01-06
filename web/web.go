@@ -27,7 +27,31 @@ func init() {
 	http.HandleFunc("/post/", handlerPost)
 	http.HandleFunc("/go/", handlerGo)
 	http.HandleFunc("/about", handlerAbout)
+	http.HandleFunc("/cat/", handlerCategory)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+type dataCategory struct {
+	types.Category
+	YieldPostsInCategory chan types.Post
+}
+
+func handlerCategory(w http.ResponseWriter, rq *http.Request) {
+	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/cat/"))
+	if err != nil {
+		// TODO: Show 404
+		log.Println(err)
+		handlerFeed(w, rq)
+		return
+	}
+	name, generator := db.PostsForCategoryAndNameByID(id)
+	templateExec(templateCategory, dataCategory{
+		Category: types.Category{
+			ID:   id,
+			Name: name,
+		},
+		YieldPostsInCategory: generator,
+	}, w)
 }
 
 type dataAbout struct {

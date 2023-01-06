@@ -38,6 +38,7 @@ var templateAddLink = templateFrom(nil, "add-link.gohtml")
 var templateAddLinkInvalidURL = templateFrom(nil, "add-link-invalid-url.gohtml")
 var templatePost = templateFrom(funcMapForPosts, "post-fragment.gohtml", "post.gohtml")
 var templateFeed = templateFrom(funcMapForPosts, "post-fragment.gohtml", "feed.gohtml")
+var templateCategory = templateFrom(funcMapForPosts, "post-fragment.gohtml", "category.gohtml")
 var templateAbout = templateFrom(funcMapForTime, "about.gohtml")
 
 var funcMapForPosts = template.FuncMap{

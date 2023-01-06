@@ -1,0 +1,14 @@
+{{define "title"}}Category {{.Name}}{{end}}
+{{define "body"}}
+	<main>
+		<h2>Category {{.Name}}</h2>
+		{{range .YieldPostsInCategory}}
+			<article class="post">
+				<h3><a href="/{{.ID}}">{{.Title}}</a></h3>
+                {{template "post fragment" .}}
+			</article>
+		{{else}}
+			<p>No links saved in this category.</p>
+		{{end}}
+	</main>
+{{end}}

@@ -46,6 +46,44 @@ insert or replace into BetulaMeta values
 	('Admin username', null),
 	('Admin password hash', null);`
 
+const sqlPostsForCategory = `
+select
+	ID, URL, Title, Description, Visibility, CreationTime
+from
+	Posts
+inner join
+	CategoriesToPosts
+where
+	ID = PostID and CatID = ?;
+`
+
+const sqlCatNameByID = `
+select Name from Categories where ID = ? limit 1;
+`
+
+func PostsForCategoryAndNameByID(id int) (name string, out chan types.Post) {
+	rows, err := db.Query(sqlPostsForCategory, id)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	out = make(chan types.Post)
+
+	go func() {
+		for rows.Next() {
+			var post types.Post
+			err = rows.Scan(&post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			// TODO: Probably can be optimized with a smart query.
+			post.Categories = CategoriesForPost(post.ID)
+			out <- post
+		}
+		close(out)
+	}()
+	return querySingleValue[string](sqlCatNameByID, id), out
+}
+
 const sqlCategoriesForPost = `
 select
     CatID, Name
@@ -191,8 +229,8 @@ func LinkCount() int        { return querySingleValue[int](sqlLinkCount) }
 func OldestTime() time.Time { return time.Unix(querySingleValue[int64](sqlOldestTime), 0) }
 func NewestTime() time.Time { return time.Unix(querySingleValue[int64](sqlNewestTime), 0) }
 
-func querySingleValue[T any](query string) T {
-	rows, err := db.Query(query)
+func querySingleValue[T any](query string, vals ...any) T {
+	rows, err := db.Query(query, vals...)
 	if err != nil {
 		log.Fatalln(err)
 	}
