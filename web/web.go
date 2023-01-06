@@ -31,13 +31,28 @@ func init() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 }
 
+type dataCategories struct {
+	Categories []types.Category
+}
+
+func handlerCategories(w http.ResponseWriter, rq *http.Request) {
+	templateExec(templateCategories, dataCategories{
+		Categories: db.Categories(),
+	}, w)
+}
+
 type dataCategory struct {
 	types.Category
 	YieldPostsInCategory chan types.Post
 }
 
 func handlerCategory(w http.ResponseWriter, rq *http.Request) {
-	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/cat/"))
+	s := strings.TrimPrefix(rq.URL.Path, "/cat/")
+	if s == "" {
+		handlerCategories(w, rq)
+		return
+	}
+	id, err := strconv.Atoi(s)
 	if err != nil {
 		// TODO: Show 404
 		log.Println(err)

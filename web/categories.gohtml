@@ -1,0 +1,17 @@
+{{define "title"}}Categories{{end}}
+{{define "body"}}
+	<main>
+		<h2>Categories</h2>
+		{{if .Categories}}
+			<ul>
+				{{range .Categories}}
+					<li>
+						<a href="/cat/{{.ID}}">{{.Name}}</a>
+					</li>
+				{{end}}
+			</ul>
+		{{else}}
+			<p>No categories.</p>
+		{{end}}
+	</main>
+{{end}}

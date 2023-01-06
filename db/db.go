@@ -135,6 +135,20 @@ func Finalize() {
 	}
 }
 
+const sqlGetAllCategories = `
+select ID, Name from Categories;
+`
+
+func Categories() (cats []types.Category) {
+	rows := mustQuery(sqlGetAllCategories)
+	for rows.Next() {
+		var cat types.Category
+		mustScan(rows, &cat.ID, &cat.Name)
+		cats = append(cats, cat)
+	}
+	return cats
+}
+
 const sqlGetAllPosts = `
 select ID, URL, Title, Description, Visibility, CreationTime from Posts;
 `
