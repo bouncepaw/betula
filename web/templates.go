@@ -34,8 +34,8 @@ func templateExec(temp *template.Template, data any, w http.ResponseWriter) {
 	}
 }
 
-var templateAddLink = templateFrom(nil, "add-link.gohtml")
-var templateAddLinkInvalidURL = templateFrom(nil, "add-link-invalid-url.gohtml")
+var templateAddLink = templateFrom(nil, "save-link.gohtml")
+var templateAddLinkInvalidURL = templateFrom(nil, "save-link-invalid-url.gohtml")
 var templatePost = templateFrom(funcMapForPosts, "post-fragment.gohtml", "post.gohtml")
 var templateFeed = templateFrom(funcMapForPosts, "post-fragment.gohtml", "feed.gohtml")
 var templateCategories = templateFrom(nil, "categories.gohtml")

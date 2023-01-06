@@ -23,7 +23,7 @@ var (
 
 func init() {
 	http.HandleFunc("/", handlerFeed)
-	http.HandleFunc("/add-link", handlerAddLink)
+	http.HandleFunc("/save-link", handlerAddLink)
 	http.HandleFunc("/post/", handlerPost)
 	http.HandleFunc("/go/", handlerGo)
 	http.HandleFunc("/about", handlerAbout)
