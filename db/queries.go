@@ -39,7 +39,39 @@ create table if not exists BetulaMeta (
 insert or replace into BetulaMeta values
 	('DB version', 0),
 	('Admin username', null),
-	('Admin password hash', null);`
+	('Admin password hash', null);
+
+create table if not exists Sessions (
+    Token text primary key,
+    CreationTime integer not null
+);`
+
+const sqlAddSession = `
+insert into Sessions values (?, ?);
+`
+
+func AddSession(token string) {
+	mustExec(sqlAddSession, token, time.Now().Unix())
+}
+
+const sqlHasSession = `
+select exists(select 1 from Sessions where Token = ?);
+`
+
+func HasSession(token string) (has bool) {
+	rows := mustQuery(sqlHasSession, token)
+	rows.Next()
+	mustScan(rows, &has)
+	return has
+}
+
+const sqlStopSession = `
+delete from Sessions where Token = ?;
+`
+
+func StopSession(token string) {
+	mustExec(sqlStopSession, token)
+}
 
 const sqlSetCredentials = `
 insert or replace into BetulaMeta values
@@ -48,10 +80,7 @@ insert or replace into BetulaMeta values
 `
 
 func SetCredentials(name, hash string) {
-	_, err := db.Exec(sqlSetCredentials, name, hash)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	mustExec(sqlSetCredentials, name, hash)
 }
 
 const sqlGetMetaEntry = `

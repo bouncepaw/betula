@@ -32,6 +32,13 @@ var (
 
 // Utility functions
 
+func mustExec(query string, args ...any) {
+	_, err := db.Exec(query, args...)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
 func mustQuery(query string, args ...any) *sql.Rows {
 	rows, err := db.Query(query, args...)
 	if err != nil {
