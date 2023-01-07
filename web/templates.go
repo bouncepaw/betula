@@ -34,6 +34,10 @@ func templateExec(temp *template.Template, data any, w http.ResponseWriter) {
 	}
 }
 
+// Temporary views:
+var templateRegisterForm = templateFrom(nil, "register-form.gohtml")
+
+// Permanent views:
 var templateAddLink = templateFrom(nil, "save-link.gohtml")
 var templateAddLinkInvalidURL = templateFrom(nil, "save-link-invalid-url.gohtml")
 var templatePost = templateFrom(funcMapForPosts, "post-fragment.gohtml", "post.gohtml")

@@ -4,6 +4,7 @@ package web
 import (
 	"embed"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/auth"
 	"log"
 	"net/http"
 	"net/url"
@@ -18,17 +19,56 @@ import (
 
 var (
 	//go:embed *.gohtml *.css
-	fs embed.FS
+	fs  embed.FS
+	mux = http.NewServeMux()
 )
 
 func init() {
-	http.HandleFunc("/", handlerFeed)
-	http.HandleFunc("/save-link", handlerAddLink)
-	http.HandleFunc("/post/", handlerPost)
-	http.HandleFunc("/go/", handlerGo)
-	http.HandleFunc("/about", handlerAbout)
-	http.HandleFunc("/cat/", handlerCategory)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+	mux.HandleFunc("/", handlerFeed)
+	mux.HandleFunc("/save-link", handlerAddLink)
+	mux.HandleFunc("/post/", handlerPost)
+	mux.HandleFunc("/go/", handlerGo)
+	mux.HandleFunc("/about", handlerAbout)
+	mux.HandleFunc("/cat/", handlerCategory)
+	mux.HandleFunc("/register", handlerRegister)
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerRegister(w http.ResponseWriter, rq *http.Request) {
+	log.Println("/register")
+	if auth.Ready() {
+		// TODO: Let admin change credentials.
+		log.Println("Cannot reregister")
+		return
+	}
+	var (
+		name = rq.FormValue("name")
+		pass = rq.FormValue("pass")
+	)
+	auth.SetCredentials(name, pass)
+	http.Redirect(w, rq, "/", http.StatusSeeOther)
+}
+
+func Start() {
+	log.Fatal(http.ListenAndServe(":1738", &auther{mux}))
+}
+
+type auther struct {
+	http.Handler
+}
+
+type dataAuthorized struct {
+	Authorized bool
+}
+
+func (a *auther) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
+	if auth.Ready() ||
+		strings.HasPrefix(rq.URL.Path, "/static/") ||
+		strings.HasPrefix(rq.URL.Path, "/register") {
+		a.Handler.ServeHTTP(w, rq)
+		return
+	}
+	templateExec(templateRegisterForm, dataAuthorized{}, w)
 }
 
 type dataCategories struct {

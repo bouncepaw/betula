@@ -4,8 +4,8 @@ package main
 import (
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
+	"git.sr.ht/~bouncepaw/betula/web"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 
@@ -31,8 +31,5 @@ func main() {
 	auth.Initialize()
 
 	// TODO: make it configurable
-	err = http.ListenAndServe(":1738", nil)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	web.Start()
 }

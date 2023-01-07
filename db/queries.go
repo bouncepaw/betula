@@ -41,6 +41,19 @@ insert or replace into BetulaMeta values
 	('Admin username', null),
 	('Admin password hash', null);`
 
+const sqlSetCredentials = `
+insert or replace into BetulaMeta values
+	('Admin username', ?),
+	('Admin password hash', ?);
+`
+
+func SetCredentials(name, hash string) {
+	_, err := db.Exec(sqlSetCredentials, name, hash)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
 const sqlGetMetaEntry = `
 select Value from BetulaMeta where Key = ? limit 1;
 `

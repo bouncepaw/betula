@@ -57,6 +57,7 @@ func CredentialsMatch(name, pass string) bool {
 
 // SetCredentials sets new credentials.
 func SetCredentials(name, pass string) {
+	log.Println("Setting new credentials")
 	adminName = name
 
 	var err error
@@ -64,4 +65,7 @@ func SetCredentials(name, pass string) {
 	if err != nil {
 		log.Fatalln("While hashing:", err)
 	}
+
+	db.SetCredentials(adminName, string(passwordHash))
+	Initialize()
 }
