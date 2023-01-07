@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/auth"
 	"log"
 	"net/http"
 	"os"
@@ -27,6 +28,7 @@ func main() {
 	}
 	db.Initialize(filename)
 	defer db.Finalize()
+	auth.Initialize()
 
 	// TODO: make it configurable
 	err = http.ListenAndServe(":1738", nil)
