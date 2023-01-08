@@ -1,0 +1,21 @@
+{{define "title"}}Log in{{end}}
+{{define "body"}}
+	<main>
+		<h2>Log in</h2>
+		{{if .Incorrect}}
+			<p class="error">Incorrect data, try again.</p>
+		{{end}}
+		<form method="post" action="/login">
+			<p>
+				<label for="name">Username</label>
+				<input type="text" name="name" id="name" value="{{.Name}}">
+			</p>
+			<p>
+				<label for="pass">Password</label>
+				<input type="password" name="pass" id="pass" value="{{.Pass}}">
+			</p>
+			<input type="submit" value="Login" class="btn">
+		</form>
+		<p>Betula will save a cookie on your device for authentication once you click the button above.</p>
+	</main>
+{{end}}

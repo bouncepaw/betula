@@ -31,7 +31,59 @@ func init() {
 	mux.HandleFunc("/about", handlerAbout)
 	mux.HandleFunc("/cat/", handlerCategory)
 	mux.HandleFunc("/register", handlerRegister)
+	mux.HandleFunc("/login", handlerLogin)
+	mux.HandleFunc("/logout", handlerLogout)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerLogout(w http.ResponseWriter, rq *http.Request) {
+	if rq.Method == http.MethodGet {
+		templateExec(templateLogoutForm, dataAuthorized{
+			Authorized: auth.AuthorizedFromRequest(rq),
+		}, w)
+		return
+	}
+
+	auth.LogoutFromRequest(w, rq)
+	// TODO: Redirect to the previous (?) location, whatever it is
+	http.Redirect(w, rq, "/", http.StatusSeeOther)
+}
+
+type dataLogin struct {
+	Authorized bool
+	Name       string
+	Pass       string
+	Incorrect  bool
+}
+
+func handlerLogin(w http.ResponseWriter, rq *http.Request) {
+	if rq.Method == http.MethodGet {
+		templateExec(templateLoginForm, dataLogin{
+			Authorized: auth.AuthorizedFromRequest(rq),
+		}, w)
+		return
+	}
+
+	var (
+		name = rq.FormValue("name")
+		pass = rq.FormValue("pass")
+	)
+
+	if !auth.CredentialsMatch(name, pass) {
+		// If incorrect password, ask the client to try again.
+		w.WriteHeader(http.StatusBadRequest)
+		templateExec(templateLoginForm, dataLogin{
+			Authorized: auth.AuthorizedFromRequest(rq),
+			Name:       name,
+			Pass:       pass,
+			Incorrect:  true,
+		}, w)
+		return
+	}
+
+	auth.LogInResponse(w)
+	// TODO: Redirect to the previous (?) location, whatever it is
+	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
 
 func handlerRegister(w http.ResponseWriter, rq *http.Request) {
@@ -46,6 +98,7 @@ func handlerRegister(w http.ResponseWriter, rq *http.Request) {
 		pass = rq.FormValue("pass")
 	)
 	auth.SetCredentials(name, pass)
+	auth.LogInResponse(w)
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
 

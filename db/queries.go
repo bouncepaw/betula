@@ -62,6 +62,7 @@ func HasSession(token string) (has bool) {
 	rows := mustQuery(sqlHasSession, token)
 	rows.Next()
 	mustScan(rows, &has)
+	_ = rows.Close()
 	return has
 }
 
