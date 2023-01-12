@@ -4,13 +4,12 @@ package main
 import (
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
+	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/web"
+	_ "git.sr.ht/~bouncepaw/betula/web" // For init()
 	"log"
 	"os"
 	"path/filepath"
-
-	"git.sr.ht/~bouncepaw/betula/db"
-	_ "git.sr.ht/~bouncepaw/betula/web" // For init()
 
 	_ "github.com/mattn/go-sqlite3"
 )

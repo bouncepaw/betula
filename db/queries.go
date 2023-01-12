@@ -36,7 +36,7 @@ create table if not exists BetulaMeta (
     Value text
 );
 
-insert or replace into BetulaMeta values
+insert or ignore into BetulaMeta values
 	('DB version', 0),
 	('Admin username', null),
 	('Admin password hash', null);

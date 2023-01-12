@@ -40,7 +40,7 @@ var templateLoginForm = templateFrom(nil, "login-form.gohtml")
 var templateLogoutForm = templateFrom(nil, "logout-form.gohtml")
 
 // Meaningful views:
-var templateAddLink = templateFrom(nil, "save-link.gohtml")
+var templateSaveLink = templateFrom(nil, "save-link.gohtml")
 var templateAddLinkInvalidURL = templateFrom(nil, "save-link-invalid-url.gohtml")
 var templatePost = templateFrom(funcMapForPosts, "post-fragment.gohtml", "post.gohtml")
 var templateFeed = templateFrom(funcMapForPosts, "post-fragment.gohtml", "feed.gohtml")

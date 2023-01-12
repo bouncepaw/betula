@@ -2,7 +2,6 @@
 package auth
 
 import (
-	"bytes"
 	"database/sql"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"golang.org/x/crypto/bcrypt"
@@ -43,11 +42,8 @@ func CredentialsMatch(name, pass string) bool {
 		log.Println("Matching credentials. Name mismatches.")
 		return false
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	err := bcrypt.CompareHashAndPassword(db.MetaEntry[[]byte]("Admin password hash"), []byte(pass))
 	if err != nil {
-		log.Fatalln("While hashing:", err)
-	}
-	if !bytes.Equal(hash, passwordHash) {
 		log.Println("Matching credentials. Password mismatches.")
 		return false
 	}

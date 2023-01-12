@@ -1,14 +1,14 @@
 package auth
 
 import (
+	"crypto/rand"
 	"encoding/hex"
 	"git.sr.ht/~bouncepaw/betula/db"
-	"math/rand"
 	"net/http"
 	"time"
 )
 
-const tokenName = "betula_token"
+const tokenName = "betula-token"
 
 // AuthorizedFromRequest is true if the user is authorized.
 func AuthorizedFromRequest(rq *http.Request) bool {

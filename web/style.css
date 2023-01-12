@@ -131,6 +131,9 @@ header a:hover {
     color: black;
     text-decoration: underline;
 }
+.btn, .btn:active, .btn:hover, .btn:visited {
+    color: black;
+}
 
 
 /* Buttons */
@@ -172,6 +175,7 @@ a.btn_destructive:visited,
         border: #444 solid 1px;
     }
 
+    .btn:hover, .btn:active,
     .btn:visited {
         color: #ddd;
     }

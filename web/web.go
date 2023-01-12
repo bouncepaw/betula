@@ -25,7 +25,7 @@ var (
 
 func init() {
 	mux.HandleFunc("/", handlerFeed)
-	mux.HandleFunc("/save-link", handlerAddLink)
+	mux.HandleFunc("/save-link", handlerSaveLink)
 	mux.HandleFunc("/post/", handlerPost)
 	mux.HandleFunc("/go/", handlerGo)
 	mux.HandleFunc("/about", handlerAbout)
@@ -126,17 +126,20 @@ func (a *auther) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 type dataCategories struct {
 	Categories []types.Category
+	Authorized bool
 }
 
 func handlerCategories(w http.ResponseWriter, rq *http.Request) {
 	templateExec(templateCategories, dataCategories{
 		Categories: db.Categories(),
+		Authorized: auth.AuthorizedFromRequest(rq),
 	}, w)
 }
 
 type dataCategory struct {
 	types.Category
 	YieldPostsInCategory chan types.Post
+	Authorized           bool
 }
 
 func handlerCategory(w http.ResponseWriter, rq *http.Request) {
@@ -159,6 +162,7 @@ func handlerCategory(w http.ResponseWriter, rq *http.Request) {
 			Name: name,
 		},
 		YieldPostsInCategory: generator,
+		Authorized:           auth.AuthorizedFromRequest(rq),
 	}, w)
 }
 
@@ -166,6 +170,7 @@ type dataAbout struct {
 	LinkCount  int
 	OldestTime time.Time
 	NewestTime time.Time
+	Authorized bool
 }
 
 func handlerAbout(w http.ResponseWriter, rq *http.Request) {
@@ -173,11 +178,12 @@ func handlerAbout(w http.ResponseWriter, rq *http.Request) {
 		LinkCount:  db.LinkCount(),
 		OldestTime: db.OldestTime(),
 		NewestTime: db.NewestTime(),
+		Authorized: auth.AuthorizedFromRequest(rq),
 	}, w)
 }
 
-type dataAddLink struct {
-	Authorized bool // TODO: authorize
+type dataSaveLink struct {
+	Authorized bool
 
 	// The following three fields can be non-empty, when set through URL parameters or when an erroneous request was made.
 
@@ -186,10 +192,11 @@ type dataAddLink struct {
 	Visibility string
 }
 
-func handlerAddLink(w http.ResponseWriter, rq *http.Request) {
+func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	switch rq.Method {
 	case http.MethodGet:
-		templateExec(templateAddLink, dataAddLink{
+		templateExec(templateSaveLink, dataSaveLink{
+			Authorized: auth.AuthorizedFromRequest(rq),
 			URL:        rq.FormValue("url"),
 			Title:      rq.FormValue("title"),
 			Visibility: rq.FormValue("visibility"),
@@ -202,7 +209,7 @@ func handlerAddLink(w http.ResponseWriter, rq *http.Request) {
 			visibility = rq.FormValue("visibility")
 		)
 		if _, err := url.ParseRequestURI(addr); err != nil {
-			templateExec(templateAddLinkInvalidURL, dataAddLink{
+			templateExec(templateAddLinkInvalidURL, dataSaveLink{
 				URL:        addr,
 				Title:      title,
 				Visibility: visibility,
@@ -223,7 +230,7 @@ func handlerAddLink(w http.ResponseWriter, rq *http.Request) {
 
 type dataPost struct {
 	Post       types.Post
-	Authorized bool // TODO: authorize
+	Authorized bool
 }
 
 func handlerPost(w http.ResponseWriter, rq *http.Request) {
@@ -244,13 +251,14 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 	}
 	post.Categories = db.CategoriesForPost(id)
 	templateExec(templatePost, dataPost{
-		Post: post,
+		Post:       post,
+		Authorized: auth.AuthorizedFromRequest(rq),
 	}, w)
 }
 
 type dataFeed struct {
 	YieldAllPosts chan types.Post
-	Authorized    bool // TODO: authorize
+	Authorized    bool
 }
 
 var regexpPost = regexp.MustCompile("^/[0-9]+")
@@ -262,6 +270,7 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	}
 	templateExec(templateFeed, dataFeed{
 		YieldAllPosts: db.YieldAllPosts(),
+		Authorized:    auth.AuthorizedFromRequest(rq),
 	}, w)
 }
 
