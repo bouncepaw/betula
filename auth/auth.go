@@ -6,29 +6,26 @@ import (
 	"git.sr.ht/~bouncepaw/betula/db"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"sync/atomic"
 )
 
 var (
-	adminName    string
-	passwordHash []byte
-	ready        bool
+	ready atomic.Bool
 )
 
 // Initialize queries the database for auth information. Call on startup. The module handles all further invocations for you.
 func Initialize() {
+	ready.Store(false)
 	var (
 		name = db.MetaEntry[sql.NullString]("Admin username")
 		pass = db.MetaEntry[sql.NullString]("Admin password hash")
 	)
-	ready = name.Valid && pass.Valid
-	if ready {
-		adminName = name.String
-		passwordHash = []byte(pass.String)
-	}
+	ready.Store(name.Valid && pass.Valid)
 }
 
 // Ready returns if the admin account is set up. If it is not, Betula should demand it and refuse to work until then.
 func Ready() bool {
+	ready := ready.Load()
 	if ready {
 		return true
 	}
@@ -38,7 +35,7 @@ func Ready() bool {
 
 // CredentialsMatch checks if the credentials match.
 func CredentialsMatch(name, pass string) bool {
-	if name != adminName {
+	if name != db.MetaEntry[string]("Admin username") {
 		log.Println("Matching credentials. Name mismatches.")
 		return false
 	}
@@ -54,14 +51,12 @@ func CredentialsMatch(name, pass string) bool {
 // SetCredentials sets new credentials.
 func SetCredentials(name, pass string) {
 	log.Println("Setting new credentials")
-	adminName = name
 
-	var err error
-	passwordHash, err = bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
 		log.Fatalln("While hashing:", err)
 	}
 
-	db.SetCredentials(adminName, string(passwordHash))
+	db.SetCredentials(name, string(hash))
 	Initialize()
 }
