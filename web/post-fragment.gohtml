@@ -1,4 +1,4 @@
-{{define "post fragment"}}
+{{define "post main fragment"}}
 <a class="src-url" href="{{.URL}}">{{.URL}}</a>
 {{if .Description}}
 	<p>{{.Description}}</p>
@@ -10,12 +10,25 @@
 		</li>
     {{end}}
 </ul>
-<div class="about-post">
-	<div class="globe">
-        {{if .Visibility}}{{randomGlobe}}{{else}}🔒{{end}}
+{{end}}
+
+{{define "post authorized fragment"}}
+	{{template "post main fragment" .}}
+	<div class="about-post">
+		<div class="globe">
+            {{if .Visibility}}{{randomGlobe}}{{else}}🔒{{end}}
+		</div>
+		<time>
+            {{timestampToHuman .CreationTime}}
+		</time>
 	</div>
-	<time>
-        {{timestampToHuman .CreationTime}}
-	</time>
-</div>
+{{end}}
+
+{{define "post unauthorized fragment"}}
+    {{template "post main fragment" .}}
+    <div class="about-post">
+	    <time>
+            {{timestampToHuman .CreationTime}}
+	    </time>
+    </div>
 {{end}}

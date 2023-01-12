@@ -1,11 +1,15 @@
 {{define "title"}}Category {{.Name}}{{end}}
 {{define "body"}}
 	<main>
-		<h2>Category {{.Name}}</h2>
+		<h2>Category {{.Name}}</h2>{{$authed := .Authorized}}
 		{{range .YieldPostsInCategory}}
 			<article class="post">
 				<h3><a href="/{{.ID}}">{{.Title}}</a></h3>
-                {{template "post fragment" .}}
+                {{if $authed}}
+                    {{template "post authorized fragment" .}}
+                {{else}}
+                    {{template "post unauthorized fragment" .}}
+                {{end}}
 			</article>
 		{{else}}
 			<p>No links saved in this category.</p>

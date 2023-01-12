@@ -107,7 +107,7 @@ const sqlCatNameByID = `
 select Name from Categories where ID = ? limit 1;
 `
 
-func PostsForCategoryAndNameByID(id int) (name string, out chan types.Post) {
+func AuthorizedPostsForCategoryAndNameByID(authorized bool, id int) (name string, out chan types.Post) {
 	rows := mustQuery(sqlPostsForCategory, id)
 	out = make(chan types.Post)
 
@@ -115,6 +115,9 @@ func PostsForCategoryAndNameByID(id int) (name string, out chan types.Post) {
 		for rows.Next() {
 			var post types.Post
 			mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+			if !authorized && post.Visibility == types.Private {
+				continue
+			}
 			// TODO: Probably can be optimized with a smart query.
 			post.Categories = CategoriesForPost(post.ID)
 			out <- post
@@ -163,8 +166,8 @@ const sqlGetAllPosts = `
 select ID, URL, Title, Description, Visibility, CreationTime from Posts;
 `
 
-// YieldAllPosts returns a channel, from which you can get all posts stored in the database, along with their tags.
-func YieldAllPosts() chan types.Post {
+// YieldAuthorizedPosts returns a channel, from which you can get all posts stored in the database, along with their tags, but only if the viewer is authorized! Otherwise, only public posts will be given.
+func YieldAuthorizedPosts(authorized bool) chan types.Post {
 	rows := mustQuery(sqlGetAllPosts)
 	out := make(chan types.Post)
 
@@ -172,6 +175,9 @@ func YieldAllPosts() chan types.Post {
 		for rows.Next() {
 			var post types.Post
 			mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+			if !authorized && post.Visibility == types.Private {
+				continue
+			}
 			// TODO: Probably can be optimized with a smart query.
 			post.Categories = CategoriesForPost(post.ID)
 			out <- post

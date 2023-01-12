@@ -155,14 +155,15 @@ func handlerCategory(w http.ResponseWriter, rq *http.Request) {
 		handlerFeed(w, rq)
 		return
 	}
-	name, generator := db.PostsForCategoryAndNameByID(id)
+	authed := auth.AuthorizedFromRequest(rq)
+	name, generator := db.AuthorizedPostsForCategoryAndNameByID(authed, id)
 	templateExec(templateCategory, dataCategory{
 		Category: types.Category{
 			ID:   id,
 			Name: name,
 		},
 		YieldPostsInCategory: generator,
-		Authorized:           auth.AuthorizedFromRequest(rq),
+		Authorized:           authed,
 	}, w)
 }
 
@@ -268,9 +269,10 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 		handlerPost(w, rq)
 		return
 	}
+	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(templateFeed, dataFeed{
-		YieldAllPosts: db.YieldAllPosts(),
-		Authorized:    auth.AuthorizedFromRequest(rq),
+		YieldAllPosts: db.YieldAuthorizedPosts(authed),
+		Authorized:    authed,
 	}, w)
 }
 
