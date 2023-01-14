@@ -39,6 +39,9 @@ var templateRegisterForm = templateFrom(nil, "register-form.gohtml")
 var templateLoginForm = templateFrom(nil, "login-form.gohtml")
 var templateLogoutForm = templateFrom(nil, "logout-form.gohtml")
 
+// Sad views:
+var template404 = templateFrom(nil, "404.gohtml")
+
 // Meaningful views:
 var templateSaveLink = templateFrom(nil, "save-link.gohtml")
 var templateAddLinkInvalidURL = templateFrom(nil, "save-link-invalid-url.gohtml")

@@ -36,6 +36,13 @@ func init() {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 }
 
+func handler404(w http.ResponseWriter, rq *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+	templateExec(template404, dataAuthorized{
+		Authorized: auth.AuthorizedFromRequest(rq),
+	}, w)
+}
+
 func handlerLogout(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method == http.MethodGet {
 		templateExec(templateLogoutForm, dataAuthorized{
@@ -150,9 +157,8 @@ func handlerCategory(w http.ResponseWriter, rq *http.Request) {
 	}
 	id, err := strconv.Atoi(s)
 	if err != nil {
-		// TODO: Show 404
 		log.Println(err)
-		handlerFeed(w, rq)
+		handler404(w, rq)
 		return
 	}
 	authed := auth.AuthorizedFromRequest(rq)
@@ -245,9 +251,8 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 	log.Printf("Viewing post %d\n", id)
 	post, found := db.PostForID(id)
 	if !found {
-		// TODO: Show 404
 		log.Println(err)
-		handlerFeed(w, rq)
+		handler404(w, rq)
 		return
 	}
 	post.Categories = db.CategoriesForPost(id)
@@ -269,6 +274,10 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 		handlerPost(w, rq)
 		return
 	}
+	if rq.URL.Path != "/" {
+		handler404(w, rq)
+		return
+	}
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(templateFeed, dataFeed{
 		YieldAllPosts: db.YieldAuthorizedPosts(authed),
@@ -286,7 +295,6 @@ func handlerGo(w http.ResponseWriter, rq *http.Request) {
 	if addr, found := db.URLForID(id); found {
 		http.Redirect(w, rq, addr, http.StatusSeeOther)
 	} else {
-		// TODO: Show 404
-		http.Redirect(w, rq, "/", http.StatusSeeOther)
+		handler404(w, rq)
 	}
 }
