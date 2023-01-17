@@ -1,5 +1,5 @@
 {{define "post main fragment"}}
-	<a class="src-url" href="{{.URL}}">{{.URL}}</a>
+	<a class="src-url" href="{{.URL}}">{{stripCommonProtocol .URL}}</a>
 	{{if .Description}}
 		<p>{{.Description}}</p>
 	{{end}}

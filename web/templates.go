@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -59,6 +60,12 @@ var funcMapForPosts = template.FuncMap{
 	"timestampToHuman": func(stamp int64) string {
 		t := time.Unix(stamp, 0)
 		return t.Format("2006-01-02 15:04")
+	},
+	"stripCommonProtocol": func(a string) string {
+		b := strings.TrimPrefix(a, "https://")
+		c := strings.TrimPrefix(b, "http://")
+		// Gemini, Gopher, FTP, Mail are not stripped, to emphasize them, when they are.
+		return c
 	},
 }
 
