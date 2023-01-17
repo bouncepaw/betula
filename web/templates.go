@@ -1,6 +1,7 @@
 package web
 
 import (
+	"git.sr.ht/~bouncepaw/betula/myco"
 	"html/template"
 	"log"
 	"math/rand"
@@ -67,6 +68,7 @@ var funcMapForPosts = template.FuncMap{
 		// Gemini, Gopher, FTP, Mail are not stripped, to emphasize them, when they are.
 		return c
 	},
+	"mycomarkup": myco.MarkupToHTML,
 }
 
 var funcMapForTime = template.FuncMap{
