@@ -8,24 +8,7 @@
 			<h2>Edit link</h2>
 		{{end}}
 		<form method="post" action="/edit-link/{{.ID}}">
-			<p>
-				<label for="link-url">URL</label>
-				<input type="url" id="link-url" name="url" required value="{{.URL}}">
-			</p>
-			<p>
-				<label for="link-title">Title</label>
-				<input type="text" id="link-title" name="title" required value="{{.Title}}">
-			</p>
-			<p>
-				<label for="link-visiblity">Visibility</label>
-				<select id="link-visiblity" name="visibility">
-					<option value="private"{{if not .Visibility}} selected{{end}}>Private</option>
-					<option value="public"{{if .Visibility}} selected{{end}}>Public</option>
-				</select>
-			</p>
-			<label for="link-description">Description</label>
-			<textarea id="link-description" name="description">{{.Description}}</textarea>
-			<input type="submit" class="btn" value="Save">
+            {{template "form fragment" .}}
 		</form>
 	</main>
 {{end}}

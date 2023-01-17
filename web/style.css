@@ -109,6 +109,24 @@ input[type="url"] {
     margin: 0;
     max-width: calc(100% - 6px);
 }
+form {
+    max-width: 20rem;
+}
+form div {
+    margin-bottom: 16px;
+}
+form label {
+    display: block;
+    margin-bottom: 8px;
+}
+form input {
+    display: block;
+    width: 100%;
+}
+form textarea {
+    width: 98%;
+    height: 100px;
+}
 
 /* Colors */
 html {

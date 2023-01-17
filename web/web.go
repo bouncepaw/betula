@@ -259,7 +259,7 @@ type dataSaveLink struct {
 
 	URL         string
 	Title       string
-	Visibility  string
+	Visibility  types.Visibility
 	Description string
 }
 
@@ -270,7 +270,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			Authorized:  auth.AuthorizedFromRequest(rq),
 			URL:         rq.FormValue("url"),
 			Title:       rq.FormValue("title"),
-			Visibility:  rq.FormValue("visibility"),
+			Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
 			Description: rq.FormValue("description"),
 		}, w)
 	case http.MethodPost:
@@ -278,7 +278,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 		var (
 			addr        = rq.FormValue("url")
 			title       = rq.FormValue("title")
-			visibility  = rq.FormValue("visibility")
+			visibility  = types.VisibilityFromString(rq.FormValue("visibility"))
 			description = rq.FormValue("description")
 		)
 		if _, err := url.ParseRequestURI(addr); err != nil {
@@ -295,7 +295,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			URL:         addr,
 			Title:       title,
 			Description: description,
-			Visibility:  types.VisibilityFromString(visibility),
+			Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
 		})
 
 		http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
