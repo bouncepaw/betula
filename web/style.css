@@ -10,14 +10,25 @@
     main {
         padding: 8px;
     }
-    header ul {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
+    header {
+        margin: 8px 0 0 4px;
+    }
+    h1, header ul, header li {
+        display: inline;
+        line-height: 150%;
+        margin-right: 4px;
+    }
+    header li {
+        white-space: nowrap;
     }
     h1 {
-        display: none;
+        font-size: medium;
+    }
+    .h-feed h2 {
+        padding: 0 8px;
+    }
+    .h-feed {
+        margin: 0 -8px;
     }
 }
 
@@ -32,8 +43,17 @@
     main:not(.h-feed) {
         padding: 8px 32px 32px 32px;
     }
-    main, header {
+    main, header, .post {
         border-radius: 4px;
+    }
+    header li {
+        padding: 4px 8px;
+    }
+    h1 {
+        margin: 8px;
+    }
+    .h-feed h2 {
+        padding: 8px;
     }
 }
 
@@ -65,16 +85,12 @@ footer {
 header {
     padding: 0 4px;
 }
-h1 {
-    margin: 8px;
-}
 header ul {
     padding: 0;
     margin: 8px 0;
 }
 header li {
     list-style-type: none;
-    padding: 4px 8px;
 }
 main {
     max-width: 40rem;
@@ -82,6 +98,7 @@ main {
 a.edit-post-btn {
     float: right;
     font-size: small;
+    margin: 2px;
 }
 .globe {
     float: right;
@@ -170,7 +187,6 @@ h2, .post {
     font-size: medium;
 }
 .h-feed h2 {
-    padding: 8px;
     margin: 0 0 8px 0;
 }
 .h-feed .post {
@@ -192,6 +208,9 @@ html {
 main:not(.h-feed),
 .h-feed .post {
     background: white;
+}
+.edit-post-btn, .edit-post-btn:visited {
+    color: black;
 }
 header a, header a:hover, header a:visited {
     color: black;
