@@ -16,6 +16,9 @@
         flex-wrap: wrap;
         justify-content: center;
     }
+    h1 {
+        display: none;
+    }
 }
 
 @media screen and (min-width: 40rem) {
@@ -61,6 +64,9 @@ footer {
 /* Design */
 header {
     padding: 0 4px;
+}
+h1 {
+    margin: 8px;
 }
 header ul {
     padding: 0;
