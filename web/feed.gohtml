@@ -1,15 +1,14 @@
 {{define "title"}}Betula ɑ{{end}}
 {{define "body"}}
-	<main>
-		<h2>Saved links</h2>{{$authed := .Authorized}}
+	<main class="h-feed">
+		<h2 class="p-name">Saved links</h2>{{$authed := .Authorized}}
         {{range .YieldAllPosts}}
-			<article class="post">
-				<h3><a href="/{{.ID}}">{{.Title}}</a></h3>
+			<article class="post h-entry">
                 {{if $authed}}
-                    {{template "post authorized fragment" .}}
-                {{else}}
-                    {{template "post unauthorized fragment" .}}
+                    {{template "post buttons fragment" .}}
                 {{end}}
+				<h3><a href="/{{.ID}}">{{.Title}}</a></h3>
+                {{template "post main fragment" .}}
 			</article>
 		{{else}}
 	        <p>No links saved. <a href="/save-link">Save link</a>.</p>

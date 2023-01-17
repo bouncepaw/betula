@@ -26,7 +26,7 @@
             "footer main";
         grid-column-gap: 8px;
     }
-    main {
+    main:not(.h-feed) {
         padding: 8px 32px 32px 32px;
     }
     main, header {
@@ -62,14 +62,26 @@ header a {
     display: block;
     padding: 4px 8px;
 }
-.about-post .globe {
-    display: inline;
+h2, h3 { margin: 0; }
+a.edit-post-btn {
+    float: right;
+    font-size: small;
+}
+.globe {
+    float: right;
+    margin-right: 4px;
+    font-size: small;
+}
+.about-post {
+    display: flex;
+    font-size: small;
 }
 .about-post time {
-    display: inline;
+    margin-left: auto;
 }
 .src-url {
-    display: block;
+    display: inline-block;
+    font-size: small;
 }
 h3 {
     margin-bottom: 4px;
@@ -79,9 +91,6 @@ dt {
 }
 dd + dt {
     margin-top: 8px;
-}
-.src-url, .src-url:visited {
-    display: block;
 }
 .categories {
     display: flex;
@@ -137,6 +146,28 @@ form textarea {
     height: 100px;
     font-size: 1rem;
 }
+h2, .post {
+    max-width: 40rem;
+}
+.post h2, .post h3 {
+    margin: 0;
+    font-size: medium;
+}
+.h-feed h2 {
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 8px;
+}
+.h-feed .post {
+    border-radius: 4px;
+    padding: 8px;
+}
+.h-feed .post + .post {
+    margin-top: 8px;
+}
+.about-post a, .about-post .empty-set {
+    margin-left: .25rem;
+}
 
 /* Colors */
 html {
@@ -144,22 +175,18 @@ html {
     padding: 0;
 }
 header,
-main {
+main:not(.h-feed),
+.h-feed .post,
+.h-feed h2 {
     background: white;
 }
 header a:hover {
     background: #eee;
 }
-.categories a {
-    background: #eee;
-    color: black;
-}
-.categories a:hover {
-    background: #ddd;
-    color: black;
-    text-decoration: underline;
-}
 .btn, .btn:active, .btn:hover, .btn:visited {
+    color: black;
+}
+.about-post a {
     color: black;
 }
 

@@ -1,13 +1,12 @@
 {{define "title"}}Link: {{.Post.Title}}{{end}}
 {{define "body"}}
 	<main>
-		<article class="post">
+		<article class="post h-entry">
+            {{if .Authorized}}
+                {{template "post buttons fragment" .Post}}
+            {{end}}
 			<h2><a href="/{{.Post.ID}}">{{.Post.Title}}</a></h2>
-			{{if .Authorized}}
-				{{template "post authorized fragment" .Post}}
-			{{else}}
-				{{template "post unauthorized fragment" .Post}}
-			{{end}}
+			{{template "post main fragment" .Post}}
 		</article>
 	</main>
 {{end}}

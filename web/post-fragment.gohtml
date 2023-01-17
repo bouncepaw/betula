@@ -1,37 +1,27 @@
 {{define "post main fragment"}}
-<a class="src-url" href="{{.URL}}">{{.URL}}</a>
-{{if .Description}}
-	<p>{{.Description}}</p>
-{{end}}
-<ul class="categories">
-    {{range .Categories}}
-		<li>
-			<a href="/cat/{{.ID}}">{{.Name}}</a>
-		</li>
-    {{end}}
-</ul>
-{{end}}
-
-{{define "post authorized fragment"}}
-	{{template "post main fragment" .}}
+	<a class="src-url" href="{{.URL}}">{{.URL}}</a>
+	{{if .Description}}
+		<p>{{.Description}}</p>
+	{{end}}
 	<div class="about-post">
-		<div class="globe">
-            {{if .Visibility}}{{randomGlobe}}{{else}}🔒{{end}}
-		</div>
+		<span>Categories:</span>
+		{{range $i, $cat := .Categories}}
+			{{if $i}},{{end}}
+			<a href="/cat/{{$cat.ID}}">{{$cat.Name}}</a>
+		{{else}}
+			<span class="empty-set">∅</span>
+		{{end}}
 		<time>
             {{timestampToHuman .CreationTime}}
 		</time>
-		<a class="btn" href="/edit-link/{{.ID}}">
-			Edit
-		</a>
 	</div>
 {{end}}
 
-{{define "post unauthorized fragment"}}
-    {{template "post main fragment" .}}
-    <div class="about-post">
-	    <time>
-            {{timestampToHuman .CreationTime}}
-	    </time>
-    </div>
+{{define "post buttons fragment"}}
+	<a class="btn edit-post-btn" href="/edit-link/{{.ID}}">
+		Edit
+	</a>
+	<div class="globe">
+        {{if .Visibility}}{{randomGlobe}}{{else}}🔒{{end}}
+	</div>
 {{end}}
