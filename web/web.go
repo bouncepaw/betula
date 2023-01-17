@@ -194,32 +194,36 @@ type dataSaveLink struct {
 
 	// The following three fields can be non-empty, when set through URL parameters or when an erroneous request was made.
 
-	URL        string
-	Title      string
-	Visibility string
+	URL         string
+	Title       string
+	Visibility  string
+	Description string
 }
 
 func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	switch rq.Method {
 	case http.MethodGet:
 		templateExec(templateSaveLink, dataSaveLink{
-			Authorized: auth.AuthorizedFromRequest(rq),
-			URL:        rq.FormValue("url"),
-			Title:      rq.FormValue("title"),
-			Visibility: rq.FormValue("visibility"),
+			Authorized:  auth.AuthorizedFromRequest(rq),
+			URL:         rq.FormValue("url"),
+			Title:       rq.FormValue("title"),
+			Visibility:  rq.FormValue("visibility"),
+			Description: rq.FormValue("description"),
 		}, w)
 	case http.MethodPost:
 		// TODO: Document the param behaviour
 		var (
-			addr       = rq.FormValue("url")
-			title      = rq.FormValue("title")
-			visibility = rq.FormValue("visibility")
+			addr        = rq.FormValue("url")
+			title       = rq.FormValue("title")
+			visibility  = rq.FormValue("visibility")
+			description = rq.FormValue("description")
 		)
 		if _, err := url.ParseRequestURI(addr); err != nil {
 			templateExec(templateAddLinkInvalidURL, dataSaveLink{
-				URL:        addr,
-				Title:      title,
-				Visibility: visibility,
+				URL:         addr,
+				Title:       title,
+				Visibility:  visibility,
+				Description: description,
 			}, w)
 			return
 		}
@@ -227,7 +231,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 		id := db.AddPost(types.Post{
 			URL:         addr,
 			Title:       title,
-			Description: "",
+			Description: description,
 			Visibility:  types.VisibilityFromString(visibility),
 		})
 

@@ -18,6 +18,8 @@
 					<option value="public"{{if .Visibility | eq "public"}} selected{{end}}>Public</option>
 				</select>
 			</p>
+			<label for="link-description">Description</label>
+			<textarea id="link-description" name="description">{{.Description}}</textarea>
 			<input type="submit" class="btn" value="Save">
 		</form>
 	</main>
