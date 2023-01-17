@@ -21,7 +21,9 @@
 	<a class="edit-post-btn" href="/edit-link/{{.ID}}">
 		Edit
 	</a>
-	<div class="globe">
+	<div class="globe"
+	     title="{{if .Visibility}}Public post{{else}}Private post{{end}}"
+	     aria-label="{{if .Visibility}}Public post{{else}}Private post{{end}}">
         {{if .Visibility}}{{randomGlobe}}{{else}}🔒{{end}}
 	</div>
 {{end}}
