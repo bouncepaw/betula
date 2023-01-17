@@ -1,4 +1,4 @@
-@media screen and (max-width: 700px) {
+@media screen and (max-width: 40rem) {
     body {
         grid-template-areas:
             "header"
@@ -18,7 +18,7 @@
     }
 }
 
-@media screen and (min-width: 700px) {
+@media screen and (min-width: 40rem) {
     body {
         grid-template-columns: 180px 1fr;
         grid-template-areas:
@@ -31,6 +31,16 @@
     }
     main, header {
         border-radius: 4px;
+    }
+}
+
+@media screen and (min-width: calc(40rem + 360px)) {
+    body {
+        grid-template-columns: 1fr 40rem 1fr;
+        grid-template-areas:
+            "header main free"
+            "footer main free";
+        grid-column-gap: 8px;
     }
 }
 
@@ -54,12 +64,10 @@ header {
 }
 header ul {
     padding: 0;
+    margin: 8px 0;
 }
 header li {
     list-style-type: none;
-}
-header a {
-    display: block;
     padding: 4px 8px;
 }
 main {
@@ -156,7 +164,6 @@ h2, .post {
     font-size: medium;
 }
 .h-feed h2 {
-    border-radius: 4px;
     padding: 8px;
     margin: 0 0 8px 0;
 }
@@ -176,14 +183,12 @@ html {
     background: #eee;
     padding: 0;
 }
-header,
 main:not(.h-feed),
-.h-feed .post,
-.h-feed h2 {
+.h-feed .post {
     background: white;
 }
-header a:hover {
-    background: #eee;
+header a, header a:hover, header a:visited {
+    color: black;
 }
 .btn, .btn:active, .btn:hover, .btn:visited {
     color: black;
