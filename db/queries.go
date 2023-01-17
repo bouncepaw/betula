@@ -100,7 +100,9 @@ from
 inner join
 	CategoriesToPosts
 where
-	ID = PostID and CatID = ?;
+	ID = PostID and CatID = ?
+order by
+	CreationTime desc;
 `
 
 const sqlCatNameByID = `
@@ -163,7 +165,9 @@ func Categories() (cats []types.Category) {
 }
 
 const sqlGetAllPosts = `
-select ID, URL, Title, Description, Visibility, CreationTime from Posts;
+select ID, URL, Title, Description, Visibility, CreationTime
+from Posts
+order by CreationTime desc;
 `
 
 // YieldAuthorizedPosts returns a channel, from which you can get all posts stored in the database, along with their tags, but only if the viewer is authorized! Otherwise, only public posts will be given.
