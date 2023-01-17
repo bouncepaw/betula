@@ -205,6 +205,22 @@ func AddPost(post types.Post) int64 {
 	return id
 }
 
+const sqlEditPost = `
+update Posts
+set
+    URL = ?,
+    Title = ?,
+    Description = ?,
+    Visibility = ?,
+    CreationTime = ?
+where
+    ID = ?;
+`
+
+func EditPost(post types.Post) {
+	mustExec(sqlEditPost, post.URL, post.Title, post.Description, post.Visibility, post.CreationTime, post.ID)
+}
+
 const sqlPostForID = `
 select ID, URL, Title, Description, Visibility, CreationTime from Posts where ID = ?;
 `

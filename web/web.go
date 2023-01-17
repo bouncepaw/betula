@@ -26,6 +26,7 @@ var (
 func init() {
 	mux.HandleFunc("/", handlerFeed)
 	mux.HandleFunc("/save-link", handlerSaveLink)
+	mux.HandleFunc("/edit-link/", handlerEditLink)
 	mux.HandleFunc("/post/", handlerPost)
 	mux.HandleFunc("/go/", handlerGo)
 	mux.HandleFunc("/about", handlerAbout)
@@ -187,6 +188,68 @@ func handlerAbout(w http.ResponseWriter, rq *http.Request) {
 		NewestTime: db.NewestTime(),
 		Authorized: auth.AuthorizedFromRequest(rq),
 	}, w)
+}
+
+type dataEditLink struct {
+	Authorized      bool
+	ErrorInvalidURL bool
+	types.Post
+}
+
+func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
+	authed := auth.AuthorizedFromRequest(rq)
+	if !authed {
+		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
+		handler404(w, rq)
+		return
+	}
+
+	s := strings.TrimPrefix(rq.URL.Path, "/edit-link/")
+	if s == "" {
+		http.Redirect(w, rq, "/save-link", http.StatusSeeOther)
+		return
+	}
+
+	id, err := strconv.Atoi(s)
+	if err != nil {
+		log.Println(err)
+		handler404(w, rq)
+		return
+	}
+
+	post, found := db.PostForID(id)
+	if !found {
+		log.Printf("Trying to edit post no. %d that does not exist. 404.\n", id)
+		handler404(w, rq)
+		return
+	}
+	post.Categories = db.CategoriesForPost(id)
+
+	switch rq.Method {
+	case http.MethodGet:
+		templateExec(templateEditLink, dataEditLink{
+			Authorized: authed,
+			Post:       post,
+		}, w)
+	case http.MethodPost:
+		post.URL = rq.FormValue("url")
+		post.Title = rq.FormValue("title")
+		post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
+		post.Description = rq.FormValue("description")
+
+		if _, err := url.ParseRequestURI(post.URL); err != nil {
+			log.Printf("Invalid URL was passed, asking again: %s\n", post.URL)
+			templateExec(templateEditLink, dataEditLink{
+				ErrorInvalidURL: true,
+				Authorized:      authed,
+				Post:            post,
+			}, w)
+			return
+		}
+
+		db.EditPost(post)
+		http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
+	}
 }
 
 type dataSaveLink struct {
