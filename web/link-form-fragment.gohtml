@@ -8,15 +8,19 @@
 		<input type="text" id="link-title" name="title" required value="{{.Title}}">
 	</div>
 	<div>
-		<label for="link-visiblity">Visibility</label>
-		<select id="link-visiblity" name="visibility">
-			<option value="private"{{if not .Visibility}} selected{{end}}>Private</option>
-			<option value="public"{{if .Visibility}} selected{{end}}>Public</option>
-		</select>
-	</div>
-	<div>
 		<label for="link-description">Description, quotes</label>
 		<textarea id="link-description" name="description">{{.Description}}</textarea>
+	</div>
+	<div>
+		<label>Visibility</label>
+		<div>
+			<input id="link-private" type="radio" name="visibility" value="private"{{if not .Visibility}} checked{{end}}>
+			<label for="link-private">Private. Only you can see this post</label>
+		</div>
+		<div>
+			<input id="link-public" type="radio" name="visibility" value="public"{{if .Visibility}} checked{{end}}>
+			<label for="link-public">Public. Everyone can see this post</label>
+		</div>
 	</div>
 	<input type="submit" class="btn" value="Save">
 {{end}}

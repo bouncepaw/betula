@@ -112,20 +112,30 @@ input[type="url"] {
 form {
     max-width: 20rem;
 }
-form div {
-    margin-bottom: 16px;
+form > div + div {
+    margin-top: 16px;
 }
 form label {
     display: block;
     margin-bottom: 8px;
 }
-form input {
+form input[type="radio"] + label {
+    display: inline-block;
+}
+form input[type="text"],
+form input[type="submit"],
+form input[type="url"],
+form input[type="password"] {
     display: block;
     width: 100%;
+}
+form input[type="submit"] {
+    margin-top: 8px;
 }
 form textarea {
     width: 98%;
     height: 100px;
+    font-size: 1rem;
 }
 
 /* Colors */
