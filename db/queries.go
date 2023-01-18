@@ -142,6 +142,7 @@ where
 `
 
 func CategoriesForPost(id int) (cats []types.Category) {
+	log.Printf("db: Finding categories for post no. %d\n", id)
 	rows := mustQuery(sqlCategoriesForPost, id)
 	for rows.Next() {
 		var cat types.Category

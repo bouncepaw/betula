@@ -56,9 +56,11 @@ func mustScan(rows *sql.Rows, dest ...any) {
 
 func querySingleValue[T any](query string, vals ...any) T {
 	rows := mustQuery(query, vals...)
-	rows.Next()
 	var res T
-	mustScan(rows, &res)
+	for rows.Next() { // Do 0 or 1 times
+		mustScan(rows, &res)
+		break
+	}
 	_ = rows.Close()
 	return res
 }

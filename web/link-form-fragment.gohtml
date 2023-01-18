@@ -22,5 +22,11 @@
 			<label for="link-public">Public. Everyone can see this post</label>
 		</div>
 	</div>
+	<div>
+		<label for="link-categories">Categories comma-separated</label>
+		<input type="text" id="link-categories" name="categories"
+		       value="{{.Categories | catsTogether}}" placeholder="video, programming">
+		<span class="input-caption">Some special characters are ignored.</span>
+	</div>
 	<input type="submit" class="btn" value="Save">
 {{end}}

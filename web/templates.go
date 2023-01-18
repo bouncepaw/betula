@@ -2,6 +2,7 @@ package web
 
 import (
 	"git.sr.ht/~bouncepaw/betula/myco"
+	"git.sr.ht/~bouncepaw/betula/types"
 	"html/template"
 	"log"
 	"math/rand"
@@ -45,9 +46,9 @@ var templateLogoutForm = templateFrom(nil, "logout-form.gohtml")
 var template404 = templateFrom(nil, "404.gohtml")
 
 // Meaningful views:
-var templateSaveLink = templateFrom(nil, "link-form-fragment.gohtml", "save-link.gohtml")
-var templateEditLink = templateFrom(nil, "link-form-fragment.gohtml", "edit-link.gohtml")
-var templateAddLinkInvalidURL = templateFrom(nil, "link-form-fragment.gohtml", "save-link-invalid-url.gohtml")
+var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment.gohtml", "save-link.gohtml")
+var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment.gohtml", "edit-link.gohtml")
+var templateAddLinkInvalidURL = templateFrom(funcMapForForm, "link-form-fragment.gohtml", "save-link-invalid-url.gohtml")
 var templatePost = templateFrom(funcMapForPosts, "post-fragment.gohtml", "post.gohtml")
 var templateFeed = templateFrom(funcMapForPosts, "post-fragment.gohtml", "feed.gohtml")
 var templateCategories = templateFrom(nil, "categories.gohtml")
@@ -66,9 +67,14 @@ var funcMapForPosts = template.FuncMap{
 		b := strings.TrimPrefix(a, "https://")
 		c := strings.TrimPrefix(b, "http://")
 		// Gemini, Gopher, FTP, Mail are not stripped, to emphasize them, when they are.
-		return c
+		d := strings.TrimSuffix(c, "/")
+		return d
 	},
 	"mycomarkup": myco.MarkupToHTML,
+}
+
+var funcMapForForm = template.FuncMap{
+	"catsTogether": types.JoinCategories,
 }
 
 var funcMapForTime = template.FuncMap{

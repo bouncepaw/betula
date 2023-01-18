@@ -236,6 +236,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		post.Title = rq.FormValue("title")
 		post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
 		post.Description = rq.FormValue("description")
+		post.Categories = types.SplitCategories(rq.FormValue("categories"))
 
 		if _, err := url.ParseRequestURI(post.URL); err != nil {
 			log.Printf("Invalid URL was passed, asking again: %s\n", post.URL)
@@ -249,6 +250,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 
 		db.EditPost(post)
 		http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
+		log.Printf("Edited post no. %d\n", id)
 	}
 }
 
@@ -261,6 +263,7 @@ type dataSaveLink struct {
 	Title       string
 	Visibility  types.Visibility
 	Description string
+	Categories  []types.Category
 }
 
 func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
@@ -272,6 +275,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			Title:       rq.FormValue("title"),
 			Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
 			Description: rq.FormValue("description"),
+			Categories:  types.SplitCategories(rq.FormValue("categories")),
 		}, w)
 	case http.MethodPost:
 		// TODO: Document the param behaviour
@@ -280,6 +284,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			title       = rq.FormValue("title")
 			visibility  = types.VisibilityFromString(rq.FormValue("visibility"))
 			description = rq.FormValue("description")
+			categories  = types.SplitCategories(rq.FormValue("categories"))
 		)
 		if _, err := url.ParseRequestURI(addr); err != nil {
 			templateExec(templateAddLinkInvalidURL, dataSaveLink{
@@ -287,6 +292,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 				Title:       title,
 				Visibility:  visibility,
 				Description: description,
+				Categories:  categories,
 			}, w)
 			return
 		}
@@ -295,7 +301,8 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			URL:         addr,
 			Title:       title,
 			Description: description,
-			Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
+			Visibility:  visibility,
+			Categories:  categories,
 		})
 
 		http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
