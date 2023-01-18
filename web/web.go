@@ -176,8 +176,8 @@ func handlerCategory(w http.ResponseWriter, rq *http.Request) {
 
 type dataAbout struct {
 	LinkCount  int
-	OldestTime time.Time
-	NewestTime time.Time
+	OldestTime *time.Time
+	NewestTime *time.Time
 	Authorized bool
 }
 

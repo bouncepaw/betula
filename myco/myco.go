@@ -9,20 +9,12 @@ import (
 )
 
 var opts = options.Options{
-	HyphaName:                        "",
-	WebSiteURL:                       "",
-	TransclusionSupported:            false,
-	RedLinksSupported:                false,
-	InterwikiSupported:               false,
-	HyphaExists:                      func(_ string) bool { return true },
-	IterateHyphaNamesWith:            func(_ func(string)) {},
-	HyphaHTMLData:                    nil,
-	LocalTargetCanonicalName:         func(s string) string { return s },
-	LocalLinkHref:                    func(s string) string { return "/" + s },
-	LocalImgSrc:                      func(s string) string { return s },
-	LinkHrefFormatForInterwikiPrefix: nil,
-	ImgSrcFormatForInterwikiPrefix:   nil,
-}
+	HyphaName:             "",
+	WebSiteURL:            "",
+	TransclusionSupported: false,
+	RedLinksSupported:     false,
+	InterwikiSupported:    false,
+}.FillTheRest()
 
 func MarkupToHTML(text string) template.HTML {
 	ctx, _ := mycocontext.ContextFromStringInput(text, opts)

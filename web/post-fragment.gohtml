@@ -1,7 +1,9 @@
 {{define "post main fragment"}}
 	<a class="src-url" href="{{.URL}}">{{stripCommonProtocol .URL}}</a>
 	{{if .Description}}
-		<p>{{mycomarkup .Description}}</p>
+		<div class="myco">
+			{{mycomarkup .Description}}
+		</div>
 	{{end}}
 	<div class="about-post">
 		<span>Categories:</span>

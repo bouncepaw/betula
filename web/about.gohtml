@@ -11,12 +11,12 @@
 			<dl>
 				<dt>Number of saved links</dt>
 				<dd>{{.LinkCount}}</dd>
-
+				{{if .OldestTime}}
 				<dt>Oldest link save time</dt>
 				<dd>{{.OldestTime | timeToHuman}}</dd>
-
 				<dt>Newest link save time</dt>
 				<dd>{{.NewestTime | timeToHuman}}</dd>
+				{{end}}
 			</dl>
 
 			<h3>Licensing</h3>

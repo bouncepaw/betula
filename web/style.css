@@ -200,6 +200,11 @@ h2, .post {
     margin-left: .25rem;
 }
 
+/* Mycomarkup */
+.myco, .myco * {
+    max-width: 100%;
+}
+
 /* Colors */
 html {
     background: #eee;

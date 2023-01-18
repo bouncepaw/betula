@@ -6,6 +6,7 @@
 package db
 
 import (
+	"database/sql"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
 	"time"
@@ -27,7 +28,7 @@ create table if not exists Categories (
 );
 
 create table if not exists CategoriesToPosts (
-    CategoryID integer not null,
+    CatID integer not null,
     PostID integer not null
 );
 
@@ -255,6 +256,20 @@ const sqlLinkCount = `select count(ID) from Posts;`
 const sqlOldestTime = `select min(CreationTime) from Posts;`
 const sqlNewestTime = `select max(CreationTime) from Posts;`
 
-func LinkCount() int        { return querySingleValue[int](sqlLinkCount) }
-func OldestTime() time.Time { return time.Unix(querySingleValue[int64](sqlOldestTime), 0) }
-func NewestTime() time.Time { return time.Unix(querySingleValue[int64](sqlNewestTime), 0) }
+func LinkCount() int { return querySingleValue[int](sqlLinkCount) }
+func OldestTime() *time.Time {
+	stamp := querySingleValue[sql.NullInt64](sqlOldestTime)
+	if stamp.Valid {
+		val := time.Unix(stamp.Int64, 0)
+		return &val
+	}
+	return nil
+}
+func NewestTime() *time.Time {
+	stamp := querySingleValue[sql.NullInt64](sqlNewestTime)
+	if stamp.Valid {
+		val := time.Unix(stamp.Int64, 0)
+		return &val
+	}
+	return nil
+}
