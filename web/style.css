@@ -144,15 +144,8 @@ dd + dt {
     border-radius: 8px;
     text-decoration: none;
 }
-input[type="text"],
-input[type="url"] {
-    line-height: normal;
-    font-size: inherit;
-    margin: 0;
-    max-width: calc(100% - 6px);
-}
 form {
-    max-width: 20rem;
+    max-width: 30rem;
 }
 form > div + div {
     margin-top: 16px;
@@ -165,19 +158,28 @@ form input[type="radio"] + label {
     display: inline-block;
 }
 form input[type="text"],
-form input[type="submit"],
 form input[type="url"],
-form input[type="password"] {
+form input[type="password"],
+textarea {
     display: block;
     width: 100%;
+    margin: 0;
+    line-height: 1rem;
+    font-size: 1rem;
+    border: 2px inset #eee;
 }
 form input[type="submit"] {
+    min-width: 50%;
+    max-width: 15rem;
     margin-top: 8px;
 }
 form textarea {
-    width: 98%;
     height: 100px;
-    font-size: 1rem;
+    padding: 1px;
+}
+.input-caption {
+    font-size: small;
+    margin: 4px 0;
 }
 h2, .post {
     max-width: 40rem;

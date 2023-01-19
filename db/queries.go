@@ -33,7 +33,7 @@ create table if not exists CategoriesToPosts (
 );
 
 create table if not exists BetulaMeta (
-    Key text primary key,
+    Key text primary key not null,
     Value text
 );
 
@@ -43,7 +43,7 @@ insert or ignore into BetulaMeta values
 	('Admin password hash', null);
 
 create table if not exists Sessions (
-    Token text primary key,
+    Token text primary key not null,
     CreationTime integer not null
 );`
 

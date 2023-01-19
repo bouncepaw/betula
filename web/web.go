@@ -156,7 +156,6 @@ func handlerCategory(w http.ResponseWriter, rq *http.Request) {
 		handlerCategories(w, rq)
 		return
 	}
-	// FIXME: Check if the cat is real.
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(templateCategory, dataCategory{
 		Category:             types.Category{Name: catName},
