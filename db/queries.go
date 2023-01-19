@@ -27,7 +27,9 @@ select distinct CatName from CategoriesToPosts;
 
 create table if not exists CategoriesToPosts (
     CatName text not null,
-    PostID integer not null
+    PostID integer not null,
+    unique (CatName, PostID) on conflict ignore,
+    check ( CatName <> '' )
 );
 
 create table if not exists BetulaMeta (
@@ -166,6 +168,9 @@ func SetCategoriesFor(postID int, categories []types.Category) {
 
 	var qAdd = `insert into CategoriesToPosts (CatName, PostID) values (?, ?)`
 	for _, cat := range categories {
+		if cat.Name == "" {
+			continue
+		}
 		mustExec(qAdd, cat.Name, postID)
 	}
 }
