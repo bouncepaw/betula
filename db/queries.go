@@ -22,13 +22,11 @@ create table if not exists Posts (
     CreationTime integer not null                   
 );
 
-create table if not exists Categories (
-    ID integer primary key autoincrement not null,
-    Name text not null
-);
+create view if not exists Categories as
+select distinct CatName from CategoriesToPosts;
 
 create table if not exists CategoriesToPosts (
-    CatID integer not null,
+    CatName text not null,
     PostID integer not null
 );
 
@@ -47,53 +45,40 @@ create table if not exists Sessions (
     CreationTime integer not null
 );`
 
-const sqlAddSession = `
-insert into Sessions values (?, ?);
-`
-
 func AddSession(token string) {
-	mustExec(sqlAddSession, token, time.Now().Unix())
+	mustExec(`insert into Sessions values (?, ?);`,
+		token, time.Now().Unix())
 }
 
-const sqlHasSession = `
-select exists(select 1 from Sessions where Token = ?);
-`
-
 func HasSession(token string) (has bool) {
-	rows := mustQuery(sqlHasSession, token)
+	const q = `select exists(select 1 from Sessions where Token = ?);`
+	rows := mustQuery(q, token)
 	rows.Next()
 	mustScan(rows, &has)
 	_ = rows.Close()
 	return has
 }
 
-const sqlStopSession = `
-delete from Sessions where Token = ?;
-`
-
 func StopSession(token string) {
-	mustExec(sqlStopSession, token)
+	mustExec(`delete from Sessions where Token = ?;`, token)
 }
 
-const sqlSetCredentials = `
+func SetCredentials(name, hash string) {
+	const q = `
 insert or replace into BetulaMeta values
 	('Admin username', ?),
 	('Admin password hash', ?);
 `
-
-func SetCredentials(name, hash string) {
-	mustExec(sqlSetCredentials, name, hash)
+	mustExec(q, name, hash)
 }
-
-const sqlGetMetaEntry = `
-select Value from BetulaMeta where Key = ? limit 1;
-`
 
 func MetaEntry[T any](key string) T {
-	return querySingleValue[T](sqlGetMetaEntry, key)
+	const q = `select Value from BetulaMeta where Key = ? limit 1;`
+	return querySingleValue[T](q, key)
 }
 
-const sqlPostsForCategory = `
+func AuthorizedPostsForCategory(authorized bool, catName string) (out chan types.Post) {
+	const q = `
 select
 	ID, URL, Title, Description, Visibility, CreationTime
 from
@@ -101,17 +86,11 @@ from
 inner join
 	CategoriesToPosts
 where
-	ID = PostID and CatID = ?
+	ID = PostID and CatName = ?
 order by
 	CreationTime desc;
 `
-
-const sqlCatNameByID = `
-select Name from Categories where ID = ? limit 1;
-`
-
-func AuthorizedPostsForCategoryAndNameByID(authorized bool, id int) (name string, out chan types.Post) {
-	rows := mustQuery(sqlPostsForCategory, id)
+	rows := mustQuery(q, catName)
 	out = make(chan types.Post)
 
 	go func() {
@@ -127,54 +106,42 @@ func AuthorizedPostsForCategoryAndNameByID(authorized bool, id int) (name string
 		}
 		close(out)
 	}()
-	return querySingleValue[string](sqlCatNameByID, id), out
+	return out
 }
-
-const sqlCategoriesForPost = `
-select
-    CatID, Name
-from 
-    CategoriesToPosts
-inner join
-    Categories
-where
-    ID = CatID and PostID = ?;
-`
 
 func CategoriesForPost(id int) (cats []types.Category) {
-	log.Printf("db: Finding categories for post no. %d\n", id)
-	rows := mustQuery(sqlCategoriesForPost, id)
+	q := `
+select distinct CatName
+from CategoriesToPosts
+where PostID = ?;
+`
+	rows := mustQuery(q, id)
 	for rows.Next() {
 		var cat types.Category
-		mustScan(rows, &cat.ID, &cat.Name)
+		mustScan(rows, &cat.Name)
 		cats = append(cats, cat)
 	}
 	return cats
 }
-
-const sqlGetAllCategories = `
-select ID, Name from Categories;
-`
 
 func Categories() (cats []types.Category) {
-	rows := mustQuery(sqlGetAllCategories)
+	rows := mustQuery(`select CatName from Categories;`)
 	for rows.Next() {
 		var cat types.Category
-		mustScan(rows, &cat.ID, &cat.Name)
+		mustScan(rows, &cat.Name)
 		cats = append(cats, cat)
 	}
 	return cats
 }
 
-const sqlGetAllPosts = `
+// YieldAuthorizedPosts returns a channel, from which you can get all posts stored in the database, along with their categories, but only if the viewer is authorized! Otherwise, only public posts will be given.
+func YieldAuthorizedPosts(authorized bool) chan types.Post {
+	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime
 from Posts
 order by CreationTime desc;
 `
-
-// YieldAuthorizedPosts returns a channel, from which you can get all posts stored in the database, along with their tags, but only if the viewer is authorized! Otherwise, only public posts will be given.
-func YieldAuthorizedPosts(authorized bool) chan types.Post {
-	rows := mustQuery(sqlGetAllPosts)
+	rows := mustQuery(q)
 	out := make(chan types.Post)
 
 	go func() {
@@ -193,14 +160,14 @@ func YieldAuthorizedPosts(authorized bool) chan types.Post {
 	return out
 }
 
-const sqlAddPost = `
-insert into Posts (URL, Title, Description, Visibility, CreationTime) VALUES (?, ?, ?, ?, ?);
-`
-
 // AddPost adds a new post to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
 func AddPost(post types.Post) int64 {
+	const q = `
+insert into Posts (URL, Title, Description, Visibility, CreationTime)
+values (?, ?, ?, ?, ?);
+`
 	post.CreationTime = time.Now().Unix()
-	res, err := db.Exec(sqlAddPost, post.URL, post.Title, post.Description, post.Visibility, post.CreationTime)
+	res, err := db.Exec(q, post.URL, post.Title, post.Description, post.Visibility, post.CreationTime)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -211,7 +178,8 @@ func AddPost(post types.Post) int64 {
 	return id
 }
 
-const sqlEditPost = `
+func EditPost(post types.Post) {
+	const q = `
 update Posts
 set
     URL = ?,
@@ -222,52 +190,45 @@ set
 where
     ID = ?;
 `
-
-func EditPost(post types.Post) {
-	mustExec(sqlEditPost, post.URL, post.Title, post.Description, post.Visibility, post.CreationTime, post.ID)
+	mustExec(q, post.URL, post.Title, post.Description, post.Visibility, post.CreationTime, post.ID)
 }
-
-const sqlPostForID = `
-select ID, URL, Title, Description, Visibility, CreationTime from Posts where ID = ?;
-`
 
 // PostForID returns the post corresponding to the given id, if there is any.
 func PostForID(id int) (post types.Post, found bool) {
-	rows := mustQuery(sqlPostForID, id)
+	const q = `
+select ID, URL, Title, Description, Visibility, CreationTime from Posts
+where ID = ?;
+`
+	rows := mustQuery(q, id)
 	rows.Next()
 	mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
 	_ = rows.Close()
 	return post, true
 }
 
-const sqlURLForID = `
-select URL from Posts where ID = ?;
-`
-
 // URLForID returns the URL of the post corresponding to the given ID, if there is any post like that.
-func URLForID(id int) (url string, found bool) {
-	rows := mustQuery(sqlURLForID, id)
-	rows.Next()
-	mustScan(rows, &url)
-	_ = rows.Close()
-	return url, true
+func URLForID(id int) (url sql.NullString) {
+	const q = `select URL from Posts where ID = ?;`
+	return querySingleValue[sql.NullString](q, id)
 }
 
-const sqlLinkCount = `select count(ID) from Posts;`
-const sqlOldestTime = `select min(CreationTime) from Posts;`
-const sqlNewestTime = `select max(CreationTime) from Posts;`
+func LinkCount() int {
+	return querySingleValue[int](`select count(ID) from Posts;`)
+}
 
-func LinkCount() int { return querySingleValue[int](sqlLinkCount) }
 func OldestTime() *time.Time {
-	stamp := querySingleValue[sql.NullInt64](sqlOldestTime)
+	const q = `select min(CreationTime) from Posts;`
+	stamp := querySingleValue[sql.NullInt64](q)
 	if stamp.Valid {
 		val := time.Unix(stamp.Int64, 0)
 		return &val
 	}
 	return nil
 }
+
 func NewestTime() *time.Time {
-	stamp := querySingleValue[sql.NullInt64](sqlNewestTime)
+	const q = `select max(CreationTime) from Posts;`
+	stamp := querySingleValue[sql.NullInt64](q)
 	if stamp.Valid {
 		val := time.Unix(stamp.Int64, 0)
 		return &val

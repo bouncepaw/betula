@@ -9,7 +9,7 @@
 		<span>Categories:</span>
 		{{range $i, $cat := .Categories}}
 			{{if $i}},{{end}}
-			<a href="/cat/{{$cat.ID}}">{{$cat.Name}}</a>
+			<a href="/cat/{{$cat.Name}}">{{$cat.Name}}</a>
 		{{else}}
 			<span class="empty-set">∅</span>
 		{{end}}

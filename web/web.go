@@ -151,25 +151,16 @@ type dataCategory struct {
 }
 
 func handlerCategory(w http.ResponseWriter, rq *http.Request) {
-	s := strings.TrimPrefix(rq.URL.Path, "/cat/")
-	if s == "" {
+	catName := strings.TrimPrefix(rq.URL.Path, "/cat/")
+	if catName == "" {
 		handlerCategories(w, rq)
 		return
 	}
-	id, err := strconv.Atoi(s)
-	if err != nil {
-		log.Println(err)
-		handler404(w, rq)
-		return
-	}
+	// FIXME: Check if the cat is real.
 	authed := auth.AuthorizedFromRequest(rq)
-	name, generator := db.AuthorizedPostsForCategoryAndNameByID(authed, id)
 	templateExec(templateCategory, dataCategory{
-		Category: types.Category{
-			ID:   id,
-			Name: name,
-		},
-		YieldPostsInCategory: generator,
+		Category:             types.Category{Name: catName},
+		YieldPostsInCategory: db.AuthorizedPostsForCategory(authed, catName),
 		Authorized:           authed,
 	}, w)
 }
@@ -366,8 +357,8 @@ func handlerGo(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if addr, found := db.URLForID(id); found {
-		http.Redirect(w, rq, addr, http.StatusSeeOther)
+	if addr := db.URLForID(id); addr.Valid {
+		http.Redirect(w, rq, addr.String, http.StatusSeeOther)
 	} else {
 		handler404(w, rq)
 	}

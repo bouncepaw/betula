@@ -49,7 +49,6 @@ type Post struct {
 }
 
 type Category struct {
-	ID   int
 	Name string
 }
 
