@@ -160,6 +160,16 @@ order by CreationTime desc;
 	return out
 }
 
+func SetCategoriesFor(postID int, categories []types.Category) {
+	const qDelete = `delete from CategoriesToPosts where PostID = ?;`
+	mustExec(qDelete, postID)
+
+	var qAdd = `insert into CategoriesToPosts (CatName, PostID) values (?, ?)`
+	for _, cat := range categories {
+		mustExec(qAdd, cat.Name, postID)
+	}
+}
+
 // AddPost adds a new post to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
 func AddPost(post types.Post) int64 {
 	const q = `
@@ -175,6 +185,7 @@ values (?, ?, ?, ?, ?);
 	if err != nil {
 		log.Fatalln(err)
 	}
+	SetCategoriesFor(post.ID, post.Categories)
 	return id
 }
 
@@ -191,6 +202,7 @@ where
     ID = ?;
 `
 	mustExec(q, post.URL, post.Title, post.Description, post.Visibility, post.CreationTime, post.ID)
+	SetCategoriesFor(post.ID, post.Categories)
 }
 
 // PostForID returns the post corresponding to the given id, if there is any.

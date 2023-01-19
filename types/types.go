@@ -75,7 +75,7 @@ func SplitCategories(commaSeparated string) []Category {
 	cats := make([]Category, len(catNames))
 	for i, catName := range catNames {
 		cats[i] = Category{
-			Name: catName,
+			Name: CanonicalCategoryName(catName),
 		}
 	}
 	return cats
