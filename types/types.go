@@ -17,15 +17,12 @@ const (
 )
 
 // VisibilityFromString turns a string into a Visbility.
-//
-//	public        -> Public
-//	anything else -> Private
 func VisibilityFromString(s string) Visibility {
 	switch s {
-	case "public":
-		return Public
-	default:
+	case "private":
 		return Private
+	default:
+		return Public
 	}
 }
 

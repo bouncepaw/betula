@@ -14,12 +14,12 @@
 	<div>
 		<label>Visibility</label>
 		<div>
-			<input id="link-private" type="radio" name="visibility" value="private"{{if not .Visibility}} checked{{end}}>
-			<label for="link-private">Private. Only you can see this post</label>
-		</div>
-		<div>
 			<input id="link-public" type="radio" name="visibility" value="public"{{if .Visibility}} checked{{end}}>
 			<label for="link-public">Public. Everyone can see this post</label>
+		</div>
+		<div>
+			<input id="link-private" type="radio" name="visibility" value="private"{{if not .Visibility}} checked{{end}}>
+			<label for="link-private">Private. Only you can see this post</label>
 		</div>
 	</div>
 	<div>
