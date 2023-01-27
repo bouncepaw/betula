@@ -8,10 +8,11 @@ import (
 // Initialize opens a SQLite3 database with the given filename. The connection is encapsulated, you cannot access the database directly, you are to use the functions provided by the package.
 func Initialize(filename string) {
 	var err error
-	db, err = sql.Open("sqlite3", filename)
+	db, err = sql.Open("sqlite3", filename+"?cache=shared")
 	if err != nil {
 		log.Fatalln(err)
 	}
+	db.SetMaxOpenConns(1)
 	_, err = db.Exec(schema)
 	if err != nil {
 		log.Fatalln(err)
