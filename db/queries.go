@@ -79,7 +79,7 @@ func MetaEntry[T any](key string) T {
 	return querySingleValue[T](q, key)
 }
 
-func AuthorizedPostsForCategory(authorized bool, catName string) (out chan types.Post) {
+func AuthorizedPostsForCategory(authorized bool, catName string) (posts []types.Post) {
 	const q = `
 select
 	ID, URL, Title, Description, Visibility, CreationTime
@@ -93,22 +93,19 @@ order by
 	CreationTime desc;
 `
 	rows := mustQuery(q, catName)
-	out = make(chan types.Post)
-
-	go func() {
-		for rows.Next() {
-			var post types.Post
-			mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
-			if !authorized && post.Visibility == types.Private {
-				continue
-			}
-			// TODO: Probably can be optimized with a smart query.
-			post.Categories = CategoriesForPost(post.ID)
-			out <- post
+	for rows.Next() {
+		var post types.Post
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		if !authorized && post.Visibility == types.Private {
+			continue
 		}
-		close(out)
-	}()
-	return out
+		posts = append(posts, post)
+	}
+	for i, post := range posts {
+		post.Categories = CategoriesForPost(post.ID)
+		posts[i] = post
+	}
+	return posts
 }
 
 func CategoriesForPost(id int) (cats []types.Category) {
@@ -136,30 +133,28 @@ func Categories() (cats []types.Category) {
 	return cats
 }
 
-// YieldAuthorizedPosts returns a channel, from which you can get all posts stored in the database, along with their categories, but only if the viewer is authorized! Otherwise, only public posts will be given.
-func YieldAuthorizedPosts(authorized bool) chan types.Post {
+// AuthorizedPosts returns all posts stored in the database, along with their categories, but only if the viewer is authorized! Otherwise, only public posts will be given.
+func AuthorizedPosts(authorized bool) (posts []types.Post) {
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime
 from Posts
 order by CreationTime desc;
 `
 	rows := mustQuery(q)
-	out := make(chan types.Post)
 
-	go func() {
-		for rows.Next() {
-			var post types.Post
-			mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
-			if !authorized && post.Visibility == types.Private {
-				continue
-			}
-			// TODO: Probably can be optimized with a smart query.
-			post.Categories = CategoriesForPost(post.ID)
-			out <- post
+	for rows.Next() {
+		var post types.Post
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		if !authorized && post.Visibility == types.Private {
+			continue
 		}
-		close(out)
-	}()
-	return out
+		posts = append(posts, post)
+	}
+	for i, post := range posts {
+		post.Categories = CategoriesForPost(post.ID)
+		posts[i] = post
+	}
+	return posts
 }
 
 func SetCategoriesFor(postID int, categories []types.Category) {

@@ -2,7 +2,7 @@
 {{define "body"}}
 	<main class="h-feed">
 		<h2 class="p-name">Saved links</h2>{{$authed := .Authorized}}
-        {{range .YieldAllPosts}}
+        {{range .AllPosts}}
 			<article class="post h-entry">
                 {{if $authed}}
                     {{template "post buttons fragment" .}}

@@ -146,8 +146,8 @@ func handlerCategories(w http.ResponseWriter, rq *http.Request) {
 
 type dataCategory struct {
 	types.Category
-	YieldPostsInCategory chan types.Post
-	Authorized           bool
+	PostsInCategory []types.Post
+	Authorized      bool
 }
 
 func handlerCategory(w http.ResponseWriter, rq *http.Request) {
@@ -158,9 +158,9 @@ func handlerCategory(w http.ResponseWriter, rq *http.Request) {
 	}
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(templateCategory, dataCategory{
-		Category:             types.Category{Name: catName},
-		YieldPostsInCategory: db.AuthorizedPostsForCategory(authed, catName),
-		Authorized:           authed,
+		Category:        types.Category{Name: catName},
+		PostsInCategory: db.AuthorizedPostsForCategory(authed, catName),
+		Authorized:      authed,
 	}, w)
 }
 
@@ -327,8 +327,8 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataFeed struct {
-	YieldAllPosts chan types.Post
-	Authorized    bool
+	AllPosts   []types.Post
+	Authorized bool
 }
 
 var regexpPost = regexp.MustCompile("^/[0-9]+")
@@ -344,8 +344,8 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	}
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(templateFeed, dataFeed{
-		YieldAllPosts: db.YieldAuthorizedPosts(authed),
-		Authorized:    authed,
+		AllPosts:   db.AuthorizedPosts(authed),
+		Authorized: authed,
 	}, w)
 }
 

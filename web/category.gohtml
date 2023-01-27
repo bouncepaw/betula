@@ -2,7 +2,7 @@
 {{define "body"}}
 	<main class="h-feed">
 		<h2 class="p-name">Category {{.Name}}</h2>{{$authed := .Authorized}}
-		{{range .YieldPostsInCategory}}
+		{{range .PostsInCategory}}
 			<article class="post h-entry">
                 {{if $authed}}
                     {{template "post buttons fragment" .}}
