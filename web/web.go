@@ -259,6 +259,7 @@ type dataSaveLink struct {
 func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	switch rq.Method {
 	case http.MethodGet:
+		// TODO: Document the param behaviour
 		templateExec(templateSaveLink, dataSaveLink{
 			Authorized:  auth.AuthorizedFromRequest(rq),
 			URL:         rq.FormValue("url"),
@@ -268,7 +269,6 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			Categories:  types.SplitCategories(rq.FormValue("categories")),
 		}, w)
 	case http.MethodPost:
-		// TODO: Document the param behaviour
 		var (
 			addr        = rq.FormValue("url")
 			title       = rq.FormValue("title")

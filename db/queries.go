@@ -166,7 +166,7 @@ func SetCategoriesFor(postID int, categories []types.Category) {
 	const qDelete = `delete from CategoriesToPosts where PostID = ?;`
 	mustExec(qDelete, postID)
 
-	var qAdd = `insert into CategoriesToPosts (CatName, PostID) values (?, ?)`
+	var qAdd = `insert into CategoriesToPosts (CatName, PostID) values (?, ?);`
 	for _, cat := range categories {
 		if cat.Name == "" {
 			continue
@@ -190,6 +190,7 @@ values (?, ?, ?, ?, ?);
 	if err != nil {
 		log.Fatalln(err)
 	}
+	post.ID = int(id)
 	SetCategoriesFor(post.ID, post.Categories)
 	return id
 }
