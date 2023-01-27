@@ -167,6 +167,7 @@ textarea {
     line-height: 1rem;
     font-size: 1rem;
     border: 2px inset #eee;
+    font-family: sans-serif;
 }
 form input[type="submit"] {
     min-width: 50%;
