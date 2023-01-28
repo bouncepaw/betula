@@ -170,6 +170,10 @@ func SetCategoriesFor(postID int, categories []types.Category) {
 	}
 }
 
+func DeletePost(id int) {
+	panic("not implemented")
+}
+
 // AddPost adds a new post to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
 func AddPost(post types.Post) int64 {
 	const q = `

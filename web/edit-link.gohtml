@@ -10,5 +10,13 @@
 		<form method="post" action="/edit-link/{{.ID}}">
             {{template "form fragment" .}}
 		</form>
+		<form method="post" action="/delete-link/{{.ID}}">
+			<h2>Delete link</h2>
+			<div>
+				<input type="checkbox" name="confirmed" id="delete-confirmed">
+				<label for="delete-confirmed">Yes, delete this link.</label>
+			</div>
+			<input type="submit" value="Delete" class="btn">
+		</form>
 	</main>
 {{end}}

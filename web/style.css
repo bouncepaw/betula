@@ -154,7 +154,8 @@ form label {
     display: block;
     margin-bottom: 8px;
 }
-form input[type="radio"] + label {
+form input[type="radio"] + label,
+form input[type="checkbox"] + label {
     display: inline-block;
 }
 form input[type="text"],

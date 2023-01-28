@@ -27,6 +27,7 @@ func init() {
 	mux.HandleFunc("/", handlerFeed)
 	mux.HandleFunc("/save-link", handlerSaveLink)
 	mux.HandleFunc("/edit-link/", handlerEditLink)
+	mux.HandleFunc("/delete-link/", handlerDeleteLink)
 	mux.HandleFunc("/post/", handlerPost)
 	mux.HandleFunc("/go/", handlerGo)
 	mux.HandleFunc("/about", handlerAbout)
@@ -35,6 +36,35 @@ func init() {
 	mux.HandleFunc("/login", handlerLogin)
 	mux.HandleFunc("/logout", handlerLogout)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
+	if rq.Method != http.MethodPost {
+		handler404(w, rq)
+		return
+	}
+
+	authed := auth.AuthorizedFromRequest(rq)
+	if !authed {
+		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
+		handler404(w, rq)
+		return
+	}
+
+	s := strings.TrimPrefix(rq.URL.Path, "/delete-link/")
+	if s == "" {
+		handler404(w, rq)
+		return
+	}
+
+	id, err := strconv.Atoi(s)
+	if err != nil {
+		log.Println(err)
+		handler404(w, rq)
+		return
+	}
+
+	db.DeletePost(id)
 }
 
 func handler404(w http.ResponseWriter, rq *http.Request) {
