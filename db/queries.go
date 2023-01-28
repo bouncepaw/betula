@@ -12,41 +12,6 @@ import (
 	"time"
 )
 
-const schema = `
-create table if not exists Posts (
-    ID integer primary key autoincrement not null,
-    URL text not null,
-    Title text not null,
-    Description text not null,
-    Visibility integer not null,
-    CreationTime integer not null                   
-);
-
-create view if not exists Categories as
-select distinct CatName from CategoriesToPosts;
-
-create table if not exists CategoriesToPosts (
-    CatName text not null,
-    PostID integer not null,
-    unique (CatName, PostID) on conflict ignore,
-    check ( CatName <> '' )
-);
-
-create table if not exists BetulaMeta (
-    Key text primary key not null,
-    Value text
-);
-
-insert or ignore into BetulaMeta values
-	('DB version', 0),
-	('Admin username', null),
-	('Admin password hash', null);
-
-create table if not exists Sessions (
-    Token text primary key not null,
-    CreationTime integer not null
-);`
-
 func AddSession(token string) {
 	mustExec(`insert into Sessions values (?, ?);`,
 		token, time.Now().Unix())

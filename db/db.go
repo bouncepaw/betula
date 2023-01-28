@@ -13,10 +13,7 @@ func Initialize(filename string) {
 		log.Fatalln(err)
 	}
 	db.SetMaxOpenConns(1)
-	_, err = db.Exec(schema)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	handleMigrations()
 }
 
 // Finalize closes the connection with the database.
