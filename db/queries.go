@@ -53,7 +53,7 @@ from
 inner join
 	CategoriesToPosts
 where
-	ID = PostID and CatName = ?
+	ID = PostID and CatName = ? and DeletionTime is null
 order by
 	CreationTime desc;
 `
@@ -89,7 +89,17 @@ where PostID = ?;
 }
 
 func Categories() (cats []types.Category) {
-	rows := mustQuery(`select CatName from Categories;`)
+	q := `
+with
+    DeletedPosts as (
+        select ID from Posts where DeletionTime is not null
+    )
+select
+    distinct(CatName) from CategoriesToPosts
+where
+    PostID not in DeletedPosts;
+`
+	rows := mustQuery(q)
 	for rows.Next() {
 		var cat types.Category
 		mustScan(rows, &cat.Name)
@@ -103,6 +113,7 @@ func AuthorizedPosts(authorized bool) (posts []types.Post) {
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime
 from Posts
+where DeletionTime is null
 order by CreationTime desc;
 `
 	rows := mustQuery(q)
@@ -142,11 +153,10 @@ func DeletePost(id int) {
 // AddPost adds a new post to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
 func AddPost(post types.Post) int64 {
 	const q = `
-insert into Posts (URL, Title, Description, Visibility, CreationTime)
-values (?, ?, ?, ?, ?);
+insert into Posts (URL, Title, Description, Visibility)
+values (?, ?, ?, ?);
 `
-	post.CreationTime = time.Now().Unix()
-	res, err := db.Exec(q, post.URL, post.Title, post.Description, post.Visibility, post.CreationTime)
+	res, err := db.Exec(q, post.URL, post.Title, post.Description, post.Visibility)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -166,12 +176,11 @@ set
     URL = ?,
     Title = ?,
     Description = ?,
-    Visibility = ?,
-    CreationTime = ?
+    Visibility = ?
 where
-    ID = ?;
+    ID = ? and DeletionTime is null;
 `
-	mustExec(q, post.URL, post.Title, post.Description, post.Visibility, post.CreationTime, post.ID)
+	mustExec(q, post.URL, post.Title, post.Description, post.Visibility, post.ID)
 	SetCategoriesFor(post.ID, post.Categories)
 }
 
@@ -179,7 +188,7 @@ where
 func PostForID(id int) (post types.Post, found bool) {
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime from Posts
-where ID = ?;
+where ID = ? and DeletionTime is null;
 `
 	rows := mustQuery(q, id)
 	rows.Next()
@@ -190,12 +199,13 @@ where ID = ?;
 
 // URLForID returns the URL of the post corresponding to the given ID, if there is any post like that.
 func URLForID(id int) (url sql.NullString) {
-	const q = `select URL from Posts where ID = ?;`
+	const q = `select URL from Posts where ID = ? and DeletionTime is null;`
 	return querySingleValue[sql.NullString](q, id)
 }
 
 func LinkCount() int {
-	return querySingleValue[int](`select count(ID) from Posts;`)
+	const q = `select count(ID) from Posts where DeletionTime is null;`
+	return querySingleValue[int](q)
 }
 
 func OldestTime() *time.Time {

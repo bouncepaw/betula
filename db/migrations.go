@@ -19,9 +19,6 @@ create table Posts (
     DeletionTime integer                
 );
 
-create view Categories as
-select distinct CatName from CategoriesToPosts;
-
 create table CategoriesToPosts (
     CatName text not null,
     PostID integer not null,
