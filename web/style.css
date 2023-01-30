@@ -70,6 +70,7 @@
 body {
     display: grid;
     font-family: sans-serif;
+    word-break: break-word;
 }
 header {
     grid-area: header;
