@@ -3,6 +3,7 @@ package types
 
 import (
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/util"
+	"net/url"
 	"strings"
 )
 
@@ -43,6 +44,25 @@ type Post struct {
 	Description string
 	// Visibility sets who can see the post.
 	Visibility Visibility
+}
+
+// FixMixUp returns a copy of post. Its Title and URL are swapped, iff Title is a valid URL, and URL is not a valid URL.
+func (post Post) FixMixUp() Post {
+	_, err := url.ParseRequestURI(post.URL)
+	// If URL is a valid URL:
+	if err == nil {
+		return post
+	}
+
+	_, err = url.ParseRequestURI(post.Title)
+	// If Title is not a valid URL
+	if err != nil {
+		return post
+	}
+
+	// At this point, URL is not a valid URL, Title is valid URL. Swap:
+	post.Title, post.URL = post.URL, post.Title
+	return post
 }
 
 type Category struct {
