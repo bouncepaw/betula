@@ -64,7 +64,19 @@ func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
+	if confirmed := rq.FormValue("confirmed"); confirmed != "true" {
+		http.Redirect(w, rq, fmt.Sprintf("/edit-link/%d", id), http.StatusSeeOther)
+		return
+	}
+
+	if !db.HasPost(id) {
+		log.Println("Trying to delete a non-existent post.")
+		handler404(w, rq)
+		return
+	}
+
 	db.DeletePost(id)
+	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
 
 func handler404(w http.ResponseWriter, rq *http.Request) {

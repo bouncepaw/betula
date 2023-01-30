@@ -8,6 +8,15 @@ import (
 
 const expectedVersion = 1
 
+/*
+Wishes for schema version 2:
+
+1. Store dates as strings like 2000-00-00 00:00:00
+	That would make manual intervention easier!
+
+Write more here. Implement all when there is an actual need to have a new schema.
+*/
+
 const currentSchema = `
 create table Posts (
     ID integer primary key autoincrement,
@@ -15,7 +24,7 @@ create table Posts (
     Title text not null check ( Title <> '' ),
     Description text not null,
     Visibility integer check ( Visibility = 0 or Visibility = 1 ),
-    CreationTime integer not null default current_timestamp,
+    CreationTime integer not null default (strftime('%s', 'now')),
     DeletionTime integer                
 );
 
@@ -113,7 +122,7 @@ create table NewPosts (
     Title text not null check ( Title <> '' ),
     Description text not null,
     Visibility integer check ( Visibility = 0 or Visibility = 1 ),
-    CreationTime integer not null default current_timestamp,
+    CreationTime integer not null default (strftime('%s', 'now')),
     DeletionTime integer                 
 );
 

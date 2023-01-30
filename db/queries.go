@@ -146,8 +146,22 @@ func SetCategoriesFor(postID int, categories []types.Category) {
 	}
 }
 
+func HasPost(id int) (has bool) {
+	const q = `select exists(select 1 from Posts where ID = ? and DeletionTime is null);`
+	rows := mustQuery(q, id)
+	rows.Next()
+	mustScan(rows, &has)
+	_ = rows.Close()
+	return has
+}
+
 func DeletePost(id int) {
-	panic("not implemented")
+	const q = `
+update Posts
+set DeletionTime = strftime('%s', 'now')
+where ID = ?;
+`
+	mustExec(q, id)
 }
 
 // AddPost adds a new post to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
@@ -188,13 +202,15 @@ where
 func PostForID(id int) (post types.Post, found bool) {
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime from Posts
-where ID = ? and DeletionTime is null;
+where ID = ? and DeletionTime is null
+limit 1;
 `
 	rows := mustQuery(q, id)
-	rows.Next()
-	mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
-	_ = rows.Close()
-	return post, true
+	for rows.Next() {
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		found = true
+	}
+	return post, found
 }
 
 // URLForID returns the URL of the post corresponding to the given ID, if there is any post like that.
