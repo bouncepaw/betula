@@ -88,18 +88,22 @@ where PostID = ?;
 	return cats
 }
 
-func Categories() (cats []types.Category) {
+func Categories(authorized bool) (cats []types.Category) {
 	q := `
 with
-    DeletedPosts as (
-        select ID from Posts where DeletionTime is not null
-    )
+	IgnoredPosts as (
+	   -- Ignore deleted posts always
+		select ID from Posts where DeletionTime is not null
+	   union
+		-- Ignore private posts if so desired
+	   select ID from Posts where Visibility = 0 and not ?
+	)
 select
     distinct(CatName) from CategoriesToPosts
 where
-    PostID not in DeletedPosts;
+    PostID not in IgnoredPosts;
 `
-	rows := mustQuery(q)
+	rows := mustQuery(q, authorized)
 	for rows.Next() {
 		var cat types.Category
 		mustScan(rows, &cat.Name)

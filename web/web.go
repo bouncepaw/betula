@@ -180,9 +180,10 @@ type dataCategories struct {
 }
 
 func handlerCategories(w http.ResponseWriter, rq *http.Request) {
+	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(templateCategories, dataCategories{
-		Categories: db.Categories(),
-		Authorized: auth.AuthorizedFromRequest(rq),
+		Categories: db.Categories(authed),
+		Authorized: authed,
 	}, w)
 }
 
