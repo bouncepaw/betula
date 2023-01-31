@@ -1,7 +1,7 @@
 {{define "title"}}Link: {{.Post.Title}}{{end}}
 {{define "body"}}
 	<main>
-		<article class="post h-entry">
+		<article class="post-page h-entry">
             {{if .Authorized}}
                 {{template "post buttons fragment" .Post}}
             {{end}}

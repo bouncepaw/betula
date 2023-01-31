@@ -187,6 +187,10 @@ form textarea {
 h2, .post {
     max-width: 40rem;
 }
+.post-page h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
 .post h2, .post h3 {
     margin: 0;
     font-size: medium;
