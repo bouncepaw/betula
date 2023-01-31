@@ -1,7 +1,7 @@
 {{define "post main fragment"}}
-	<a class="src-url" href="{{.URL}}">{{stripCommonProtocol .URL}}</a>
+	<a class="src-url u-repost-of" href="{{.URL}}">{{stripCommonProtocol .URL}}</a>
 	{{if .Description}}
-		<div class="myco">
+		<div class="myco e-content">
 			{{mycomarkup .Description}}
 		</div>
 	{{end}}
@@ -9,11 +9,11 @@
 		<span>Categories:</span>
 		{{range $i, $cat := .Categories}}
 			{{if $i}},{{end}}
-			<a href="/cat/{{$cat.Name}}">{{$cat.Name}}</a>
+			<a class="p-category" href="/cat/{{$cat.Name}}">{{$cat.Name}}</a>
 		{{else}}
 			<span class="empty-set">∅</span>
 		{{end}}
-		<time>
+		<time class="dt-published" datetime="{{timestampToHuman .CreationTime}}">
             {{timestampToHuman .CreationTime}}
 		</time>
 	</div>

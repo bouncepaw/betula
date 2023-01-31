@@ -5,7 +5,7 @@
             {{if .Authorized}}
                 {{template "post buttons fragment" .Post}}
             {{end}}
-			<h2><a href="/{{.Post.ID}}">{{.Post.Title}}</a></h2>
+			<h2 class="p-name"><a class="u-url" href="/{{.Post.ID}}">{{.Post.Title}}</a></h2>
 			{{template "post main fragment" .Post}}
 		</article>
 	</main>

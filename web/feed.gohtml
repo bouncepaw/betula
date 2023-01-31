@@ -7,7 +7,7 @@
                 {{if $authed}}
                     {{template "post buttons fragment" .}}
                 {{end}}
-				<h3><a href="/{{.ID}}">{{.Title}}</a></h3>
+				<h3 class="p-name"><a class="u-url" href="/{{.ID}}">{{.Title}}</a></h3>
                 {{template "post main fragment" .}}
 			</article>
 		{{else}}
