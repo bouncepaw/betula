@@ -1,0 +1,6 @@
+git.sr.ht/~bouncepaw/mycomarkup/v5 v5.4.0 h1:n57ze2WEmtjhlDDDPKctp40rzo8T2bGfuR9s7UAOaVg=
+git.sr.ht/~bouncepaw/mycomarkup/v5 v5.4.0/go.mod h1:TCzFBqW11En4EjLfcQtJu8C/Ro7FIFR8vZ+nM9f6Q28=
+github.com/mattn/go-sqlite3 v1.14.16 h1:yOQRA0RpS5PFz/oikGwBEqvAWhWg5ufRz4ETLjwpU1Y=
+github.com/mattn/go-sqlite3 v1.14.16/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
+golang.org/x/crypto v0.5.0 h1:U/0M97KRkSFvyD/3FSmdP5W5swImpNgle/EHFhOsQPE=
+golang.org/x/crypto v0.5.0/go.mod h1:NK/OQwhpMQP3MwtdjgLlYHnH9ebylxKWv3e0fK+mkQU=
