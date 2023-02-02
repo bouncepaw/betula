@@ -1,11 +1,11 @@
 {{define "form fragment"}}
 	<div>
 		<label for="link-url">URL</label>
-		<input type="url" id="link-url" name="url" required value="{{.URL}}">
+		<input type="url" id="link-url" name="url" required value="{{.URL}}" autocomplete="off">
 	</div>
 	<div>
 		<label for="link-title">Title</label>
-		<input type="text" id="link-title" name="title" required value="{{.Title}}">
+		<input type="text" id="link-title" name="title" required value="{{.Title}}" autocomplete="off">
 	</div>
 	<div>
 		<label for="link-description">Description, quotes</label>
@@ -25,7 +25,7 @@
 	<div>
 		<label for="link-categories">Categories comma-separated</label>
 		<input type="text" id="link-categories" name="categories"
-		       value="{{.Categories | catsTogether}}" placeholder="video, programming">
+		       value="{{.Categories | catsTogether}}" placeholder="video, programming" autocomplete="off">
 		<p class="input-caption">Some special characters are ignored.</p>
 	</div>
 	<input type="submit" class="btn" value="Save">
