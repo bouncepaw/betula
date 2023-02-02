@@ -88,6 +88,7 @@ where PostID = ?;
 	return cats
 }
 
+// Categories returns all categories found on posts one has access to. They all have PostCount set to a non-zero value.
 func Categories(authorized bool) (cats []types.Category) {
 	q := `
 with
@@ -99,14 +100,19 @@ with
 	   select ID from Posts where Visibility = 0 and not ?
 	)
 select
-    distinct(CatName) from CategoriesToPosts
+   CatName, 
+   count(PostID)
+from
+   CategoriesToPosts
 where
-    PostID not in IgnoredPosts;
+   PostID not in IgnoredPosts
+group by
+	CatName;
 `
 	rows := mustQuery(q, authorized)
 	for rows.Next() {
 		var cat types.Category
-		mustScan(rows, &cat.Name)
+		mustScan(rows, &cat.Name, &cat.PostCount)
 		cats = append(cats, cat)
 	}
 	return cats

@@ -66,7 +66,8 @@ func (post Post) FixMixUp() Post {
 }
 
 type Category struct {
-	Name string
+	Name      string
+	PostCount uint
 }
 
 func CanonicalCategoryName(rawName string) string {

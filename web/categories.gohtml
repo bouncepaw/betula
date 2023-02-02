@@ -1,15 +1,18 @@
 {{define "title"}}Categories{{end}}
 {{define "body"}}
-	<main>
-		<h2>Categories</h2>
+	<main class="myco-categories">
+		<h2 class="p-name">Categories</h2>
 		{{if .Categories}}
-			<ul>
-				{{range .Categories}}
-					<li>
-						<a href="/cat/{{.Name}}">{{.Name}}</a>
-					</li>
-				{{end}}
-			</ul>
+			{{range .Categories}}
+				<article class="myco-category">
+					<h3 class="p-name">
+						<a href="/cat/{{.Name}}" class="u-url">{{.Name}}</a>
+					</h3>
+					<p class="post-count">
+						<span class="myco-count">{{.PostCount}}</span> post{{if gt .PostCount 1}}s{{end}}
+					</p>
+				</article>
+			{{end}}
 		{{else}}
 			<p>No categories.</p>
 		{{end}}
