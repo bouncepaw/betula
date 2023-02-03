@@ -350,9 +350,8 @@ type dataPost struct {
 func handlerPost(w http.ResponseWriter, rq *http.Request) {
 	id, err := strconv.Atoi(strings.TrimPrefix(strings.TrimPrefix(rq.URL.Path, "/"), "post/"))
 	if err != nil {
-		// TODO: Show 404
 		log.Println(err)
-		handlerFeed(w, rq)
+		handler404(w, rq)
 		return
 	}
 	log.Printf("Viewing post %d\n", id)
