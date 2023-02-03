@@ -67,6 +67,7 @@
     }
 }
 
+*, *::before, *::after { box-sizing: border-box; }
 body {
     display: grid;
     font-family: sans-serif;
