@@ -1,5 +1,5 @@
 {{define "post main fragment"}}
-	<a class="src-url u-repost-of" href="{{.URL}}">{{stripCommonProtocol .URL}}</a>
+	<a class="src-url u-bookmark-of h-cite" href="{{.URL}}">{{stripCommonProtocol .URL}}</a>
 	{{if .Description}}
 		<div class="myco e-content">
 			{{mycomarkup .Description}}
