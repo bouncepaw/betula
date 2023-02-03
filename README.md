@@ -1,21 +1,17 @@
 # 🌳 Betula, a personal link collection manager
-![A screenshot of Betula, featuring several links]()
+![A screenshot of Betula, featuring several links](https://betula.mycorrhiza.wiki/betula-v0.5.0.png)
 
-**Betula** is a self-hosted server software that lets you save links into a collection. This is basically it.
+**Betula** is a single-user self-hosted bookmarking software.
 
+* [Website](https://betula.mycorrhiza.wiki)
+* [Source code](https://git.sr.ht/~bouncepaw/betula)
 * [Mailing list (with devlog)](https://lists.sr.ht/~bouncepaw/betula)
 * [Donate on Boosty (with more devlog)](https://boosty.to/bouncepaw)
 
 ## Features
-* Publish links, along with optional title and description formatted with [Mycomarkup](https://mycorrhiza.wiki/help/en/mycomarkup).
-* Posts can be public and private. Share only what you want to share!
-* Organize your collection with categories.
-* Search with the search bar.
-* Simple user interface that does not  require JavaScript.
-* Subscribe with RSS, Atom or JSON feed.
+* Publish bookmarks, along with optional title and description formatted with [Mycomarkup](https://mycorrhiza.wiki/help/en/mycomarkup).
+* Add your bookmarks to categories.
+* Posts can be public or private. Share only what you want to share!
+* Simple user interface that does not require JavaScript.
 * The whole collection is saved as a single SQLite file.
-* Federate categories with [Mycorrhiza](https://mycorrhiza.wiki) and other Betula instances.
-
-## State
-Development was started. Not all promised features are done. Do not use unless you really want to.
-
+* [IndieWeb](https://indieweb.org) microformats are produced.
