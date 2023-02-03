@@ -114,9 +114,10 @@ a.edit-post-btn {
 .about-post time {
     margin-left: auto;
 }
-.src-url {
+.u-bookmark-of {
     display: inline-block;
     font-size: small;
+    text-decoration: none;
 }
 h3 {
     margin-bottom: 4px;
