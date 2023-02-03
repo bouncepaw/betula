@@ -299,3 +299,33 @@ a.btn_destructive:visited,
         background-color: #b92828;
     }
 }
+
+/* Autocompletion */
+.autocompletion-wrapper {
+    position: relative;
+    height: 200px;
+    margin-bottom: -200px;
+    pointer-events: none;
+}
+
+.autocompletion-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background: white;
+    border: 1px solid #ccc;
+    max-height: 100%;
+    overflow-y: auto;
+    pointer-events: auto;
+}
+
+.autocompletion-item {
+    list-style: none;
+    padding: 0.2em 0.5em;
+    cursor: pointer;
+}
+
+.autocompletion-item:hover,
+.autocompletion-item.selected {
+    background: #ccc;
+}

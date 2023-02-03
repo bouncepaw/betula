@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	//go:embed *.gohtml *.css
+	//go:embed *.gohtml *.css *.js
 	fs  embed.FS
 	mux = http.NewServeMux()
 )
