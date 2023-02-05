@@ -30,7 +30,5 @@ func main() {
 	defer db.Finalize()
 	auth.Initialize()
 	settings.Index()
-
-	// TODO: to smart goroutine
-	web.Start()
+	web.StartServer()
 }
