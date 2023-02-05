@@ -167,6 +167,7 @@ form input[type="radio"] + label,
 form input[type="checkbox"] + label {
     display: inline-block;
 }
+form input[type="number"],
 form input[type="text"],
 form input[type="url"],
 form input[type="password"],
