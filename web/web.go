@@ -5,6 +5,8 @@ import (
 	"embed"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
+	"git.sr.ht/~bouncepaw/betula/settings"
+	"html/template"
 	"log"
 	"net/http"
 	"net/url"
@@ -35,7 +37,54 @@ func init() {
 	mux.HandleFunc("/register", handlerRegister)
 	mux.HandleFunc("/login", handlerLogin)
 	mux.HandleFunc("/logout", handlerLogout)
+	mux.HandleFunc("/settings", handlerSettings)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+type dataSettings struct {
+	types.Settings
+	Authorized bool
+	ErrBadPort bool
+}
+
+func handlerSettings(w http.ResponseWriter, rq *http.Request) {
+	authed := auth.AuthorizedFromRequest(rq)
+	if !authed {
+		handler404(w, rq)
+		return
+	}
+
+	if rq.Method == http.MethodGet {
+		templateExec(templateSettings, dataSettings{
+			Authorized: authed,
+			Settings: types.Settings{
+				NetworkPort: settings.NetworkPort(),
+				SiteTitle:   settings.SiteTitle(),
+			},
+		}, w)
+		return
+	}
+
+	var newSettings = types.Settings{
+		SiteTitle: template.HTML(rq.FormValue("site-title")),
+	}
+
+	if port, err := strconv.Atoi(rq.FormValue("network-port")); err != nil || port <= 0 {
+		templateExec(templateSettings, dataSettings{
+			Authorized: authed,
+			Settings: types.Settings{
+				NetworkPort: uint(port),
+				SiteTitle:   settings.SiteTitle(),
+			},
+			ErrBadPort: true,
+		}, w)
+	} else {
+		newSettings.NetworkPort = uint(port)
+	}
+
+	settings.SetSettings(newSettings)
+	// TODO: restart web server
+	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
 
 func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {

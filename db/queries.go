@@ -44,6 +44,11 @@ func MetaEntry[T any](key string) T {
 	return querySingleValue[T](q, key)
 }
 
+func SetMetaEntry[T any](key string, val T) {
+	const q = `insert or replace into BetulaMeta values (?, ?);`
+	mustExec(q, key, val)
+}
+
 func AuthorizedPostsForCategory(authorized bool, catName string) (posts []types.Post) {
 	const q = `
 select

@@ -3,6 +3,7 @@ package types
 
 import (
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/util"
+	"html/template"
 	"net/url"
 	"strings"
 )
@@ -97,4 +98,9 @@ func SplitCategories(commaSeparated string) []Category {
 		}
 	}
 	return cats
+}
+
+type Settings struct {
+	NetworkPort uint
+	SiteTitle   template.HTML
 }

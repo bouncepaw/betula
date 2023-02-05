@@ -41,6 +41,7 @@ func templateExec(temp *template.Template, data any, w http.ResponseWriter) {
 var templateRegisterForm = templateFrom(nil, "register-form.gohtml")
 var templateLoginForm = templateFrom(nil, "login-form.gohtml")
 var templateLogoutForm = templateFrom(nil, "logout-form.gohtml")
+var templateSettings = templateFrom(nil, "settings.gohtml")
 
 // Sad views:
 var template404 = templateFrom(nil, "404.gohtml")
