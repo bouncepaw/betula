@@ -43,7 +43,7 @@ func init() {
 
 type dataSettings struct {
 	types.Settings
-	Authorized bool
+	*dataCommon
 	ErrBadPort bool
 }
 
@@ -55,13 +55,13 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if rq.Method == http.MethodGet {
-		templateExec(templateSettings, dataSettings{
-			Authorized: authed,
+		templateExec(w, templateSettings, dataSettings{
 			Settings: types.Settings{
 				NetworkPort: settings.NetworkPort(),
 				SiteTitle:   settings.SiteTitle(),
 			},
-		}, w)
+			dataCommon: emptyCommon(),
+		}, rq)
 		return
 	}
 
@@ -70,14 +70,14 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if port, err := strconv.Atoi(rq.FormValue("network-port")); err != nil || port <= 0 {
-		templateExec(templateSettings, dataSettings{
-			Authorized: authed,
+		templateExec(w, templateSettings, dataSettings{
 			Settings: types.Settings{
 				NetworkPort: uint(port),
 				SiteTitle:   settings.SiteTitle(),
 			},
 			ErrBadPort: true,
-		}, w)
+			dataCommon: emptyCommon(),
+		}, rq)
 	} else {
 		newSettings.NetworkPort = uint(port)
 	}
@@ -130,16 +130,16 @@ func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
 
 func handler404(w http.ResponseWriter, rq *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	templateExec(template404, dataAuthorized{
-		Authorized: auth.AuthorizedFromRequest(rq),
-	}, w)
+	templateExec(w, template404, dataAuthorized{
+		dataCommon: emptyCommon(),
+	}, rq)
 }
 
 func handlerLogout(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method == http.MethodGet {
-		templateExec(templateLogoutForm, dataAuthorized{
-			Authorized: auth.AuthorizedFromRequest(rq),
-		}, w)
+		templateExec(w, templateLogoutForm, dataAuthorized{
+			dataCommon: emptyCommon(),
+		}, rq)
 		return
 	}
 
@@ -149,17 +149,17 @@ func handlerLogout(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataLogin struct {
-	Authorized bool
-	Name       string
-	Pass       string
-	Incorrect  bool
+	*dataCommon
+	Name      string
+	Pass      string
+	Incorrect bool
 }
 
 func handlerLogin(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method == http.MethodGet {
-		templateExec(templateLoginForm, dataLogin{
-			Authorized: auth.AuthorizedFromRequest(rq),
-		}, w)
+		templateExec(w, templateLoginForm, dataLogin{
+			dataCommon: emptyCommon(),
+		}, rq)
 		return
 	}
 
@@ -171,12 +171,12 @@ func handlerLogin(w http.ResponseWriter, rq *http.Request) {
 	if !auth.CredentialsMatch(name, pass) {
 		// If incorrect password, ask the client to try again.
 		w.WriteHeader(http.StatusBadRequest)
-		templateExec(templateLoginForm, dataLogin{
-			Authorized: auth.AuthorizedFromRequest(rq),
+		templateExec(w, templateLoginForm, dataLogin{
 			Name:       name,
 			Pass:       pass,
 			Incorrect:  true,
-		}, w)
+			dataCommon: emptyCommon(),
+		}, rq)
 		return
 	}
 
@@ -210,7 +210,7 @@ type auther struct {
 }
 
 type dataAuthorized struct {
-	Authorized bool
+	*dataCommon
 }
 
 func (a *auther) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
@@ -220,26 +220,28 @@ func (a *auther) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		a.Handler.ServeHTTP(w, rq)
 		return
 	}
-	templateExec(templateRegisterForm, dataAuthorized{}, w)
+	templateExec(w, templateRegisterForm, dataAuthorized{
+		dataCommon: emptyCommon(),
+	}, rq)
 }
 
 type dataCategories struct {
+	*dataCommon
 	Categories []types.Category
-	Authorized bool
 }
 
 func handlerCategories(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
-	templateExec(templateCategories, dataCategories{
+	templateExec(w, templateCategories, dataCategories{
 		Categories: db.Categories(authed),
-		Authorized: authed,
-	}, w)
+		dataCommon: emptyCommon(),
+	}, rq)
 }
 
 type dataCategory struct {
+	*dataCommon
 	types.Category
 	PostsInCategory []types.Post
-	Authorized      bool
 }
 
 func handlerCategory(w http.ResponseWriter, rq *http.Request) {
@@ -249,31 +251,31 @@ func handlerCategory(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	authed := auth.AuthorizedFromRequest(rq)
-	templateExec(templateCategory, dataCategory{
+	templateExec(w, templateCategory, dataCategory{
 		Category:        types.Category{Name: catName},
 		PostsInCategory: db.AuthorizedPostsForCategory(authed, catName),
-		Authorized:      authed,
-	}, w)
+		dataCommon:      emptyCommon(),
+	}, rq)
 }
 
 type dataAbout struct {
 	LinkCount  int
 	OldestTime *time.Time
 	NewestTime *time.Time
-	Authorized bool
+	*dataCommon
 }
 
 func handlerAbout(w http.ResponseWriter, rq *http.Request) {
-	templateExec(templateAbout, dataAbout{
+	templateExec(w, templateAbout, dataAbout{
 		LinkCount:  db.LinkCount(),
 		OldestTime: db.OldestTime(),
 		NewestTime: db.NewestTime(),
-		Authorized: auth.AuthorizedFromRequest(rq),
-	}, w)
+		dataCommon: emptyCommon(),
+	}, rq)
 }
 
 type dataEditLink struct {
-	Authorized      bool
+	*dataCommon
 	ErrorInvalidURL bool
 	types.Post
 }
@@ -309,10 +311,10 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 
 	switch rq.Method {
 	case http.MethodGet:
-		templateExec(templateEditLink, dataEditLink{
-			Authorized: authed,
+		templateExec(w, templateEditLink, dataEditLink{
 			Post:       post,
-		}, w)
+			dataCommon: emptyCommon(),
+		}, rq)
 	case http.MethodPost:
 		post.URL = rq.FormValue("url")
 		post.Title = rq.FormValue("title")
@@ -322,11 +324,11 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 
 		if _, err := url.ParseRequestURI(post.URL); err != nil {
 			log.Printf("Invalid URL was passed, asking again: %s\n", post.URL)
-			templateExec(templateEditLink, dataEditLink{
+			templateExec(w, templateEditLink, dataEditLink{
 				ErrorInvalidURL: true,
-				Authorized:      authed,
 				Post:            post,
-			}, w)
+				dataCommon:      emptyCommon(),
+			}, rq)
 			return
 		}
 
@@ -337,7 +339,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataSaveLink struct {
-	Authorized bool
+	*dataCommon
 
 	// The following three fields can be non-empty, when set through URL parameters or when an erroneous request was made.
 
@@ -352,14 +354,14 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	switch rq.Method {
 	case http.MethodGet:
 		// TODO: Document the param behaviour
-		templateExec(templateSaveLink, dataSaveLink{
-			Authorized:  auth.AuthorizedFromRequest(rq),
+		templateExec(w, templateSaveLink, dataSaveLink{
 			URL:         rq.FormValue("url"),
 			Title:       rq.FormValue("title"),
 			Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
 			Description: rq.FormValue("description"),
 			Categories:  types.SplitCategories(rq.FormValue("categories")),
-		}, w)
+			dataCommon:  emptyCommon(),
+		}, rq)
 	case http.MethodPost:
 		var (
 			addr        = rq.FormValue("url")
@@ -369,13 +371,14 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			categories  = types.SplitCategories(rq.FormValue("categories"))
 		)
 		if _, err := url.ParseRequestURI(addr); err != nil {
-			templateExec(templateAddLinkInvalidURL, dataSaveLink{
+			templateExec(w, templateAddLinkInvalidURL, dataSaveLink{
 				URL:         addr,
 				Title:       title,
 				Visibility:  visibility,
 				Description: description,
 				Categories:  categories,
-			}, w)
+				dataCommon:  emptyCommon(),
+			}, rq)
 			return
 		}
 
@@ -392,8 +395,8 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataPost struct {
-	Post       types.Post
-	Authorized bool
+	Post types.Post
+	*dataCommon
 }
 
 func handlerPost(w http.ResponseWriter, rq *http.Request) {
@@ -411,15 +414,15 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	post.Categories = db.CategoriesForPost(id)
-	templateExec(templatePost, dataPost{
+	templateExec(w, templatePost, dataPost{
 		Post:       post,
-		Authorized: auth.AuthorizedFromRequest(rq),
-	}, w)
+		dataCommon: emptyCommon(),
+	}, rq)
 }
 
 type dataFeed struct {
-	AllPosts   []types.Post
-	Authorized bool
+	AllPosts []types.Post
+	*dataCommon
 }
 
 var regexpPost = regexp.MustCompile("^/[0-9]+")
@@ -434,10 +437,10 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	authed := auth.AuthorizedFromRequest(rq)
-	templateExec(templateFeed, dataFeed{
+	templateExec(w, templateFeed, dataFeed{
 		AllPosts:   db.AuthorizedPosts(authed),
-		Authorized: authed,
-	}, w)
+		dataCommon: emptyCommon(),
+	}, rq)
 }
 
 func handlerGo(w http.ResponseWriter, rq *http.Request) {

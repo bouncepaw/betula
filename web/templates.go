@@ -1,7 +1,9 @@
 package web
 
 import (
+	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/myco"
+	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"html/template"
 	"log"
@@ -30,7 +32,12 @@ func templateFrom(funcMap template.FuncMap, filenames ...string) *template.Templ
 	return template.Must(template.New("skeleton.gohtml").Funcs(funcMap).ParseFS(fs, filenames...))
 }
 
-func templateExec(temp *template.Template, data any, w http.ResponseWriter) {
+func templateExec(w http.ResponseWriter, temp *template.Template, data viewData, rq *http.Request) {
+	common := dataCommon{
+		authorized: auth.AuthorizedFromRequest(rq),
+		siteTitle:  settings.SiteTitle(),
+	}
+	data.Fill(common)
 	err := temp.ExecuteTemplate(w, "skeleton.gohtml", data)
 	if err != nil {
 		log.Fatalln(err)
@@ -82,4 +89,36 @@ var funcMapForTime = template.FuncMap{
 	"timeToHuman": func(t *time.Time) string {
 		return t.Format("2006-01-02 15:04")
 	},
+}
+
+// Do not bother to fill it.
+type dataCommon struct {
+	authorized bool
+	siteTitle  template.HTML
+}
+
+type viewData interface {
+	SiteTitleHTML() template.HTML
+	Authorized() bool
+	Fill(dataCommon)
+}
+
+func (c *dataCommon) SiteTitleHTML() template.HTML {
+	return c.siteTitle
+}
+
+func (c *dataCommon) Authorized() bool {
+	return c.authorized
+}
+
+func (c *dataCommon) Fill(C dataCommon) {
+	if c == nil {
+		panic("common data is nil! Initialize it at templateExec invocation.")
+	}
+	c.siteTitle = C.siteTitle
+	c.authorized = C.authorized
+}
+
+func emptyCommon() *dataCommon {
+	return &dataCommon{}
 }
