@@ -7,9 +7,6 @@
         grid-row-gap: 8px;
         margin: 0;
     }
-    main {
-        padding: 8px;
-    }
     header {
         margin: 8px 0 0 4px;
     }
@@ -24,11 +21,8 @@
     h1 {
         font-size: medium;
     }
-    .h-feed h2 {
-        padding: 0 8px;
-    }
-    .h-feed {
-        margin: 0 -8px;
+    main > article {
+        padding: 8px;
     }
 }
 
@@ -40,20 +34,15 @@
             "footer main";
         grid-column-gap: 8px;
     }
-    main:not(.h-feed) {
-        padding: 8px 32px 32px 32px;
-    }
-    main, header, .post {
-        border-radius: 4px;
-    }
     header li {
         padding: 4px 8px;
     }
     h1 {
         margin: 8px;
     }
-    .h-feed h2 {
-        padding: 8px;
+    main > article {
+        max-width: 40rem;
+        padding: 8px 16px;
     }
 }
 
@@ -96,6 +85,9 @@ header li {
 }
 main {
     max-width: 40rem;
+}
+main > article:first-of-type {
+    margin-top: 0;
 }
 a.edit-post-btn {
     float: right;
@@ -150,7 +142,6 @@ dd + dt {
 .categories a {
     display: block;
     padding: 4px 8px;
-    border-radius: 8px;
     text-decoration: none;
 }
 form {
@@ -193,26 +184,24 @@ form textarea {
     font-size: small;
     margin: 4px 0;
 }
-h2, .post {
-    max-width: 40rem;
-}
-.post-page h2 {
+h2 {
     margin: 0;
     font-size: 1.5rem;
 }
-.post h2, .post h3 {
+h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+.h-entry h3 {
     margin: 0;
     font-size: medium;
 }
-.h-feed h2 {
-    margin: 0 0 8px 0;
-}
-.h-feed .post {
-    border-radius: 4px;
-    padding: 8px;
-}
-.h-feed .post + .post {
+h2 + *:not(p, .u-bookmark-of),
+h3 + *:not(p, .u-bookmark-of) {
     margin-top: 8px;
+}
+article + article {
+    margin-top: 1px;
 }
 .about-post a, .about-post .empty-set {
     margin-left: .25rem;
@@ -228,8 +217,7 @@ html {
     background: #eee;
     padding: 0;
 }
-main:not(.h-feed),
-.h-feed .post {
+main > article {
     background: white;
 }
 .edit-post-btn, .edit-post-btn:visited {
@@ -252,7 +240,6 @@ header a, header a:hover, header a:visited {
     line-height: normal;
     display: inline-block;
     border: 1px #999 solid;
-    border-radius: .15rem;
     text-decoration: none;
     padding: .25rem .5rem;
     font-size: 1rem;

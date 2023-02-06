@@ -2,12 +2,13 @@
 {{define "body"}}
 	<main>
 		<article>
-			<h2>About Betula</h2>
-			<p><strong>Betula</strong> is a self-hosted link collection management software.
-				You are accessing an instance of it.</p>
+			<h2>About {{.SiteTitleHTML}}</h2>
+			<p>This website runs <strong>Betula</strong>,
+				a self-hosted link collection management software.</p>
 			<p>Build your own instance of Betula! See <a href="https://sr.ht/~bouncepaw/betula/">Betula on SourceHut</a>.</p>
-
-			<h2>Stats</h2>
+		</article>
+		<article>
+			<h3>Stats</h3>
 			<dl>
 				<dt>Number of saved links</dt>
 				<dd>{{.LinkCount}}</dd>
@@ -18,7 +19,8 @@
 				<dd>{{.NewestTime | timeToHuman}}</dd>
 				{{end}}
 			</dl>
-
+		</article>
+		<article>
 			<h3>Licensing</h3>
 			<p>Betula is a free software, licensed under AGPLv3.
 				If this instance is running an official version,

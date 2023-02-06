@@ -1,10 +1,12 @@
 {{define "title"}}Invalid link{{end}}
 {{define "body"}}
 	<main>
-		<h2>Invalid link</h2>
-		<p>The URL you have passed, <code>{{.URL}}</code>, is invalid. Please enter a correct URL.</p>
-		<form method="post" action="/save-link">
-            {{template "form fragment" .}}
-		</form>
+		<article>
+			<h2>Invalid link</h2>
+			<p>The URL you have passed, <code>{{.URL}}</code>, is invalid. Please enter a correct URL.</p>
+			<form method="post" action="/save-link">
+                {{template "form fragment" .}}
+			</form>
+		</article>
 	</main>
 {{end}}

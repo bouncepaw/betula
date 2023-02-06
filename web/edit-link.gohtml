@@ -1,22 +1,26 @@
 {{define "title"}}Edit link{{end}}
 {{define "body"}}
 	<main>
-		{{if .ErrorInvalidURL}}
-			<h2>Invalid link</h2>
-			<p>The URL you have passed, <code>{{.URL}}</code>, is invalid. Please enter a correct URL.</p>
-		{{else}}
-			<h2>Edit link</h2>
-		{{end}}
-		<form method="post" action="/edit-link/{{.ID}}">
-            {{template "form fragment" .}}
-		</form>
-		<form method="post" action="/delete-link/{{.ID}}">
+		<article>
+			{{if .ErrorInvalidURL}}
+				<h2>Invalid link</h2>
+				<p>The URL you have passed, <code>{{.URL}}</code>, is invalid. Please enter a correct URL.</p>
+			{{else}}
+				<h2>Edit link</h2>
+			{{end}}
+			<form method="post" action="/edit-link/{{.ID}}">
+	            {{template "form fragment" .}}
+			</form>
+		</article>
+		<article>
 			<h2>Delete link</h2>
-			<div>
-				<input type="checkbox" name="confirmed" id="delete-confirmed" value="true">
-				<label for="delete-confirmed">Yes, delete this link.</label>
-			</div>
-			<input type="submit" value="Delete" class="btn">
-		</form>
+			<form method="post" action="/delete-link/{{.ID}}">
+				<div>
+					<input type="checkbox" name="confirmed" id="delete-confirmed" value="true">
+					<label for="delete-confirmed">Yes, delete this link.</label>
+				</div>
+				<input type="submit" value="Delete" class="btn">
+			</form>
+		</article>
 	</main>
 {{end}}

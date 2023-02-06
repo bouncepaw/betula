@@ -1,9 +1,12 @@
 {{define "title"}}Category {{.Name}}{{end}}
 {{define "body"}}
 	<main class="h-feed">
-		<h2 class="p-name">Category {{.Name}}</h2>{{$authed := .Authorized}}
+		<article>
+			<h2 class="p-name">Category {{.Name}}</h2>{{$authed := .Authorized}}
+			<!--<div class="p-summary"></div>-->
+		</article>
 		{{range .PostsInCategory}}
-			<article class="post h-entry">
+			<article class="h-entry">
                 {{if $authed}}
                     {{template "post buttons fragment" .}}
                 {{end}}

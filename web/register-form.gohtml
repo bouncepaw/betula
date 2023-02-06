@@ -1,26 +1,28 @@
 {{define "title"}}Welcome to Betula!{{end}}
 {{define "body"}}
 	<main>
-		<h2>Welcome to Betula!</h2>
-		<p>If you see this page,
-			Betula is successfully installed and working.
-			Further configuration is required.
-		</p>
-		<p>Set up your account, so you can save links.
-			Do not share these credentials,
-			unless you really want to.</p>
-		<form method="post" action="/register">
-			<p>
-				<label for="name">Username</label>
-				<input type="text" name="name" id="name">
+		<article>
+			<h2>Welcome to Betula!</h2>
+			<p>If you see this page,
+				Betula is successfully installed and working.
+				Further configuration is required.
 			</p>
-			<p>
-				<label for="pass">Password</label>
-				<input type="password" name="pass" id="pass">
-			</p>
-			<p>Betula does not store your password. It only stores its hash.</p>
-			<input type="submit" value="Register" class="btn">
-		</form>
-		<p><em>Thank you for using Betula.</em></p>
+			<p>Set up your account, so you can save links.
+				Do not share these credentials,
+				unless you really want to.</p>
+			<form method="post" action="/register">
+				<p>
+					<label for="name">Username</label>
+					<input type="text" name="name" id="name">
+				</p>
+				<p>
+					<label for="pass">Password</label>
+					<input type="password" name="pass" id="pass">
+				</p>
+				<p>Betula does not store your password. It only stores its hash.</p>
+				<input type="submit" value="Register" class="btn">
+			</form>
+			<p><em>Thank you for using Betula.</em></p>
+		</article>
 	</main>
 {{end}}

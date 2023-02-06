@@ -1,34 +1,36 @@
 {{define "title"}}Settings{{end}}
 {{define "body"}}
 	<main>
-		<h2>Settings</h2>
-		<p><a href="/logout">Log out</a></p>
+		<article>
+			<h2>Settings</h2>
+			<p><a href="/logout">Log out</a></p>
 
-		<form method="post" action="/settings">
-			<div>
-				<label for="site-title">Site title</label>
-				<input id="site-title" name="site-title" type="text" value="{{.SiteTitle}}" placeholder="Betula">
-				<p class="input-caption">
-					Displayed on the top of every page in h1.
-					HTML supported.</p>
-			</div>
+			<form method="post" action="/settings">
+				<div>
+					<label for="site-title">Site title</label>
+					<input id="site-title" name="site-title" type="text" value="{{.SiteTitle}}" placeholder="Betula">
+					<p class="input-caption">
+						Displayed on the top of every page in h1.
+						HTML supported.</p>
+				</div>
 
-			<div>
-				<label for="network-port">⚠️ Port</label>
-				{{if .ErrBadPort}}
-					<p class="error">Invalid port value was passed. Choose a number between 1 and 65535.</p>
-				{{end}}
-				<input id="network-port" name="network-port" type="number" value="{{.NetworkPort}}" placeholder="1738">
-				<p class="input-caption">
-					Choose a positive number, preferably bigger than 1024.
-					Default port is 1738.
-					Make sure to not conflict with other services.</p>
-				<p class="input-caption">
-					The URL you are using currently will probably stop working.
-					Betula will start working on the new port after saving settings.
-					Make sure you know what you are doing.</p>
-			</div>
-			<input type="submit" class="btn" value="Save">
-		</form>
+				<div>
+					<label for="network-port">⚠️ Port</label>
+                    {{if .ErrBadPort}}
+						<p class="error">Invalid port value was passed. Choose a number between 1 and 65535.</p>
+                    {{end}}
+					<input id="network-port" name="network-port" type="number" value="{{.NetworkPort}}" placeholder="1738">
+					<p class="input-caption">
+						Choose a positive number, preferably bigger than 1024.
+						Default port is 1738.
+						Make sure to not conflict with other services.</p>
+					<p class="input-caption">
+						The URL you are using currently will probably stop working.
+						Betula will start working on the new port after saving settings.
+						Make sure you know what you are doing.</p>
+				</div>
+				<input type="submit" class="btn" value="Save">
+			</form>
+		</article>
 	</main>
 {{end}}

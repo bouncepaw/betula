@@ -1,18 +1,20 @@
 {{define "title"}}Categories{{end}}
 {{define "body"}}
 	<main class="mv-categories">
-		<h2 class="p-name">Categories</h2>
-		{{if .Categories}}
-			<ol>
-				{{range .Categories}}
-					<li>
-						<a href="/cat/{{.Name}}" class="u-url"><span class="p-name">{{.Name}}</span></a>
-						<span class="mv-count">{{.PostCount}}</span> post{{if gt .PostCount 1}}s{{end}}
-					</li>
-				{{end}}
-			</ol>
-		{{else}}
-			<p>No categories.</p>
-		{{end}}
+		<article>
+			<h2 class="p-name">Categories</h2>
+			{{if .Categories}}
+				<ol>
+					{{range .Categories}}
+						<li>
+							<a href="/cat/{{.Name}}" class="u-url"><span class="p-name">{{.Name}}</span></a>
+							<span class="mv-count">{{.PostCount}}</span> post{{if gt .PostCount 1}}s{{end}}
+						</li>
+					{{end}}
+				</ol>
+			{{else}}
+				<p>No categories.</p>
+			{{end}}
+		</article>
 	</main>
 {{end}}

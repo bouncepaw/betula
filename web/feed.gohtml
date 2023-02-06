@@ -1,9 +1,11 @@
 {{define "title"}}Betula β{{end}}
 {{define "body"}}
 	<main class="h-feed">
-		<h2 class="p-name">Bookmarks</h2>{{$authed := .Authorized}}
+		<article>
+			<h2 class="p-name">Bookmarks</h2>{{$authed := .Authorized}}
+		</article>
         {{range .AllPosts}}
-			<article class="post h-entry">
+			<article class="h-entry">
                 {{if $authed}}
                     {{template "post buttons fragment" .}}
                 {{end}}
