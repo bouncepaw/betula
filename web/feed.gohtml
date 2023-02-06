@@ -1,7 +1,7 @@
 {{define "title"}}Betula β{{end}}
 {{define "body"}}
 	<main class="h-feed">
-		<h2 class="p-name">Saved links</h2>{{$authed := .Authorized}}
+		<h2 class="p-name">Bookmarks</h2>{{$authed := .Authorized}}
         {{range .AllPosts}}
 			<article class="post h-entry">
                 {{if $authed}}
@@ -11,7 +11,10 @@
                 {{template "post main fragment" .}}
 			</article>
 		{{else}}
-	        <p>No links saved. <a href="/save-link">Save link</a>.</p>
+	        <p>No links saved.</p>
         {{end}}
+		{{if len .AllPosts | eq 0 | and .Authorized}}
+			<a class="btn btn-accent" href="/save-link">Save link</a>
+		{{end}}
 	</main>
 {{end}}
