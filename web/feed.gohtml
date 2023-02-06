@@ -2,7 +2,11 @@
 {{define "body"}}
 	<main class="h-feed">
 		<article>
-			<h2 class="p-name">Bookmarks</h2>{{$authed := .Authorized}}
+			<h2 class="p-name">Bookmarks</h2>{{$authed := .Authorized}}{{$cnt := len .AllPosts}}
+			<p><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s{{end}} saved.</p>
+            {{if eq $cnt 0 | and .Authorized}}
+				<a class="btn btn-accent" href="/save-link">Save link</a>
+            {{end}}
 		</article>
         {{range .AllPosts}}
 			<article class="h-entry">
@@ -12,11 +16,6 @@
 				<h3 class="p-name"><a class="u-url" href="/{{.ID}}">{{.Title}}</a></h3>
                 {{template "post main fragment" .}}
 			</article>
-		{{else}}
-	        <p>No links saved.</p>
         {{end}}
-		{{if len .AllPosts | eq 0 | and .Authorized}}
-			<a class="btn btn-accent" href="/save-link">Save link</a>
-		{{end}}
 	</main>
 {{end}}

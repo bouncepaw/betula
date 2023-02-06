@@ -2,9 +2,10 @@
 {{define "body"}}
 	<main class="h-feed">
 		<article>
-			<h2 class="p-name">Category {{.Name}}</h2>{{$authed := .Authorized}}
+			<h2 class="p-name">Category {{.Name}}</h2>{{$cnt := len .PostsInCategory}}
+			<p><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s{{end}} saved in this category.</p>
 			<!--<div class="p-summary"></div>-->
-		</article>
+		</article>{{$authed := .Authorized}}
 		{{range .PostsInCategory}}
 			<article class="h-entry">
                 {{if $authed}}
@@ -13,8 +14,6 @@
 				<h3 class="p-name"><a class="u-url" href="/{{.ID}}">{{.Title}}</a></h3>
                 {{template "post main fragment" .}}
 			</article>
-		{{else}}
-			<p>No links saved in this category.</p>
 		{{end}}
 	</main>
 {{end}}

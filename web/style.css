@@ -196,6 +196,9 @@ h3 {
     margin: 0;
     font-size: medium;
 }
+article p:last-of-type:not(.h-entry p) {
+    margin-bottom: 0;
+}
 h2 + *:not(p, .u-bookmark-of),
 h3 + *:not(p, .u-bookmark-of) {
     margin-top: 8px;
