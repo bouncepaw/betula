@@ -101,6 +101,7 @@ func SplitCategories(commaSeparated string) []Category {
 }
 
 type Settings struct {
-	NetworkPort uint
-	SiteTitle   template.HTML
+	NetworkPort               uint
+	SiteTitle                 template.HTML
+	SiteDescriptionMycomarkup string
 }

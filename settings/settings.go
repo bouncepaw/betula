@@ -4,16 +4,18 @@ package settings
 import (
 	"database/sql"
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/myco"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"html/template"
 	"log"
 )
 
-const (
-	biggestPort = 65535
-)
+const biggestPort = 65535
 
 var cache types.Settings
+
+// Those that did not fit in cache go in their own variables below. Handle with thought.
+var cacheSiteDescription template.HTML
 
 // Index reads all settings from the db.
 func Index() {
@@ -33,13 +35,25 @@ func Index() {
 	} else {
 		cache.SiteTitle = "Betula"
 	}
+
+	siteDescription := db.MetaEntry[sql.NullString](db.BetulaMetaSiteDescription)
+	if siteDescription.Valid && siteDescription.String != "" {
+		cache.SiteDescriptionMycomarkup = siteDescription.String
+		cacheSiteDescription = myco.MarkupToHTML(siteDescription.String)
+	} else {
+		cache.SiteDescriptionMycomarkup = ""
+		cacheSiteDescription = ""
+	}
 }
 
-func NetworkPort() uint        { return cache.NetworkPort }
-func SiteTitle() template.HTML { return cache.SiteTitle }
+func NetworkPort() uint                  { return cache.NetworkPort }
+func SiteTitle() template.HTML           { return cache.SiteTitle }
+func SiteDescriptionHTML() template.HTML { return cacheSiteDescription }
+func SiteDescriptionMycomarkup() string  { return cache.SiteDescriptionMycomarkup }
 
 func SetSettings(settings types.Settings) {
 	db.SetMetaEntry(db.BetulaMetaNetworkPort, settings.NetworkPort)
 	db.SetMetaEntry(db.BetulaMetaSiteTitle, string(settings.SiteTitle))
+	db.SetMetaEntry(db.BetulaMetaSiteDescription, settings.SiteDescriptionMycomarkup)
 	Index()
 }

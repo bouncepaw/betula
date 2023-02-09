@@ -7,6 +7,7 @@
             {{if eq $cnt 0 | and .Authorized}}
 				<a class="btn btn-accent" href="/save-link">Save link</a>
             {{end}}
+			{{if .SiteDescription}}<p class="p-summary">{{.SiteDescription}}</p>{{end}}
 		</article>
         {{range .AllPosts}}
 			<article class="h-entry">

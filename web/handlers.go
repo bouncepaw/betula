@@ -56,8 +56,9 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method == http.MethodGet {
 		templateExec(w, templateSettings, dataSettings{
 			Settings: types.Settings{
-				NetworkPort: settings.NetworkPort(),
-				SiteTitle:   settings.SiteTitle(),
+				NetworkPort:               settings.NetworkPort(),
+				SiteTitle:                 settings.SiteTitle(),
+				SiteDescriptionMycomarkup: settings.SiteDescriptionMycomarkup(),
 			},
 			dataCommon: emptyCommon(),
 		}, rq)
@@ -65,7 +66,8 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	var newSettings = types.Settings{
-		SiteTitle: template.HTML(rq.FormValue("site-title")),
+		SiteTitle:                 template.HTML(rq.FormValue("site-title")),
+		SiteDescriptionMycomarkup: rq.FormValue("site-description"),
 	}
 
 	if port, err := strconv.Atoi(rq.FormValue("network-port")); err != nil || port <= 0 {
@@ -237,18 +239,20 @@ func handlerCategory(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataAbout struct {
-	LinkCount  int
-	OldestTime *time.Time
-	NewestTime *time.Time
 	*dataCommon
+	LinkCount       int
+	OldestTime      *time.Time
+	NewestTime      *time.Time
+	SiteDescription template.HTML
 }
 
 func handlerAbout(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, templateAbout, dataAbout{
-		LinkCount:  db.LinkCount(),
-		OldestTime: db.OldestTime(),
-		NewestTime: db.NewestTime(),
-		dataCommon: emptyCommon(),
+		dataCommon:      emptyCommon(),
+		LinkCount:       db.LinkCount(),
+		OldestTime:      db.OldestTime(),
+		NewestTime:      db.NewestTime(),
+		SiteDescription: settings.SiteDescriptionHTML(),
 	}, rq)
 }
 
@@ -399,7 +403,8 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataFeed struct {
-	AllPosts []types.Post
+	AllPosts        []types.Post
+	SiteDescription template.HTML
 	*dataCommon
 }
 
@@ -416,8 +421,9 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	}
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(w, templateFeed, dataFeed{
-		AllPosts:   db.AuthorizedPosts(authed),
-		dataCommon: emptyCommon(),
+		AllPosts:        db.AuthorizedPosts(authed),
+		SiteDescription: settings.SiteDescriptionHTML(),
+		dataCommon:      emptyCommon(),
 	}, rq)
 }
 

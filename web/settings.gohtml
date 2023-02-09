@@ -15,6 +15,15 @@
 				</div>
 
 				<div>
+					<label for="site-description">Site description</label>
+					<textarea id="site-description" name="site-description">{{.SiteDescriptionMycomarkup}}</textarea>
+					<p class="input-caption">
+						Formatted in Mycomarkup.
+						Shown on the Bookmarks and About pages.
+					</p>
+				</div>
+
+				<div>
 					<label for="network-port">⚠️ Port</label>
                     {{if .ErrBadPort}}
 						<p class="error">Invalid port value was passed. Choose a number between 1 and 65535.</p>
