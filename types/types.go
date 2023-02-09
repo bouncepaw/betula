@@ -32,8 +32,8 @@ func VisibilityFromString(s string) Visibility {
 type Post struct {
 	// ID is a unique identifier of the post. Do not set this field by yourself.
 	ID int
-	// CreationTime is UNIX seconds. Do not set this field by yourself.
-	CreationTime int64
+	// CreationTime is like 2006-01-02 15:04:05.
+	CreationTime string
 	// Categories are categories of this post. Do not set this field by yourself.
 	Categories []Category
 
@@ -105,3 +105,7 @@ type Settings struct {
 	SiteTitle                 template.HTML
 	SiteDescriptionMycomarkup string
 }
+
+// not really a type:
+
+const TimeLayout = "2006-01-02 15:04:05"

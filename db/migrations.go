@@ -6,13 +6,12 @@ import (
 	"log"
 )
 
-const expectedVersion = 1
+const expectedVersion = 2
 
 /*
-Wishes for schema version 2:
+Wishes for schema version 3:
 
-1. Store dates as strings like 2000-00-00 00:00:00
-	That would make manual intervention easier!
+1.
 
 Write more here. Implement all when there is an actual need to have a new schema.
 */
@@ -24,8 +23,8 @@ create table Posts (
     Title text not null check ( Title <> '' ),
     Description text not null,
     Visibility integer check ( Visibility = 0 or Visibility = 1 ),
-    CreationTime integer not null default (strftime('%s', 'now')),
-    DeletionTime integer                
+    CreationTime text not null default current_timestamp,
+    DeletionTime text                
 );
 
 create table CategoriesToPosts (
@@ -41,13 +40,23 @@ create table BetulaMeta (
 );
 
 insert or ignore into BetulaMeta values
-	('DB version', 1),
+	('DB version', 2),
 	('Admin username', null),
 	('Admin password hash', null);
 
 create table Sessions (
     Token text primary key not null,
-    CreationTime integer not null
+    CreationTime not null default current_timestamp
+);
+
+create table CategoryDescriptions (
+   CatName text primary key,
+   Description text not null
+);
+
+create table CategoryImplications (
+   IfCat text not null,
+   ThenCat text not null
 );`
 
 func handleMigrations() {
@@ -66,8 +75,11 @@ func handleMigrations() {
 	}
 
 	switch curver {
+	case 1:
+		migrate1To2()
 	case 0:
 		migrate0To1()
+		migrate1To2()
 	default:
 		panic(fmt.Sprintf("unimplemented migration from %d to %d", curver, expectedVersion))
 	}
@@ -93,6 +105,75 @@ where Key = 'DB version';
 	}
 
 	return v.Int64, true
+}
+
+func migrate1To2() {
+	log.Println("Migrating from 1 to 2")
+	/*-- Past is as such:
+	create table Posts (
+		ID integer primary key autoincrement,
+		URL text not null check ( URL <> '' ),
+		Title text not null check ( Title <> '' ),
+		Description text not null,
+		Visibility integer check ( Visibility = 0 or Visibility = 1 ),
+		CreationTime integer not null default (strftime('%s', 'now')),
+		DeletionTime integer
+	);
+	create table Sessions (
+		Token text primary key not null,
+		CreationTime integer not null
+	);
+	*/
+	const q = `
+-- New tables
+create table CategoryDescriptions (
+   CatName text primary key,
+   Description text not null
+);
+
+create table CategoryImplications (
+   IfCat text not null,
+   ThenCat text not null
+);
+
+-- Going from UNIX time to stringular time
+--- Posts
+create table NewPosts (
+	ID integer primary key autoincrement,
+	URL text not null check ( URL <> '' ),
+	Title text not null check ( Title <> '' ),
+	Description text not null,
+	Visibility integer check ( Visibility = 0 or Visibility = 1 ),
+	CreationTime text not null default current_timestamp,
+	DeletionTime text
+);
+
+insert into NewPosts (ID, URL, Title, Description, Visibility, CreationTime, DeletionTime)
+select ID, URL, Title, Description, Visibility,
+   datetime(CreationTime, 'unixepoch'), datetime(DeletionTime, 'unixepoch')
+from Posts;
+
+drop table Posts;
+alter table NewPosts rename to Posts;
+
+--- Sessions
+create table NewSessions (
+    Token text primary key not null,
+    CreationTime text not null default current_timestamp
+);
+
+insert into NewSessions (Token, CreationTime)
+select Token, datetime(CreationTime, 'unixepoch')
+from Sessions;
+
+drop table Sessions;
+alter table NewSessions rename to Sessions;
+
+--- Taking notes...
+replace into BetulaMeta (Key, Value) values ('DB version', 2);
+`
+	mustExec(q)
+	log.Println("Migrated from 1 to 2")
 }
 
 func migrate0To1() {

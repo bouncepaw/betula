@@ -14,7 +14,7 @@ import (
 
 func AddSession(token string) {
 	mustExec(`insert into Sessions values (?, ?);`,
-		token, time.Now().Unix())
+		token, time.Now())
 }
 
 func HasSession(token string) (has bool) {
@@ -173,7 +173,7 @@ func HasPost(id int) (has bool) {
 func DeletePost(id int) {
 	const q = `
 update Posts
-set DeletionTime = strftime('%s', 'now')
+set DeletionTime = current_timestamp
 where ID = ?;
 `
 	mustExec(q, id)
@@ -241,9 +241,12 @@ func LinkCount() int {
 
 func OldestTime() *time.Time {
 	const q = `select min(CreationTime) from Posts;`
-	stamp := querySingleValue[sql.NullInt64](q)
+	stamp := querySingleValue[sql.NullString](q)
 	if stamp.Valid {
-		val := time.Unix(stamp.Int64, 0)
+		val, err := time.Parse("2006-01-02 15:04:05", stamp.String)
+		if err != nil {
+			log.Fatalln(err)
+		}
 		return &val
 	}
 	return nil
@@ -251,9 +254,12 @@ func OldestTime() *time.Time {
 
 func NewestTime() *time.Time {
 	const q = `select max(CreationTime) from Posts;`
-	stamp := querySingleValue[sql.NullInt64](q)
+	stamp := querySingleValue[sql.NullString](q)
 	if stamp.Valid {
-		val := time.Unix(stamp.Int64, 0)
+		val, err := time.Parse(types.TimeLayout, stamp.String)
+		if err != nil {
+			log.Fatalln(err)
+		}
 		return &val
 	}
 	return nil

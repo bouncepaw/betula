@@ -67,8 +67,12 @@ var funcMapForPosts = template.FuncMap{
 	"randomGlobe": func() string {
 		return string([]rune{[]rune("🌍🌎🌏")[rand.Intn(3)]})
 	},
-	"timestampToHuman": func(stamp int64) string {
-		t := time.Unix(stamp, 0)
+	"timestampToHuman": func(stamp string) string {
+		t, err := time.Parse(types.TimeLayout, stamp)
+		if err != nil {
+			// Sorry for party rocking...
+			log.Fatalln(err)
+		}
 		return t.Format("2006-01-02 15:04")
 	},
 	"stripCommonProtocol": func(a string) string {
