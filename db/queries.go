@@ -39,12 +39,12 @@ insert or replace into BetulaMeta values
 	mustExec(q, name, hash)
 }
 
-func MetaEntry[T any](key string) T {
+func MetaEntry[T any](key BetulaMetaKey) T {
 	const q = `select Value from BetulaMeta where Key = ? limit 1;`
 	return querySingleValue[T](q, key)
 }
 
-func SetMetaEntry[T any](key string, val T) {
+func SetMetaEntry[T any](key BetulaMetaKey, val T) {
 	const q = `insert or replace into BetulaMeta values (?, ?);`
 	mustExec(q, key, val)
 }

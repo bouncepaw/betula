@@ -17,8 +17,8 @@ var (
 func Initialize() {
 	ready.Store(false)
 	var (
-		name = db.MetaEntry[sql.NullString]("Admin username")
-		pass = db.MetaEntry[sql.NullString]("Admin password hash")
+		name = db.MetaEntry[sql.NullString](db.BetulaMetaAdminUsername)
+		pass = db.MetaEntry[sql.NullString](db.BetulaMetaAdminPasswordHash)
 	)
 	ready.Store(name.Valid && pass.Valid)
 }
@@ -35,11 +35,11 @@ func Ready() bool {
 
 // CredentialsMatch checks if the credentials match.
 func CredentialsMatch(name, pass string) bool {
-	if name != db.MetaEntry[string]("Admin username") {
+	if name != db.MetaEntry[string](db.BetulaMetaAdminUsername) {
 		log.Println("Matching credentials. Name mismatches.")
 		return false
 	}
-	err := bcrypt.CompareHashAndPassword(db.MetaEntry[[]byte]("Admin password hash"), []byte(pass))
+	err := bcrypt.CompareHashAndPassword(db.MetaEntry[[]byte](db.BetulaMetaAdminPasswordHash), []byte(pass))
 	if err != nil {
 		log.Println("Matching credentials. Password mismatches.")
 		return false

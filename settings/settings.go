@@ -10,9 +10,6 @@ import (
 )
 
 const (
-	keyNetworkPort = "Network port"
-	keySiteTitle   = "Site title HTML"
-
 	biggestPort = 65535
 )
 
@@ -20,7 +17,7 @@ var cache types.Settings
 
 // Index reads all settings from the db.
 func Index() {
-	networkPort := db.MetaEntry[sql.NullInt64](keyNetworkPort)
+	networkPort := db.MetaEntry[sql.NullInt64](db.BetulaMetaNetworkPort)
 	if networkPort.Valid && networkPort.Int64 > 0 && networkPort.Int64 <= biggestPort {
 		cache.NetworkPort = uint(networkPort.Int64)
 	} else if networkPort.Valid {
@@ -30,7 +27,7 @@ func Index() {
 		cache.NetworkPort = 1738
 	}
 
-	siteTitle := db.MetaEntry[sql.NullString](keySiteTitle)
+	siteTitle := db.MetaEntry[sql.NullString](db.BetulaMetaSiteTitle)
 	if siteTitle.Valid {
 		cache.SiteTitle = template.HTML(siteTitle.String)
 	} else {
@@ -42,7 +39,7 @@ func NetworkPort() uint        { return cache.NetworkPort }
 func SiteTitle() template.HTML { return cache.SiteTitle }
 
 func SetSettings(settings types.Settings) {
-	db.SetMetaEntry(keyNetworkPort, settings.NetworkPort)
-	db.SetMetaEntry(keySiteTitle, string(settings.SiteTitle))
+	db.SetMetaEntry(db.BetulaMetaNetworkPort, settings.NetworkPort)
+	db.SetMetaEntry(db.BetulaMetaSiteTitle, string(settings.SiteTitle))
 	Index()
 }
