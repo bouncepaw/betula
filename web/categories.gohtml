@@ -6,7 +6,7 @@
 			{{if .Categories}}
 				<ol>
 					{{range .Categories}}
-						<li>
+						<li class="mv-category">
 							<a href="/cat/{{.Name}}" class="u-url"><span class="p-name">{{.Name}}</span></a>
 							<span class="mv-count">{{.PostCount}}</span> post{{if gt .PostCount 1}}s{{end}}
 						</li>
