@@ -57,3 +57,7 @@ func SetSettings(settings types.Settings) {
 	db.SetMetaEntry(db.BetulaMetaSiteDescription, settings.SiteDescriptionMycomarkup)
 	Index()
 }
+
+func SetNetworkPort(port uint) {
+	db.SetMetaEntry(db.BetulaMetaNetworkPort, port)
+}
