@@ -49,6 +49,7 @@ type dataSettings struct {
 func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	if !authed {
+		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
 		handler404(w, rq)
 		return
 	}
@@ -336,6 +337,11 @@ type dataSaveLink struct {
 }
 
 func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
+	if !auth.AuthorizedFromRequest(rq) {
+		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
+		handler404(w, rq)
+		return
+	}
 	switch rq.Method {
 	case http.MethodGet:
 		// TODO: Document the param behaviour
