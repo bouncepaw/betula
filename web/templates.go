@@ -36,6 +36,7 @@ func templateExec(w http.ResponseWriter, temp *template.Template, data viewData,
 	common := dataCommon{
 		authorized: auth.AuthorizedFromRequest(rq),
 		siteTitle:  settings.SiteTitle(),
+		siteName:   settings.SiteName(),
 	}
 	data.Fill(common)
 	err := temp.ExecuteTemplate(w, "skeleton.gohtml", data)
@@ -99,6 +100,7 @@ var funcMapForTime = template.FuncMap{
 type dataCommon struct {
 	authorized bool
 	siteTitle  template.HTML
+	siteName   string
 }
 
 type viewData interface {
@@ -111,6 +113,10 @@ func (c *dataCommon) SiteTitleHTML() template.HTML {
 	return c.siteTitle
 }
 
+func (c *dataCommon) SiteName() string {
+	return c.siteName
+}
+
 func (c *dataCommon) Authorized() bool {
 	return c.authorized
 }
@@ -121,6 +127,7 @@ func (c *dataCommon) Fill(C dataCommon) {
 	}
 	c.siteTitle = C.siteTitle
 	c.authorized = C.authorized
+	c.siteName = C.siteName
 }
 
 func emptyCommon() *dataCommon {

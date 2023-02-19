@@ -11,5 +11,6 @@ const (
 	BetulaMetaAdminPasswordHash BetulaMetaKey = "Admin password hash"
 	BetulaMetaNetworkPort       BetulaMetaKey = "Network port"
 	BetulaMetaSiteTitle         BetulaMetaKey = "Site title HTML"
+	BetulaMetaSiteName          BetulaMetaKey = "Site name plaintext"
 	BetulaMetaSiteDescription   BetulaMetaKey = "Site description Mycomarkup"
 )

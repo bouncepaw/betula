@@ -101,7 +101,10 @@ func SplitCategories(commaSeparated string) []Category {
 }
 
 type Settings struct {
-	NetworkPort               uint
+	NetworkPort uint
+	// SiteName is a plaintext name of the site.
+	SiteName string
+	// SiteTitle is a hypertext title shown in the top left corner, in a <h1>.
 	SiteTitle                 template.HTML
 	SiteDescriptionMycomarkup string
 }

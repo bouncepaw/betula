@@ -57,6 +57,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 		templateExec(w, templateSettings, dataSettings{
 			Settings: types.Settings{
 				NetworkPort:               settings.NetworkPort(),
+				SiteName:                  settings.SiteName(),
 				SiteTitle:                 settings.SiteTitle(),
 				SiteDescriptionMycomarkup: settings.SiteDescriptionMycomarkup(),
 			},
@@ -66,6 +67,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	var newSettings = types.Settings{
+		SiteName:                  rq.FormValue("site-name"),
 		SiteTitle:                 template.HTML(rq.FormValue("site-title")),
 		SiteDescriptionMycomarkup: rq.FormValue("site-description"),
 	}
@@ -74,6 +76,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 		templateExec(w, templateSettings, dataSettings{
 			Settings: types.Settings{
 				NetworkPort: uint(port),
+				SiteName:    settings.SiteName(),
 				SiteTitle:   settings.SiteTitle(),
 			},
 			ErrBadPort: true,

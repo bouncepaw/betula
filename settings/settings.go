@@ -6,6 +6,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/myco"
 	"git.sr.ht/~bouncepaw/betula/types"
+	"html"
 	"html/template"
 	"log"
 )
@@ -29,11 +30,18 @@ func Index() {
 		cache.NetworkPort = 1738
 	}
 
+	siteName := db.MetaEntry[sql.NullString](db.BetulaMetaSiteName)
+	if siteName.Valid && siteName.String != "" {
+		cache.SiteName = siteName.String
+	} else {
+		cache.SiteName = "Betula"
+	}
+
 	siteTitle := db.MetaEntry[sql.NullString](db.BetulaMetaSiteTitle)
-	if siteTitle.Valid {
+	if siteTitle.Valid && siteTitle.String != "" {
 		cache.SiteTitle = template.HTML(siteTitle.String)
 	} else {
-		cache.SiteTitle = "Betula"
+		cache.SiteTitle = template.HTML(html.EscapeString(cache.SiteName))
 	}
 
 	siteDescription := db.MetaEntry[sql.NullString](db.BetulaMetaSiteDescription)
@@ -47,12 +55,17 @@ func Index() {
 }
 
 func NetworkPort() uint                  { return cache.NetworkPort }
+func SiteName() string                   { return cache.SiteName }
 func SiteTitle() template.HTML           { return cache.SiteTitle }
 func SiteDescriptionHTML() template.HTML { return cacheSiteDescription }
 func SiteDescriptionMycomarkup() string  { return cache.SiteDescriptionMycomarkup }
 
 func SetSettings(settings types.Settings) {
+	if settings.SiteName == "" {
+		settings.SiteName = "Betula"
+	}
 	db.SetMetaEntry(db.BetulaMetaNetworkPort, settings.NetworkPort)
+	db.SetMetaEntry(db.BetulaMetaSiteName, settings.SiteName)
 	db.SetMetaEntry(db.BetulaMetaSiteTitle, string(settings.SiteTitle))
 	db.SetMetaEntry(db.BetulaMetaSiteDescription, settings.SiteDescriptionMycomarkup)
 	Index()

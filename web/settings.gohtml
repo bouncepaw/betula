@@ -7,11 +7,17 @@
 
 			<form method="post" action="/settings">
 				<div>
+					<label for="site-name">Site name</label>
+					<input id="site-name" name="site-name" type="text" value="{{.SiteName}}" placeholder="Betula">
+					<p class="input-caption">The name of your site.</p>
+				</div>
+
+				<div>
 					<label for="site-title">Site title</label>
 					<input id="site-title" name="site-title" type="text" value="{{.SiteTitle}}" placeholder="Betula">
 					<p class="input-caption">
 						Displayed on the top of every page in h1.
-						HTML supported.</p>
+						HTML supported. If left empty, defaults to site name.</p>
 				</div>
 
 				<div>
