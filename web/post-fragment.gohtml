@@ -6,11 +6,7 @@
 		</div>
 	{{end}}
 	<div class="about-post">
-		<span>Categories:</span>
-		{{range $i, $cat := .Categories}}
-			{{if $i}},{{end}}
-			<a class="p-category" href="/cat/{{$cat.Name}}">{{$cat.Name}}</a>
-		{{else}}
+		<span>Categories:</span>{{range $i, $cat := .Categories}}{{if $i}},{{end}}<a class="p-category" href="/cat/{{$cat.Name}}">{{$cat.Name}}</a>{{else}}
 			<span class="empty-set">∅</span>
 		{{end}}
 		<time class="dt-published" datetime="{{timestampToHuman .CreationTime}}">

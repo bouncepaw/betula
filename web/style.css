@@ -100,11 +100,15 @@ a.edit-post-btn {
     font-size: small;
 }
 .about-post {
-    display: flex;
     font-size: small;
+    overflow: hidden;
+}
+.about-post > * {
+    display: inline;
 }
 .about-post time {
-    margin-left: auto;
+    float: right;
+    word-break: keep-all;
 }
 .u-bookmark-of {
     display: inline-block;
