@@ -18,7 +18,9 @@ import (
 func main() {
 	fmt.Println("Hello Betula!")
 
-	port := flag.Uint("port", 1738, "port number. "+
+	var port uint
+
+	flag.UintVar(&port, "port", 0, "port number. "+
 		"The value gets written to a database file.")
 	flag.Parse()
 
@@ -34,7 +36,14 @@ func main() {
 	db.Initialize(filename)
 	defer db.Finalize()
 	auth.Initialize()
-	settings.SetNetworkPort(*port)
+	// If user didn't provide the port, check the port from database
+	if port == 0 {
+		dbPort := db.MetaEntry[uint](db.BetulaMetaNetworkPort)
+		settings.SetNetworkPort(settings.Uintport(dbPort).ValidatePort())
+	} else {
+		// Check the user provided port
+		settings.SetNetworkPort(settings.Uintport(port).ValidatePort())
+	}
 	settings.Index()
 	web.StartServer()
 }

@@ -11,6 +11,9 @@ import (
 	"log"
 )
 
+type Uintport uint
+type NullInt64Port sql.NullInt64
+
 const biggestPort = 65535
 
 var cache types.Settings
@@ -18,17 +21,30 @@ var cache types.Settings
 // Those that did not fit in cache go in their own variables below. Handle with thought.
 var cacheSiteDescription template.HTML
 
+func (port Uintport) ValidatePort() uint {
+	if port > 0 && port <= biggestPort {
+		return uint(port)
+	} else {
+		log.Printf("An invalid network port is provided: %d. Using 1738 instead.\n", port)
+		return 1738
+	}
+}
+
+func (port NullInt64Port) ValidatePort() uint {
+	if port.Valid && port.Int64 > 0 && port.Int64 <= biggestPort {
+		return uint(port.Int64)
+	} else if port.Valid {
+		log.Printf("An invalid network port is provided: %d. Using 1738 instead.\n", port.Int64)
+		return 1738
+	} else {
+		return 1738
+	}
+}
+
 // Index reads all settings from the db.
 func Index() {
 	networkPort := db.MetaEntry[sql.NullInt64](db.BetulaMetaNetworkPort)
-	if networkPort.Valid && networkPort.Int64 > 0 && networkPort.Int64 <= biggestPort {
-		cache.NetworkPort = uint(networkPort.Int64)
-	} else if networkPort.Valid {
-		log.Printf("An invalid network port is provided: %d. Using 1738 instead.\n", networkPort.Int64)
-		cache.NetworkPort = 1738
-	} else {
-		cache.NetworkPort = 1738
-	}
+	cache.NetworkPort = NullInt64Port(networkPort).ValidatePort()
 
 	siteName := db.MetaEntry[sql.NullString](db.BetulaMetaSiteName)
 	if siteName.Valid && siteName.String != "" {
