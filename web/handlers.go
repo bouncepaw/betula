@@ -84,7 +84,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 			dataCommon: emptyCommon(),
 		}, rq)
 	} else {
-		newSettings.NetworkPort = uint(port)
+		newSettings.NetworkPort = settings.Uintport(port).ValidatePort()
 	}
 
 	oldPort := settings.NetworkPort()
