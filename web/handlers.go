@@ -266,6 +266,19 @@ type dataEditLink struct {
 	types.Post
 }
 
+func MixUpTitleLink(title *string, addr *string) {
+	// If addr is a valid url we do not mix up
+	_, err := url.ParseRequestURI(*addr)
+	if err == nil {
+		return
+	}
+
+	_, err = url.ParseRequestURI(*title)
+	if err == nil {
+		*addr, *title = *title, *addr
+	}
+}
+
 func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	if !authed {
@@ -307,6 +320,8 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
 		post.Description = rq.FormValue("description")
 		post.Categories = types.SplitCategories(rq.FormValue("categories"))
+
+		MixUpTitleLink(&post.Title, &post.URL)
 
 		if _, err := url.ParseRequestURI(post.URL); err != nil {
 			log.Printf("Invalid URL was passed, asking again: %s\n", post.URL)
@@ -361,6 +376,9 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			description = rq.FormValue("description")
 			categories  = types.SplitCategories(rq.FormValue("categories"))
 		)
+
+		MixUpTitleLink(&title, &addr)
+
 		if _, err := url.ParseRequestURI(addr); err != nil {
 			templateExec(w, templateAddLinkInvalidURL, dataSaveLink{
 				URL:         addr,
