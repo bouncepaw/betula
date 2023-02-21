@@ -87,6 +87,10 @@ func SetSettings(settings types.Settings) {
 	Index()
 }
 
-func SetNetworkPort(port uint) {
-	db.SetMetaEntry(db.BetulaMetaNetworkPort, port)
+func (port Uintport) SetNetworkPort() {
+	db.SetMetaEntry(db.BetulaMetaNetworkPort, port.ValidatePort())
+}
+
+func (port NullInt64Port) SetNetworkPort() {
+	db.SetMetaEntry(db.BetulaMetaNetworkPort, port.ValidatePort())
 }

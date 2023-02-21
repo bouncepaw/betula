@@ -39,10 +39,10 @@ func main() {
 	// If user didn't provide the port, check the port from database
 	if port == 0 {
 		dbPort := db.MetaEntry[uint](db.BetulaMetaNetworkPort)
-		settings.SetNetworkPort(settings.Uintport(dbPort).ValidatePort())
+		settings.Uintport(dbPort).SetNetworkPort()
 	} else {
 		// Check the user provided port
-		settings.SetNetworkPort(settings.Uintport(port).ValidatePort())
+		settings.Uintport(port).SetNetworkPort()
 	}
 	settings.Index()
 	web.StartServer()
