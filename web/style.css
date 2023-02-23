@@ -262,8 +262,21 @@ header a, header a:hover, header a:visited {
     font-weight: bold;
 }
 
+#delete-confirmed:checked ~ #delete-btn {
+    border: 1px #999 solid;
+    background: #eee;
+    cursor: pointer;
+}
+
+#delete-confirmed:not(checked) ~ #delete-btn {
+    border: 1px dashed #999;
+    background-color: transparent;
+    cursor: not-allowed;
+}
+
 .btn_weak {
     border: 1px dashed #999;
+    background-color: transparent;
 }
 
 a.btn_destructive,
