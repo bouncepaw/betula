@@ -3,6 +3,9 @@
 	<main class="h-feed">
 		<article>
 			<h2 class="p-name">Category {{.Name}}</h2>{{$cnt := len .PostsInCategory}}
+			<a class="edit-post-btn" href="/edit-cat/{{.Name}}">
+				Edit
+			</a>
 			<p><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s{{end}} saved in this category.</p>
 			<!--<div class="p-summary"></div>-->
 		</article>{{$authed := .Authorized}}

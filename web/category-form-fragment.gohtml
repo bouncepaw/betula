@@ -1,0 +1,7 @@
+{{define "cat form fragment"}}
+    <div>
+        <label for="cat-title">Title</label>
+        <input type="text" id="cat-title" name="title" required value="{{.Name}}" autocomplete="off">
+    </div>
+    <input type="submit" class="btn" value="Save">
+{{end}}

@@ -1,0 +1,11 @@
+{{define "title"}}Edit category{{end}}
+{{define "body"}}
+    <main>
+        <article>
+                <h2>Edit category</h2>
+            <form method="post" action="/edit-cat/{{.Name}}">
+                {{template "cat form fragment" .}}
+            </form>
+        </article>
+    </main>
+{{end}}

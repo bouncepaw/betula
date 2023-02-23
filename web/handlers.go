@@ -33,6 +33,7 @@ func init() {
 	mux.HandleFunc("/go/", handlerGo)
 	mux.HandleFunc("/about", handlerAbout)
 	mux.HandleFunc("/cat/", handlerCategory)
+	mux.HandleFunc("/edit-cat/", handlerEditCategory)
 	mux.HandleFunc("/register", handlerRegister)
 	mux.HandleFunc("/login", handlerLogin)
 	mux.HandleFunc("/logout", handlerLogout)
@@ -336,6 +337,37 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		db.EditPost(post)
 		http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 		log.Printf("Edited post no. %d\n", id)
+	}
+}
+
+type dataEditCategory struct {
+	*dataCommon
+	types.Category
+}
+
+func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
+	authed := auth.AuthorizedFromRequest(rq)
+	if !authed {
+		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
+		handler404(w, rq)
+		return
+	}
+
+	var category types.Category
+	s := strings.TrimPrefix(rq.URL.Path, "/edit-cat/")
+	category.Name = s
+
+	switch rq.Method {
+	case http.MethodGet:
+		templateExec(w, templateEditCategory, dataEditCategory{
+			Category:   category,
+			dataCommon: emptyCommon(),
+		}, rq)
+	case http.MethodPost:
+		titleNew := rq.FormValue("title")
+		db.EditCategory(titleNew, category)
+		http.Redirect(w, rq, fmt.Sprintf("/cat/%s", titleNew), http.StatusSeeOther)
+		log.Printf("Edited category name %s\n", s)
 	}
 }
 
