@@ -354,8 +354,11 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	var category types.Category
-	s := strings.TrimPrefix(rq.URL.Path, "/edit-cat/")
-	category.Name = s
+	oldName := strings.TrimPrefix(rq.URL.Path, "/edit-cat/")
+	category.Name = oldName
+
+	// Renaming a non-existent category would do nothing
+	// FIXME: Renaming to a taken name brings problems.
 
 	switch rq.Method {
 	case http.MethodGet:
@@ -364,10 +367,10 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 			dataCommon: emptyCommon(),
 		}, rq)
 	case http.MethodPost:
-		titleNew := rq.FormValue("title")
-		db.EditCategory(titleNew, category)
-		http.Redirect(w, rq, fmt.Sprintf("/cat/%s", titleNew), http.StatusSeeOther)
-		log.Printf("Edited category name %s\n", s)
+		newName := types.CanonicalCategoryName(rq.FormValue("new-name"))
+		db.EditCategory(category, newName)
+		http.Redirect(w, rq, fmt.Sprintf("/cat/%s", newName), http.StatusSeeOther)
+		log.Printf("Renamed category %s to %s\n", oldName, newName)
 	}
 }
 

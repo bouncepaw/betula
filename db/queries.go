@@ -198,7 +198,7 @@ values (?, ?, ?, ?);
 	return id
 }
 
-func EditCategory(titleNew string, category types.Category) {
+func EditCategory(category types.Category, newName string) {
 	const q = `
 update CategoriesToPosts
 set
@@ -206,7 +206,7 @@ set
 where
     CatName = ?;
 `
-	mustExec(q, titleNew, category.Name)
+	mustExec(q, newName, category.Name)
 }
 
 func EditPost(post types.Post) {
