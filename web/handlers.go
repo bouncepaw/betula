@@ -344,6 +344,8 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 type dataEditCategory struct {
 	*dataCommon
 	types.Category
+	ErrorTakenName   bool
+	ErrorNonExistent bool
 }
 
 func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
@@ -354,24 +356,44 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	var category types.Category
+	var oldCategory types.Category
 	oldName := strings.TrimPrefix(rq.URL.Path, "/edit-cat/")
-	category.Name = oldName
-
-	// Renaming a non-existent category would do nothing
-	// FIXME: Renaming to a taken name brings problems.
+	oldCategory.Name = oldName
 
 	switch rq.Method {
 	case http.MethodGet:
 		templateExec(w, templateEditCategory, dataEditCategory{
-			Category:   category,
+			Category:   oldCategory,
 			dataCommon: emptyCommon(),
 		}, rq)
 	case http.MethodPost:
+		var newCategory types.Category
 		newName := types.CanonicalCategoryName(rq.FormValue("new-name"))
-		db.EditCategory(category, newName)
-		http.Redirect(w, rq, fmt.Sprintf("/cat/%s", newName), http.StatusSeeOther)
-		log.Printf("Renamed category %s to %s\n", oldName, newName)
+		newCategory.Name = newName
+
+		merge := rq.FormValue("merge")
+
+		if db.HasCategory(newCategory) && merge != "true" {
+			log.Printf("Trying to rename a category %s to a taken name %s.\n", oldName, newName)
+			templateExec(w, templateEditCategory, dataEditCategory{
+				Category:       oldCategory,
+				ErrorTakenName: true,
+				dataCommon:     emptyCommon(),
+			}, rq)
+			return
+		} else if !db.HasCategory(oldCategory) {
+			log.Printf("Trying to rename a non-existent category %s.\n", oldName)
+			templateExec(w, templateEditCategory, dataEditCategory{
+				Category:         oldCategory,
+				ErrorNonExistent: true,
+				dataCommon:       emptyCommon(),
+			}, rq)
+			return
+		} else {
+			db.EditCategory(oldCategory, newName)
+			http.Redirect(w, rq, fmt.Sprintf("/cat/%s", newName), http.StatusSeeOther)
+			log.Printf("Renamed category %s to %s\n", oldName, newName)
+		}
 	}
 }
 

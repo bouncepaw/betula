@@ -1,15 +1,37 @@
+{{define "form"}}
+    <form method="post" action="/edit-cat/{{.}}">
+        <div>
+            <label for="cat-name">New name</label>
+            <input type="text" id="cat-name" name="new-name" required value="{{.}}" autocomplete="off">
+            <input type="checkbox" name="merge" id="merge-confirmed" value="true">
+            <label for="merge-confirmed">Merge in case of name conflicts</label>
+        </div>
+        <input type="submit" class="btn" value="Save">
+    </form>
+{{end}}
+
 {{define "title"}}Edit category {{.Name}}{{end}}
 {{define "body"}}
     <main>
         <article>
-                <h2>Edit category <a href="/cat/{{.Name}}">{{.Name}}</a></h2>
-                <form method="post" action="/edit-cat/{{.Name}}">
-                    <div>
-                        <label for="cat-name">New name</label>
-                        <input type="text" id="cat-name" name="new-name" required value="{{.Name}}" autocomplete="off">
-                    </div>
-                    <input type="submit" class="btn" value="Save">
-                </form>
+            <h2>Edit category <a href="/cat/{{.Name}}">{{.Name}}</a></h2>
+            {{if or .ErrorTakenName .ErrorNonExistent}}
+                <h3>Invalid category name</h3>
+            {{end}}
+            {{if .ErrorTakenName}}
+                <p>
+                    The category already exists.
+                    Please enter another name.
+                </p>
+                {{template "form" .Name}}
+            {{else if .ErrorNonExistent}}
+                <p>
+                    The category doesn't exist.
+                    <a href="/cat/"> Go to the category list.</a>
+                </p>
+            {{else}}
+                {{template "form" .Name}}
+            {{end}}
         </article>
     </main>
 {{end}}

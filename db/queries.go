@@ -209,6 +209,15 @@ where
 	mustExec(q, newName, category.Name)
 }
 
+func HasCategory(category types.Category) (has bool) {
+	const q = `select exists(select 1 from CategoriesToPosts where CatName = ?);`
+	rows := mustQuery(q, category.Name)
+	rows.Next()
+	mustScan(rows, &has)
+	_ = rows.Close()
+	return has
+}
+
 func EditPost(post types.Post) {
 	const q = `
 update Posts
