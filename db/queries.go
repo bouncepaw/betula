@@ -245,9 +245,24 @@ func URLForID(id int) (url sql.NullString) {
 	return querySingleValue[sql.NullString](q, id)
 }
 
-func LinkCount() int {
-	const q = `select count(ID) from Posts where DeletionTime is null;`
-	return querySingleValue[int](q)
+func LinkCount(authorized bool) int {
+	const q = `
+with
+	IgnoredPosts as (
+	   -- Ignore deleted posts always
+		select ID from Posts where DeletionTime is not null
+	   union
+		-- Ignore private posts if so desired
+	   select ID from Posts where Visibility = 0 and not ?
+	)
+select 
+	count(ID)
+from 
+	Posts 
+where 
+	ID not in IgnoredPosts;
+`
+	return querySingleValue[int](q, authorized)
 }
 
 func OldestTime() *time.Time {

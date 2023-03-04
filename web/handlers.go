@@ -252,9 +252,10 @@ type dataAbout struct {
 }
 
 func handlerAbout(w http.ResponseWriter, rq *http.Request) {
+	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(w, templateAbout, dataAbout{
 		dataCommon:      emptyCommon(),
-		LinkCount:       db.LinkCount(),
+		LinkCount:       db.LinkCount(authed),
 		OldestTime:      db.OldestTime(),
 		NewestTime:      db.NewestTime(),
 		SiteDescription: settings.SiteDescriptionHTML(),
