@@ -401,7 +401,7 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 				log.Printf("Renamed category %s to %s\n", oldName, newName)
 			}
 			if oldCategory.Description != newCategory.Description {
-				log.Printf("Set new descriptoin for %s\n", newCategory.Name)
+				log.Printf("Set new description for category %s\n", newCategory.Name)
 			}
 		}
 	}
