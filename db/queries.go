@@ -93,6 +93,20 @@ where PostID = ?;
 	return cats
 }
 
+func DescriptionForCategory(catName string) (myco string) {
+	const q = `
+select Description from CategoryDescriptions where CatName = ?;
+`
+	rows := mustQuery(q, catName)
+	for rows.Next() { // 0 or 1
+		mustScan(rows, &myco)
+		break
+	}
+	_ = rows.Close()
+
+	return myco
+}
+
 // Categories returns all categories found on posts one has access to. They all have PostCount set to a non-zero value.
 func Categories(authorized bool) (cats []types.Category) {
 	q := `
@@ -198,15 +212,19 @@ values (?, ?, ?, ?);
 	return id
 }
 
-func EditCategory(category types.Category, newName string) {
+func EditCategory(category types.Category, newName, newDescription string) {
+	// FIXME: Research transactions and probably use them here.
 	const q = `
 update CategoriesToPosts
 set
     CatName = ?
 where
     CatName = ?;
+
+replace into CategoryDescriptions (CatName, Description)
+values (?, ?);
 `
-	mustExec(q, newName, category.Name)
+	mustExec(q, newName, category.Name, newName, newDescription)
 }
 
 func HasCategory(category types.Category) (has bool) {

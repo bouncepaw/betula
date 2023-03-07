@@ -237,7 +237,10 @@ func handlerCategory(w http.ResponseWriter, rq *http.Request) {
 	}
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(w, templateCategory, dataCategory{
-		Category:        types.Category{Name: catName},
+		Category: types.Category{
+			Name:        catName,
+			Description: db.DescriptionForCategory(catName),
+		},
 		PostsInCategory: db.AuthorizedPostsForCategory(authed, catName),
 		dataCommon:      emptyCommon(),
 	}, rq)
@@ -359,6 +362,7 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 	var oldCategory types.Category
 	oldName := strings.TrimPrefix(rq.URL.Path, "/edit-cat/")
 	oldCategory.Name = oldName
+	oldCategory.Description = db.DescriptionForCategory(oldName)
 
 	switch rq.Method {
 	case http.MethodGet:
@@ -370,10 +374,11 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 		var newCategory types.Category
 		newName := types.CanonicalCategoryName(rq.FormValue("new-name"))
 		newCategory.Name = newName
+		newCategory.Description = rq.FormValue("description")
 
 		merge := rq.FormValue("merge")
 
-		if db.HasCategory(newCategory) && merge != "true" {
+		if db.HasCategory(newCategory) && merge != "true" && newCategory.Name != oldCategory.Name {
 			log.Printf("Trying to rename a category %s to a taken name %s.\n", oldName, newName)
 			templateExec(w, templateEditCategory, dataEditCategory{
 				Category:       oldCategory,
@@ -390,9 +395,14 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 			}, rq)
 			return
 		} else {
-			db.EditCategory(oldCategory, newName)
+			db.EditCategory(oldCategory, newName, newCategory.Description)
 			http.Redirect(w, rq, fmt.Sprintf("/cat/%s", newName), http.StatusSeeOther)
-			log.Printf("Renamed category %s to %s\n", oldName, newName)
+			if oldCategory.Name != newCategory.Name {
+				log.Printf("Renamed category %s to %s\n", oldName, newName)
+			}
+			if oldCategory.Description != newCategory.Description {
+				log.Printf("Set new descriptoin for %s\n", newCategory.Name)
+			}
 		}
 	}
 }

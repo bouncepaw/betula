@@ -47,8 +47,9 @@ type Post struct {
 }
 
 type Category struct {
-	Name      string
-	PostCount uint
+	Name        string
+	Description string
+	PostCount   uint
 }
 
 func CanonicalCategoryName(rawName string) string {

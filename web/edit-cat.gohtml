@@ -1,10 +1,15 @@
 {{define "form"}}
-    <form method="post" action="/edit-cat/{{.}}">
+    <form method="post" action="/edit-cat/{{.Name}}">
         <div>
             <label for="cat-name">New name</label>
-            <input type="text" id="cat-name" name="new-name" required value="{{.}}" autocomplete="off">
+            <input type="text" id="cat-name" name="new-name" required value="{{.Name}}" autocomplete="off">
             <input type="checkbox" name="merge" id="merge-confirmed" value="true">
             <label for="merge-confirmed">Merge in case of name conflicts</label>
+        </div>
+        <div>
+            <label>Description</label>
+            <textarea id="cat-description" name="description">{{.Description}}</textarea>
+            <p class="input-caption">Formatted in Mycomarkup</p>
         </div>
         <input type="submit" class="btn" value="Save">
     </form>
@@ -23,14 +28,14 @@
                     The category already exists.
                     Please enter another name.
                 </p>
-                {{template "form" .Name}}
+                {{template "form" .}}
             {{else if .ErrorNonExistent}}
                 <p>
                     The category doesn't exist.
                     <a href="/cat/"> Go to the category list.</a>
                 </p>
             {{else}}
-                {{template "form" .Name}}
+                {{template "form" .}}
             {{end}}
         </article>
     </main>

@@ -9,7 +9,7 @@
 			{{end}}
 			<h2 class="p-name">Category {{.Name}}</h2>{{$cnt := len .PostsInCategory}}
 			<p><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s{{end}} saved in this category.</p>
-			<!--<div class="p-summary"></div>-->
+			<div class="p-summary">{{.Description | mycomarkup}}</div>
 		</article>
 		{{range .PostsInCategory}}
 			<article class="h-entry">
