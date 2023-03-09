@@ -417,6 +417,7 @@ type dataSaveLink struct {
 	Visibility  types.Visibility
 	Description string
 	Categories  []types.Category
+	Another     bool
 }
 
 func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
@@ -466,6 +467,16 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			Visibility:  visibility,
 			Categories:  categories,
 		})
+
+		another := rq.FormValue("another")
+		if another == "true" {
+			templateExec(w, templateSaveLink, dataSaveLink{
+				dataCommon: emptyCommon(),
+				Visibility: types.Public,
+				Another:    true,
+			}, rq)
+			return
+		}
 
 		http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 	}
