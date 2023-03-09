@@ -55,9 +55,8 @@ var templateSettings = templateFrom(nil, "settings.gohtml")
 var template404 = templateFrom(nil, "404.gohtml")
 
 // Meaningful views:
-var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment.gohtml", "save-link.gohtml")
+var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment.gohtml", "save-link.gohtml", "submit-another.gohtml")
 var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment.gohtml", "edit-link.gohtml")
-var templateAddLinkInvalidURL = templateFrom(funcMapForForm, "link-form-fragment.gohtml", "save-link-invalid-url.gohtml")
 var templatePost = templateFrom(funcMapForPosts, "post-fragment.gohtml", "post.gohtml")
 var templateFeed = templateFrom(funcMapForPosts, "post-fragment.gohtml", "feed.gohtml")
 var templateCategories = templateFrom(nil, "categories.gohtml")

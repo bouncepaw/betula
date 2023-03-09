@@ -412,12 +412,13 @@ type dataSaveLink struct {
 
 	// The following three fields can be non-empty, when set through URL parameters or when an erroneous request was made.
 
-	URL         string
-	Title       string
-	Visibility  types.Visibility
-	Description string
-	Categories  []types.Category
-	Another     bool
+	URL             string
+	Title           string
+	Visibility      types.Visibility
+	Description     string
+	Categories      []types.Category
+	Another         bool
+	ErrorInvalidURL bool
 }
 
 func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
@@ -449,13 +450,14 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 		MixUpTitleLink(&title, &addr)
 
 		if _, err := url.ParseRequestURI(addr); err != nil {
-			templateExec(w, templateAddLinkInvalidURL, dataSaveLink{
-				URL:         addr,
-				Title:       title,
-				Visibility:  visibility,
-				Description: description,
-				Categories:  categories,
-				dataCommon:  emptyCommon(),
+			templateExec(w, templateSaveLink, dataSaveLink{
+				URL:             addr,
+				Title:           title,
+				Visibility:      visibility,
+				Description:     description,
+				Categories:      categories,
+				dataCommon:      emptyCommon(),
+				ErrorInvalidURL: true,
 			}, rq)
 			return
 		}

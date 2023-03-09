@@ -1,11 +1,18 @@
 {{define "title"}}Save link{{end}}
 {{define "body"}}
-	<main>
-		<article>
-			<h2>Save link</h2>
-			<form method="post" action="/save-link">
+    <main>
+        <article>
+            {{if .ErrorInvalidURL}}
+                <h2>Invalid link</h2>
+                <p>The URL you have passed, <code>{{.URL}}</code>, is invalid. Please enter a correct URL.</p>
+            {{else}}
+                <h2>Save link</h2>
+            {{end}}
+            <form method="post" action="/save-link">
                 {{template "form fragment" .}}
-			</form>
-		</article>
-	</main>
+                {{template "submit another" .}}
+                <input type="submit" class="btn" value="Save">
+            </form>
+        </article>
+    </main>
 {{end}}

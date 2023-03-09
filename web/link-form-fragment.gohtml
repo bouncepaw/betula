@@ -28,9 +28,4 @@
 		       value="{{.Categories | catsTogether}}" placeholder="video, programming" autocomplete="off">
 		<p class="input-caption">Some special characters are ignored.</p>
 	</div>
-		<div>
-			<input type="checkbox" name="another" id="another-confirmed" {{if .Another}} checked {{end}} value="true">
-			<label for="another-confirmed">Submit another?</label>
-		</div>
-	<input type="submit" class="btn" value="Save">
 {{end}}
