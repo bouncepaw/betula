@@ -566,13 +566,23 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 func handlerGo(w http.ResponseWriter, rq *http.Request) {
 	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/go/"))
 	if err != nil {
-		handlerFeed(w, rq)
+		log.Printf("404: %s\n", rq.URL.Path)
+		handler404(w, rq)
 		return
 	}
 
-	if addr := db.URLForID(id); addr.Valid {
-		http.Redirect(w, rq, addr.String, http.StatusSeeOther)
-	} else {
+	var (
+		authed      = auth.AuthorizedFromRequest(rq)
+		post, found = db.PostForID(id)
+	)
+	switch {
+	case !found:
+		log.Printf("404: %s\n", rq.URL.Path)
 		handler404(w, rq)
+	case !authed && post.Visibility == types.Private:
+		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
+		handler404(w, rq) // TODO: Not 404
+	default:
+		http.Redirect(w, rq, post.URL, http.StatusSeeOther)
 	}
 }

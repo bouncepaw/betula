@@ -266,12 +266,6 @@ limit 1;
 	return post, found
 }
 
-// URLForID returns the URL of the post corresponding to the given ID, if there is any post like that.
-func URLForID(id int) (url sql.NullString) {
-	const q = `select URL from Posts where ID = ? and DeletionTime is null;`
-	return querySingleValue[sql.NullString](q, id)
-}
-
 func LinkCount(authorized bool) int {
 	const q = `
 with
