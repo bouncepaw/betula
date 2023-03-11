@@ -5,6 +5,9 @@
             {{if .ErrorInvalidURL}}
                 <h2>Invalid link</h2>
                 <p>The URL you have passed, <code>{{.URL}}</code>, is invalid. Please enter a correct URL.</p>
+            {{else if .ErrorNotFilled}}
+                <h2>Fill all fields</h2>
+                <p>Fill both Title and URL fields.</p>
             {{else}}
                 <h2>Save link</h2>
             {{end}}

@@ -420,6 +420,7 @@ type dataSaveLink struct {
 	Categories      []types.Category
 	Another         bool
 	ErrorInvalidURL bool
+	ErrorNotFilled  bool
 }
 
 func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
@@ -447,6 +448,19 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			description = rq.FormValue("description")
 			categories  = types.SplitCategories(rq.FormValue("categories"))
 		)
+
+		if addr == "" || title == "" {
+			templateExec(w, templateSaveLink, dataSaveLink{
+				URL:            addr,
+				Title:          title,
+				Visibility:     visibility,
+				Description:    description,
+				Categories:     categories,
+				dataCommon:     emptyCommon(),
+				ErrorNotFilled: true,
+			}, rq)
+			return
+		}
 
 		MixUpTitleLink(&title, &addr)
 
