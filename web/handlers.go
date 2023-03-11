@@ -260,8 +260,8 @@ func handlerAbout(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, templateAbout, dataAbout{
 		dataCommon:      emptyCommon(),
 		LinkCount:       db.LinkCount(authed),
-		OldestTime:      db.OldestTime(),
-		NewestTime:      db.NewestTime(),
+		OldestTime:      db.OldestTime(authed),
+		NewestTime:      db.NewestTime(authed),
 		SiteDescription: settings.SiteDescriptionHTML(),
 	}, rq)
 }
