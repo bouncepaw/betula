@@ -30,6 +30,7 @@ func init() {
 	mux.HandleFunc("/edit-link/", handlerEditLink)
 	mux.HandleFunc("/delete-link/", handlerDeleteLink)
 	mux.HandleFunc("/post/", handlerPost)
+	mux.HandleFunc("/last/", handlerPostLast)
 	mux.HandleFunc("/go/", handlerGo)
 	mux.HandleFunc("/about", handlerAbout)
 	mux.HandleFunc("/cat/", handlerCategory)
@@ -496,14 +497,41 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 		handler404(w, rq)
 		return
 	}
-	log.Printf("Viewing post %d\n", id)
+
 	post, found := db.PostForID(id)
 	if !found {
 		log.Println(err)
 		handler404(w, rq)
 		return
 	}
+
+	visibility := post.Visibility
+	authed := auth.AuthorizedFromRequest(rq)
+	if visibility == types.Private && !authed {
+		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
+		handler404(w, rq)
+		return
+	}
+
+	log.Printf("Viewing post %d\n", id)
+
 	post.Categories = db.CategoriesForPost(id)
+	templateExec(w, templatePost, dataPost{
+		Post:       post,
+		dataCommon: emptyCommon(),
+	}, rq)
+}
+
+func handlerPostLast(w http.ResponseWriter, rq *http.Request) {
+	authed := auth.AuthorizedFromRequest(rq)
+	post, found := db.PostLast(authed)
+	if !found {
+		log.Println("Can't reach the latest post")
+		handler404(w, rq)
+		return
+	}
+	log.Printf("Viewing the latest post %d\n", post.ID)
+	post.Categories = db.CategoriesForPost(post.ID)
 	templateExec(w, templatePost, dataPost{
 		Post:       post,
 		dataCommon: emptyCommon(),

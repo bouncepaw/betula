@@ -317,3 +317,31 @@ func NewestTime() *time.Time {
 	}
 	return nil
 }
+
+func PostLast(authorized bool) (post types.Post, found bool) {
+	const q = `
+with
+	IgnoredPosts as (
+	   -- Ignore deleted posts always
+		select ID from Posts where DeletionTime is not null
+	   union
+		-- Ignore private posts if so desired
+	   select ID from Posts where Visibility = 0 and not ?
+	)
+select 
+    ID, URL, Title, Description, Visibility, CreationTime 
+from 
+    Posts 
+where 
+    ID not in IgnoredPosts
+order by 
+    CreationTime desc 
+limit 1;
+`
+	rows := mustQuery(q, authorized)
+	for rows.Next() {
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		found = true
+	}
+	return post, found
+}
