@@ -33,7 +33,7 @@ func (port Uintport) ValidatePort() uint {
 func (port NullInt64Port) ValidatePort() uint {
 	if port.Valid && port.Int64 > 0 && port.Int64 <= biggestPort {
 		return uint(port.Int64)
-	} else if port.Valid {
+	} else if port.Valid && db.LinkCount(true) > 0 {
 		log.Printf("An invalid network port is provided: %d. Using 1738 instead.\n", port.Int64)
 		return 1738
 	} else {
