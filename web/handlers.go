@@ -35,11 +35,38 @@ func init() {
 	mux.HandleFunc("/about", handlerAbout)
 	mux.HandleFunc("/cat/", handlerCategory)
 	mux.HandleFunc("/edit-cat/", handlerEditCategory)
+	mux.HandleFunc("/day/", handlerDay)
 	mux.HandleFunc("/register", handlerRegister)
 	mux.HandleFunc("/login", handlerLogin)
 	mux.HandleFunc("/logout", handlerLogout)
 	mux.HandleFunc("/settings", handlerSettings)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+var dayStampRegex = regexp.MustCompile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
+
+type dataDay struct {
+	*dataCommon
+	DayStamp string
+	Posts    []types.Post
+}
+
+func handlerDay(w http.ResponseWriter, rq *http.Request) {
+	authed := auth.AuthorizedFromRequest(rq)
+	dayStamp := strings.TrimPrefix(rq.URL.Path, "/day/")
+	// If no day given, default to today.
+	if dayStamp == "" {
+		now := time.Now()
+		dayStamp = fmt.Sprintf("%d-%d-%d", now.Year(), now.Month(), now.Day())
+	} else if !dayStampRegex.MatchString(dayStamp) {
+		handler404(w, rq)
+		return
+	}
+	templateExec(w, templateDay, dataDay{
+		dataCommon: emptyCommon(),
+		DayStamp:   dayStamp,
+		Posts:      db.PostsForDay(authed, dayStamp),
+	}, rq)
 }
 
 type dataSettings struct {

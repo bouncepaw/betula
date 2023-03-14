@@ -61,6 +61,7 @@ var templatePost = templateFrom(funcMapForPosts, "post-fragment.gohtml", "post.g
 var templateFeed = templateFrom(funcMapForPosts, "post-fragment.gohtml", "feed.gohtml")
 var templateCategories = templateFrom(nil, "categories.gohtml")
 var templateCategory = templateFrom(funcMapForPosts, "post-fragment.gohtml", "category.gohtml")
+var templateDay = templateFrom(funcMapForPosts, "post-fragment.gohtml", "day.gohtml")
 var templateEditCategory = templateFrom(funcMapForForm, "edit-cat.gohtml")
 
 var templateAbout = templateFrom(funcMapForTime, "about.gohtml")
@@ -85,6 +86,10 @@ var funcMapForPosts = template.FuncMap{
 		return d
 	},
 	"mycomarkup": myco.MarkupToHTML,
+	"timestampToDayStamp": func(stamp string) string {
+		// len("2000-00-00") == 10
+		return stamp[:10] // Pray 🙏
+	},
 }
 
 var funcMapForForm = template.FuncMap{

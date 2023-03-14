@@ -9,9 +9,11 @@
 		<span>Categories:</span>{{range $i, $cat := .Categories}}{{if $i}},{{end}}<a class="p-category" href="/cat/{{$cat.Name}}">{{$cat.Name}}</a>{{else}}
 			<span class="empty-set">∅</span>
 		{{end}}
-		<time class="dt-published" datetime="{{timestampToHuman .CreationTime}}">
-            {{timestampToHuman .CreationTime}}
-		</time>
+		<a href="/day/{{timestampToDayStamp .CreationTime}}" class="date-link">
+			<time class="dt-published" datetime="{{timestampToHuman .CreationTime}}">
+                {{timestampToHuman .CreationTime}}
+			</time>
+		</a>
 	</div>
 {{end}}
 

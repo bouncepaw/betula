@@ -49,6 +49,26 @@ func SetMetaEntry[T any](key BetulaMetaKey, val T) {
 	mustExec(q, key, val)
 }
 
+// PostsForDay returns posts for the given dayStamp, which looks like this: 2023-03-14. The result might as well be nil, that means there are no posts for the day.
+func PostsForDay(authorized bool, dayStamp string) (posts []types.Post) {
+	const q = `
+select
+	ID, URL, Title, Description, Visibility, CreationTime
+from
+	Posts
+where
+	DeletionTime is null and (Visibility = 1 or ?) and CreationTime like ?;
+`
+	rows := mustQuery(q, authorized, dayStamp+"%")
+	for rows.Next() {
+		var post types.Post
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		posts = append(posts, post)
+	}
+
+	return posts
+}
+
 func AuthorizedPostsForCategory(authorized bool, catName string) (posts []types.Post) {
 	const q = `
 select
