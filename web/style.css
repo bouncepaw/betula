@@ -213,6 +213,9 @@ article + article {
 .about-post a, .about-post .empty-set {
     margin-left: .25rem;
 }
+pre {
+    white-space: pre-wrap;
+}
 
 /* Mycomarkup */
 .myco, .myco * {
