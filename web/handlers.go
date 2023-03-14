@@ -57,7 +57,7 @@ func handlerDay(w http.ResponseWriter, rq *http.Request) {
 	// If no day given, default to today.
 	if dayStamp == "" {
 		now := time.Now()
-		dayStamp = fmt.Sprintf("%d-%d-%d", now.Year(), now.Month(), now.Day())
+		dayStamp = fmt.Sprintf("%d-%02d-%02d", now.Year(), now.Month(), now.Day())
 	} else if !dayStampRegex.MatchString(dayStamp) {
 		handler404(w, rq)
 		return
