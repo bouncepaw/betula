@@ -9,7 +9,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -78,14 +77,8 @@ var funcMapForPosts = template.FuncMap{
 		}
 		return t.Format("2006-01-02 15:04")
 	},
-	"stripCommonProtocol": func(a string) string {
-		b := strings.TrimPrefix(a, "https://")
-		c := strings.TrimPrefix(b, "http://")
-		// Gemini, Gopher, FTP, Mail are not stripped, to emphasize them, when they are.
-		d := strings.TrimSuffix(c, "/")
-		return d
-	},
-	"mycomarkup": myco.MarkupToHTML,
+	"stripCommonProtocol": types.StripCommonProtocol,
+	"mycomarkup":          myco.MarkupToHTML,
 	"timestampToDayStamp": func(stamp string) string {
 		// len("2000-00-00") == 10
 		return stamp[:10] // Pray 🙏

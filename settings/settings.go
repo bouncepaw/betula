@@ -3,6 +3,7 @@ package settings
 
 import (
 	"database/sql"
+	"fmt"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/myco"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -70,6 +71,10 @@ func Index() {
 	}
 }
 
+func SiteURL() string {
+	log.Println("SITE URL SETTTING IS NOT IMPLEMENTED")
+	return fmt.Sprintf("http://localhost:%d", cache.NetworkPort)
+}
 func NetworkPort() uint                  { return cache.NetworkPort }
 func SiteName() string                   { return cache.SiteName }
 func SiteTitle() template.HTML           { return cache.SiteTitle }

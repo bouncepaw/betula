@@ -93,3 +93,11 @@ type Settings struct {
 // not really a type:
 
 const TimeLayout = "2006-01-02 15:04:05"
+
+func StripCommonProtocol(a string) string {
+	b := strings.TrimPrefix(a, "https://")
+	c := strings.TrimPrefix(b, "http://")
+	// Gemini, Gopher, FTP, Mail are not stripped, to emphasize them, when they are.
+	d := strings.TrimSuffix(c, "/")
+	return d
+}

@@ -4,8 +4,10 @@ import (
 	"embed"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
+	"git.sr.ht/~bouncepaw/betula/feeds"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -26,6 +28,7 @@ var (
 
 func init() {
 	mux.HandleFunc("/", handlerFeed)
+	mux.HandleFunc("/digest-rss", handlerDigestRss)
 	mux.HandleFunc("/save-link", handlerSaveLink)
 	mux.HandleFunc("/edit-link/", handlerEditLink)
 	mux.HandleFunc("/delete-link/", handlerDeleteLink)
@@ -41,6 +44,19 @@ func init() {
 	mux.HandleFunc("/logout", handlerLogout)
 	mux.HandleFunc("/settings", handlerSettings)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerDigestRss(w http.ResponseWriter, rq *http.Request) {
+	feed := feeds.Digest()
+	rss, err := feed.ToRss()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = io.WriteString(w, err.Error()) // Ain't that failing on my watch.
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/rss+xml")
+	_, _ = io.WriteString(w, rss)
 }
 
 var dayStampRegex = regexp.MustCompile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
