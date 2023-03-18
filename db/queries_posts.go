@@ -1,53 +1,9 @@
-// Package db encapsulates all used queries to the database.
-//
-// Do not forget to Initialize and Finalize.
-//
-// All functions in this package might crash vividly.
 package db
 
 import (
-	"database/sql"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
-	"time"
 )
-
-func AddSession(token string) {
-	mustExec(`insert into Sessions values (?, ?);`,
-		token, time.Now())
-}
-
-func HasSession(token string) (has bool) {
-	const q = `select exists(select 1 from Sessions where Token = ?);`
-	rows := mustQuery(q, token)
-	rows.Next()
-	mustScan(rows, &has)
-	_ = rows.Close()
-	return has
-}
-
-func StopSession(token string) {
-	mustExec(`delete from Sessions where Token = ?;`, token)
-}
-
-func SetCredentials(name, hash string) {
-	const q = `
-insert or replace into BetulaMeta values
-	('Admin username', ?),
-	('Admin password hash', ?);
-`
-	mustExec(q, name, hash)
-}
-
-func MetaEntry[T any](key BetulaMetaKey) T {
-	const q = `select Value from BetulaMeta where Key = ? limit 1;`
-	return querySingleValue[T](q, key)
-}
-
-func SetMetaEntry[T any](key BetulaMetaKey, val T) {
-	const q = `insert or replace into BetulaMeta values (?, ?);`
-	mustExec(q, key, val)
-}
 
 // PostsForDay returns posts for the given dayStamp, which looks like this: 2023-03-14. The result might as well be nil, that means there are no posts for the day.
 func PostsForDay(authorized bool, dayStamp string) (posts []types.Post) {
@@ -69,7 +25,7 @@ where
 	return posts
 }
 
-func AuthorizedPostsForCategory(authorized bool, catName string) (posts []types.Post) {
+func PostsForCategory(authorized bool, catName string) (posts []types.Post) {
 	const q = `
 select
 	ID, URL, Title, Description, Visibility, CreationTime
@@ -98,67 +54,8 @@ order by
 	return posts
 }
 
-func CategoriesForPost(id int) (cats []types.Category) {
-	q := `
-select distinct CatName
-from CategoriesToPosts
-where PostID = ?;
-`
-	rows := mustQuery(q, id)
-	for rows.Next() {
-		var cat types.Category
-		mustScan(rows, &cat.Name)
-		cats = append(cats, cat)
-	}
-	return cats
-}
-
-func DescriptionForCategory(catName string) (myco string) {
-	const q = `
-select Description from CategoryDescriptions where CatName = ?;
-`
-	rows := mustQuery(q, catName)
-	for rows.Next() { // 0 or 1
-		mustScan(rows, &myco)
-		break
-	}
-	_ = rows.Close()
-
-	return myco
-}
-
-// Categories returns all categories found on posts one has access to. They all have PostCount set to a non-zero value.
-func Categories(authorized bool) (cats []types.Category) {
-	q := `
-with
-	IgnoredPosts as (
-	   -- Ignore deleted posts always
-		select ID from Posts where DeletionTime is not null
-	   union
-		-- Ignore private posts if so desired
-	   select ID from Posts where Visibility = 0 and not ?
-	)
-select
-   CatName, 
-   count(PostID)
-from
-   CategoriesToPosts
-where
-   PostID not in IgnoredPosts
-group by
-	CatName;
-`
-	rows := mustQuery(q, authorized)
-	for rows.Next() {
-		var cat types.Category
-		mustScan(rows, &cat.Name, &cat.PostCount)
-		cats = append(cats, cat)
-	}
-	return cats
-}
-
-// AuthorizedPosts returns all posts stored in the database, along with their categories, but only if the viewer is authorized! Otherwise, only public posts will be given.
-func AuthorizedPosts(authorized bool) (posts []types.Post) {
+// Posts returns all posts stored in the database, along with their categories, but only if the viewer is authorized! Otherwise, only public posts will be given.
+func Posts(authorized bool) (posts []types.Post) {
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime
 from Posts
@@ -180,19 +77,6 @@ order by CreationTime desc;
 		posts[i] = post
 	}
 	return posts
-}
-
-func SetCategoriesFor(postID int, categories []types.Category) {
-	const qDelete = `delete from CategoriesToPosts where PostID = ?;`
-	mustExec(qDelete, postID)
-
-	var qAdd = `insert into CategoriesToPosts (CatName, PostID) values (?, ?);`
-	for _, cat := range categories {
-		if cat.Name == "" {
-			continue
-		}
-		mustExec(qAdd, cat.Name, postID)
-	}
 }
 
 func HasPost(id int) (has bool) {
@@ -232,30 +116,6 @@ values (?, ?, ?, ?);
 	return id
 }
 
-func EditCategory(category types.Category, newName, newDescription string) {
-	// FIXME: Research transactions and probably use them here.
-	const q = `
-update CategoriesToPosts
-set
-    CatName = ?
-where
-    CatName = ?;
-
-replace into CategoryDescriptions (CatName, Description)
-values (?, ?);
-`
-	mustExec(q, newName, category.Name, newName, newDescription)
-}
-
-func HasCategory(category types.Category) (has bool) {
-	const q = `select exists(select 1 from CategoriesToPosts where CatName = ?);`
-	rows := mustQuery(q, category.Name)
-	rows.Next()
-	mustScan(rows, &has)
-	_ = rows.Close()
-	return has
-}
-
 func EditPost(post types.Post) {
 	const q = `
 update Posts
@@ -286,7 +146,7 @@ limit 1;
 	return post, found
 }
 
-func LinkCount(authorized bool) int {
+func PostCount(authorized bool) int {
 	const q = `
 with
 	IgnoredPosts as (
@@ -306,41 +166,7 @@ where
 	return querySingleValue[int](q, authorized)
 }
 
-func OldestTime(authorized bool) *time.Time {
-	const q = `
-select min(CreationTime)
-from Posts
-where DeletionTime is null and (Visibility = 1 or ?);
-`
-	stamp := querySingleValue[sql.NullString](q, authorized)
-	if stamp.Valid {
-		val, err := time.Parse("2006-01-02 15:04:05", stamp.String)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		return &val
-	}
-	return nil
-}
-
-func NewestTime(authorized bool) *time.Time {
-	const q = `
-select max(CreationTime)
-from Posts
-where DeletionTime is null and (Visibility = 1 or ?);
-`
-	stamp := querySingleValue[sql.NullString](q, authorized)
-	if stamp.Valid {
-		val, err := time.Parse(types.TimeLayout, stamp.String)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		return &val
-	}
-	return nil
-}
-
-func PostLast(authorized bool) (post types.Post, found bool) {
+func LastPost(authorized bool) (post types.Post, found bool) {
 	const q = `
 with
 	IgnoredPosts as (

@@ -1,3 +1,8 @@
+// Package db encapsulates all used queries to the database.
+//
+// Do not forget to Initialize and Finalize.
+//
+// All functions in this package might crash vividly.
 package db
 
 import (

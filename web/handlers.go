@@ -285,7 +285,7 @@ func handlerCategory(w http.ResponseWriter, rq *http.Request) {
 			Name:        catName,
 			Description: db.DescriptionForCategory(catName),
 		},
-		PostsInCategory: db.AuthorizedPostsForCategory(authed, catName),
+		PostsInCategory: db.PostsForCategory(authed, catName),
 		dataCommon:      emptyCommon(),
 	}, rq)
 }
@@ -302,7 +302,7 @@ func handlerAbout(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(w, templateAbout, dataAbout{
 		dataCommon:      emptyCommon(),
-		LinkCount:       db.LinkCount(authed),
+		LinkCount:       db.PostCount(authed),
 		OldestTime:      db.OldestTime(authed),
 		NewestTime:      db.NewestTime(authed),
 		SiteDescription: settings.SiteDescriptionHTML(),
@@ -422,7 +422,7 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 
 		merge := rq.FormValue("merge")
 
-		if db.HasCategory(newCategory) && merge != "true" && newCategory.Name != oldCategory.Name {
+		if db.CategoryExists(newCategory) && merge != "true" && newCategory.Name != oldCategory.Name {
 			log.Printf("Trying to rename a category %s to a taken name %s.\n", oldName, newName)
 			templateExec(w, templateEditCategory, dataEditCategory{
 				Category:       oldCategory,
@@ -430,7 +430,7 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 				dataCommon:     emptyCommon(),
 			}, rq)
 			return
-		} else if !db.HasCategory(oldCategory) {
+		} else if !db.CategoryExists(oldCategory) {
 			log.Printf("Trying to rename a non-existent category %s.\n", oldName)
 			templateExec(w, templateEditCategory, dataEditCategory{
 				Category:         oldCategory,
@@ -581,7 +581,7 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 
 func handlerPostLast(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
-	post, found := db.PostLast(authed)
+	post, found := db.LastPost(authed)
 	if !found {
 		log.Println("Can't reach the latest post")
 		handler404(w, rq)
@@ -614,7 +614,7 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	}
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(w, templateFeed, dataFeed{
-		AllPosts:        db.AuthorizedPosts(authed),
+		AllPosts:        db.Posts(authed),
 		SiteDescription: settings.SiteDescriptionHTML(),
 		dataCommon:      emptyCommon(),
 	}, rq)

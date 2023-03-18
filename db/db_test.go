@@ -37,11 +37,11 @@ values
 
 func TestLinkCount(t *testing.T) {
 	InitInMemoryDB()
-	resAuthed := LinkCount(true)
+	resAuthed := PostCount(true)
 	if resAuthed != 2 {
 		t.Errorf("Wrong authorized LinkCount, got %d", resAuthed)
 	}
-	resAnon := LinkCount(false)
+	resAnon := PostCount(false)
 	if resAnon != 1 {
 		t.Errorf("Wrong unauthorized LinkCount, got %d", resAnon)
 	}
@@ -61,7 +61,7 @@ func TestAddPost(t *testing.T) {
 		Visibility:  types.Public,
 	}
 	AddPost(post)
-	if LinkCount(true) != 3 {
+	if PostCount(true) != 3 {
 		t.Errorf("Faulty AddPost")
 	}
 }

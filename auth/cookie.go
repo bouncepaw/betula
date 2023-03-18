@@ -16,7 +16,7 @@ func AuthorizedFromRequest(rq *http.Request) bool {
 	if err != nil {
 		return false
 	}
-	return db.HasSession(cookie.Value)
+	return db.SessionExists(cookie.Value)
 }
 
 // LogoutFromRequest logs the user in the request out and rewrites the cookie in to an empty one.
