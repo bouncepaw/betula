@@ -1,0 +1,6 @@
+image: alpine/edge
+packages:
+  - go
+tasks:
+  - test: |
+      go test ./...
