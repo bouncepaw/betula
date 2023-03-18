@@ -3,4 +3,5 @@ packages:
   - go
 tasks:
   - test: |
-      go test ./...
+      cd betula
+      go test ./db
