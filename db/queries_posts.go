@@ -13,7 +13,9 @@ select
 from
 	Posts
 where
-	DeletionTime is null and (Visibility = 1 or ?) and CreationTime like ?;
+	DeletionTime is null and (Visibility = 1 or ?) and CreationTime like ?
+order by
+	CreationTime desc;
 `
 	rows := mustQuery(q, authorized, dayStamp+"%")
 	for rows.Next() {
