@@ -216,6 +216,9 @@ article + article {
 pre {
     white-space: pre-wrap;
 }
+.date-link .dt-published {
+    text-decoration: underline;
+}
 
 /* Mycomarkup */
 .myco, .myco * {
