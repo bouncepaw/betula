@@ -39,8 +39,12 @@ select
    count(PostID)
 from
    CategoriesToPosts
-where
-   PostID not in IgnoredPosts and DeletionTime is null and (Visibility = 1 or ?)
+inner join 
+    (select ID from main.Posts where DeletionTime is null and (Visibility = 1 or ?)) 
+as 
+	Filtered
+on 
+    CategoriesToPosts.PostID = Filtered.ID
 group by
 	CatName;
 `

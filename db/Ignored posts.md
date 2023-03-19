@@ -30,6 +30,26 @@ group by
 4. Union 2 and 3, these are ignored posts.
 5. Filter them out in your query.
 
+### Another approach
+We can use `JOIN`.
+Note that it is more preferable to filter the posts first and then join the tables.
+
+```sqlite
+select
+   CatName, 
+   count(PostID)
+from
+   CategoriesToPosts
+inner join 
+    (select ID from main.Posts where DeletionTime is null and (Visibility = 1 or ?)) 
+as
+    Filtered
+on 
+    CategoriesToPosts.PostID = Filtered.ID
+group by
+    CatName;
+```
+
 ## With non-ignored posts
 This is the positive version of the previous approach. Not used now.
 
