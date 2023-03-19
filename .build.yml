@@ -1,6 +1,8 @@
 image: alpine/edge
 packages:
   - go
+sources:
+  - https://git.sr.ht/~bouncepaw/betula
 tasks:
   - test: |
       cd betula
