@@ -51,7 +51,7 @@ var templateLogoutForm = templateFrom(nil, "logout-form.gohtml")
 var templateSettings = templateFrom(nil, "settings.gohtml")
 
 // Sad views:
-var template404 = templateFrom(nil, "404.gohtml")
+var templateStatus = templateFrom(nil, "status.gohtml")
 
 // Meaningful views:
 var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment.gohtml", "save-link.gohtml", "submit-another.gohtml")

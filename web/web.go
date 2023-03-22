@@ -55,6 +55,7 @@ type auther struct {
 
 type dataAuthorized struct {
 	*dataCommon
+	Status string
 }
 
 func (a *auther) ServeHTTP(w http.ResponseWriter, rq *http.Request) {

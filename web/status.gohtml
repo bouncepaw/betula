@@ -1,8 +1,8 @@
-{{define "title"}}Not found{{end}}
+{{define "title"}}{{.Status}}{{end}}
 {{define "body"}}
 	<main>
 		<article>
-			<h2>Not found</h2>
+			<h2>{{.Status}}</h2>
 			<p>The page you requested for is not there.</p>
 			<ul>
 				<li>

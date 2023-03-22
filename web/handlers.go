@@ -75,7 +75,7 @@ func handlerDay(w http.ResponseWriter, rq *http.Request) {
 		now := time.Now()
 		dayStamp = fmt.Sprintf("%d-%02d-%02d", now.Year(), now.Month(), now.Day())
 	} else if !dayStampRegex.MatchString(dayStamp) {
-		handler404(w, rq)
+		handlerNotFound(w, rq)
 		return
 	}
 	templateExec(w, templateDay, dataDay{
@@ -94,8 +94,8 @@ type dataSettings struct {
 func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	if !authed {
-		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
-		handler404(w, rq)
+		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		handlerUnauthorized(w, rq)
 		return
 	}
 
@@ -142,27 +142,27 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 
 func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method != http.MethodPost {
-		handler404(w, rq)
+		handlerNotFound(w, rq)
 		return
 	}
 
 	authed := auth.AuthorizedFromRequest(rq)
 	if !authed {
-		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
-		handler404(w, rq)
+		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		handlerUnauthorized(w, rq)
 		return
 	}
 
 	s := strings.TrimPrefix(rq.URL.Path, "/delete-link/")
 	if s == "" {
-		handler404(w, rq)
+		handlerNotFound(w, rq)
 		return
 	}
 
 	id, err := strconv.Atoi(s)
 	if err != nil {
 		log.Println(err)
-		handler404(w, rq)
+		handlerNotFound(w, rq)
 		return
 	}
 
@@ -173,7 +173,7 @@ func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
 
 	if !db.HasPost(id) {
 		log.Println("Trying to delete a non-existent post.")
-		handler404(w, rq)
+		handlerNotFound(w, rq)
 		return
 	}
 
@@ -181,10 +181,19 @@ func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
 
-func handler404(w http.ResponseWriter, rq *http.Request) {
+func handlerNotFound(w http.ResponseWriter, rq *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	templateExec(w, template404, dataAuthorized{
+	templateExec(w, templateStatus, dataAuthorized{
 		dataCommon: emptyCommon(),
+		Status:     http.StatusText(http.StatusNotFound),
+	}, rq)
+}
+
+func handlerUnauthorized(w http.ResponseWriter, rq *http.Request) {
+	w.WriteHeader(http.StatusUnauthorized)
+	templateExec(w, templateStatus, dataAuthorized{
+		dataCommon: emptyCommon(),
+		Status:     http.StatusText(http.StatusUnauthorized),
 	}, rq)
 }
 
@@ -331,8 +340,8 @@ func MixUpTitleLink(title *string, addr *string) {
 func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	if !authed {
-		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
-		handler404(w, rq)
+		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		handlerUnauthorized(w, rq)
 		return
 	}
 
@@ -345,14 +354,14 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 	id, err := strconv.Atoi(s)
 	if err != nil {
 		log.Println(err)
-		handler404(w, rq)
+		handlerNotFound(w, rq)
 		return
 	}
 
 	post, found := db.PostForID(id)
 	if !found {
-		log.Printf("Trying to edit post no. %d that does not exist. 404.\n", id)
-		handler404(w, rq)
+		log.Printf("Trying to edit post no. %d that does not exist. %d.\n", id, http.StatusNotFound)
+		handlerNotFound(w, rq)
 		return
 	}
 	post.Categories = db.CategoriesForPost(id)
@@ -398,8 +407,8 @@ type dataEditCategory struct {
 func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	if !authed {
-		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
-		handler404(w, rq)
+		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		handlerUnauthorized(w, rq)
 		return
 	}
 
@@ -468,8 +477,8 @@ type dataSaveLink struct {
 
 func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	if !auth.AuthorizedFromRequest(rq) {
-		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
-		handler404(w, rq)
+		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		handlerUnauthorized(w, rq)
 		return
 	}
 	switch rq.Method {
@@ -551,22 +560,22 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 	id, err := strconv.Atoi(strings.TrimPrefix(strings.TrimPrefix(rq.URL.Path, "/"), "post/"))
 	if err != nil {
 		log.Println(err)
-		handler404(w, rq)
+		handlerNotFound(w, rq)
 		return
 	}
 
 	post, found := db.PostForID(id)
 	if !found {
 		log.Println(err)
-		handler404(w, rq)
+		handlerNotFound(w, rq)
 		return
 	}
 
 	visibility := post.Visibility
 	authed := auth.AuthorizedFromRequest(rq)
 	if visibility == types.Private && !authed {
-		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
-		handler404(w, rq)
+		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		handlerUnauthorized(w, rq)
 		return
 	}
 
@@ -584,7 +593,7 @@ func handlerPostLast(w http.ResponseWriter, rq *http.Request) {
 	post, found := db.LastPost(authed)
 	if !found {
 		log.Println("Can't reach the latest post")
-		handler404(w, rq)
+		handlerNotFound(w, rq)
 		return
 	}
 	log.Printf("Viewing the latest post %d\n", post.ID)
@@ -609,7 +618,7 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	if rq.URL.Path != "/" {
-		handler404(w, rq)
+		handlerNotFound(w, rq)
 		return
 	}
 	authed := auth.AuthorizedFromRequest(rq)
@@ -623,8 +632,8 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 func handlerGo(w http.ResponseWriter, rq *http.Request) {
 	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/go/"))
 	if err != nil {
-		log.Printf("404: %s\n", rq.URL.Path)
-		handler404(w, rq)
+		log.Printf("%d: %s\n", http.StatusNotFound, rq.URL.Path)
+		handlerNotFound(w, rq)
 		return
 	}
 
@@ -634,11 +643,11 @@ func handlerGo(w http.ResponseWriter, rq *http.Request) {
 	)
 	switch {
 	case !found:
-		log.Printf("404: %s\n", rq.URL.Path)
-		handler404(w, rq)
+		log.Printf("%d: %s\n", http.StatusNotFound, rq.URL.Path)
+		handlerNotFound(w, rq)
 	case !authed && post.Visibility == types.Private:
-		log.Printf("Unauthorized attempt to access %s. 404.\n", rq.URL.Path)
-		handler404(w, rq) // TODO: Not 404
+		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		handlerUnauthorized(w, rq)
 	default:
 		http.Redirect(w, rq, post.URL, http.StatusSeeOther)
 	}
