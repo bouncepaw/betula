@@ -2,19 +2,12 @@ package db
 
 import "git.sr.ht/~bouncepaw/betula/types"
 
-func CategoriesForPost(id int) (cats []types.Category) {
-	q := `
-select distinct CatName
-from CategoriesToPosts
-where PostID = ?;
+func SetCategoryDescription(catName string, description string) {
+	const q = `
+replace into CategoryDescriptions (CatName, Description)
+values (?, ?);
 `
-	rows := mustQuery(q, id)
-	for rows.Next() {
-		var cat types.Category
-		mustScan(rows, &cat.Name)
-		cats = append(cats, cat)
-	}
-	return cats
+	mustExec(q, catName, description)
 }
 
 func DescriptionForCategory(catName string) (myco string) {
@@ -57,6 +50,24 @@ group by
 	return cats
 }
 
+func CategoryExists(categoryName string) (has bool) {
+	const q = `select exists(select 1 from CategoriesToPosts where CatName = ?);`
+	rows := mustQuery(q, categoryName)
+	rows.Next()
+	mustScan(rows, &has)
+	_ = rows.Close()
+	return has
+}
+
+func RenameCategory(oldCatName, newCatName string) {
+	const q = `
+update CategoriesToPosts
+set CatName = ?
+where CatName = ?;
+`
+	mustExec(q, newCatName, oldCatName)
+}
+
 func SetCategoriesFor(postID int, categories []types.Category) {
 	const qDelete = `delete from CategoriesToPosts where PostID = ?;`
 	mustExec(qDelete, postID)
@@ -70,26 +81,17 @@ func SetCategoriesFor(postID int, categories []types.Category) {
 	}
 }
 
-func EditCategory(category types.Category, newName, newDescription string) {
-	// FIXME: Research transactions and probably use them here.
-	const q = `
-update CategoriesToPosts
-set
-    CatName = ?
-where
-    CatName = ?;
-
-replace into CategoryDescriptions (CatName, Description)
-values (?, ?);
+func CategoriesForPost(id int) (cats []types.Category) {
+	q := `
+select distinct CatName
+from CategoriesToPosts
+where PostID = ?;
 `
-	mustExec(q, newName, category.Name, newName, newDescription)
-}
-
-func CategoryExists(category types.Category) (has bool) {
-	const q = `select exists(select 1 from CategoriesToPosts where CatName = ?);`
-	rows := mustQuery(q, category.Name)
-	rows.Next()
-	mustScan(rows, &has)
-	_ = rows.Close()
-	return has
+	rows := mustQuery(q, id)
+	for rows.Next() {
+		var cat types.Category
+		mustScan(rows, &cat.Name)
+		cats = append(cats, cat)
+	}
+	return cats
 }

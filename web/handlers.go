@@ -431,7 +431,7 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 
 		merge := rq.FormValue("merge")
 
-		if db.CategoryExists(newCategory) && merge != "true" && newCategory.Name != oldCategory.Name {
+		if db.CategoryExists(newCategory.Name) && merge != "true" && newCategory.Name != oldCategory.Name {
 			log.Printf("Trying to rename a category %s to a taken name %s.\n", oldName, newName)
 			templateExec(w, templateEditCategory, dataEditCategory{
 				Category:       oldCategory,
@@ -439,7 +439,7 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 				dataCommon:     emptyCommon(),
 			}, rq)
 			return
-		} else if !db.CategoryExists(oldCategory) {
+		} else if !db.CategoryExists(oldCategory.Name) {
 			log.Printf("Trying to rename a non-existent category %s.\n", oldName)
 			templateExec(w, templateEditCategory, dataEditCategory{
 				Category:         oldCategory,
@@ -448,7 +448,8 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 			}, rq)
 			return
 		} else {
-			db.EditCategory(oldCategory, newName, newCategory.Description)
+			db.RenameCategory(oldCategory.Name, newName)
+			db.SetCategoryDescription(newName, newCategory.Description)
 			http.Redirect(w, rq, fmt.Sprintf("/cat/%s", newName), http.StatusSeeOther)
 			if oldCategory.Name != newCategory.Name {
 				log.Printf("Renamed category %s to %s\n", oldName, newName)
