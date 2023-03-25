@@ -1,12 +1,19 @@
 package db
 
 import (
-	"git.sr.ht/~bouncepaw/betula/types"
-	"testing"
-
 	_ "github.com/mattn/go-sqlite3"
 )
 
+/*
+This file contains testing things that are used in all tests in this package.
+
+Pay attention to the fish below and do not forget to InitInMemoryDB!
+*/
+
+const pufferfish = "🐡"
+const tropicfish = "🐠"
+
+// InitInMemoryDB initializes a database in :memory:. Use it instead of a real db in a file for tests.
 func InitInMemoryDB() {
 	Initialize(":memory:")
 	const q = `
@@ -33,35 +40,4 @@ values
 	)
 `
 	mustExec(q)
-}
-
-func TestLinkCount(t *testing.T) {
-	InitInMemoryDB()
-	resAuthed := PostCount(true)
-	if resAuthed != 2 {
-		t.Errorf("Wrong authorized LinkCount, got %d", resAuthed)
-	}
-	resAnon := PostCount(false)
-	if resAnon != 1 {
-		t.Errorf("Wrong unauthorized LinkCount, got %d", resAnon)
-	}
-}
-
-func TestAddPost(t *testing.T) {
-	InitInMemoryDB()
-	post := types.Post{
-		CreationTime: "2023-03-18",
-		Categories: []types.Category{
-			types.Category{Name: "cat"},
-			types.Category{Name: "dog"},
-		},
-		URL:         "https://betula.mycorrhiza.wiki",
-		Title:       "Betula",
-		Description: "",
-		Visibility:  types.Public,
-	}
-	AddPost(post)
-	if PostCount(true) != 3 {
-		t.Errorf("Faulty AddPost")
-	}
 }
