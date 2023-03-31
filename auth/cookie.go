@@ -43,9 +43,10 @@ func randomString(n int) string {
 
 func newCookie(val string, t time.Time) *http.Cookie {
 	return &http.Cookie{
-		Name:    tokenName,
-		Value:   val,
-		Expires: t,
-		Path:    "/",
+		Name:     tokenName,
+		Value:    val,
+		Expires:  t,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
 	}
 }
