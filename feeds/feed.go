@@ -96,7 +96,7 @@ func descriptionFromPosts(posts []types.Post, dayStamp string) string {
 						return "<p>🏷 " + catBuf.String() + "</p>"
 					}
 					return ""
-				},
+				}(),
 				myco.MarkupToHTML(post.Description),
 			),
 		)

@@ -5,7 +5,7 @@ import (
 )
 
 /*
-This file contains testing things that are used in all tests in this package.
+This file contains testing things that are used in all tests in this package, and beyond.
 
 Pay attention to the fish below and do not forget to InitInMemoryDB!
 */
@@ -24,20 +24,31 @@ values
 	 'https://bouncepaw.com',
 	 'Bouncepaw website',
 	 'A cute website by Bouncepaw',
-	 0, '2023-03-17', null
+	 0, '2023-03-17 13:13:13', null
 	),
    (
     'https://mycorrhiza.wiki',
     'Mycorrhiza Wiki',
     'A wiki engine',
-    1, '2023-03-17', null
+    1, '2023-03-17 13:14:15', null
    ),
 	(
 	 'http://lesarbr.es',
 	 'Les Arbres',
 	 'Legacy mirror of [[1]]',
-	 1, '2023-03-17', '2023-03-18'
+	 1, '2023-03-17 20:20:20', '2023-03-18 12:45:04'
 	)
 `
 	mustExec(q)
+}
+
+func MoreTestingPosts() {
+	mustExec(`
+insert into Posts (URL, Title, Description, Visibility, CreationTime, DeletionTime)
+values 
+('https://1.bouncepaw', 'Uno', '', 1, '2023-03-19 12:00:00', null),
+('https://2.bouncepaw', 'Dos', '', 1, '2023-03-19 14:14:14', null),
+('https://3.bouncepaw', 'Tres', '', 1, '2023-03-20 19:19:19', null),
+('https://4.bouncepaw', 'Cuatro', '', 1, '2023-03-20 20:20:20', null),
+`)
 }
