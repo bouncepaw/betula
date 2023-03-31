@@ -349,6 +349,9 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
+	common := emptyCommon()
+	common.head = `<script defer src="/static/autocompletion.js"></script>`
+
 	s := strings.TrimPrefix(rq.URL.Path, "/edit-link/")
 	if s == "" {
 		http.Redirect(w, rq, "/save-link", http.StatusSeeOther)
@@ -374,7 +377,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 	case http.MethodGet:
 		templateExec(w, templateEditLink, dataEditLink{
 			Post:       post,
-			dataCommon: emptyCommon(),
+			dataCommon: common,
 		}, rq)
 	case http.MethodPost:
 		post.URL = rq.FormValue("url")
@@ -390,7 +393,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 			templateExec(w, templateEditLink, dataEditLink{
 				ErrorInvalidURL: true,
 				Post:            post,
-				dataCommon:      emptyCommon(),
+				dataCommon:      common,
 			}, rq)
 			return
 		}
@@ -486,6 +489,8 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 		handlerUnauthorized(w, rq)
 		return
 	}
+	common := emptyCommon()
+	common.head = `<script defer src="/static/autocompletion.js"></script>`
 	switch rq.Method {
 	case http.MethodGet:
 		// TODO: Document the param behaviour
@@ -495,7 +500,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
 			Description: rq.FormValue("description"),
 			Categories:  types.SplitCategories(rq.FormValue("categories")),
-			dataCommon:  emptyCommon(),
+			dataCommon:  common,
 		}, rq)
 	case http.MethodPost:
 		var (
@@ -513,7 +518,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 				Visibility:     visibility,
 				Description:    description,
 				Categories:     categories,
-				dataCommon:     emptyCommon(),
+				dataCommon:     common,
 				ErrorNotFilled: true,
 			}, rq)
 			return
@@ -528,7 +533,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 				Visibility:      visibility,
 				Description:     description,
 				Categories:      categories,
-				dataCommon:      emptyCommon(),
+				dataCommon:      common,
 				ErrorInvalidURL: true,
 			}, rq)
 			return
@@ -545,7 +550,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 		another := rq.FormValue("another")
 		if another == "true" {
 			templateExec(w, templateSaveLink, dataSaveLink{
-				dataCommon: emptyCommon(),
+				dataCommon: common,
 				Visibility: types.Public,
 				Another:    true,
 			}, rq)
