@@ -47,8 +47,8 @@ func MoreTestingPosts() {
 insert into Posts (URL, Title, Description, Visibility, CreationTime, DeletionTime)
 values 
 ('https://1.bouncepaw', 'Uno', '', 1, '2023-03-19 12:00:00', null),
-('https://2.bouncepaw', 'Dos', '', 1, '2023-03-19 14:14:14', null),
+('https://2.bouncepaw', 'Dos', '', 1, '2023-03-19 14:14:14', '2023-03-19 14:14:15'),
 ('https://3.bouncepaw', 'Tres', '', 1, '2023-03-20 19:19:19', null),
-('https://4.bouncepaw', 'Cuatro', '', 1, '2023-03-20 20:20:20', null),
+('https://4.bouncepaw', 'Cuatro', '', 1, '2023-03-20 20:20:20', null);
 `)
 }

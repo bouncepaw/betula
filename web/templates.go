@@ -100,12 +100,14 @@ type dataCommon struct {
 	authorized bool
 	siteTitle  template.HTML
 	siteName   string
+	head       template.HTML
 }
 
 type viewData interface {
 	SiteTitleHTML() template.HTML
 	Authorized() bool
 	Fill(dataCommon)
+	Head() template.HTML
 }
 
 func (c *dataCommon) SiteTitleHTML() template.HTML {
@@ -118,6 +120,10 @@ func (c *dataCommon) SiteName() string {
 
 func (c *dataCommon) Authorized() bool {
 	return c.authorized
+}
+
+func (c *dataCommon) Head() template.HTML {
+	return c.head
 }
 
 func (c *dataCommon) Fill(C dataCommon) {

@@ -627,10 +627,14 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	authed := auth.AuthorizedFromRequest(rq)
+	common := emptyCommon()
+	common.head = `
+	<link rel="alternate" type="application/rss+xml" title="Daily digest" href="/digest-rss" />
+`
 	templateExec(w, templateFeed, dataFeed{
 		AllPosts:        db.Posts(authed),
 		SiteDescription: settings.SiteDescriptionHTML(),
-		dataCommon:      emptyCommon(),
+		dataCommon:      common,
 	}, rq)
 }
 
