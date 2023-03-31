@@ -8,6 +8,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"github.com/gorilla/feeds"
+	"log"
 	"strings"
 	"time"
 )
@@ -58,6 +59,7 @@ func Digest() *feeds.Feed {
 			Created:     days[i],
 		}
 		feed.Items = append(feed.Items, entry)
+		log.Println("iter")
 	}
 
 	return feed

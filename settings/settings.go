@@ -10,6 +10,7 @@ import (
 	"html"
 	"html/template"
 	"log"
+	"net/url"
 )
 
 type Uintport uint
@@ -69,12 +70,21 @@ func Index() {
 		cache.SiteDescriptionMycomarkup = ""
 		cacheSiteDescription = ""
 	}
+
+	siteURL := db.MetaEntry[sql.NullString](db.BetulaMetaSiteURL)
+	if !siteURL.Valid {
+		cache.SiteURL = fmt.Sprintf("http://localhost:%d", cache.NetworkPort)
+	} else {
+		addr, err := url.ParseRequestURI(siteURL.String)
+		if err != nil || addr.Path != "" {
+			cache.SiteURL = fmt.Sprintf("http://localhost:%d", cache.NetworkPort)
+		} else {
+			cache.SiteURL = siteURL.String
+		}
+	}
 }
 
-func SiteURL() string {
-	log.Println("SITE URL SETTTING IS NOT IMPLEMENTED")
-	return fmt.Sprintf("http://localhost:%d", cache.NetworkPort)
-}
+func SiteURL() string                    { return cache.SiteURL }
 func NetworkPort() uint                  { return cache.NetworkPort }
 func SiteName() string                   { return cache.SiteName }
 func SiteTitle() template.HTML           { return cache.SiteTitle }
@@ -89,6 +99,7 @@ func SetSettings(settings types.Settings) {
 	db.SetMetaEntry(db.BetulaMetaSiteName, settings.SiteName)
 	db.SetMetaEntry(db.BetulaMetaSiteTitle, string(settings.SiteTitle))
 	db.SetMetaEntry(db.BetulaMetaSiteDescription, settings.SiteDescriptionMycomarkup)
+	db.SetMetaEntry(db.BetulaMetaSiteURL, settings.SiteURL)
 	Index()
 }
 

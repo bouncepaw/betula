@@ -104,6 +104,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 			Settings: types.Settings{
 				NetworkPort:               settings.NetworkPort(),
 				SiteName:                  settings.SiteName(),
+				SiteURL:                   settings.SiteURL(),
 				SiteTitle:                 settings.SiteTitle(),
 				SiteDescriptionMycomarkup: settings.SiteDescriptionMycomarkup(),
 			},
@@ -116,14 +117,17 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 		SiteName:                  rq.FormValue("site-name"),
 		SiteTitle:                 template.HTML(rq.FormValue("site-title")),
 		SiteDescriptionMycomarkup: rq.FormValue("site-description"),
+		SiteURL:                   rq.FormValue("site-url"),
 	}
 
 	if port, err := strconv.Atoi(rq.FormValue("network-port")); err != nil || port <= 0 {
 		templateExec(w, templateSettings, dataSettings{
 			Settings: types.Settings{
-				NetworkPort: uint(port),
-				SiteName:    settings.SiteName(),
-				SiteTitle:   settings.SiteTitle(),
+				NetworkPort:               uint(port),
+				SiteName:                  rq.FormValue("site-name"),
+				SiteTitle:                 template.HTML(rq.FormValue("site-title")),
+				SiteDescriptionMycomarkup: rq.FormValue("site-description"),
+				SiteURL:                   rq.FormValue("site-url"),
 			},
 			ErrBadPort: true,
 			dataCommon: emptyCommon(),

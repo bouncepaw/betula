@@ -88,6 +88,7 @@ type Settings struct {
 	// SiteTitle is a hypertext title shown in the top left corner, in a <h1>.
 	SiteTitle                 template.HTML
 	SiteDescriptionMycomarkup string
+	SiteURL                   string
 }
 
 // not really a type:

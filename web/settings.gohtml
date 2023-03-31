@@ -13,6 +13,15 @@
 				</div>
 
 				<div>
+					<label for="site-url">Site address</label>
+					<input id="site-url" name="site-url" type="url" value="{{.SiteURL}}" placeholder="https://links.example.org" autocomplete="off">
+					<p class="input-caption">
+						The address at which your Betula is hosted.
+						Type out the protocol (http or https).
+						This information is used for RSS feed generation.</p>
+				</div>
+
+				<div>
 					<label for="site-title">Site title</label>
 					<input id="site-title" name="site-title" type="text" value="{{.SiteTitle}}" placeholder="Betula">
 					<p class="input-caption">

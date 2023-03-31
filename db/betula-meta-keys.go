@@ -13,4 +13,5 @@ const (
 	BetulaMetaSiteTitle         BetulaMetaKey = "Site title HTML"
 	BetulaMetaSiteName          BetulaMetaKey = "Site name plaintext"
 	BetulaMetaSiteDescription   BetulaMetaKey = "Site description Mycomarkup"
+	BetulaMetaSiteURL           BetulaMetaKey = "WWW URL"
 )
