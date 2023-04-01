@@ -42,6 +42,7 @@ func (s *lexState) nextToken(buf *strings.Builder) (token *SearchToken, done boo
 		case strings.ContainsRune(" ()|", rune(s.input[0])):
 			// no dropBytes
 			s.collectingWord = false
+			defer buf.Reset()
 			return &SearchToken{Kind: Verbatim, Value: buf.String()}, false
 
 		default:
