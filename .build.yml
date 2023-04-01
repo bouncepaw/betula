@@ -7,3 +7,5 @@ tasks:
   - test: |
       cd betula
       go test ./db
+      go test ./feed
+      # go test ./search ADD WHEN READY
