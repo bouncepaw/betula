@@ -1,7 +1,6 @@
 package search
 
 import (
-	. "git.sr.ht/~bouncepaw/betula/types"
 	"testing"
 )
 

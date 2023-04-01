@@ -1,4 +1,4 @@
-package types
+package search
 
 type SearchTokenKind string
 
@@ -21,4 +21,17 @@ const (
 type SearchToken struct {
 	Kind  SearchTokenKind
 	Value string
+}
+
+var MostTokenKinds = []SearchTokenKind{Space, Or, Not, Open, Close, Quote, Cat, Title, Protocol, URL, Site, Text}
+
+func (kind SearchTokenKind) GotTricks() bool {
+	switch kind {
+	case Or, Not, Open, Close, Cat, Title, Protocol, URL, Site, Text:
+		return false
+	case Space, Quote, Verbatim:
+		return true
+	default:
+		panic("Magician reveals no secrets")
+	}
 }
