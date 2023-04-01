@@ -81,7 +81,7 @@ func (s *lexState) nextToken(buf *strings.Builder) (token *Token, done bool) {
 			return nil, false
 
 		default:
-			for _, tok := range []TokenKind{Or, Not, Open, Close, Cat, Title, Protocol, URL, Site, Desc} {
+			for _, tok := range []TokenKind{Or, Without, Open, Close, Cat, Title, Protocol, URL, Site, Desc} {
 				if strings.HasPrefix(s.input, string(tok)) {
 					defer s.dropBytes(len(tok))
 					return &Token{

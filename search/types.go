@@ -12,7 +12,7 @@ const (
 	Site     TokenKind = "site:"
 	Desc     TokenKind = "desc:"
 	Or       TokenKind = "|"
-	Not      TokenKind = "-"
+	Without  TokenKind = "-"
 	Literal  TokenKind = ""
 
 	// In Token only
@@ -23,8 +23,7 @@ const (
 
 	// In Node only
 
-	And     TokenKind = ""
-	Without TokenKind = ""
+	And TokenKind = ""
 
 	// The rest
 
