@@ -23,7 +23,7 @@ type SearchToken struct {
 	Value string
 }
 
-var MostTokenKinds = []SearchTokenKind{Space, Or, Not, Open, Close, Quote, Cat, Title, Protocol, URL, Site, Text}
+var MostTokenKinds = []SearchTokenKind{Or, Not, Open, Close, Cat, Title, Protocol, URL, Site, Text}
 
 func (kind SearchTokenKind) GotTricks() bool {
 	switch kind {
