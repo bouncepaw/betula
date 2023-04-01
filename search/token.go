@@ -1,35 +1,35 @@
 package search
 
-type SearchTokenKind string
+type TokenKind string
 
 const (
-	Space    SearchTokenKind = " "
-	Or       SearchTokenKind = "|"
-	Not      SearchTokenKind = "-"
-	Open     SearchTokenKind = "("
-	Close    SearchTokenKind = ")"
-	Quote    SearchTokenKind = "\""
-	Cat      SearchTokenKind = "cat:"
-	Title    SearchTokenKind = "title:"
-	Protocol SearchTokenKind = "protocol:"
-	URL      SearchTokenKind = "url:"
-	Site     SearchTokenKind = "site:"
-	Text     SearchTokenKind = "text:"
-	Verbatim SearchTokenKind = ""
+	Space    TokenKind = " "
+	Or       TokenKind = "|"
+	Not      TokenKind = "-"
+	Open     TokenKind = "("
+	Close    TokenKind = ")"
+	Quote    TokenKind = "\""
+	Cat      TokenKind = "#"
+	Title    TokenKind = "title:"
+	Protocol TokenKind = "protocol:"
+	URL      TokenKind = "url:"
+	Site     TokenKind = "site:"
+	Desc     TokenKind = "desc:"
+	Literal  TokenKind = ""
 )
 
-type SearchToken struct {
-	Kind  SearchTokenKind
+type Token struct {
+	Kind  TokenKind
 	Value string
 }
 
-var MostTokenKinds = []SearchTokenKind{Or, Not, Open, Close, Cat, Title, Protocol, URL, Site, Text}
+var MostTokenKinds = []TokenKind{Or, Not, Open, Close, Cat, Title, Protocol, URL, Site, Desc}
 
-func (kind SearchTokenKind) GotTricks() bool {
+func (kind TokenKind) GotTricks() bool {
 	switch kind {
-	case Or, Not, Open, Close, Cat, Title, Protocol, URL, Site, Text:
+	case Or, Not, Open, Close, Cat, Title, Protocol, URL, Site, Desc:
 		return false
-	case Space, Quote, Verbatim:
+	case Space, Quote, Literal:
 		return true
 	default:
 		panic("Magician reveals no secrets")

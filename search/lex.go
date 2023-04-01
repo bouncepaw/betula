@@ -15,18 +15,18 @@ func (s *lexState) dropBytes(n int) {
 	s.input = s.input[n:]
 }
 
-func (s *lexState) nextToken(buf *strings.Builder) (token *SearchToken, done bool) {
+func (s *lexState) nextToken(buf *strings.Builder) (token *Token, done bool) {
 	switch {
 	case s.collectingQuoted:
 		switch {
 		case len(s.input) == 0: // end of input
-			return &SearchToken{Kind: Verbatim, Value: buf.String()}, true
+			return &Token{Kind: Literal, Value: buf.String()}, true
 
 		case s.input[0] == '"': // end of quoted string
 			s.dropBytes(1)
 			defer buf.Reset()
 			s.collectingQuoted = false
-			return &SearchToken{Kind: Verbatim, Value: buf.String()}, false
+			return &Token{Kind: Literal, Value: buf.String()}, false
 
 		default:
 			buf.WriteByte(s.input[0])
@@ -37,13 +37,13 @@ func (s *lexState) nextToken(buf *strings.Builder) (token *SearchToken, done boo
 	case s.collectingWord:
 		switch {
 		case len(s.input) == 0: // end of input
-			return &SearchToken{Kind: Verbatim, Value: buf.String()}, true
+			return &Token{Kind: Literal, Value: buf.String()}, true
 
 		case strings.ContainsRune(" ()|", rune(s.input[0])):
 			// no dropBytes
 			s.collectingWord = false
 			defer buf.Reset()
-			return &SearchToken{Kind: Verbatim, Value: buf.String()}, false
+			return &Token{Kind: Literal, Value: buf.String()}, false
 
 		default:
 			buf.WriteByte(s.input[0])
@@ -62,7 +62,7 @@ func (s *lexState) nextToken(buf *strings.Builder) (token *SearchToken, done boo
 
 		default:
 			s.collectingSpaces = false
-			return &SearchToken{Kind: Space}, false
+			return &Token{Kind: Space}, false
 		}
 
 	default:
@@ -84,7 +84,7 @@ func (s *lexState) nextToken(buf *strings.Builder) (token *SearchToken, done boo
 			for _, tok := range MostTokenKinds {
 				if strings.HasPrefix(s.input, string(tok)) {
 					defer s.dropBytes(len(tok))
-					return &SearchToken{
+					return &Token{
 						Kind:  tok,
 						Value: "",
 					}, false
@@ -96,9 +96,9 @@ func (s *lexState) nextToken(buf *strings.Builder) (token *SearchToken, done boo
 	}
 }
 
-func Lex(query string) (tokens []SearchToken) {
+func Lex(query string) (tokens []Token) {
 	var (
-		tok  *SearchToken
+		tok  *Token
 		done bool
 		s    = lexState{input: query}
 		buf  strings.Builder

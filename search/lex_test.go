@@ -5,25 +5,26 @@ import (
 )
 
 func TestLex(t *testing.T) {
-	table := map[string][]SearchToken{
+	table := map[string][]Token{
 		``:                       {},
 		` `:                      {},
 		`  `:                     {},
-		`black   pink `:          {{Verbatim, "black"}, {Space, ""}, {Verbatim, "pink"}},
-		`"shutdown!"`:            {{Verbatim, "shutdown!"}},
-		`text:"black pink"`:      {{Text, ""}, {Verbatim, "black pink"}},
-		`text:"text:black pink"`: {{Text, ""}, {Verbatim, "text:black pink"}},
-		`black"pink`:             {{Verbatim, "black\"pink"}},
-		`black(pink)`:            {{Verbatim, "black"}, {Open, ""}, {Verbatim, "pink"}, {Close, ""}},
-		`site:url:"pink venom"`:  {{Site, ""}, {URL, ""}, {Verbatim, "pink venom"}},
-		`this|that`:              {{Verbatim, "this"}, {Or, ""}, {Verbatim, "that"}},
-		`"when we" "pull up"`:    {{Verbatim, "when we"}, {Space, ""}, {Verbatim, "pull up"}},
+		`black   pink `:          {{Literal, "black"}, {Space, ""}, {Literal, "pink"}},
+		`"shutdown!"`:            {{Literal, "shutdown!"}},
+		`desc:"black pink"`:      {{Desc, ""}, {Literal, "black pink"}},
+		`desc:"text:black pink"`: {{Desc, ""}, {Literal, "text:black pink"}},
+		`black"pink`:             {{Literal, "black\"pink"}},
+		`black(pink)`:            {{Literal, "black"}, {Open, ""}, {Literal, "pink"}, {Close, ""}},
+		`site:url:"pink venom"`:  {{Site, ""}, {URL, ""}, {Literal, "pink venom"}},
+		`this|that`:              {{Literal, "this"}, {Or, ""}, {Literal, "that"}},
+		`"when we" "pull up"`:    {{Literal, "when we"}, {Space, ""}, {Literal, "pull up"}},
+		`#lovesick #girls`:       {{Cat, ""}, {Literal, "lovesick"}, {Space, ""}, {Cat, ""}, {Literal, "girls"}},
 	}
-	for input, expectedKinds := range table {
+	for input, expected := range table {
 		output := Lex(input)
 		for i, token := range output {
-			if expectedKinds[i] != token {
-				t.Errorf("Mismatch! Expected: %v. Got: %v.", expectedKinds, output)
+			if expected[i] != token {
+				t.Errorf("Mismatch! Expected: %v. Got: %v.", expected, output)
 			}
 		}
 	}
