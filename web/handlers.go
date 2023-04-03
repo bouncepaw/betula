@@ -448,12 +448,12 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 		var newCategory types.Category
 		newName := types.CanonicalCategoryName(rq.FormValue("new-name"))
 		newCategory.Name = newName
-		newCategory.Description = rq.FormValue("description")
+		newCategory.Description = strings.TrimSpace(rq.FormValue("description"))
 
 		merge := rq.FormValue("merge")
 
 		if db.CategoryExists(newCategory.Name) && merge != "true" && newCategory.Name != oldCategory.Name {
-			log.Printf("Trying to rename a category %s to a taken name %s.\n", oldName, newName)
+			log.Printf("Trying to rename a category %s to a taken name %s.\n", oldCategory.Name, newCategory.Name)
 			templateExec(w, templateEditCategory, dataEditCategory{
 				Category:       oldCategory,
 				ErrorTakenName: true,
@@ -461,7 +461,7 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 			}, rq)
 			return
 		} else if !db.CategoryExists(oldCategory.Name) {
-			log.Printf("Trying to rename a non-existent category %s.\n", oldName)
+			log.Printf("Trying to rename a non-existent category %s.\n", oldCategory.Name)
 			templateExec(w, templateEditCategory, dataEditCategory{
 				Category:         oldCategory,
 				ErrorNonExistent: true,
@@ -469,11 +469,12 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 			}, rq)
 			return
 		} else {
-			db.RenameCategory(oldCategory.Name, newName)
-			db.SetCategoryDescription(newName, newCategory.Description)
-			http.Redirect(w, rq, fmt.Sprintf("/cat/%s", newName), http.StatusSeeOther)
+			db.RenameCategory(oldCategory.Name, newCategory.Name)
+			db.SetCategoryDescription(oldCategory.Name, "")
+			db.SetCategoryDescription(newCategory.Name, newCategory.Description)
+			http.Redirect(w, rq, fmt.Sprintf("/cat/%s", newCategory.Name), http.StatusSeeOther)
 			if oldCategory.Name != newCategory.Name {
-				log.Printf("Renamed category %s to %s\n", oldName, newName)
+				log.Printf("Renamed category %s to %s\n", oldCategory.Name, newCategory.Name)
 			}
 			if oldCategory.Description != newCategory.Description {
 				log.Printf("Set new description for category %s\n", newCategory.Name)

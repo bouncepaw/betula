@@ -7,7 +7,18 @@ func SetCategoryDescription(catName string, description string) {
 replace into CategoryDescriptions (CatName, Description)
 values (?, ?);
 `
-	mustExec(q, catName, description)
+	if description == "" {
+		DropCategoryDescription(catName)
+	} else {
+		mustExec(q, catName, description)
+	}
+}
+
+func DropCategoryDescription(catName string) {
+	const q = `
+delete from CategoryDescriptions where CatName = ?;
+`
+	mustExec(q, catName)
 }
 
 func DescriptionForCategory(catName string) (myco string) {
