@@ -23,7 +23,10 @@ order by
 		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
 		posts = append(posts, post)
 	}
-
+	for i, post := range posts {
+		post.Categories = CategoriesForPost(post.ID)
+		posts[i] = post
+	}
 	return posts
 }
 
