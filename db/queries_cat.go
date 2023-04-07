@@ -85,7 +85,8 @@ func CategoriesForPost(id int) (cats []types.Category) {
 	q := `
 select distinct CatName
 from CategoriesToPosts
-where PostID = ?;
+where PostID = ?
+order by CatName;
 `
 	rows := mustQuery(q, id)
 	for rows.Next() {
