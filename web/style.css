@@ -125,7 +125,8 @@ dd + dt {
     margin-top: 8px;
 }
 .mv-categories ol {
-    padding-left: 1rem;
+    padding-left: .25rem;
+    list-style-position: inside;
 }
 .mv-categories li {
     line-height: 150%;
