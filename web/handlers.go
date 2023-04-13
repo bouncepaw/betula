@@ -29,6 +29,7 @@ var (
 func init() {
 	mux.HandleFunc("/", handlerFeed)
 	mux.HandleFunc("/digest-rss", handlerDigestRss)
+	mux.HandleFunc("/posts-rss", handlerPostsRss)
 	mux.HandleFunc("/save-link", handlerSaveLink)
 	mux.HandleFunc("/edit-link/", handlerEditLink)
 	mux.HandleFunc("/delete-link/", handlerDeleteLink)
@@ -44,6 +45,19 @@ func init() {
 	mux.HandleFunc("/logout", handlerLogout)
 	mux.HandleFunc("/settings", handlerSettings)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerPostsRss(w http.ResponseWriter, rq *http.Request) {
+	feed := feeds.Posts()
+	rss, err := feed.ToRss()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = io.WriteString(w, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/rss+xml")
+	_, _ = io.WriteString(w, rss)
 }
 
 func handlerDigestRss(w http.ResponseWriter, rq *http.Request) {
