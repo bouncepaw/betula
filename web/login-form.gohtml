@@ -6,6 +6,9 @@
             {{if .Incorrect}}
 				<p class="error">Incorrect data, try again.</p>
             {{end}}
+			{{if .Authorized}}
+				<p class="warning">You are already logged in.</p>
+			{{end}}
 			<form method="post" action="/login">
 				<p>
 					<label for="name">Username</label>
