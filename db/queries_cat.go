@@ -2,22 +2,30 @@ package db
 
 import "git.sr.ht/~bouncepaw/betula/types"
 
+func deleteCategoryDescription(catName string) {
+	const q = `
+delete from CategoryDescriptions where CatName = ?;
+`
+	mustExec(q, catName)
+}
+
 func SetCategoryDescription(catName string, description string) {
 	const q = `
 replace into CategoryDescriptions (CatName, Description)
 values (?, ?);
 `
 	if description == "" {
-		DropCategoryDescription(catName)
+		deleteCategoryDescription(catName)
 	} else {
 		mustExec(q, catName, description)
 	}
 }
 
-func DropCategoryDescription(catName string) {
+func DeleteCategory(catName string) {
 	const q = `
-delete from CategoryDescriptions where CatName = ?;
+delete from CategoriesToPosts where CategoriesToPosts.CatName = ?
 `
+	deleteCategoryDescription(catName)
 	mustExec(q, catName)
 }
 

@@ -39,6 +39,7 @@ func init() {
 	mux.HandleFunc("/about", handlerAbout)
 	mux.HandleFunc("/cat/", handlerCategory)
 	mux.HandleFunc("/edit-cat/", handlerEditCategory)
+	mux.HandleFunc("/delete-cat/", handlerDeleteCategory)
 	mux.HandleFunc("/day/", handlerDay)
 	mux.HandleFunc("/register", handlerRegister)
 	mux.HandleFunc("/login", handlerLogin)
@@ -481,6 +482,39 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 			}
 		}
 	}
+}
+
+func handlerDeleteCategory(w http.ResponseWriter, rq *http.Request) {
+	if rq.Method != http.MethodPost {
+		handlerNotFound(w, rq)
+		return
+	}
+
+	authed := auth.AuthorizedFromRequest(rq)
+	if !authed {
+		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		handlerUnauthorized(w, rq)
+		return
+	}
+
+	catName := strings.TrimPrefix(rq.URL.Path, "/delete-cat/")
+	if catName == "" {
+		handlerNotFound(w, rq)
+		return
+	}
+
+	if confirmed := rq.FormValue("confirmed"); confirmed != "true" {
+		http.Redirect(w, rq, fmt.Sprintf("/edit-cat/%s", catName), http.StatusSeeOther)
+		return
+	}
+
+	if !db.CategoryExists(catName) {
+		log.Println("Trying to delete a non-existent category.")
+		handlerNotFound(w, rq)
+		return
+	}
+	db.DeleteCategory(catName)
+	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
 
 type dataSaveLink struct {

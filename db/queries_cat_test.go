@@ -42,6 +42,33 @@ func TestDescriptions(t *testing.T) {
 	}
 }
 
+func TestDeleteCategoryDescription(t *testing.T) {
+	initInMemoryCategories()
+
+	desc := "Octopi have 8 legs."
+	SetCategoryDescription("octopus", desc)
+	deleteCategoryDescription("octopus")
+
+	if DescriptionForCategory("octopus") != "" {
+		t.Errorf("Octopus has wrong description: %s", DescriptionForCategory("octopus"))
+	}
+}
+
+func TestDeleteCategory(t *testing.T) {
+	initInMemoryCategories()
+
+	desc := "Flounder has no legs."
+	SetCategoryDescription("flounder", desc)
+	DeleteCategory("flounder")
+
+	if CategoryExists("flounder") {
+		t.Errorf("Faulty deletion flounder")
+	}
+	if DescriptionForCategory("flounder") != "" {
+		t.Errorf("Flounder has wrong description: %s", DescriptionForCategory("flounder"))
+	}
+}
+
 func TestCategoryExists(t *testing.T) {
 	initInMemoryCategories()
 

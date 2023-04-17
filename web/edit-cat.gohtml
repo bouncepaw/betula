@@ -38,5 +38,16 @@
                 {{template "form" .}}
             {{end}}
         </article>
+        <article>
+            <h2>Delete category</h2>
+            <form method="post" action="/delete-cat/{{.Name}}">
+                <div>
+                    <input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required>
+                    <label for="delete-confirmed">Yes, delete this category.</label>
+                    <br>
+                    <input type="submit" id="delete-btn" value="Delete" class="btn">
+                </div>
+            </form>
+        </article>
     </main>
 {{end}}
