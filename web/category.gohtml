@@ -1,4 +1,4 @@
-{{define "title"}}Category {{.Name}}{{end}}
+{{define "title"}}Tag {{.Name}}{{end}}
 {{define "body"}}{{$authed := .Authorized}}
 	<main class="h-feed">
 		<article>
@@ -7,8 +7,8 @@
 					Edit
 				</a>
 			{{end}}
-			<h2 class="p-name">Category {{.Name}}</h2>{{$cnt := len .PostsInCategory}}
-			<p><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s{{end}} saved in this category.</p>
+			<h2 class="p-name">Tag {{.Name}}</h2>{{$cnt := len .PostsInCategory}}
+			<p><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s{{end}} saved in this tag.</p>
 			<div class="p-summary">{{.Description | mycomarkup}}</div>
 		</article>
 		{{range .PostsInCategory}}

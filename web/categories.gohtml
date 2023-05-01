@@ -1,8 +1,8 @@
-{{define "title"}}Categories{{end}}
+{{define "title"}}Tags{{end}}
 {{define "body"}}
 	<main class="mv-categories">
 		<article>
-			<h2 class="p-name">Categories</h2>
+			<h2 class="p-name">Tags</h2>
 			{{if .Categories}}
 				<ol>
 					{{range .Categories}}
@@ -13,7 +13,7 @@
 					{{end}}
 				</ol>
 			{{else}}
-				<p>No categories.</p>
+				<p>No tags.</p>
 			{{end}}
 		</article>
 	</main>

@@ -19,31 +19,31 @@
 {{define "body"}}
     <main>
         <article>
-            <h2>Edit category <a href="/cat/{{.Name}}">{{.Name}}</a></h2>
+            <h2>Edit tag <a href="/cat/{{.Name}}">{{.Name}}</a></h2>
             {{if or .ErrorTakenName .ErrorNonExistent}}
-                <h3>Invalid category name</h3>
+                <h3>Invalid tag name</h3>
             {{end}}
             {{if .ErrorTakenName}}
                 <p>
-                    The category already exists.
+                    The tag already exists.
                     Please enter another name.
                 </p>
                 {{template "form" .}}
             {{else if .ErrorNonExistent}}
                 <p>
-                    The category doesn't exist.
-                    <a href="/cat/"> Go to the category list.</a>
+                    The tag doesn't exist.
+                    <a href="/cat/"> Go to the tag list.</a>
                 </p>
             {{else}}
                 {{template "form" .}}
             {{end}}
         </article>
         <article>
-            <h2>Delete category</h2>
+            <h2>Delete tag</h2>
             <form method="post" action="/delete-cat/{{.Name}}">
                 <div>
                     <input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required>
-                    <label for="delete-confirmed">Yes, delete this category.</label>
+                    <label for="delete-confirmed">Yes, delete this tag.</label>
                     <br>
                     <input type="submit" id="delete-btn" value="Delete" class="btn">
                 </div>
