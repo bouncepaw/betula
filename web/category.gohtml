@@ -8,7 +8,7 @@
 				</a>
 			{{end}}
 			<h2 class="p-name">Tag {{.Name}}</h2>{{$cnt := len .PostsInCategory}}
-			<p><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s{{end}} saved in this tag.</p>
+			<p><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s have{{else}} has{{end}} this tag.</p>
 			<div class="p-summary">{{.Description | mycomarkup}}</div>
 		</article>
 		{{range .PostsInCategory}}

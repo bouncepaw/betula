@@ -211,7 +211,7 @@ h3 + *:not(p, .u-bookmark-of) {
 article + article {
     margin-top: 1px;
 }
-.about-post a, .about-post .empty-set {
+.about-post .p-category + .p-category {
     margin-left: .25rem;
 }
 pre {
@@ -243,7 +243,7 @@ header a, header a:hover, header a:visited {
 .btn, .btn:active, .btn:hover, .btn:visited {
     color: black;
 }
-.about-post a {
+.p-category {
     color: black;
 }
 
