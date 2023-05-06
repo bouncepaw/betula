@@ -526,7 +526,7 @@ type dataSaveLink struct {
 	Title           string
 	Visibility      types.Visibility
 	Description     string
-	Categories      []types.Tag
+	Tags            []types.Tag
 	Another         bool
 	ErrorInvalidURL bool
 	ErrorNotFilled  bool
@@ -548,7 +548,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			Title:       rq.FormValue("title"),
 			Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
 			Description: rq.FormValue("description"),
-			Categories:  types.SplitTags(rq.FormValue("categories")),
+			Tags:        types.SplitTags(rq.FormValue("categories")),
 			dataCommon:  common,
 		}, rq)
 	case http.MethodPost:
@@ -566,7 +566,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 				Title:          title,
 				Visibility:     visibility,
 				Description:    description,
-				Categories:     categories,
+				Tags:           categories,
 				dataCommon:     common,
 				ErrorNotFilled: true,
 			}, rq)
@@ -581,7 +581,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 				Title:           title,
 				Visibility:      visibility,
 				Description:     description,
-				Categories:      categories,
+				Tags:            categories,
 				dataCommon:      common,
 				ErrorInvalidURL: true,
 			}, rq)
