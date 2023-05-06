@@ -24,13 +24,13 @@ order by
 		posts = append(posts, post)
 	}
 	for i, post := range posts {
-		post.Categories = CategoriesForPost(post.ID)
+		post.Tags = TagsForPost(post.ID)
 		posts[i] = post
 	}
 	return posts
 }
 
-func PostsForCategory(authorized bool, catName string) (posts []types.Post) {
+func PostsWithTag(authorized bool, tagName string) (posts []types.Post) {
 	const q = `
 select
 	ID, URL, Title, Description, Visibility, CreationTime
@@ -43,7 +43,7 @@ where
 order by
 	CreationTime desc;
 `
-	rows := mustQuery(q, catName)
+	rows := mustQuery(q, tagName)
 	for rows.Next() {
 		var post types.Post
 		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
@@ -53,7 +53,7 @@ order by
 		posts = append(posts, post)
 	}
 	for i, post := range posts {
-		post.Categories = CategoriesForPost(post.ID)
+		post.Tags = TagsForPost(post.ID)
 		posts[i] = post
 	}
 	return posts
@@ -78,7 +78,7 @@ order by CreationTime desc;
 		posts = append(posts, post)
 	}
 	for i, post := range posts {
-		post.Categories = CategoriesForPost(post.ID)
+		post.Tags = TagsForPost(post.ID)
 		posts[i] = post
 	}
 	return posts
@@ -117,7 +117,7 @@ values (?, ?, ?, ?);
 		log.Fatalln(err)
 	}
 	post.ID = int(id)
-	SetCategoriesFor(post.ID, post.Categories)
+	SetTagsFor(post.ID, post.Tags)
 	return id
 }
 
@@ -133,7 +133,7 @@ where
     ID = ? and DeletionTime is null;
 `
 	mustExec(q, post.URL, post.Title, post.Description, post.Visibility, post.ID)
-	SetCategoriesFor(post.ID, post.Categories)
+	SetTagsFor(post.ID, post.Tags)
 }
 
 // PostForID returns the post corresponding to the given id, if there is any.

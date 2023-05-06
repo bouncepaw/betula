@@ -2,38 +2,38 @@ package db
 
 import "git.sr.ht/~bouncepaw/betula/types"
 
-func deleteCategoryDescription(catName string) {
+func deleteTagDescription(catName string) {
 	const q = `
 delete from CategoryDescriptions where CatName = ?;
 `
 	mustExec(q, catName)
 }
 
-func SetCategoryDescription(catName string, description string) {
+func SetTagDescription(tagName string, description string) {
 	const q = `
 replace into CategoryDescriptions (CatName, Description)
 values (?, ?);
 `
 	if description == "" {
-		deleteCategoryDescription(catName)
+		deleteTagDescription(tagName)
 	} else {
-		mustExec(q, catName, description)
+		mustExec(q, tagName, description)
 	}
 }
 
-func DeleteCategory(catName string) {
+func DeleteTag(tagName string) {
 	const q = `
 delete from CategoriesToPosts where CategoriesToPosts.CatName = ?
 `
-	deleteCategoryDescription(catName)
-	mustExec(q, catName)
+	deleteTagDescription(tagName)
+	mustExec(q, tagName)
 }
 
-func DescriptionForCategory(catName string) (myco string) {
+func DescriptionForTag(tagName string) (myco string) {
 	const q = `
 select Description from CategoryDescriptions where CatName = ?;
 `
-	rows := mustQuery(q, catName)
+	rows := mustQuery(q, tagName)
 	for rows.Next() { // 0 or 1
 		mustScan(rows, &myco)
 		break
@@ -43,8 +43,8 @@ select Description from CategoryDescriptions where CatName = ?;
 	return myco
 }
 
-// Categories returns all categories found on posts one has access to. They all have PostCount set to a non-zero value.
-func Categories(authorized bool) (cats []types.Category) {
+// Tags returns all tags found on posts one has access to. They all have PostCount set to a non-zero value.
+func Tags(authorized bool) (tags []types.Tag) {
 	q := `
 select
    CatName, 
@@ -62,45 +62,45 @@ group by
 `
 	rows := mustQuery(q, authorized)
 	for rows.Next() {
-		var cat types.Category
-		mustScan(rows, &cat.Name, &cat.PostCount)
-		cats = append(cats, cat)
+		var tag types.Tag
+		mustScan(rows, &tag.Name, &tag.PostCount)
+		tags = append(tags, tag)
 	}
-	return cats
+	return tags
 }
 
-func CategoryExists(categoryName string) (has bool) {
+func TagExists(tagName string) (has bool) {
 	const q = `select exists(select 1 from CategoriesToPosts where CatName = ?);`
-	rows := mustQuery(q, categoryName)
+	rows := mustQuery(q, tagName)
 	rows.Next()
 	mustScan(rows, &has)
 	_ = rows.Close()
 	return has
 }
 
-func RenameCategory(oldCatName, newCatName string) {
+func RenameTag(oldTagName, newTagName string) {
 	const q = `
 update CategoriesToPosts
 set CatName = ?
 where CatName = ?;
 `
-	mustExec(q, newCatName, oldCatName)
+	mustExec(q, newTagName, oldTagName)
 }
 
-func SetCategoriesFor(postID int, categories []types.Category) {
-	const qDelete = `delete from CategoriesToPosts where PostID = ?;`
-	mustExec(qDelete, postID)
+func SetTagsFor(postID int, tags []types.Tag) {
+	const q = `delete from CategoriesToPosts where PostID = ?;`
+	mustExec(q, postID)
 
 	var qAdd = `insert into CategoriesToPosts (CatName, PostID) values (?, ?);`
-	for _, cat := range categories {
-		if cat.Name == "" {
+	for _, tag := range tags {
+		if tag.Name == "" {
 			continue
 		}
-		mustExec(qAdd, cat.Name, postID)
+		mustExec(qAdd, tag.Name, postID)
 	}
 }
 
-func CategoriesForPost(id int) (cats []types.Category) {
+func TagsForPost(id int) (tags []types.Tag) {
 	q := `
 select distinct CatName
 from CategoriesToPosts
@@ -109,9 +109,9 @@ order by CatName;
 `
 	rows := mustQuery(q, id)
 	for rows.Next() {
-		var cat types.Category
-		mustScan(rows, &cat.Name)
-		cats = append(cats, cat)
+		var tag types.Tag
+		mustScan(rows, &tag.Name)
+		tags = append(tags, tag)
 	}
-	return cats
+	return tags
 }

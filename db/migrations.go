@@ -11,7 +11,7 @@ const expectedVersion = 2
 /*
 Wishes for schema version 3:
 
-1.
+1. Rename categories to tags
 
 Write more here. Implement all when there is an actual need to have a new schema.
 */

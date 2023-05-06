@@ -33,8 +33,8 @@ type Post struct {
 	ID int
 	// CreationTime is like 2006-01-02 15:04:05.
 	CreationTime string
-	// Categories are categories of this post. Do not set this field by yourself.
-	Categories []Category
+	// Tags are the tags this post has. Do not set this field by yourself.
+	Tags []Tag
 
 	// URL is a URL with any protocol.
 	URL string
@@ -46,39 +46,39 @@ type Post struct {
 	Visibility Visibility
 }
 
-type Category struct {
+type Tag struct {
 	Name        string
 	Description string
 	PostCount   uint
 }
 
-func CanonicalCategoryName(rawName string) string {
+func CanonicalTagName(rawName string) string {
 	a := util.CanonicalName(rawName)
 	b := strings.ReplaceAll(a, ",", "")
 	c := strings.ReplaceAll(b, "/", "")
 	return c
 }
 
-func JoinCategories(cats []Category) string {
+func JoinTags(tags []Tag) string {
 	var buf strings.Builder
-	for i, cat := range cats {
+	for i, tag := range tags {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		buf.WriteString(cat.Name)
+		buf.WriteString(tag.Name)
 	}
 	return buf.String()
 }
 
-func SplitCategories(commaSeparated string) []Category {
-	catNames := strings.Split(commaSeparated, ",")
-	cats := make([]Category, len(catNames))
-	for i, catName := range catNames {
-		cats[i] = Category{
-			Name: CanonicalCategoryName(catName),
+func SplitTags(commaSeparated string) []Tag {
+	tagNames := strings.Split(commaSeparated, ",")
+	tags := make([]Tag, len(tagNames))
+	for i, tagName := range tagNames {
+		tags[i] = Tag{
+			Name: CanonicalTagName(tagName),
 		}
 	}
-	return cats
+	return tags
 }
 
 type Settings struct {

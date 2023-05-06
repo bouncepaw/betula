@@ -284,20 +284,20 @@ func handlerRegister(w http.ResponseWriter, rq *http.Request) {
 
 type dataCategories struct {
 	*dataCommon
-	Categories []types.Category
+	Categories []types.Tag
 }
 
 func handlerCategories(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(w, templateCategories, dataCategories{
-		Categories: db.Categories(authed),
+		Categories: db.Tags(authed),
 		dataCommon: emptyCommon(),
 	}, rq)
 }
 
 type dataCategory struct {
 	*dataCommon
-	types.Category
+	types.Tag
 	PostsInCategory []types.Post
 }
 
@@ -309,11 +309,11 @@ func handlerCategory(w http.ResponseWriter, rq *http.Request) {
 	}
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(w, templateCategory, dataCategory{
-		Category: types.Category{
+		Tag: types.Tag{
 			Name:        catName,
-			Description: db.DescriptionForCategory(catName),
+			Description: db.DescriptionForTag(catName),
 		},
-		PostsInCategory: db.PostsForCategory(authed, catName),
+		PostsInCategory: db.PostsWithTag(authed, catName),
 		dataCommon:      emptyCommon(),
 	}, rq)
 }
@@ -386,7 +386,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		handlerNotFound(w, rq)
 		return
 	}
-	post.Categories = db.CategoriesForPost(id)
+	post.Tags = db.TagsForPost(id)
 
 	switch rq.Method {
 	case http.MethodGet:
@@ -399,7 +399,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		post.Title = rq.FormValue("title")
 		post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
 		post.Description = rq.FormValue("description")
-		post.Categories = types.SplitCategories(rq.FormValue("categories"))
+		post.Tags = types.SplitTags(rq.FormValue("categories"))
 
 		MixUpTitleLink(&post.Title, &post.URL)
 
@@ -421,7 +421,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 
 type dataEditCategory struct {
 	*dataCommon
-	types.Category
+	types.Tag
 	ErrorTakenName   bool
 	ErrorNonExistent bool
 }
@@ -434,45 +434,45 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	var oldCategory types.Category
+	var oldCategory types.Tag
 	oldName := strings.TrimPrefix(rq.URL.Path, "/edit-cat/")
 	oldCategory.Name = oldName
-	oldCategory.Description = db.DescriptionForCategory(oldName)
+	oldCategory.Description = db.DescriptionForTag(oldName)
 
 	switch rq.Method {
 	case http.MethodGet:
 		templateExec(w, templateEditCategory, dataEditCategory{
-			Category:   oldCategory,
+			Tag:        oldCategory,
 			dataCommon: emptyCommon(),
 		}, rq)
 	case http.MethodPost:
-		var newCategory types.Category
-		newName := types.CanonicalCategoryName(rq.FormValue("new-name"))
+		var newCategory types.Tag
+		newName := types.CanonicalTagName(rq.FormValue("new-name"))
 		newCategory.Name = newName
 		newCategory.Description = strings.TrimSpace(rq.FormValue("description"))
 
 		merge := rq.FormValue("merge")
 
-		if db.CategoryExists(newCategory.Name) && merge != "true" && newCategory.Name != oldCategory.Name {
+		if db.TagExists(newCategory.Name) && merge != "true" && newCategory.Name != oldCategory.Name {
 			log.Printf("Trying to rename a category %s to a taken name %s.\n", oldCategory.Name, newCategory.Name)
 			templateExec(w, templateEditCategory, dataEditCategory{
-				Category:       oldCategory,
+				Tag:            oldCategory,
 				ErrorTakenName: true,
 				dataCommon:     emptyCommon(),
 			}, rq)
 			return
-		} else if !db.CategoryExists(oldCategory.Name) {
+		} else if !db.TagExists(oldCategory.Name) {
 			log.Printf("Trying to rename a non-existent category %s.\n", oldCategory.Name)
 			templateExec(w, templateEditCategory, dataEditCategory{
-				Category:         oldCategory,
+				Tag:              oldCategory,
 				ErrorNonExistent: true,
 				dataCommon:       emptyCommon(),
 			}, rq)
 			return
 		} else {
-			db.RenameCategory(oldCategory.Name, newCategory.Name)
-			db.SetCategoryDescription(oldCategory.Name, "")
-			db.SetCategoryDescription(newCategory.Name, newCategory.Description)
+			db.RenameTag(oldCategory.Name, newCategory.Name)
+			db.SetTagDescription(oldCategory.Name, "")
+			db.SetTagDescription(newCategory.Name, newCategory.Description)
 			http.Redirect(w, rq, fmt.Sprintf("/cat/%s", newCategory.Name), http.StatusSeeOther)
 			if oldCategory.Name != newCategory.Name {
 				log.Printf("Renamed category %s to %s\n", oldCategory.Name, newCategory.Name)
@@ -508,12 +508,12 @@ func handlerDeleteCategory(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if !db.CategoryExists(catName) {
+	if !db.TagExists(catName) {
 		log.Println("Trying to delete a non-existent category.")
 		handlerNotFound(w, rq)
 		return
 	}
-	db.DeleteCategory(catName)
+	db.DeleteTag(catName)
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
 
@@ -526,7 +526,7 @@ type dataSaveLink struct {
 	Title           string
 	Visibility      types.Visibility
 	Description     string
-	Categories      []types.Category
+	Categories      []types.Tag
 	Another         bool
 	ErrorInvalidURL bool
 	ErrorNotFilled  bool
@@ -548,7 +548,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			Title:       rq.FormValue("title"),
 			Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
 			Description: rq.FormValue("description"),
-			Categories:  types.SplitCategories(rq.FormValue("categories")),
+			Categories:  types.SplitTags(rq.FormValue("categories")),
 			dataCommon:  common,
 		}, rq)
 	case http.MethodPost:
@@ -557,7 +557,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			title       = rq.FormValue("title")
 			visibility  = types.VisibilityFromString(rq.FormValue("visibility"))
 			description = rq.FormValue("description")
-			categories  = types.SplitCategories(rq.FormValue("categories"))
+			categories  = types.SplitTags(rq.FormValue("categories"))
 		)
 
 		if addr == "" || title == "" {
@@ -593,7 +593,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			Title:       title,
 			Description: description,
 			Visibility:  visibility,
-			Categories:  categories,
+			Tags:        categories,
 		})
 
 		another := rq.FormValue("another")
@@ -640,7 +640,7 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 
 	log.Printf("Viewing post %d\n", id)
 
-	post.Categories = db.CategoriesForPost(id)
+	post.Tags = db.TagsForPost(id)
 	templateExec(w, templatePost, dataPost{
 		Post:       post,
 		dataCommon: emptyCommon(),
@@ -656,7 +656,7 @@ func handlerPostLast(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	log.Printf("Viewing the latest post %d\n", post.ID)
-	post.Categories = db.CategoriesForPost(post.ID)
+	post.Tags = db.TagsForPost(post.ID)
 	templateExec(w, templatePost, dataPost{
 		Post:       post,
 		dataCommon: emptyCommon(),

@@ -86,7 +86,7 @@ var funcMapForPosts = template.FuncMap{
 }
 
 var funcMapForForm = template.FuncMap{
-	"catsTogether": types.JoinCategories,
+	"catsTogether": types.JoinTags,
 }
 
 var funcMapForTime = template.FuncMap{

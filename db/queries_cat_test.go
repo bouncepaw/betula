@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func initInMemoryCategories() {
+func initInMemoryTags() {
 	InitInMemoryDB()
 	q := `
 insert into CategoriesToPosts (CatName, PostID) values
@@ -16,97 +16,97 @@ insert into CategoriesToPosts (CatName, PostID) values
 	mustExec(q)
 }
 
-func TestCategories(t *testing.T) {
-	initInMemoryCategories()
-	catsWithRights := Categories(true)
-	if len(catsWithRights) != 2 {
+func TestTags(t *testing.T) {
+	initInMemoryTags()
+	tagsWithRights := Tags(true)
+	if len(tagsWithRights) != 2 {
 		t.Errorf("Wrong authorized categories count")
 	}
-	catsWithoutRights := Categories(false)
-	if len(catsWithoutRights) != 1 {
+	tagsWithoutRights := Tags(false)
+	if len(tagsWithoutRights) != 1 {
 		t.Errorf("Wrong unauthorized categories count")
 	}
 }
 
 func TestDescriptions(t *testing.T) {
-	initInMemoryCategories()
+	initInMemoryTags()
 
 	desc := "Octopi have 8 legs."
-	SetCategoryDescription("octopus", desc)
-	if DescriptionForCategory("octopus") != desc {
-		t.Errorf("Octopus has wrong description: %s", DescriptionForCategory("octopus"))
+	SetTagDescription("octopus", desc)
+	if DescriptionForTag("octopus") != desc {
+		t.Errorf("Octopus has wrong description: %s", DescriptionForTag("octopus"))
 	}
 
-	if DescriptionForCategory("flounder") != "" {
-		t.Errorf("Flound has a description: %s", DescriptionForCategory("flounder"))
+	if DescriptionForTag("flounder") != "" {
+		t.Errorf("Flound has a description: %s", DescriptionForTag("flounder"))
 	}
 }
 
-func TestDeleteCategoryDescription(t *testing.T) {
-	initInMemoryCategories()
+func TestDeleteTagDescription(t *testing.T) {
+	initInMemoryTags()
 
 	desc := "Octopi have 8 legs."
-	SetCategoryDescription("octopus", desc)
-	deleteCategoryDescription("octopus")
+	SetTagDescription("octopus", desc)
+	deleteTagDescription("octopus")
 
-	if DescriptionForCategory("octopus") != "" {
-		t.Errorf("Octopus has wrong description: %s", DescriptionForCategory("octopus"))
+	if DescriptionForTag("octopus") != "" {
+		t.Errorf("Octopus has wrong description: %s", DescriptionForTag("octopus"))
 	}
 }
 
-func TestDeleteCategory(t *testing.T) {
-	initInMemoryCategories()
+func TestDeleteTag(t *testing.T) {
+	initInMemoryTags()
 
 	desc := "Flounder has no legs."
-	SetCategoryDescription("flounder", desc)
-	DeleteCategory("flounder")
+	SetTagDescription("flounder", desc)
+	DeleteTag("flounder")
 
-	if CategoryExists("flounder") {
+	if TagExists("flounder") {
 		t.Errorf("Faulty deletion flounder")
 	}
-	if DescriptionForCategory("flounder") != "" {
-		t.Errorf("Flounder has wrong description: %s", DescriptionForCategory("flounder"))
+	if DescriptionForTag("flounder") != "" {
+		t.Errorf("Flounder has wrong description: %s", DescriptionForTag("flounder"))
 	}
 }
 
-func TestCategoryExists(t *testing.T) {
-	initInMemoryCategories()
+func TestTagExists(t *testing.T) {
+	initInMemoryTags()
 
-	if !CategoryExists("flounder") {
+	if !TagExists("flounder") {
 		t.Errorf("Flounder does not exist")
 	}
-	if CategoryExists("orca") {
+	if TagExists("orca") {
 		t.Errorf("Orca exists")
 	}
 }
 
-func TestRenameCategory(t *testing.T) {
-	initInMemoryCategories()
+func TestRenameTag(t *testing.T) {
+	initInMemoryTags()
 
-	RenameCategory("flounder", "orca")
-	cats := Categories(true)
+	RenameTag("flounder", "orca")
+	cats := Tags(true)
 	if len(cats) != 2 {
 		t.Errorf("Faulty renaming from Flounder to Orca")
 	}
 
-	RenameCategory("orca", "octopus")
-	cats = Categories(true)
+	RenameTag("orca", "octopus")
+	cats = Tags(true)
 	if len(cats) != 1 {
 		t.Errorf("Faulty merging orca into octopus")
 	}
 }
 
-// tests SetCategoriesFor and CategoriesForPost
-func TestPostCategories(t *testing.T) {
-	initInMemoryCategories()
-	cats := []types.Category{
+// tests SetTagsFor and TagsForPost
+func TestPostTags(t *testing.T) {
+	initInMemoryTags()
+	tags := []types.Tag{
 		{Name: "salmon"},
 		{Name: "carp"},
 	}
-	SetCategoriesFor(2, cats)
+	SetTagsFor(2, tags)
 
-	cats = CategoriesForPost(2)
-	if len(cats) != 2 {
+	tags = TagsForPost(2)
+	if len(tags) != 2 {
 		t.Errorf("Faulty category saving")
 	}
 }

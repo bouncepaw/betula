@@ -21,9 +21,9 @@ func TestAddPost(t *testing.T) {
 	InitInMemoryDB()
 	post := types.Post{
 		CreationTime: "2023-03-18",
-		Categories: []types.Category{
-			types.Category{Name: "cat"},
-			types.Category{Name: "dog"},
+		Tags: []types.Tag{
+			types.Tag{Name: "cat"},
+			types.Tag{Name: "dog"},
 		},
 		URL:         "https://betula.mycorrhiza.wiki",
 		Title:       "Betula",

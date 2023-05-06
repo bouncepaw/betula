@@ -113,12 +113,12 @@ const descriptionTemplate = `
 `
 
 func descriptionForOnePost(post types.Post) string {
-	var catBuf strings.Builder
-	for i, cat := range post.Categories {
+	var tagBuf strings.Builder
+	for i, tag := range post.Tags {
 		if i > 0 {
-			catBuf.WriteString(", ")
+			tagBuf.WriteString(", ")
 		}
-		catBuf.WriteString(fmt.Sprintf(`<a href="/cat/%s">%s</a>`, cat.Name, cat.Name))
+		tagBuf.WriteString(fmt.Sprintf(`<a href="/tag/%s">%s</a>`, tag.Name, tag.Name))
 	}
 
 	return fmt.Sprintf(
@@ -126,8 +126,8 @@ func descriptionForOnePost(post types.Post) string {
 		post.URL,
 		types.StripCommonProtocol(post.URL),
 		func() string {
-			if len(post.Categories) > 0 {
-				return "<p>🏷 " + catBuf.String() + "</p>"
+			if len(post.Tags) > 0 {
+				return "<p>🏷 " + tagBuf.String() + "</p>"
 			}
 			return ""
 		}(),
