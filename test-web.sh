@@ -4,7 +4,6 @@
 make clean > /dev/null
 make betula > /dev/null 2> /dev/null
 rm testing.betula > /dev/null
-cp empty.betula testing.betula
 killall betula
 ./betula testing.betula > /dev/null &
 sleep 1
