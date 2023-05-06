@@ -6,7 +6,7 @@
 		</div>
 	{{end}}
 	<div class="about-post">
-		{{range $i, $cat := .Categories}}{{if $i}},{{end}}<a class="p-category" href="/cat/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
+		{{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/cat/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
 		<a href="/day/{{timestampToDayStamp .CreationTime}}" class="date-link">
 			<time class="dt-published" datetime="{{timestampToHuman .CreationTime}}">
                 {{timestampToHuman .CreationTime}}

@@ -3,9 +3,9 @@
 	<main class="mv-categories">
 		<article>
 			<h2 class="p-name">Tags</h2>
-			{{if .Categories}}
+			{{if .Tags}}
 				<ol>
-					{{range .Categories}}
+					{{range .Tags}}
 						<li class="mv-category">
 							<a href="/cat/{{.Name}}" class="u-url"><span class="p-name">{{.Name}}</span></a>
 							<span class="mv-count">{{.PostCount}}</span> post{{if gt .PostCount 1}}s{{end}}
