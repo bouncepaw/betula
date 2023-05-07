@@ -284,13 +284,13 @@ func handlerRegister(w http.ResponseWriter, rq *http.Request) {
 
 type dataCategories struct {
 	*dataCommon
-	Categories []types.Tag
+	Tags []types.Tag
 }
 
 func handlerCategories(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(w, templateCategories, dataCategories{
-		Categories: db.Tags(authed),
+		Tags:       db.Tags(authed),
 		dataCommon: emptyCommon(),
 	}, rq)
 }
