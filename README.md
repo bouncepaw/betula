@@ -10,10 +10,10 @@
 
 ## Features
 * Publish bookmarks, along with optional title and description formatted with [Mycomarkup](https://mycorrhiza.wiki/help/en/mycomarkup).
-* Add your bookmarks to categories.
+* Add your bookmarks to tags.
 * Posts can be public or private. Share only what you want to share!
 * Simple user interface that does not require JavaScript.
-  * If you have JavaScript, you can use category autocompletion.
+  * If you have JavaScript, you can use tag autocompletion.
 * The whole collection is saved as a single SQLite file.
 * [IndieWeb](https://indieweb.org) microformats are produced.
 * Simple installation: the program is one binary, the collection is one file, all configuration is done through the web interface.

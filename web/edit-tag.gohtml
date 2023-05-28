@@ -1,5 +1,5 @@
 {{define "form"}}
-    <form method="post" action="/edit-cat/{{.Name}}">
+    <form method="post" action="/edit-tag/{{.Name}}">
         <div>
             <label for="cat-name">New name</label>
             <input type="text" id="cat-name" name="new-name" required value="{{.Name}}" autocomplete="off">
@@ -15,11 +15,11 @@
     </form>
 {{end}}
 
-{{define "title"}}Edit category {{.Name}}{{end}}
+{{define "title"}}Edit tag {{.Name}}{{end}}
 {{define "body"}}
     <main>
         <article>
-            <h2>Edit tag <a href="/cat/{{.Name}}">{{.Name}}</a></h2>
+            <h2>Edit tag <a href="/tag/{{.Name}}">{{.Name}}</a></h2>
             {{if or .ErrorTakenName .ErrorNonExistent}}
                 <h3>Invalid tag name</h3>
             {{end}}
@@ -32,7 +32,7 @@
             {{else if .ErrorNonExistent}}
                 <p>
                     The tag doesn't exist.
-                    <a href="/cat/"> Go to the tag list.</a>
+                    <a href="/tag/"> Go to the tag list.</a>
                 </p>
             {{else}}
                 {{template "form" .}}
@@ -40,7 +40,7 @@
         </article>
         <article>
             <h2>Delete tag</h2>
-            <form method="post" action="/delete-cat/{{.Name}}">
+            <form method="post" action="/delete-tag/{{.Name}}">
                 <div>
                     <input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required>
                     <label for="delete-confirmed">Yes, delete this tag.</label>

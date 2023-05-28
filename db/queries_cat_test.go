@@ -107,6 +107,6 @@ func TestPostTags(t *testing.T) {
 
 	tags = TagsForPost(2)
 	if len(tags) != 2 {
-		t.Errorf("Faulty category saving")
+		t.Errorf("Faulty tag saving")
 	}
 }

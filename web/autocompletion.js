@@ -1,12 +1,12 @@
 (() => {
-  const inputs = document.querySelectorAll('input[name=categories]');
+  const inputs = document.querySelectorAll('input[name=tags]');
   if (inputs.length > 0) {
-    const categories = fetch('/cat')
+    const tags = fetch('/tag')
       .then(resp => resp.text())
       .then(html => {
         let parser = new DOMParser();
-        let categories = Array.from(parser.parseFromString(html, 'text/html').querySelectorAll('.mv-categories .u-url')).map(a => a.innerText);
-        return categories;
+        let tags = Array.from(parser.parseFromString(html, 'text/html').querySelectorAll('.mv-tags .u-url')).map(a => a.innerText);
+        return tags;
       });
 
     for (const input of inputs) {
@@ -61,7 +61,7 @@
           return;
         }
         substring = substring.replace(/ +/g, '_');
-        let matches = (await categories).filter(name => name.includes(substring));
+        let matches = (await tags).filter(name => name.includes(substring));
         if (matches.length === 0) {
           hideList();
           return;

@@ -58,10 +58,10 @@ var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment.gohtml",
 var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment.gohtml", "edit-link.gohtml")
 var templatePost = templateFrom(funcMapForPosts, "post-fragment.gohtml", "post.gohtml")
 var templateFeed = templateFrom(funcMapForPosts, "post-fragment.gohtml", "feed.gohtml")
-var templateCategories = templateFrom(nil, "categories.gohtml")
-var templateCategory = templateFrom(funcMapForPosts, "post-fragment.gohtml", "category.gohtml")
+var templateTags = templateFrom(nil, "tags.gohtml")
+var templateTag = templateFrom(funcMapForPosts, "post-fragment.gohtml", "tag.gohtml")
 var templateDay = templateFrom(funcMapForPosts, "post-fragment.gohtml", "day.gohtml")
-var templateEditCategory = templateFrom(funcMapForForm, "edit-cat.gohtml")
+var templateEditTag = templateFrom(funcMapForForm, "edit-tag.gohtml")
 
 var templateAbout = templateFrom(funcMapForTime, "about.gohtml")
 

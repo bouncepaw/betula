@@ -37,9 +37,9 @@ func init() {
 	mux.HandleFunc("/last/", handlerPostLast)
 	mux.HandleFunc("/go/", handlerGo)
 	mux.HandleFunc("/about", handlerAbout)
-	mux.HandleFunc("/cat/", handlerCategory)
-	mux.HandleFunc("/edit-cat/", handlerEditCategory)
-	mux.HandleFunc("/delete-cat/", handlerDeleteCategory)
+	mux.HandleFunc("/tag/", handlerTag)
+	mux.HandleFunc("/edit-tag/", handlerEditTag)
+	mux.HandleFunc("/delete-tag/", handlerDeleteTag)
 	mux.HandleFunc("/day/", handlerDay)
 	mux.HandleFunc("/register", handlerRegister)
 	mux.HandleFunc("/login", handlerLogin)
@@ -282,39 +282,39 @@ func handlerRegister(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
 
-type dataCategories struct {
+type dataTags struct {
 	*dataCommon
 	Tags []types.Tag
 }
 
-func handlerCategories(w http.ResponseWriter, rq *http.Request) {
+func handlerTags(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
-	templateExec(w, templateCategories, dataCategories{
+	templateExec(w, templateTags, dataTags{
 		Tags:       db.Tags(authed),
 		dataCommon: emptyCommon(),
 	}, rq)
 }
 
-type dataCategory struct {
+type dataTag struct {
 	*dataCommon
 	types.Tag
-	PostsInCategory []types.Post
+	PostsInTag []types.Post
 }
 
-func handlerCategory(w http.ResponseWriter, rq *http.Request) {
-	catName := strings.TrimPrefix(rq.URL.Path, "/cat/")
+func handlerTag(w http.ResponseWriter, rq *http.Request) {
+	catName := strings.TrimPrefix(rq.URL.Path, "/tag/")
 	if catName == "" {
-		handlerCategories(w, rq)
+		handlerTags(w, rq)
 		return
 	}
 	authed := auth.AuthorizedFromRequest(rq)
-	templateExec(w, templateCategory, dataCategory{
+	templateExec(w, templateTag, dataTag{
 		Tag: types.Tag{
 			Name:        catName,
 			Description: db.DescriptionForTag(catName),
 		},
-		PostsInCategory: db.PostsWithTag(authed, catName),
-		dataCommon:      emptyCommon(),
+		PostsInTag: db.PostsWithTag(authed, catName),
+		dataCommon: emptyCommon(),
 	}, rq)
 }
 
@@ -399,7 +399,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		post.Title = rq.FormValue("title")
 		post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
 		post.Description = rq.FormValue("description")
-		post.Tags = types.SplitTags(rq.FormValue("categories"))
+		post.Tags = types.SplitTags(rq.FormValue("tags"))
 
 		MixUpTitleLink(&post.Title, &post.URL)
 
@@ -419,14 +419,14 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-type dataEditCategory struct {
+type dataEditTag struct {
 	*dataCommon
 	types.Tag
 	ErrorTakenName   bool
 	ErrorNonExistent bool
 }
 
-func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
+func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	if !authed {
 		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
@@ -434,57 +434,57 @@ func handlerEditCategory(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	var oldCategory types.Tag
-	oldName := strings.TrimPrefix(rq.URL.Path, "/edit-cat/")
-	oldCategory.Name = oldName
-	oldCategory.Description = db.DescriptionForTag(oldName)
+	var oldTag types.Tag
+	oldName := strings.TrimPrefix(rq.URL.Path, "/edit-tag/")
+	oldTag.Name = oldName
+	oldTag.Description = db.DescriptionForTag(oldName)
 
 	switch rq.Method {
 	case http.MethodGet:
-		templateExec(w, templateEditCategory, dataEditCategory{
-			Tag:        oldCategory,
+		templateExec(w, templateEditTag, dataEditTag{
+			Tag:        oldTag,
 			dataCommon: emptyCommon(),
 		}, rq)
 	case http.MethodPost:
-		var newCategory types.Tag
+		var newTag types.Tag
 		newName := types.CanonicalTagName(rq.FormValue("new-name"))
-		newCategory.Name = newName
-		newCategory.Description = strings.TrimSpace(rq.FormValue("description"))
+		newTag.Name = newName
+		newTag.Description = strings.TrimSpace(rq.FormValue("description"))
 
 		merge := rq.FormValue("merge")
 
-		if db.TagExists(newCategory.Name) && merge != "true" && newCategory.Name != oldCategory.Name {
-			log.Printf("Trying to rename a category %s to a taken name %s.\n", oldCategory.Name, newCategory.Name)
-			templateExec(w, templateEditCategory, dataEditCategory{
-				Tag:            oldCategory,
+		if db.TagExists(newTag.Name) && merge != "true" && newTag.Name != oldTag.Name {
+			log.Printf("Trying to rename a tag %s to a taken name %s.\n", oldTag.Name, newTag.Name)
+			templateExec(w, templateEditTag, dataEditTag{
+				Tag:            oldTag,
 				ErrorTakenName: true,
 				dataCommon:     emptyCommon(),
 			}, rq)
 			return
-		} else if !db.TagExists(oldCategory.Name) {
-			log.Printf("Trying to rename a non-existent category %s.\n", oldCategory.Name)
-			templateExec(w, templateEditCategory, dataEditCategory{
-				Tag:              oldCategory,
+		} else if !db.TagExists(oldTag.Name) {
+			log.Printf("Trying to rename a non-existent tag %s.\n", oldTag.Name)
+			templateExec(w, templateEditTag, dataEditTag{
+				Tag:              oldTag,
 				ErrorNonExistent: true,
 				dataCommon:       emptyCommon(),
 			}, rq)
 			return
 		} else {
-			db.RenameTag(oldCategory.Name, newCategory.Name)
-			db.SetTagDescription(oldCategory.Name, "")
-			db.SetTagDescription(newCategory.Name, newCategory.Description)
-			http.Redirect(w, rq, fmt.Sprintf("/cat/%s", newCategory.Name), http.StatusSeeOther)
-			if oldCategory.Name != newCategory.Name {
-				log.Printf("Renamed category %s to %s\n", oldCategory.Name, newCategory.Name)
+			db.RenameTag(oldTag.Name, newTag.Name)
+			db.SetTagDescription(oldTag.Name, "")
+			db.SetTagDescription(newTag.Name, newTag.Description)
+			http.Redirect(w, rq, fmt.Sprintf("/tag/%s", newTag.Name), http.StatusSeeOther)
+			if oldTag.Name != newTag.Name {
+				log.Printf("Renamed tag %s to %s\n", oldTag.Name, newTag.Name)
 			}
-			if oldCategory.Description != newCategory.Description {
-				log.Printf("Set new description for category %s\n", newCategory.Name)
+			if oldTag.Description != newTag.Description {
+				log.Printf("Set new description for tag %s\n", newTag.Name)
 			}
 		}
 	}
 }
 
-func handlerDeleteCategory(w http.ResponseWriter, rq *http.Request) {
+func handlerDeleteTag(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method != http.MethodPost {
 		handlerNotFound(w, rq)
 		return
@@ -497,19 +497,19 @@ func handlerDeleteCategory(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	catName := strings.TrimPrefix(rq.URL.Path, "/delete-cat/")
+	catName := strings.TrimPrefix(rq.URL.Path, "/delete-tag/")
 	if catName == "" {
 		handlerNotFound(w, rq)
 		return
 	}
 
 	if confirmed := rq.FormValue("confirmed"); confirmed != "true" {
-		http.Redirect(w, rq, fmt.Sprintf("/edit-cat/%s", catName), http.StatusSeeOther)
+		http.Redirect(w, rq, fmt.Sprintf("/edit-tag/%s", catName), http.StatusSeeOther)
 		return
 	}
 
 	if !db.TagExists(catName) {
-		log.Println("Trying to delete a non-existent category.")
+		log.Println("Trying to delete a non-existent tag.")
 		handlerNotFound(w, rq)
 		return
 	}
@@ -548,7 +548,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			Title:       rq.FormValue("title"),
 			Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
 			Description: rq.FormValue("description"),
-			Tags:        types.SplitTags(rq.FormValue("categories")),
+			Tags:        types.SplitTags(rq.FormValue("tags")),
 			dataCommon:  common,
 		}, rq)
 	case http.MethodPost:
@@ -557,7 +557,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			title       = rq.FormValue("title")
 			visibility  = types.VisibilityFromString(rq.FormValue("visibility"))
 			description = rq.FormValue("description")
-			categories  = types.SplitTags(rq.FormValue("categories"))
+			tags        = types.SplitTags(rq.FormValue("tags"))
 		)
 
 		if addr == "" || title == "" {
@@ -566,7 +566,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 				Title:          title,
 				Visibility:     visibility,
 				Description:    description,
-				Tags:           categories,
+				Tags:           tags,
 				dataCommon:     common,
 				ErrorNotFilled: true,
 			}, rq)
@@ -581,7 +581,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 				Title:           title,
 				Visibility:      visibility,
 				Description:     description,
-				Tags:            categories,
+				Tags:            tags,
 				dataCommon:      common,
 				ErrorInvalidURL: true,
 			}, rq)
@@ -593,7 +593,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			Title:       title,
 			Description: description,
 			Visibility:  visibility,
-			Tags:        categories,
+			Tags:        tags,
 		})
 
 		another := rq.FormValue("another")

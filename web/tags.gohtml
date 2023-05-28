@@ -1,13 +1,13 @@
 {{define "title"}}Tags{{end}}
 {{define "body"}}
-	<main class="mv-categories">
+	<main class="mv-tags">
 		<article>
 			<h2 class="p-name">Tags</h2>
 			{{if .Tags}}
 				<ol>
 					{{range .Tags}}
-						<li class="mv-category">
-							<a href="/cat/{{.Name}}" class="u-url"><span class="p-name">{{.Name}}</span></a>
+						<li class="mv-tag">
+							<a href="/tag/{{.Name}}" class="u-url"><span class="p-name">{{.Name}}</span></a>
 							<span class="mv-count">{{.PostCount}}</span> post{{if gt .PostCount 1}}s{{end}}
 						</li>
 					{{end}}

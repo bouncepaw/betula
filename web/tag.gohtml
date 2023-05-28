@@ -3,15 +3,15 @@
 	<main class="h-feed">
 		<article>
 			{{if $authed}}
-				<a class="edit-post-btn" href="/edit-cat/{{.Name}}">
+				<a class="edit-post-btn" href="/edit-tag/{{.Name}}">
 					Edit
 				</a>
 			{{end}}
-			<h2 class="p-name">Tag {{.Name}}</h2>{{$cnt := len .PostsInCategory}}
+			<h2 class="p-name">Tag {{.Name}}</h2>{{$cnt := len .PostsInTag}}
 			<p><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s have{{else}} has{{end}} this tag.</p>
 			<div class="p-summary">{{.Description | mycomarkup}}</div>
 		</article>
-		{{range .PostsInCategory}}
+		{{range .PostsInTag}}
 			<article class="h-entry">
                 {{if $authed}}
                     {{template "post buttons fragment" .}}
