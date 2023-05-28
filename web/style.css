@@ -232,6 +232,11 @@ pre {
 .myco, .myco * {
     max-width: 100%;
 }
+.myco blockquote {
+    margin-left: 0;
+    padding-left: 1rem;
+    border-left: #999 2px solid;
+}
 
 /* Colors */
 html {

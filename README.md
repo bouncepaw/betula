@@ -10,7 +10,7 @@
 
 ## Features
 * Publish bookmarks, along with optional title and description formatted with [Mycomarkup](https://mycorrhiza.wiki/help/en/mycomarkup).
-* Add your bookmarks to tags.
+* Add tags to your bookmarks.
 * Posts can be public or private. Share only what you want to share!
 * Simple user interface that does not require JavaScript.
   * If you have JavaScript, you can use tag autocompletion.
