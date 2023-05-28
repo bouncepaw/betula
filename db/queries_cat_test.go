@@ -8,7 +8,7 @@ import (
 func initInMemoryTags() {
 	InitInMemoryDB()
 	q := `
-insert into CategoriesToPosts (CatName, PostID) values
+insert into TagsToPosts (TagName, PostID) values
 ('octopus', 1),
 ('flounder', 2),
 ('flounder', 3);
@@ -108,5 +108,15 @@ func TestPostTags(t *testing.T) {
 	tags = TagsForPost(2)
 	if len(tags) != 2 {
 		t.Errorf("Faulty tag saving")
+	}
+}
+
+func TestTagCount(t *testing.T) {
+	initInMemoryTags()
+	if TagCount(true) != 2 {
+		t.Errorf("Wrong authorized categories count")
+	}
+	if TagCount(false) != 1 {
+		t.Errorf("Wrong unauthorized categories count")
 	}
 }

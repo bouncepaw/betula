@@ -321,6 +321,7 @@ func handlerTag(w http.ResponseWriter, rq *http.Request) {
 type dataAbout struct {
 	*dataCommon
 	LinkCount       int
+	TagCount        uint
 	OldestTime      *time.Time
 	NewestTime      *time.Time
 	SiteDescription template.HTML
@@ -331,6 +332,7 @@ func handlerAbout(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, templateAbout, dataAbout{
 		dataCommon:      emptyCommon(),
 		LinkCount:       db.PostCount(authed),
+		TagCount:        db.TagCount(authed),
 		OldestTime:      db.OldestTime(authed),
 		NewestTime:      db.NewestTime(authed),
 		SiteDescription: settings.SiteDescriptionHTML(),

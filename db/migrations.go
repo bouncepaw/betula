@@ -30,7 +30,7 @@ create table Posts (
 create table TagsToPosts (
     TagName text not null,
     PostID integer not null,
-    unique (Tag, PostID) on conflict ignore,
+    unique (TagName, PostID) on conflict ignore,
     check ( TagName <> '' )
 );
 

@@ -43,6 +43,27 @@ select Description from TagDescriptions where TagName = ?;
 	return myco
 }
 
+// TagCount counts how many tags there are available to the user.
+func TagCount(authorized bool) (count uint) {
+	q := `
+select
+	count(distinct TagName)
+from
+	TagsToPosts
+inner join 
+	(select ID from main.Posts where DeletionTime is null and (Visibility = 1 or ?)) 
+as 
+	Filtered
+on 
+	TagsToPosts.PostID = Filtered.ID
+`
+	rows := mustQuery(q, authorized)
+	rows.Next()
+	mustScan(rows, &count)
+	_ = rows.Close()
+	return count
+}
+
 // Tags returns all tags found on posts one has access to. They all have PostCount set to a non-zero value.
 func Tags(authorized bool) (tags []types.Tag) {
 	q := `

@@ -13,6 +13,8 @@
 			<dl>
 				<dt>Number of saved links</dt>
 				<dd>{{.LinkCount}}</dd>
+				<dt>Number of tags</dt>
+				<dd>{{.TagCount}}</dd>
 				{{if .OldestTime}}
 				<dt>Newest link save time</dt>
 				<dd>{{.NewestTime | timeToHuman}}</dd>
@@ -20,7 +22,7 @@
 				<dd>{{.OldestTime | timeToHuman}}</dd>
 				{{end}}
 				<dt>Betula version</dt>
-				<dd>0.7</dd>
+				<dd>0.8</dd>
 			</dl>
 		</article>
 		<article>
