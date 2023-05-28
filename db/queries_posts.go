@@ -37,9 +37,9 @@ select
 from
 	Posts
 inner join
-	CategoriesToPosts
+	TagsToPosts
 where
-	ID = PostID and CatName = ? and DeletionTime is null
+	ID = PostID and TagName = ? and DeletionTime is null
 order by
 	CreationTime desc;
 `
@@ -59,7 +59,7 @@ order by
 	return posts
 }
 
-// Posts returns all posts stored in the database, along with their categories, but only if the viewer is authorized! Otherwise, only public posts will be given.
+// Posts returns all posts stored in the database, along with their tags, but only if the viewer is authorized! Otherwise, only public posts will be given.
 func Posts(authorized bool) (posts []types.Post) {
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime

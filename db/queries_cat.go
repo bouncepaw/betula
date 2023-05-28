@@ -2,16 +2,16 @@ package db
 
 import "git.sr.ht/~bouncepaw/betula/types"
 
-func deleteTagDescription(catName string) {
+func deleteTagDescription(tagName string) {
 	const q = `
-delete from CategoryDescriptions where CatName = ?;
+delete from TagDescriptions where TagName = ?;
 `
-	mustExec(q, catName)
+	mustExec(q, tagName)
 }
 
 func SetTagDescription(tagName string, description string) {
 	const q = `
-replace into CategoryDescriptions (CatName, Description)
+replace into TagDescriptions (TagName, Description)
 values (?, ?);
 `
 	if description == "" {
@@ -23,7 +23,7 @@ values (?, ?);
 
 func DeleteTag(tagName string) {
 	const q = `
-delete from CategoriesToPosts where CategoriesToPosts.CatName = ?
+delete from TagsToPosts where TagName = ?
 `
 	deleteTagDescription(tagName)
 	mustExec(q, tagName)
@@ -31,7 +31,7 @@ delete from CategoriesToPosts where CategoriesToPosts.CatName = ?
 
 func DescriptionForTag(tagName string) (myco string) {
 	const q = `
-select Description from CategoryDescriptions where CatName = ?;
+select Description from TagDescriptions where TagName = ?;
 `
 	rows := mustQuery(q, tagName)
 	for rows.Next() { // 0 or 1
@@ -47,18 +47,18 @@ select Description from CategoryDescriptions where CatName = ?;
 func Tags(authorized bool) (tags []types.Tag) {
 	q := `
 select
-   CatName, 
+   TagName, 
    count(PostID)
 from
-   CategoriesToPosts
+   TagsToPosts
 inner join 
     (select ID from main.Posts where DeletionTime is null and (Visibility = 1 or ?)) 
 as 
 	Filtered
 on 
-    CategoriesToPosts.PostID = Filtered.ID
+    TagsToPosts.PostID = Filtered.ID
 group by
-	CatName;
+	TagName;
 `
 	rows := mustQuery(q, authorized)
 	for rows.Next() {
@@ -70,7 +70,7 @@ group by
 }
 
 func TagExists(tagName string) (has bool) {
-	const q = `select exists(select 1 from CategoriesToPosts where CatName = ?);`
+	const q = `select exists(select 1 from TagsToPosts where TagName = ?);`
 	rows := mustQuery(q, tagName)
 	rows.Next()
 	mustScan(rows, &has)
@@ -80,18 +80,18 @@ func TagExists(tagName string) (has bool) {
 
 func RenameTag(oldTagName, newTagName string) {
 	const q = `
-update CategoriesToPosts
-set CatName = ?
-where CatName = ?;
+update TagsToPosts
+set TagName = ?
+where TagName = ?;
 `
 	mustExec(q, newTagName, oldTagName)
 }
 
 func SetTagsFor(postID int, tags []types.Tag) {
-	const q = `delete from CategoriesToPosts where PostID = ?;`
+	const q = `delete from TagsToPosts where PostID = ?;`
 	mustExec(q, postID)
 
-	var qAdd = `insert into CategoriesToPosts (CatName, PostID) values (?, ?);`
+	var qAdd = `insert into TagsToPosts (TagName, PostID) values (?, ?);`
 	for _, tag := range tags {
 		if tag.Name == "" {
 			continue
@@ -102,10 +102,10 @@ func SetTagsFor(postID int, tags []types.Tag) {
 
 func TagsForPost(id int) (tags []types.Tag) {
 	q := `
-select distinct CatName
-from CategoriesToPosts
+select distinct TagName
+from TagsToPosts
 where PostID = ?
-order by CatName;
+order by TagName;
 `
 	rows := mustQuery(q, id)
 	for rows.Next() {

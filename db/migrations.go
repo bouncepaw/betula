@@ -6,12 +6,12 @@ import (
 	"log"
 )
 
-const expectedVersion = 2
+const expectedVersion = 3
 
 /*
-Wishes for schema version 3:
+Wishes for schema version 4:
 
-1. Rename categories to tags
+1.
 
 Write more here. Implement all when there is an actual need to have a new schema.
 */
@@ -27,11 +27,11 @@ create table Posts (
     DeletionTime text                
 );
 
-create table CategoriesToPosts (
-    CatName text not null,
+create table TagsToPosts (
+    TagName text not null,
     PostID integer not null,
-    unique (CatName, PostID) on conflict ignore,
-    check ( CatName <> '' )
+    unique (Tag, PostID) on conflict ignore,
+    check ( TagName <> '' )
 );
 
 create table BetulaMeta (
@@ -40,7 +40,7 @@ create table BetulaMeta (
 );
 
 insert or ignore into BetulaMeta values
-	('DB version', 2),
+	('DB version', 3),
 	('Admin username', null),
 	('Admin password hash', null);
 
@@ -49,14 +49,9 @@ create table Sessions (
     CreationTime not null default current_timestamp
 );
 
-create table CategoryDescriptions (
-   CatName text primary key,
+create table TagDescriptions (
+   TagName text primary key,
    Description text not null
-);
-
-create table CategoryImplications (
-   IfCat text not null,
-   ThenCat text not null
 );`
 
 func handleMigrations() {
@@ -75,11 +70,15 @@ func handleMigrations() {
 	}
 
 	switch curver {
+	case 2:
+		migrate2To3()
 	case 1:
 		migrate1To2()
+		migrate2To3()
 	case 0:
 		migrate0To1()
 		migrate1To2()
+		migrate2To3()
 	default:
 		panic(fmt.Sprintf("unimplemented migration from %d to %d", curver, expectedVersion))
 	}
@@ -107,8 +106,63 @@ where Key = 'DB version';
 	return v.Int64, true
 }
 
+func migrate2To3() {
+	log.Println("Migrating from 2 to 3...")
+	/* Past is as such
+	create table CategoriesToPosts (
+	    CatName text not null,
+	    PostID integer not null,
+	    unique (CatName, PostID) on conflict ignore,
+	    check ( CatName <> '' )
+	);
+
+	create table CategoryDescriptions (
+	   CatName text primary key,
+	   Description text not null
+	);
+	*/
+	const q = `
+-- It's not like we needed it in the first place
+drop table CategoryImplications;
+
+-- Rename CategoriesToPosts to TagsToPosts
+create table TagsToPosts (
+    TagName text not null,
+    PostID integer not null,
+    unique (TagName, PostID) on conflict ignore,
+    check ( TagName <> '' )
+);
+
+insert into TagsToPosts (TagName, PostID)
+select CatName, PostID
+from CategoriesToPosts;
+
+drop table CategoriesToPosts;
+
+
+-- Rename CategoryDescriptions to TagDescriptions
+create table TagDescriptions (
+   TagName text primary key,
+   Description text not null
+);
+
+insert into TagDescriptions (TagName, Description)
+select CatName, Description
+from CategoryDescriptions;
+
+drop table CategoryDescriptions;
+
+
+--- Taking notes...
+replace into BetulaMeta (Key, Value) values ('DB version', 3);
+`
+	mustExec(q)
+
+	log.Println("Migrated from 2 to 3")
+}
+
 func migrate1To2() {
-	log.Println("Migrating from 1 to 2")
+	log.Println("Migrating from 1 to 2...")
 	/*-- Past is as such:
 	create table Posts (
 		ID integer primary key autoincrement,
@@ -177,7 +231,7 @@ replace into BetulaMeta (Key, Value) values ('DB version', 2);
 }
 
 func migrate0To1() {
-	log.Println("Migrating from 0 to 1")
+	log.Println("Migrating from 0 to 1...")
 	/*
 		--This was the definition in the past:
 		create table if not exists Posts (
