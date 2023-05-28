@@ -240,7 +240,7 @@ pre {
 
 /* Colors */
 html {
-    background: #eee;
+    background: rgb(242, 244, 247);
     padding: 0;
 }
 main > article {
