@@ -2,10 +2,12 @@ package web
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/feeds"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	"golang.org/x/net/html"
 	"html/template"
 	"io"
 	"log"
@@ -358,6 +360,38 @@ func MixUpTitleLink(title *string, addr *string) {
 	}
 }
 
+func traverse(n *html.Node) (string, error) {
+	if n.Type == html.ElementNode && n.Data == "title" {
+		return n.FirstChild.Data, nil
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		result, err := traverse(c)
+		if err == nil {
+			return result, nil
+		}
+	}
+	return "", errors.New("failed to traverse")
+}
+
+func getHtmlTitle(link string) (string, error) {
+	resp, err := http.Get(link)
+	if err != nil {
+		log.Printf("Can't get response from %s\n", link)
+		return "", err
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("Can't close the body of the response from %s\n", link)
+		}
+	}(resp.Body)
+	doc, err := html.Parse(resp.Body)
+	if err != nil {
+		log.Printf("Can't parse html from %s\n", link)
+	}
+	return traverse(doc)
+}
+
 func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	if !authed {
@@ -404,6 +438,20 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		post.Tags = types.SplitTags(rq.FormValue("tags"))
 
 		MixUpTitleLink(&post.Title, &post.URL)
+
+		if post.Title == "" {
+			newTitle, err := getHtmlTitle(post.URL)
+			if err != nil {
+				log.Printf("Can't get HTML title from URL: %s\n", post.URL)
+				templateExec(w, templateEditLink, dataEditLink{
+					ErrorInvalidURL: true,
+					Post:            post,
+					dataCommon:      common,
+				}, rq)
+				return
+			}
+			post.Title = newTitle
+		}
 
 		if _, err := url.ParseRequestURI(post.URL); err != nil {
 			log.Printf("Invalid URL was passed, asking again: %s\n", post.URL)
@@ -562,7 +610,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			tags        = types.SplitTags(rq.FormValue("tags"))
 		)
 
-		if addr == "" || title == "" {
+		if addr == "" && title == "" {
 			templateExec(w, templateSaveLink, dataSaveLink{
 				URL:            addr,
 				Title:          title,
@@ -576,6 +624,23 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 		}
 
 		MixUpTitleLink(&title, &addr)
+
+		if title == "" {
+			newTitle, err := getHtmlTitle(addr)
+			if err != nil {
+				templateExec(w, templateSaveLink, dataSaveLink{
+					URL:             addr,
+					Title:           title,
+					Visibility:      visibility,
+					Description:     description,
+					Tags:            tags,
+					dataCommon:      common,
+					ErrorInvalidURL: true,
+				}, rq)
+				return
+			}
+			title = newTitle
+		}
 
 		if _, err := url.ParseRequestURI(addr); err != nil {
 			templateExec(w, templateSaveLink, dataSaveLink{
