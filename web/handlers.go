@@ -2,10 +2,12 @@ package web
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/feeds"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	"golang.org/x/net/html"
 	"html/template"
 	"io"
 	"log"
@@ -48,7 +50,7 @@ func init() {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 }
 
-func handlerPostsRss(w http.ResponseWriter, rq *http.Request) {
+func handlerPostsRss(w http.ResponseWriter, _ *http.Request) {
 	feed := feeds.Posts()
 	rss, err := feed.ToRss()
 	if err != nil {
@@ -61,7 +63,7 @@ func handlerPostsRss(w http.ResponseWriter, rq *http.Request) {
 	_, _ = io.WriteString(w, rss)
 }
 
-func handlerDigestRss(w http.ResponseWriter, rq *http.Request) {
+func handlerDigestRss(w http.ResponseWriter, _ *http.Request) {
 	feed := feeds.Digest()
 	rss, err := feed.ToRss()
 	if err != nil {
@@ -339,12 +341,6 @@ func handlerAbout(w http.ResponseWriter, rq *http.Request) {
 	}, rq)
 }
 
-type dataEditLink struct {
-	*dataCommon
-	ErrorInvalidURL bool
-	types.Post
-}
-
 func MixUpTitleLink(title *string, addr *string) {
 	// If addr is a valid url we do not mix up
 	_, err := url.ParseRequestURI(*addr)
@@ -358,7 +354,49 @@ func MixUpTitleLink(title *string, addr *string) {
 	}
 }
 
+func traverse(n *html.Node) (string, error) {
+	if n.Type == html.ElementNode && n.Data == "title" {
+		return n.FirstChild.Data, nil
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		result, err := traverse(c)
+		if err == nil {
+			return result, nil
+		}
+	}
+	return "", errors.New("failed to traverse")
+}
+
+func getHtmlTitle(link string) (string, error) {
+	resp, err := http.Get(link)
+	if err != nil {
+		log.Printf("Can't get response from %s\n", link)
+		return "", err
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("Can't close the body of the response from %s\n", link)
+		}
+	}(resp.Body)
+	doc, err := html.Parse(resp.Body)
+	if err != nil {
+		log.Printf("Can't parse html from %s\n", link)
+	}
+	return traverse(doc)
+}
+
+type dataEditLink struct {
+	errorTemplate
+	*dataCommon
+	types.Post
+	ErrorEmptyURL      bool
+	ErrorInvalidURL    bool
+	ErrorTitleNotFound bool
+}
+
 func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
+	var dataEditLinkInstance dataEditLink
 	authed := auth.AuthorizedFromRequest(rq)
 	if !authed {
 		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
@@ -403,15 +441,35 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		post.Description = rq.FormValue("description")
 		post.Tags = types.SplitTags(rq.FormValue("tags"))
 
+		if post.URL == "" && post.Title == "" {
+			dataEditLinkInstance.emptyUrl(post, common, w, rq)
+			return
+		}
+
 		MixUpTitleLink(&post.Title, &post.URL)
+
+		if post.URL == "" {
+			dataEditLinkInstance.emptyUrl(post, common, w, rq)
+			return
+		}
+
+		if post.Title == "" {
+			if _, err := url.ParseRequestURI(post.URL); err != nil {
+				dataEditLinkInstance.invalidUrl(post, common, w, rq)
+				return
+			}
+			newTitle, err := getHtmlTitle(post.URL)
+			if err != nil {
+				log.Printf("Can't get HTML title from URL: %s\n", post.URL)
+				dataEditLinkInstance.titleNotFound(post, common, w, rq)
+				return
+			}
+			post.Title = newTitle
+		}
 
 		if _, err := url.ParseRequestURI(post.URL); err != nil {
 			log.Printf("Invalid URL was passed, asking again: %s\n", post.URL)
-			templateExec(w, templateEditLink, dataEditLink{
-				ErrorInvalidURL: true,
-				Post:            post,
-				dataCommon:      common,
-			}, rq)
+			dataEditLinkInstance.invalidUrl(post, common, w, rq)
 			return
 		}
 
@@ -520,21 +578,20 @@ func handlerDeleteTag(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataSaveLink struct {
+	errorTemplate
 	*dataCommon
+	types.Post
+	Another bool
 
 	// The following three fields can be non-empty, when set through URL parameters or when an erroneous request was made.
-
-	URL             string
-	Title           string
-	Visibility      types.Visibility
-	Description     string
-	Tags            []types.Tag
-	Another         bool
-	ErrorInvalidURL bool
-	ErrorNotFilled  bool
+	ErrorEmptyURL      bool
+	ErrorInvalidURL    bool
+	ErrorTitleNotFound bool
 }
 
 func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
+	var dataSaveLinkInstance dataSaveLink
+	var post types.Post
 	if !auth.AuthorizedFromRequest(rq) {
 		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
 		handlerUnauthorized(w, rq)
@@ -544,65 +601,62 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	common.head = `<script defer src="/static/autocompletion.js"></script>`
 	switch rq.Method {
 	case http.MethodGet:
+		post.URL = rq.FormValue("url")
+		post.Title = rq.FormValue("title")
+		post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
+		post.Description = rq.FormValue("description")
+		post.Tags = types.SplitTags(rq.FormValue("tags"))
 		// TODO: Document the param behaviour
 		templateExec(w, templateSaveLink, dataSaveLink{
-			URL:         rq.FormValue("url"),
-			Title:       rq.FormValue("title"),
-			Visibility:  types.VisibilityFromString(rq.FormValue("visibility")),
-			Description: rq.FormValue("description"),
-			Tags:        types.SplitTags(rq.FormValue("tags")),
-			dataCommon:  common,
+			Post:       post,
+			dataCommon: common,
 		}, rq)
 	case http.MethodPost:
-		var (
-			addr        = rq.FormValue("url")
-			title       = rq.FormValue("title")
-			visibility  = types.VisibilityFromString(rq.FormValue("visibility"))
-			description = rq.FormValue("description")
-			tags        = types.SplitTags(rq.FormValue("tags"))
-		)
+		post.URL = rq.FormValue("url")
+		post.Title = rq.FormValue("title")
+		post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
+		post.Description = rq.FormValue("description")
+		post.Tags = types.SplitTags(rq.FormValue("tags"))
 
-		if addr == "" || title == "" {
-			templateExec(w, templateSaveLink, dataSaveLink{
-				URL:            addr,
-				Title:          title,
-				Visibility:     visibility,
-				Description:    description,
-				Tags:           tags,
-				dataCommon:     common,
-				ErrorNotFilled: true,
-			}, rq)
+		if post.URL == "" && post.Title == "" {
+			dataSaveLinkInstance.emptyUrl(post, common, w, rq)
 			return
 		}
 
-		MixUpTitleLink(&title, &addr)
+		MixUpTitleLink(&post.Title, &post.URL)
 
-		if _, err := url.ParseRequestURI(addr); err != nil {
-			templateExec(w, templateSaveLink, dataSaveLink{
-				URL:             addr,
-				Title:           title,
-				Visibility:      visibility,
-				Description:     description,
-				Tags:            tags,
-				dataCommon:      common,
-				ErrorInvalidURL: true,
-			}, rq)
+		if post.URL == "" {
+			dataSaveLinkInstance.emptyUrl(post, common, w, rq)
 			return
 		}
 
-		id := db.AddPost(types.Post{
-			URL:         addr,
-			Title:       title,
-			Description: description,
-			Visibility:  visibility,
-			Tags:        tags,
-		})
+		if post.Title == "" {
+			if _, err := url.ParseRequestURI(post.URL); err != nil {
+				dataSaveLinkInstance.invalidUrl(post, common, w, rq)
+				return
+			}
+			newTitle, err := getHtmlTitle(post.URL)
+			if err != nil {
+				dataSaveLinkInstance.titleNotFound(post, common, w, rq)
+				return
+			}
+			post.Title = newTitle
+		}
+
+		if _, err := url.ParseRequestURI(post.URL); err != nil {
+			dataSaveLinkInstance.invalidUrl(post, common, w, rq)
+			return
+		}
+
+		id := db.AddPost(post)
 
 		another := rq.FormValue("another")
 		if another == "true" {
+			var anotherPost types.Post
+			anotherPost.Visibility = types.Public
 			templateExec(w, templateSaveLink, dataSaveLink{
 				dataCommon: common,
-				Visibility: types.Public,
+				Post:       anotherPost,
 				Another:    true,
 			}, rq)
 			return

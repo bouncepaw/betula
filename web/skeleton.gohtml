@@ -12,26 +12,13 @@
 	<nav>
 		<h1>{{.SiteTitleHTML}}</h1>
 		<ul>
+			<li><a href="/">Bookmarks</a></li>
+			{{if .Authorized}}<li><a href="/save-link" accesskey="s">Save link</a></li>{{end}}
+			<li><a href="/tag">Tags</a></li>
+			<li><a href="/about">About</a></li>
 			<li>
-				<a href="/">Bookmarks</a>
-			</li>
-			{{if .Authorized}}
-			<li>
-				<a href="/save-link" accesskey="s">Save link</a>
-			</li>
-			{{end}}
-			<li>
-				<a href="/tag">Tags</a>
-			</li>
-			<li>
-				<a href="/about">About</a>
-			</li>
-			<li>
-				{{if .Authorized}}
-					<a href="/settings">Settings</a>
-				{{else}}
-					<a href="/login">Log in</a>
-				{{end}}
+				{{if .Authorized}}<a href="/settings">Settings</a>
+				{{else}}<a href="/login">Log in</a>{{end}}
 			</li>
 			<!-- <li>
 				<form class="search-form">
