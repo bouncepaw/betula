@@ -30,6 +30,7 @@ var (
 
 func init() {
 	mux.HandleFunc("/", handlerFeed)
+	mux.HandleFunc("/text/", handlerText)
 	mux.HandleFunc("/digest-rss", handlerDigestRss)
 	mux.HandleFunc("/posts-rss", handlerPostsRss)
 	mux.HandleFunc("/save-link", handlerSaveLink)
@@ -48,6 +49,35 @@ func init() {
 	mux.HandleFunc("/logout", handlerLogout)
 	mux.HandleFunc("/settings", handlerSettings)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerText(w http.ResponseWriter, rq *http.Request) {
+	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/text/"))
+	if err != nil {
+		log.Println(err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	post, found := db.PostForID(id)
+	if !found {
+		log.Println(err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	visibility := post.Visibility
+	authed := auth.AuthorizedFromRequest(rq)
+	if visibility == types.Private && !authed {
+		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		handlerUnauthorized(w, rq)
+		return
+	}
+
+	log.Printf("Fetching text for post no. %d\n", id)
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = io.WriteString(w, post.Description)
 }
 
 func handlerPostsRss(w http.ResponseWriter, _ *http.Request) {
