@@ -8,6 +8,13 @@
             {{end}}
 			{{if .Authorized}}
 				<p class="warning">You are already logged in.</p>
+			{{else}}
+				<p class="warning">
+					Note that is impossible to register on this site.
+					Only the site administrator can log in.
+					Want to host your own Betula?
+					See <a href="https://betula.mycorrhiza.wiki">Betula's website</a> for more information.
+				</p>
 			{{end}}
 			<form method="post" action="/login">
 				<p>
