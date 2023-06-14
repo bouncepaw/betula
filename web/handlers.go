@@ -769,7 +769,8 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	common := emptyCommon()
 	common.head = `
-	<link rel="alternate" type="application/rss+xml" title="Daily digest" href="/digest-rss" />
+	<link rel="alternate" type="application/rss+xml" title="Daily digest (recommended)" href="/digest-rss">
+	<link rel="alternate" type="application/rss+xml" title="Individual posts" href="/posts-rss">
 `
 	templateExec(w, templateFeed, dataFeed{
 		AllPosts:        db.Posts(authed),
