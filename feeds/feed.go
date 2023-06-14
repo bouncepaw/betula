@@ -57,7 +57,7 @@ func Posts() *feeds.Feed {
 			var entry = &feeds.Item{
 				Title: post.Title,
 				Link: &feeds.Link{
-					Href: fmt.Sprintf("%s/%d", settings.SiteURL(), post.ID),
+					Href: post.URL,
 				},
 				Author:      author,
 				Description: descriptionForOnePost(post),
@@ -107,6 +107,7 @@ func Digest() *feeds.Feed {
 }
 
 const descriptionTemplate = `
+<h2><a href="/%d">%s</a></h2>
 <p>🔗 <a href="%s">%s</a></p>
 %s
 %s
@@ -123,6 +124,8 @@ func descriptionForOnePost(post types.Post) string {
 
 	return fmt.Sprintf(
 		descriptionTemplate,
+		post.ID,
+		post.Title,
 		post.URL,
 		types.StripCommonProtocol(post.URL),
 		func() string {
@@ -139,7 +142,6 @@ func descriptionFromPosts(posts []types.Post, dayStamp string) string {
 	var buf strings.Builder
 
 	for _, post := range posts {
-		buf.WriteString(fmt.Sprintf(`<h2><a href="/%d">%s</a></h2>`, post.ID, post.Title))
 		buf.WriteString(descriptionForOnePost(post))
 	}
 
