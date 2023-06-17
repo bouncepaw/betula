@@ -33,7 +33,7 @@ func Posts() *feeds.Feed {
 	author := &feeds.Author{
 		Name: db.MetaEntry[string](db.BetulaMetaAdminUsername),
 	}
-	now := time.Now()
+	now := time.Now().AddDate(0, 0, 1)
 	_, _, dayPosts := fiveLastDays(now)
 
 	feed := &feeds.Feed{
