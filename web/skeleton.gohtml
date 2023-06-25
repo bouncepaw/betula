@@ -13,22 +13,27 @@
 		<h1>{{.SiteTitleHTML}}</h1>
 		<ul>
 			<li><a href="/">Bookmarks</a></li>
-			{{if .Authorized}}<li><a href="/save-link" accesskey="s">Save link</a></li>{{end}}
 			<li><a href="/tag">Tags</a></li>
 			<li><a href="/about">About</a></li>
-			<li>
-				{{if .Authorized}}<a href="/settings">Settings</a>
-				{{else}}<a href="/login">Log in</a>{{end}}
-			</li>
-			<!-- <li>
-				<form class="search-form">
-					<input type="text" aria-label="Search query" placeholder="Search query">
-					<input type="submit" value="Search" class="btn">
-				</form>
-			</li> We'll get back to it in the future -->
 		</ul>
 	</nav>
 </header>
+<nav class="misc">
+	<h2>Actions</h2>
+	<form class="search-form" action="/search" method="get">
+		<input type="text" aria-label="Search query" placeholder="Search query" name="q">
+	</form>
+	<ul>
+        {{if .Authorized}}<li><a href="/save-link" accesskey="s">Save link</a></li>{{end}}
+		<li>
+            {{if .Authorized}}<a href="/settings">Settings</a>
+            {{else}}<a href="/login">Log in</a>{{end}}
+		</li>
+		<li>
+			<a href="/digest-rss">Site RSS</a>
+		</li>
+	</ul>
+</nav>
 {{template "body" .}}
 </body>
 </html>

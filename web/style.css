@@ -2,23 +2,24 @@
     body {
         grid-template-areas:
             "header"
+            "misc"
             "main"
             "footer";
         grid-row-gap: 8px;
         margin: 0;
     }
-    header {
+    nav {
         margin: 8px 0 0 4px;
     }
-    h1, header ul, header li {
+    h1, .misc h2, nav ul, nav li {
         display: inline;
         line-height: 150%;
         margin-right: 4px;
     }
-    header li {
+    nav li {
         white-space: nowrap;
     }
-    h1 {
+    h1, .misc h2 {
         font-size: medium;
     }
     main > article {
@@ -31,13 +32,14 @@
         grid-template-columns: 180px 1fr;
         grid-template-areas:
             "header main"
+            "misc   main"
             "footer main";
         grid-column-gap: 8px;
     }
-    header li {
+    nav li {
         padding: 4px 8px;
     }
-    h1 {
+    h1, .misc h2 {
         margin: 8px;
     }
     main > article {
@@ -50,8 +52,8 @@
     body {
         grid-template-columns: 1fr 40rem 1fr;
         grid-template-areas:
-            "header main free"
-            "footer main free";
+            "header main misc"
+            "footer main misc";
         grid-column-gap: 8px;
     }
 }
@@ -68,19 +70,27 @@ header {
 main {
     grid-area: main;
 }
+.misc {
+    grid-area: misc;
+}
 footer {
     grid-area: footer;
 }
 
 /* Design */
-header {
+.misc form {
+    margin: 8px;
+    margin-left: 6px;
+    max-width: 20em;
+}
+nav {
     padding: 0 4px;
 }
-header ul {
+nav ul {
     padding: 0;
     margin: 8px 0;
 }
-header li {
+nav li {
     list-style-type: none;
 }
 main {
@@ -178,7 +188,7 @@ textarea {
     display: block;
     width: 100%;
     margin: 0;
-    line-height: 1rem;
+    line-height: 1.5rem;
     font-size: 1rem;
     border: 2px inset #eee;
     font-family: sans-serif;
@@ -249,7 +259,7 @@ main > article {
 .edit-post-btn, .edit-post-btn:visited {
     color: black;
 }
-header a, header a:hover, header a:visited {
+nav a, nav a:hover, nav a:visited {
     color: black;
 }
 .btn, .btn:active, .btn:hover, .btn:visited {
