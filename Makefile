@@ -8,4 +8,4 @@ run-with-port: betula
 	./betula -port 8081 db.betula
 
 clean:
-	rm betula
+	rm -f betula

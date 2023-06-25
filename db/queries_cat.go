@@ -136,3 +136,70 @@ order by TagName;
 	}
 	return tags
 }
+
+func Search(query string, includedTags []string, excludedTags []string, authorized bool) (posts []types.Post) {
+	var q = `
+with
+	IgnoredPosts as (
+		select ID from Posts where DeletionTime is not null
+		union
+		select ID from Posts where Visibility = 0 and not ?
+	)
+select distinct
+	ID, URL, Title, Description, Visibility, CreationTime 
+from
+	Posts
+inner join
+	TagsToPosts
+where
+	ID = PostID and
+	ID not in IgnoredPosts and (
+		Title like ? or
+		Description like ? or
+		URL like ?
+	)
+`
+
+	likeQuery := "%" + query + "%"
+	args := []any{authorized, likeQuery, likeQuery, likeQuery}
+	if len(includedTags) > 0 {
+		q += `and TagName in (`
+		for i, tag := range includedTags {
+			if i > 0 {
+				q += ","
+			}
+			q += "?"
+			args = append(args, tag)
+		}
+		q += ")"
+	}
+
+	if len(excludedTags) > 0 {
+		q += `and TagName not in (`
+		for i, tag := range excludedTags {
+			if i > 0 {
+				q += ","
+			}
+			q += "?"
+			args = append(args, tag)
+		}
+		q += ")"
+	}
+
+	print(q)
+
+	rows := mustQuery(q, args...)
+	for rows.Next() {
+		var post types.Post
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		posts = append(posts, post)
+	}
+
+	for i, post := range posts {
+		post.Tags = TagsForPost(post.ID)
+		posts[i] = post
+	}
+
+	return posts
+
+}

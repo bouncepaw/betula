@@ -61,6 +61,7 @@ var templateFeed = templateFrom(funcMapForPosts, "post-fragment.gohtml", "feed.g
 var templateTags = templateFrom(nil, "tags.gohtml")
 var templateTag = templateFrom(funcMapForPosts, "post-fragment.gohtml", "tag.gohtml")
 var templateDay = templateFrom(funcMapForPosts, "post-fragment.gohtml", "day.gohtml")
+var templateSearch = templateFrom(funcMapForPosts, "post-fragment.gohtml", "search.gohtml")
 var templateEditTag = templateFrom(funcMapForForm, "edit-tag.gohtml")
 
 var templateAbout = templateFrom(funcMapForTime, "about.gohtml")

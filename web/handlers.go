@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/feeds"
+	"git.sr.ht/~bouncepaw/betula/search"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"golang.org/x/net/html"
 	"html/template"
@@ -44,11 +45,27 @@ func init() {
 	mux.HandleFunc("/edit-tag/", handlerEditTag)
 	mux.HandleFunc("/delete-tag/", handlerDeleteTag)
 	mux.HandleFunc("/day/", handlerDay)
+	mux.HandleFunc("/search", handlerSearch)
 	mux.HandleFunc("/register", handlerRegister)
 	mux.HandleFunc("/login", handlerLogin)
 	mux.HandleFunc("/logout", handlerLogout)
 	mux.HandleFunc("/settings", handlerSettings)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+type dataSearch struct {
+	*dataCommon
+	Query string
+	Posts []types.Post
+}
+
+func handlerSearch(w http.ResponseWriter, rq *http.Request) {
+	query := rq.FormValue("q")
+	templateExec(w, templateSearch, dataSearch{
+		dataCommon: emptyCommon(),
+		Query:      query,
+		Posts:      search.For(query, auth.AuthorizedFromRequest(rq)),
+	}, rq)
 }
 
 func handlerText(w http.ResponseWriter, rq *http.Request) {
