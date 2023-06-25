@@ -1,6 +1,10 @@
 package db
 
-import "git.sr.ht/~bouncepaw/betula/types"
+import (
+	"fmt"
+	"git.sr.ht/~bouncepaw/betula/types"
+	"sort"
+)
 
 func deleteTagDescription(tagName string) {
 	const q = `
@@ -137,69 +141,69 @@ order by TagName;
 	return tags
 }
 
-func Search(query string, includedTags []string, excludedTags []string, authorized bool) (posts []types.Post) {
-	var q = `
-with
-	IgnoredPosts as (
-		select ID from Posts where DeletionTime is not null
-		union
-		select ID from Posts where Visibility = 0 and not ?
-	)
-select distinct
-	ID, URL, Title, Description, Visibility, CreationTime 
-from
-	Posts
-inner join
-	TagsToPosts
-where
-	ID = PostID and
-	ID not in IgnoredPosts and (
-		Title like ? or
-		Description like ? or
-		URL like ?
-	)
+func Search(text string, includedTags []string, excludedTags []string, authorized bool) (posts []types.Post) {
+	sort.Strings(includedTags)
+	sort.Strings(excludedTags)
+
+	const q = `
+select ID, URL, Title, Description, Visibility, CreationTime
+from Posts
+where DeletionTime is null and (Visibility = 1 or ?) and (
+	Title like ? or URL like ? or Description like ?
+)
+order by CreationTime desc;
 `
+	text = fmt.Sprintf("%%%s%%", text)
+	rows := mustQuery(q, authorized, text, text, text)
 
-	likeQuery := "%" + query + "%"
-	args := []any{authorized, likeQuery, likeQuery, likeQuery}
-	if len(includedTags) > 0 {
-		q += `and TagName in (`
-		for i, tag := range includedTags {
-			if i > 0 {
-				q += ","
-			}
-			q += "?"
-			args = append(args, tag)
-		}
-		q += ")"
-	}
-
-	if len(excludedTags) > 0 {
-		q += `and TagName not in (`
-		for i, tag := range excludedTags {
-			if i > 0 {
-				q += ","
-			}
-			q += "?"
-			args = append(args, tag)
-		}
-		q += ")"
-	}
-
-	print(q)
-
-	rows := mustQuery(q, args...)
+	var unfilteredPosts []types.Post
 	for rows.Next() {
 		var post types.Post
 		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
-		posts = append(posts, post)
+		unfilteredPosts = append(unfilteredPosts, post)
 	}
 
-	for i, post := range posts {
+	// ‘Say, Bouncepaw, why did not you implement tag inclusion/exclusion
+	//  part in SQL directly?’, some may ask.
+	// ‘I did, and it was not worth it’, so I would respond.
+	for _, post := range unfilteredPosts {
 		post.Tags = TagsForPost(post.ID)
-		posts[i] = post
+		if keepForSearch(post.Tags, includedTags, excludedTags) {
+			posts = append(posts, post)
+		}
+	}
+	return posts
+}
+
+// true if keep, false if discard. All slices are sorted.
+func keepForSearch(postTags []types.Tag, includedTags, excludedTags []string) bool {
+	J, K := len(includedTags), len(excludedTags)
+	j, k := 0, 0
+	includeMask := make([]int, J)
+	for _, postTag := range postTags {
+		name := postTag.Name
+		switch {
+		case k < K && excludedTags[k] == name:
+			return false
+		case j < J && includedTags[j] == name:
+			includeMask[j] = 1
+			j++
+			continue
+		}
+
+		for j < J && includedTags[j] < name {
+			j++
+		}
+
+		for k < K && excludedTags[k] < name {
+			k++
+		}
 	}
 
-	return posts
-
+	for _, marker := range includeMask {
+		if marker == 0 {
+			return false
+		}
+	}
+	return true
 }

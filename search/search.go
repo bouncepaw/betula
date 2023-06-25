@@ -6,6 +6,7 @@ import (
 	"regexp"
 )
 
+// TODO: Exclude more characters
 var excludeTagRe = regexp.MustCompile(`-#([^\s]+)\s*`)
 var includeTagRe = regexp.MustCompile(`#([^\s]+)\s*`)
 
