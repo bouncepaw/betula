@@ -73,14 +73,14 @@ func handlerSearch(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	auth := auth.AuthorizedFromRequest(rq)
+	authed := auth.AuthorizedFromRequest(rq)
 	common := emptyCommon()
 	common.searchQuery = query
-	log.Printf("Searching ‘%s’. Authorized: %v\n", query, auth)
+	log.Printf("Searching ‘%s’. Authorized: %v\n", query, authed)
 	templateExec(w, templateSearch, dataSearch{
 		dataCommon: common,
 		Query:      query,
-		Posts:      search.For(query, auth),
+		Posts:      search.For(query, authed),
 	}, rq)
 }
 
@@ -367,19 +367,21 @@ type dataTag struct {
 }
 
 func handlerTag(w http.ResponseWriter, rq *http.Request) {
-	catName := strings.TrimPrefix(rq.URL.Path, "/tag/")
-	if catName == "" {
+	tagName := strings.TrimPrefix(rq.URL.Path, "/tag/")
+	if tagName == "" {
 		handlerTags(w, rq)
 		return
 	}
+	common := emptyCommon()
+	common.searchQuery = "#" + tagName
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(w, templateTag, dataTag{
 		Tag: types.Tag{
-			Name:        catName,
-			Description: db.DescriptionForTag(catName),
+			Name:        tagName,
+			Description: db.DescriptionForTag(tagName),
 		},
-		PostsInTag: db.PostsWithTag(authed, catName),
-		dataCommon: emptyCommon(),
+		PostsInTag: db.PostsWithTag(authed, tagName),
+		dataCommon: common,
 	}, rq)
 }
 
