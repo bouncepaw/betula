@@ -98,10 +98,11 @@ var funcMapForTime = template.FuncMap{
 
 // Do not bother to fill it.
 type dataCommon struct {
-	authorized bool
-	siteTitle  template.HTML
-	siteName   string
-	head       template.HTML
+	authorized  bool
+	siteTitle   template.HTML
+	siteName    string
+	head        template.HTML
+	searchQuery string
 }
 
 type viewData interface {
@@ -109,6 +110,11 @@ type viewData interface {
 	Authorized() bool
 	Fill(dataCommon)
 	Head() template.HTML
+	SearchQuery() string
+}
+
+func (c *dataCommon) SearchQuery() string {
+	return c.searchQuery
 }
 
 func (c *dataCommon) SiteTitleHTML() template.HTML {

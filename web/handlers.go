@@ -62,9 +62,11 @@ type dataSearch struct {
 func handlerSearch(w http.ResponseWriter, rq *http.Request) {
 	query := rq.FormValue("q")
 	auth := auth.AuthorizedFromRequest(rq)
+	common := emptyCommon()
+	common.searchQuery = query
 	log.Printf("Searching ‘%s’. Authorized: %v\n", query, auth)
 	templateExec(w, templateSearch, dataSearch{
-		dataCommon: emptyCommon(),
+		dataCommon: common,
 		Query:      query,
 		Posts:      search.For(query, auth),
 	}, rq)

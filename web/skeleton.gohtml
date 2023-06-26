@@ -21,7 +21,7 @@
 <nav class="misc">
 	<h2>Actions</h2>
 	<form class="search-form" action="/search" method="get">
-		<input type="text" aria-label="Search query" placeholder="Search query" name="q">
+		<input type="text" aria-label="Search query" placeholder="Search query" name="q" value="{{.SearchQuery}}">
 	</form>
 	<ul>
         {{if .Authorized}}<li><a href="/save-link" accesskey="s">Save link</a></li>{{end}}
