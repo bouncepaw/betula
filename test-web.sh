@@ -160,3 +160,38 @@ Test 'Save link: headless title'
 ExpectStatus 303
 Post '/save-link' -F url=https://bouncepaw.com/edge-case/headless-title -F title=
 Check
+
+# Prepopulate some links for search testing
+Post '/save-link' -F url=gemini://kotobank.ch/~merlin -F title=Merlin -F tags=site,garden
+Post '/save-link' -F url=https://garden.bouncepaw.com -F tags=garden,me
+Post '/save-link' -F url=https://bouncepaw.com -F tags=me,site
+
+Test 'Empty search'
+ExpectStatus 303
+ExpectContent "Location: /"
+Get '/search?q='
+Check
+
+Test 'Existing tag search'
+ExpectStatus 303
+ExpectContent "Location: /tag/site"
+Get '/search?q=%23site'
+Check
+
+Test 'Non-existent tag search'
+ExpectStatus 303
+ExpectContent "Location: /tag/wahoo"
+Get '/search?q=%23wahoo'
+Check
+
+Test 'Search for some text'
+ExpectStatus 200
+ExpectContent "1</span>"
+Get "/search?q=Merlin"
+Check
+
+Test 'Tag search'
+ExpectStatus 200
+ExpectContent "1</span>"
+Get "/search?q=%23me%20-%23garden"
+Check

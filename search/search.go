@@ -7,8 +7,8 @@ import (
 )
 
 // TODO: Exclude more characters
-var excludeTagRe = regexp.MustCompile(`-#([^\s]+)\s*`)
-var includeTagRe = regexp.MustCompile(`#([^\s]+)\s*`)
+var excludeTagRe = regexp.MustCompile(`-#([^?!:#@<>*|'"&%{}\\\s]+)\s*`)
+var includeTagRe = regexp.MustCompile(`#([^?!:#@<>*|'"&%{}\\\s]+)\s*`)
 
 // For searches For the given query.
 func For(query string, authorized bool) []types.Post {

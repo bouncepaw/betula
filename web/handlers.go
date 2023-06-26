@@ -59,8 +59,20 @@ type dataSearch struct {
 	Posts []types.Post
 }
 
+var tagOnly = regexp.MustCompile(`^#([^?!:#@<>*|'"&%{}\\\s]+)\s*$`)
+
 func handlerSearch(w http.ResponseWriter, rq *http.Request) {
 	query := rq.FormValue("q")
+	if query == "" {
+		http.Redirect(w, rq, "/", http.StatusSeeOther)
+		return
+	}
+	if tagOnly.MatchString(query) {
+		tag := tagOnly.FindAllStringSubmatch(query, 1)[0][1]
+		http.Redirect(w, rq, "/tag/"+tag, http.StatusSeeOther)
+		return
+	}
+
 	auth := auth.AuthorizedFromRequest(rq)
 	common := emptyCommon()
 	common.searchQuery = query
