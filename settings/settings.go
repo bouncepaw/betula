@@ -17,6 +17,7 @@ type Uintport uint
 type NullInt64Port sql.NullInt64
 
 const biggestPort = 65535
+const defaultBetulaPort = 1738
 
 var cache types.Settings
 
@@ -27,8 +28,8 @@ func (port Uintport) ValidatePort() uint {
 	if port > 0 && port <= biggestPort {
 		return uint(port)
 	} else {
-		log.Printf("An invalid network port is provided: %d. Using 1738 instead.\n", port)
-		return 1738
+		log.Printf("An invalid network port is provided: %d. Using %d instead.\n", port, defaultBetulaPort)
+		return defaultBetulaPort
 	}
 }
 
@@ -36,10 +37,10 @@ func (port NullInt64Port) ValidatePort() uint {
 	if port.Valid && port.Int64 > 0 && port.Int64 <= biggestPort {
 		return uint(port.Int64)
 	} else if port.Valid && db.PostCount(true) > 0 {
-		log.Printf("An invalid network port is provided: %d. Using 1738 instead.\n", port.Int64)
-		return 1738
+		log.Printf("An invalid network port is provided: %d. Using %d instead.\n", port.Int64, defaultBetulaPort)
+		return defaultBetulaPort
 	} else {
-		return 1738
+		return defaultBetulaPort
 	}
 }
 
