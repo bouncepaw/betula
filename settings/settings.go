@@ -13,41 +13,39 @@ import (
 	"net/url"
 )
 
-type Uintport uint
-type NullInt64Port sql.NullInt64
-
 const biggestPort = 65535
-const defaultBetulaPort = 1738
+const defaultPort = 1738
 
 var cache types.Settings
 
 // Those that did not fit in cache go in their own variables below. Handle with thought.
 var cacheSiteDescription template.HTML
 
-func (port Uintport) ValidatePort() uint {
-	if port > 0 && port <= biggestPort {
-		return uint(port)
-	} else {
-		log.Printf("An invalid network port is provided: %d. Using %d instead.\n", port, defaultBetulaPort)
-		return defaultBetulaPort
-	}
-}
-
-func (port NullInt64Port) ValidatePort() uint {
+// If the port is ok, return it. Otherwise, return the default port.
+func validatePortFromDB(port sql.NullInt64) uint {
 	if port.Valid && port.Int64 > 0 && port.Int64 <= biggestPort {
 		return uint(port.Int64)
-	} else if port.Valid && db.PostCount(true) > 0 {
-		log.Printf("An invalid network port is provided: %d. Using %d instead.\n", port.Int64, defaultBetulaPort)
-		return defaultBetulaPort
-	} else {
-		return defaultBetulaPort
 	}
+
+	if port.Valid && db.PostCount(true) > 0 {
+		log.Printf("An invalid network port is provided: %d. Using %d instead.\n", port.Int64, defaultPort)
+	}
+
+	return defaultPort
+}
+
+func ValidatePortFromWeb[N ~int | uint](port N) uint {
+	if port <= 0 || port > biggestPort {
+		log.Printf("An invalid network port is provided: %d. Using %d instead.\n", port, defaultPort)
+		return defaultPort
+	}
+	return uint(port)
 }
 
 // Index reads all settings from the db.
 func Index() {
-	networkPort := db.MetaEntry[sql.NullInt64](db.BetulaMetaNetworkPort)
-	cache.NetworkPort = NullInt64Port(networkPort).ValidatePort()
+	unvalidatedNetworkPort := db.MetaEntry[sql.NullInt64](db.BetulaMetaNetworkPort)
+	cache.NetworkPort = validatePortFromDB(unvalidatedNetworkPort)
 
 	siteName := db.MetaEntry[sql.NullString](db.BetulaMetaSiteName)
 	if siteName.Valid && siteName.String != "" {
@@ -96,7 +94,7 @@ func SetSettings(settings types.Settings) {
 	if settings.SiteName == "" {
 		settings.SiteName = "Betula"
 	}
-	db.SetMetaEntry(db.BetulaMetaNetworkPort, settings.NetworkPort)
+	db.SetMetaEntry(db.BetulaMetaNetworkPort, ValidatePortFromWeb(settings.NetworkPort))
 	db.SetMetaEntry(db.BetulaMetaSiteName, settings.SiteName)
 	db.SetMetaEntry(db.BetulaMetaSiteTitle, string(settings.SiteTitle))
 	db.SetMetaEntry(db.BetulaMetaSiteDescription, settings.SiteDescriptionMycomarkup)
@@ -104,10 +102,6 @@ func SetSettings(settings types.Settings) {
 	Index()
 }
 
-func (port Uintport) SetNetworkPort() {
-	db.SetMetaEntry(db.BetulaMetaNetworkPort, port.ValidatePort())
-}
-
-func (port NullInt64Port) SetNetworkPort() {
-	db.SetMetaEntry(db.BetulaMetaNetworkPort, port.ValidatePort())
+func WritePort(port uint) { // port must != 0
+	db.SetMetaEntry(db.BetulaMetaNetworkPort, port)
 }

@@ -36,13 +36,9 @@ func main() {
 	db.Initialize(filename)
 	defer db.Finalize()
 	auth.Initialize()
-	// If user didn't provide the port, check the port from database
-	if port == 0 {
-		dbPort := db.MetaEntry[uint](db.BetulaMetaNetworkPort)
-		settings.Uintport(dbPort).SetNetworkPort()
-	} else {
-		// Check the user provided port
-		settings.Uintport(port).SetNetworkPort()
+	// If the user provided a non-zero port, use it. Write it to the DB. It will be picked up later by settings.Index(). If they did not provide such a port, whatever, settings.Index() will figure something out 🙏
+	if port > 0 {
+		settings.WritePort(port)
 	}
 	settings.Index()
 	web.StartServer()

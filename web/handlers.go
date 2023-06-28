@@ -200,6 +200,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 		SiteURL:                   rq.FormValue("site-url"),
 	}
 
+	// If the port ≤ 0 or not really numeric, show error.
 	if port, err := strconv.Atoi(rq.FormValue("network-port")); err != nil || port <= 0 {
 		templateExec(w, templateSettings, dataSettings{
 			Settings: types.Settings{
@@ -212,8 +213,9 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 			ErrBadPort: true,
 			dataCommon: emptyCommon(),
 		}, rq)
+		return
 	} else {
-		newSettings.NetworkPort = settings.Uintport(port).ValidatePort()
+		newSettings.NetworkPort = settings.ValidatePortFromWeb(port)
 	}
 
 	oldPort := settings.NetworkPort()
