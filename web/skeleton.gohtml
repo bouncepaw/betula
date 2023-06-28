@@ -9,7 +9,7 @@
 </head>
 <body class="{{if .Authorized}}authorized{{else}}not-authorized{{end}}">
 <header>
-	<nav>
+	<nav class="horizontal-scroll-on-phone">
 		<h1>{{.SiteTitleHTML}}</h1>
 		<ul>
 			<li><a href="/">Bookmarks</a></li>
@@ -18,8 +18,8 @@
 		</ul>
 	</nav>
 </header>
-<nav class="misc">
-	<h2>Actions</h2>
+<nav class="misc horizontal-scroll-on-phone">
+	<h2 class="actions-heading">Actions</h2>
 	<form class="search-form" action="/search" method="get">
 		<input type="text" aria-label="Search query" placeholder="Search query" name="q" value="{{.SearchQuery}}">
 	</form>
