@@ -70,6 +70,12 @@ func Index() {
 		cacheSiteDescription = ""
 	}
 
+	// In most cases, you would need the sql.Null* types to handle
+	// the case when there is no entry for the setting. For this
+	// particular setting, we are perfectly fine with it just
+	// returning "" when it is not present.
+	cache.CustomCSS = db.MetaEntry[string](db.BetulaMetaCustomCSS)
+
 	siteURL := db.MetaEntry[sql.NullString](db.BetulaMetaSiteURL)
 	if !siteURL.Valid {
 		cache.SiteURL = fmt.Sprintf("http://localhost:%d", cache.NetworkPort)
@@ -89,6 +95,7 @@ func SiteName() string                   { return cache.SiteName }
 func SiteTitle() template.HTML           { return cache.SiteTitle }
 func SiteDescriptionHTML() template.HTML { return cacheSiteDescription }
 func SiteDescriptionMycomarkup() string  { return cache.SiteDescriptionMycomarkup }
+func CustomCSS() string                  { return cache.CustomCSS }
 
 func SetSettings(settings types.Settings) {
 	if settings.SiteName == "" {
@@ -99,6 +106,7 @@ func SetSettings(settings types.Settings) {
 	db.SetMetaEntry(db.BetulaMetaSiteTitle, string(settings.SiteTitle))
 	db.SetMetaEntry(db.BetulaMetaSiteDescription, settings.SiteDescriptionMycomarkup)
 	db.SetMetaEntry(db.BetulaMetaSiteURL, settings.SiteURL)
+	db.SetMetaEntry(db.BetulaMetaCustomCSS, settings.CustomCSS)
 	Index()
 }
 

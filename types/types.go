@@ -89,6 +89,7 @@ type Settings struct {
 	SiteTitle                 template.HTML
 	SiteDescriptionMycomarkup string
 	SiteURL                   string
+	CustomCSS                 string
 }
 
 // not really a type:

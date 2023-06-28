@@ -50,7 +50,30 @@ func init() {
 	mux.HandleFunc("/login", handlerLogin)
 	mux.HandleFunc("/logout", handlerLogout)
 	mux.HandleFunc("/settings", handlerSettings)
+	mux.HandleFunc("/static/style.css", handlerStyle)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerStyle(w http.ResponseWriter, rq *http.Request) {
+	w.Header().Set("Content-Type", "text/css; charset=utf-8")
+	file, err := fs.Open("style.css")
+	if err != nil {
+		// We sure have problems if we can't read something from the embedded fs.
+		log.Fatalln(fmt.Errorf("reading the built-in style: %w", err))
+	}
+
+	_, err = io.Copy(w, file)
+	if err != nil {
+		log.Fatalln(fmt.Errorf("writing to response: %w", err))
+	}
+
+	_, err = io.WriteString(w, settings.CustomCSS())
+	if err != nil {
+		log.Fatalln(fmt.Errorf("writing custom CSS: %w", err))
+	}
+
+	// Look at how detailed my error messages are! In a function that will
+	// basically never fail!
 }
 
 type dataSearch struct {
@@ -187,6 +210,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 				SiteURL:                   settings.SiteURL(),
 				SiteTitle:                 settings.SiteTitle(),
 				SiteDescriptionMycomarkup: settings.SiteDescriptionMycomarkup(),
+				CustomCSS:                 settings.CustomCSS(),
 			},
 			dataCommon: emptyCommon(),
 		}, rq)
@@ -198,18 +222,14 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 		SiteTitle:                 template.HTML(rq.FormValue("site-title")),
 		SiteDescriptionMycomarkup: rq.FormValue("site-description"),
 		SiteURL:                   rq.FormValue("site-url"),
+		CustomCSS:                 rq.FormValue("custom-css"),
 	}
 
 	// If the port ≤ 0 or not really numeric, show error.
 	if port, err := strconv.Atoi(rq.FormValue("network-port")); err != nil || port <= 0 {
+		newSettings.NetworkPort = uint(port)
 		templateExec(w, templateSettings, dataSettings{
-			Settings: types.Settings{
-				NetworkPort:               uint(port),
-				SiteName:                  rq.FormValue("site-name"),
-				SiteTitle:                 template.HTML(rq.FormValue("site-title")),
-				SiteDescriptionMycomarkup: rq.FormValue("site-description"),
-				SiteURL:                   rq.FormValue("site-url"),
-			},
+			Settings:   newSettings,
 			ErrBadPort: true,
 			dataCommon: emptyCommon(),
 		}, rq)

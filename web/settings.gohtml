@@ -38,6 +38,8 @@
 					</p>
 				</div>
 
+				<h3>Advanced</h3>
+
 				<div>
 					<label for="network-port">⚠️ Port</label>
                     {{if .ErrBadPort}}
@@ -53,6 +55,15 @@
 						Betula will start working on the new port after saving settings.
 						Make sure you know what you are doing.</p>
 				</div>
+
+				<div>
+					<label for="custom-css">Custom CSS</label>
+					<textarea id="custom-css" name="custom-css" placeholder="p { color: red }">{{.CustomCSS}}</textarea>
+					<p class="input-caption">
+						This stylesheet will be served right after the original Betula stylesheet.
+					</p>
+				</div>
+
 				<input type="submit" class="btn" value="Save">
 			</form>
 		</article>
