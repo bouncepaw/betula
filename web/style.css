@@ -104,6 +104,22 @@ footer {
 }
 
 /* Design */
+.paginator {
+    margin-top: .5rem;
+    background: white;
+    padding: .5rem;
+
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.paginator-entry {
+    padding: .5rem;
+    margin-right: 1rem;
+}
+
 .misc form {
     margin: 8px;
     margin-left: 5px;

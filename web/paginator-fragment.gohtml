@@ -2,9 +2,9 @@
 	<div class="paginator">
 		{{range .Pages}}
 			{{if .IsCurrent}}
-				<b>{{.Number}}</b>
+				<b class="paginator-entry">{{.Number}}</b>
 			{{else}}
-				<a href="{{.URL}}"{{if .IsNext}} rel="next"{{else if .IsPrev}} rel="prev"{{end}}>{{.Number}}</a> <!-- TODO: rel=prev rel=next-->
+				<a class="paginator-entry" href="{{.URL}}"{{if .IsNext}} rel="next"{{else if .IsPrev}} rel="prev"{{end}}>{{.Number}}</a>
 			{{end}}
 		{{end}}
 	</div>
