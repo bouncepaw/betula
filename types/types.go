@@ -2,8 +2,10 @@
 package types
 
 import (
+	"fmt"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/util"
 	"html/template"
+	"net/url"
 	"strings"
 )
 
@@ -92,6 +94,33 @@ type Settings struct {
 	CustomCSS                 string
 }
 
+type Page struct {
+	Number    uint
+	URL       string
+	IsCurrent bool
+}
+
+func PagesFromURL(url *url.URL, currentPage uint, totalPosts uint) (pages []Page) {
+	totalPages := uint(totalPosts/PostsPerPage) + 1
+	values := url.Query()
+	pages = make([]Page, totalPages)
+
+	var i uint = 0
+	for ; i < totalPages; i++ {
+		page := i + 1
+		values.Set("page", fmt.Sprintf("%d", page))
+		url.RawQuery = values.Encode()
+
+		pages[i] = Page{
+			Number:    page,
+			URL:       url.String(),
+			IsCurrent: currentPage == page,
+		}
+	}
+
+	return pages
+}
+
 // not really a type:
 
 const TimeLayout = "2006-01-02 15:04:05"
@@ -103,3 +132,7 @@ func StripCommonProtocol(a string) string {
 	d := strings.TrimSuffix(c, "/")
 	return d
 }
+
+const (
+	PostsPerPage uint = 64
+)

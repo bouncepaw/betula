@@ -807,6 +807,7 @@ func handlerPostLast(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataFeed struct {
+	TotalPosts      uint
 	AllPosts        []types.Post
 	SiteDescription template.HTML
 	*dataCommon
@@ -829,8 +830,19 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	<link rel="alternate" type="application/rss+xml" title="Daily digest (recommended)" href="/digest-rss">
 	<link rel="alternate" type="application/rss+xml" title="Individual posts" href="/posts-rss">
 `
+	var currentPage uint
+	if page, err := strconv.Atoi(rq.FormValue("page")); err != nil || page == 0 {
+		currentPage = 1
+	} else {
+		currentPage = uint(page)
+	}
+
+	posts, totalPosts := db.Posts(authed, currentPage)
+	common.pages = types.PagesFromURL(rq.URL, currentPage, totalPosts)
+
 	templateExec(w, templateFeed, dataFeed{
-		AllPosts:        db.Posts(authed),
+		TotalPosts:      totalPosts,
+		AllPosts:        posts,
 		SiteDescription: settings.SiteDescriptionHTML(),
 		dataCommon:      common,
 	}, rq)

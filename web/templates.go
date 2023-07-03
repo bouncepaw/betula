@@ -17,8 +17,8 @@ HTML pages in Betula all have a common template, a skeleton, which is
 stored in skeleton.gohtml. It expects several templates to be defines
 beforehand. They include:
 
-    * title, which is the <title> of the page.
-    * body, which is the main part of the page, usually <main> and
+    * title, which is the <title> of the currentPage.
+    * body, which is the main part of the currentPage, usually <main> and
       its contents.
 
 For every view, a corresponding .gohtml and the skeleton are parsed
@@ -27,6 +27,9 @@ and running them, as well as all such templates.
 */
 
 func templateFrom(funcMap template.FuncMap, filenames ...string) *template.Template {
+	for i, filename := range filenames {
+		filenames[i] = filename + ".gohtml"
+	}
 	filenames = append(filenames, "skeleton.gohtml")
 	return template.Must(template.New("skeleton.gohtml").Funcs(funcMap).ParseFS(fs, filenames...))
 }
@@ -45,26 +48,26 @@ func templateExec(w http.ResponseWriter, temp *template.Template, data viewData,
 }
 
 // Auth views:
-var templateRegisterForm = templateFrom(nil, "register-form.gohtml")
-var templateLoginForm = templateFrom(nil, "login-form.gohtml")
-var templateLogoutForm = templateFrom(nil, "logout-form.gohtml")
-var templateSettings = templateFrom(nil, "settings.gohtml")
+var templateRegisterForm = templateFrom(nil, "register-form")
+var templateLoginForm = templateFrom(nil, "login-form")
+var templateLogoutForm = templateFrom(nil, "logout-form")
+var templateSettings = templateFrom(nil, "settings")
 
 // Sad views:
-var templateStatus = templateFrom(nil, "status.gohtml")
+var templateStatus = templateFrom(nil, "status")
 
 // Meaningful views:
-var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment.gohtml", "save-link.gohtml", "submit-another.gohtml")
-var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment.gohtml", "edit-link.gohtml")
-var templatePost = templateFrom(funcMapForPosts, "post-fragment.gohtml", "post.gohtml")
-var templateFeed = templateFrom(funcMapForPosts, "post-fragment.gohtml", "feed.gohtml")
-var templateTags = templateFrom(nil, "tags.gohtml")
-var templateTag = templateFrom(funcMapForPosts, "post-fragment.gohtml", "tag.gohtml")
-var templateDay = templateFrom(funcMapForPosts, "post-fragment.gohtml", "day.gohtml")
-var templateSearch = templateFrom(funcMapForPosts, "post-fragment.gohtml", "search.gohtml")
-var templateEditTag = templateFrom(funcMapForForm, "edit-tag.gohtml")
+var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment", "save-link", "submit-another")
+var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment", "edit-link")
+var templatePost = templateFrom(funcMapForPosts, "post-fragment", "post")
+var templateFeed = templateFrom(funcMapForPosts, "paginator-fragment", "post-fragment", "feed")
+var templateTags = templateFrom(nil, "tags")
+var templateTag = templateFrom(funcMapForPosts, "post-fragment", "tag")
+var templateDay = templateFrom(funcMapForPosts, "post-fragment", "day")
+var templateSearch = templateFrom(funcMapForPosts, "post-fragment", "search")
+var templateEditTag = templateFrom(funcMapForForm, "edit-tag")
 
-var templateAbout = templateFrom(funcMapForTime, "about.gohtml")
+var templateAbout = templateFrom(funcMapForTime, "about")
 
 var funcMapForPosts = template.FuncMap{
 	"randomGlobe": func() string {
@@ -83,6 +86,13 @@ var funcMapForPosts = template.FuncMap{
 	"timestampToDayStamp": func(stamp string) string {
 		// len("2000-00-00") == 10
 		return stamp[:10] // Pray 🙏
+	},
+	// When advertising Go to fellow programmers, never show this function.
+	"inc": func(a uint) uint {
+		return a + 1
+	},
+	"dec": func(a uint) uint {
+		return a - 1
 	},
 }
 
@@ -103,6 +113,8 @@ type dataCommon struct {
 	siteName    string
 	head        template.HTML
 	searchQuery string
+
+	pages []types.Page
 }
 
 type viewData interface {
@@ -111,6 +123,7 @@ type viewData interface {
 	Fill(dataCommon)
 	Head() template.HTML
 	SearchQuery() string
+	Pages() []types.Page
 }
 
 func (c *dataCommon) SearchQuery() string {
@@ -131,6 +144,10 @@ func (c *dataCommon) Authorized() bool {
 
 func (c *dataCommon) Head() template.HTML {
 	return c.head
+}
+
+func (c *dataCommon) Pages() []types.Page {
+	return c.pages
 }
 
 func (c *dataCommon) Fill(C dataCommon) {

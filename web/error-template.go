@@ -11,7 +11,7 @@ type errorTemplate interface {
 	titleNotFound(post types.Post, data *dataCommon, w http.ResponseWriter, rq *http.Request)
 }
 
-/* Error templates for edit link page */
+/* Error templates for edit link currentPage */
 
 func (d dataEditLink) emptyUrl(post types.Post, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
@@ -40,7 +40,7 @@ func (d dataEditLink) titleNotFound(post types.Post, data *dataCommon, w http.Re
 	}, rq)
 }
 
-/* Error templates for save link page */
+/* Error templates for save link currentPage */
 
 func (d dataSaveLink) emptyUrl(post types.Post, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)

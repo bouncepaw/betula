@@ -60,14 +60,26 @@ order by
 }
 
 // Posts returns all posts stored in the database, along with their tags, but only if the viewer is authorized! Otherwise, only public posts will be given.
-func Posts(authorized bool) (posts []types.Post) {
+func Posts(authorized bool, page uint) (posts []types.Post, totalPosts uint) {
+	if page == 0 {
+		panic("page 0 makes no sense")
+	}
+
+	totalPosts = querySingleValue[uint](`
+select count(ID)
+from Posts
+where DeletionTime is null;
+`, types.PostsPerPage)
+
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime
 from Posts
 where DeletionTime is null
-order by CreationTime desc;
+order by CreationTime desc
+limit ?
+offset (? * (? - 1));
 `
-	rows := mustQuery(q)
+	rows := mustQuery(q, types.PostsPerPage, types.PostsPerPage, page)
 
 	for rows.Next() {
 		var post types.Post
@@ -81,7 +93,7 @@ order by CreationTime desc;
 		post.Tags = TagsForPost(post.ID)
 		posts[i] = post
 	}
-	return posts
+	return posts, totalPosts
 }
 
 func HasPost(id int) (has bool) {

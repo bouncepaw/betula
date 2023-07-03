@@ -1,0 +1,11 @@
+{{define "paginator"}}
+	<div class="paginator">
+		{{range .Pages}}
+			{{if .IsCurrent}}
+				<b>{{.Number}}</b>
+			{{else}}
+				<a href="{{.URL}}">{{.Number}}</a> <!-- TODO: rel=prev rel=next-->
+			{{end}}
+		{{end}}
+	</div>
+{{end}}
