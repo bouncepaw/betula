@@ -13,7 +13,7 @@ import (
 )
 
 /*
-HTML pages in Betula all have a common template, a skeleton, which is
+HTML paginator in Betula all have a common template, a skeleton, which is
 stored in skeleton.gohtml. It expects several templates to be defines
 beforehand. They include:
 
@@ -61,10 +61,10 @@ var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment", "save-
 var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment", "edit-link")
 var templatePost = templateFrom(funcMapForPosts, "post-fragment", "post")
 var templateFeed = templateFrom(funcMapForPosts, "paginator-fragment", "post-fragment", "feed")
+var templateSearch = templateFrom(funcMapForPosts, "paginator-fragment", "post-fragment", "search")
+var templateTag = templateFrom(funcMapForPosts, "paginator-fragment", "post-fragment", "tag")
 var templateTags = templateFrom(nil, "tags")
-var templateTag = templateFrom(funcMapForPosts, "post-fragment", "tag")
 var templateDay = templateFrom(funcMapForPosts, "post-fragment", "day")
-var templateSearch = templateFrom(funcMapForPosts, "post-fragment", "search")
 var templateEditTag = templateFrom(funcMapForForm, "edit-tag")
 
 var templateAbout = templateFrom(funcMapForTime, "about")
@@ -87,13 +87,6 @@ var funcMapForPosts = template.FuncMap{
 		// len("2000-00-00") == 10
 		return stamp[:10] // Pray 🙏
 	},
-	// When advertising Go to fellow programmers, never show this function.
-	"inc": func(a uint) uint {
-		return a + 1
-	},
-	"dec": func(a uint) uint {
-		return a - 1
-	},
 }
 
 var funcMapForForm = template.FuncMap{
@@ -114,7 +107,7 @@ type dataCommon struct {
 	head        template.HTML
 	searchQuery string
 
-	pages []types.Page
+	paginator []types.Page
 }
 
 type viewData interface {
@@ -147,7 +140,7 @@ func (c *dataCommon) Head() template.HTML {
 }
 
 func (c *dataCommon) Pages() []types.Page {
-	return c.pages
+	return c.paginator
 }
 
 func (c *dataCommon) Fill(C dataCommon) {

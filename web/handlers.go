@@ -78,8 +78,9 @@ func handlerStyle(w http.ResponseWriter, rq *http.Request) {
 
 type dataSearch struct {
 	*dataCommon
-	Query string
-	Posts []types.Post
+	Query       string
+	TotalPosts  uint
+	PostsInPage []types.Post
 }
 
 var tagOnly = regexp.MustCompile(`^#([^?!:#@<>*|'"&%{}\\\s]+)\s*$`)
@@ -95,15 +96,22 @@ func handlerSearch(w http.ResponseWriter, rq *http.Request) {
 		http.Redirect(w, rq, "/tag/"+tag, http.StatusSeeOther)
 		return
 	}
-
 	authed := auth.AuthorizedFromRequest(rq)
+	currentPage, err := strconv.Atoi(rq.FormValue("page"))
+	if err != nil || currentPage <= 0 {
+		currentPage = 1
+	}
+	posts, totalPosts := search.For(query, authed, uint(currentPage))
+
 	common := emptyCommon()
+	common.paginator = types.PaginatorFromURL(rq.URL, uint(currentPage), totalPosts)
 	common.searchQuery = query
 	log.Printf("Searching ‘%s’. Authorized: %v\n", query, authed)
 	templateExec(w, templateSearch, dataSearch{
-		dataCommon: common,
-		Query:      query,
-		Posts:      search.For(query, authed),
+		dataCommon:  common,
+		Query:       query,
+		PostsInPage: posts,
+		TotalPosts:  totalPosts,
 	}, rq)
 }
 
@@ -385,7 +393,8 @@ func handlerTags(w http.ResponseWriter, rq *http.Request) {
 type dataTag struct {
 	*dataCommon
 	types.Tag
-	PostsInTag []types.Post
+	TotalPosts  uint
+	PostsInPage []types.Post
 }
 
 func handlerTag(w http.ResponseWriter, rq *http.Request) {
@@ -394,16 +403,25 @@ func handlerTag(w http.ResponseWriter, rq *http.Request) {
 		handlerTags(w, rq)
 		return
 	}
+	currentPage, err := strconv.Atoi(rq.FormValue("page"))
+	if err != nil || currentPage <= 0 {
+		currentPage = 1
+	}
+	authed := auth.AuthorizedFromRequest(rq)
+
+	posts, totalPosts := db.PostsWithTag(authed, tagName, uint(currentPage))
+
 	common := emptyCommon()
 	common.searchQuery = "#" + tagName
-	authed := auth.AuthorizedFromRequest(rq)
+	common.paginator = types.PaginatorFromURL(rq.URL, uint(currentPage), totalPosts)
 	templateExec(w, templateTag, dataTag{
 		Tag: types.Tag{
 			Name:        tagName,
 			Description: db.DescriptionForTag(tagName),
 		},
-		PostsInTag: db.PostsWithTag(authed, tagName),
-		dataCommon: common,
+		PostsInPage: posts,
+		TotalPosts:  totalPosts,
+		dataCommon:  common,
 	}, rq)
 }
 
@@ -838,7 +856,7 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	posts, totalPosts := db.Posts(authed, currentPage)
-	common.pages = types.PagesFromURL(rq.URL, currentPage, totalPosts)
+	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
 
 	templateExec(w, templateFeed, dataFeed{
 		TotalPosts:      totalPosts,

@@ -102,7 +102,7 @@ type Page struct {
 	IsNext    bool
 }
 
-func PagesFromURL(url *url.URL, currentPage uint, totalPosts uint) (pages []Page) {
+func PaginatorFromURL(url *url.URL, currentPage uint, totalPosts uint) (pages []Page) {
 	totalPages := uint(totalPosts/PostsPerPage) + 1
 	values := url.Query()
 	pages = make([]Page, totalPages)

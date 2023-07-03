@@ -141,7 +141,7 @@ order by TagName;
 	return tags
 }
 
-func Search(text string, includedTags []string, excludedTags []string, authorized bool) (posts []types.Post) {
+func Search(text string, includedTags []string, excludedTags []string, authorized bool, page uint) (posts []types.Post, totalPosts uint) {
 	sort.Strings(includedTags)
 	sort.Strings(excludedTags)
 
@@ -151,7 +151,7 @@ from Posts
 where DeletionTime is null and (Visibility = 1 or ?) and (
 	Title like ? or URL like ? or Description like ?
 )
-order by CreationTime desc;
+order by CreationTime desc
 `
 	text = fmt.Sprintf("%%%s%%", text)
 	rows := mustQuery(q, authorized, text, text, text)
@@ -163,16 +163,26 @@ order by CreationTime desc;
 		unfilteredPosts = append(unfilteredPosts, post)
 	}
 
+	var i uint = 0
+	var ignoredPosts uint = 0
+	postsToBeIgnored := (page - 1) * types.PostsPerPage
+
 	// ‘Say, Bouncepaw, why did not you implement tag inclusion/exclusion
 	//  part in SQL directly?’, some may ask.
 	// ‘I did, and it was not worth it’, so I would respond.
 	for _, post := range unfilteredPosts {
 		post.Tags = TagsForPost(post.ID)
 		if keepForSearch(post.Tags, includedTags, excludedTags) {
-			posts = append(posts, post)
+			totalPosts++
+			if ignoredPosts >= postsToBeIgnored && i < types.PostsPerPage {
+				posts = append(posts, post)
+				i++
+			} else {
+				ignoredPosts++
+			}
 		}
 	}
-	return posts
+	return posts, totalPosts
 }
 
 // true if keep, false if discard. All slices are sorted.

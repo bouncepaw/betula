@@ -2,10 +2,10 @@
 {{define "body"}}{{$authed := .Authorized}}
 <main class="h-feed">
 	<article>
-		<h2 class="p-name">Search: {{.Query}}</h2>{{$cnt := len .Posts}}
-		<p><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s{{end}} match the query.</p>
+		<h2 class="p-name">Search: {{.Query}}</h2>
+		<p><span class="mv-count">{{.TotalPosts}}</span> bookmark{{if ne .TotalPosts 1}}s{{end}} match the query.</p>
 	</article>
-    {{range .Posts}}
+    {{range .PostsInPage}}
 		<article class="h-entry">
             {{if $authed}}
                 {{template "post buttons fragment" .}}
@@ -14,5 +14,6 @@
             {{template "post main fragment" .}}
 		</article>
     {{end}}
+	{{template "paginator" .}}
 </main>
 {{end}}

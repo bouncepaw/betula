@@ -30,7 +30,18 @@ order by
 	return posts
 }
 
-func PostsWithTag(authorized bool, tagName string) (posts []types.Post) {
+func PostsWithTag(authorized bool, tagName string, page uint) (posts []types.Post, totalPosts uint) {
+	totalPosts = querySingleValue[uint](`
+select
+	count(ID)
+from
+	Posts
+inner join
+	TagsToPosts
+where
+	ID = PostID and TagName = ? and DeletionTime is null and (Visibility = 1 or ?)
+`, tagName, authorized)
+
 	const q = `
 select
 	ID, URL, Title, Description, Visibility, CreationTime
@@ -39,24 +50,22 @@ from
 inner join
 	TagsToPosts
 where
-	ID = PostID and TagName = ? and DeletionTime is null
+	ID = PostID and TagName = ? and DeletionTime is null and (Visibility = 1 or ?)
 order by
-	CreationTime desc;
+	CreationTime desc
+limit ? offset ?;
 `
-	rows := mustQuery(q, tagName)
+	rows := mustQuery(q, tagName, authorized, types.PostsPerPage, types.PostsPerPage*(page-1))
 	for rows.Next() {
 		var post types.Post
 		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
-		if !authorized && post.Visibility == types.Private {
-			continue
-		}
 		posts = append(posts, post)
 	}
 	for i, post := range posts {
 		post.Tags = TagsForPost(post.ID)
 		posts[i] = post
 	}
-	return posts
+	return posts, totalPosts
 }
 
 // Posts returns all posts stored in the database, along with their tags, but only if the viewer is authorized! Otherwise, only public posts will be given.
