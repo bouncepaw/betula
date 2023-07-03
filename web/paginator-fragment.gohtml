@@ -4,7 +4,7 @@
 			{{if .IsCurrent}}
 				<b>{{.Number}}</b>
 			{{else}}
-				<a href="{{.URL}}">{{.Number}}</a> <!-- TODO: rel=prev rel=next-->
+				<a href="{{.URL}}"{{if .IsNext}} rel="next"{{else if .IsPrev}} rel="prev"{{end}}>{{.Number}}</a> <!-- TODO: rel=prev rel=next-->
 			{{end}}
 		{{end}}
 	</div>

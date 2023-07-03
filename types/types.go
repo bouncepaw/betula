@@ -98,6 +98,8 @@ type Page struct {
 	Number    uint
 	URL       string
 	IsCurrent bool
+	IsPrev    bool
+	IsNext    bool
 }
 
 func PagesFromURL(url *url.URL, currentPage uint, totalPosts uint) (pages []Page) {
@@ -115,6 +117,8 @@ func PagesFromURL(url *url.URL, currentPage uint, totalPosts uint) (pages []Page
 			Number:    page,
 			URL:       url.String(),
 			IsCurrent: currentPage == page,
+			IsPrev:    (currentPage - 1) == page,
+			IsNext:    (currentPage + 1) == page,
 		}
 	}
 
