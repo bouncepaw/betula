@@ -9,7 +9,7 @@
             {{end}}
 			{{if .SiteDescription}}<p class="p-summary">{{.SiteDescription}}</p>{{end}}
 		</article>
-        {{range .AllPosts}}
+        {{range .PostsInPage}}
 			<article class="h-entry">
                 {{if $authed}}
                     {{template "post buttons fragment" .}}

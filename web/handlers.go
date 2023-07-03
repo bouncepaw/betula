@@ -826,7 +826,7 @@ func handlerPostLast(w http.ResponseWriter, rq *http.Request) {
 
 type dataFeed struct {
 	TotalPosts      uint
-	AllPosts        []types.Post
+	PostsInPage     []types.Post
 	SiteDescription template.HTML
 	*dataCommon
 }
@@ -860,7 +860,7 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 
 	templateExec(w, templateFeed, dataFeed{
 		TotalPosts:      totalPosts,
-		AllPosts:        posts,
+		PostsInPage:     posts,
 		SiteDescription: settings.SiteDescriptionHTML(),
 		dataCommon:      common,
 	}, rq)
