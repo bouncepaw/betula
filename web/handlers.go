@@ -29,27 +29,40 @@ var (
 	mux = http.NewServeMux()
 )
 
+// Wrap handlers that only make sense for the admin with this thingy in init().
+func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, rq *http.Request) {
+		authed := auth.AuthorizedFromRequest(rq)
+		if !authed {
+			log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+			handlerUnauthorized(w, rq)
+			return
+		}
+		next(w, rq)
+	}
+}
+
 func init() {
 	mux.HandleFunc("/", handlerFeed)
 	mux.HandleFunc("/text/", handlerText)
 	mux.HandleFunc("/digest-rss", handlerDigestRss)
 	mux.HandleFunc("/posts-rss", handlerPostsRss)
-	mux.HandleFunc("/save-link", handlerSaveLink)
-	mux.HandleFunc("/edit-link/", handlerEditLink)
-	mux.HandleFunc("/delete-link/", handlerDeleteLink)
+	mux.HandleFunc("/save-link", adminOnly(handlerSaveLink))
+	mux.HandleFunc("/edit-link/", adminOnly(handlerEditLink))
+	mux.HandleFunc("/delete-link/", adminOnly(handlerDeleteLink))
 	mux.HandleFunc("/post/", handlerPost)
 	mux.HandleFunc("/last/", handlerPostLast)
 	mux.HandleFunc("/go/", handlerGo)
 	mux.HandleFunc("/about", handlerAbout)
 	mux.HandleFunc("/tag/", handlerTag)
-	mux.HandleFunc("/edit-tag/", handlerEditTag)
-	mux.HandleFunc("/delete-tag/", handlerDeleteTag)
+	mux.HandleFunc("/edit-tag/", adminOnly(handlerEditTag))
+	mux.HandleFunc("/delete-tag/", adminOnly(handlerDeleteTag))
 	mux.HandleFunc("/day/", handlerDay)
 	mux.HandleFunc("/search", handlerSearch)
 	mux.HandleFunc("/register", handlerRegister)
 	mux.HandleFunc("/login", handlerLogin)
 	mux.HandleFunc("/logout", handlerLogout)
-	mux.HandleFunc("/settings", handlerSettings)
+	mux.HandleFunc("/settings", adminOnly(handlerSettings))
 	mux.HandleFunc("/static/style.css", handlerStyle)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 }
@@ -203,13 +216,6 @@ type dataSettings struct {
 }
 
 func handlerSettings(w http.ResponseWriter, rq *http.Request) {
-	authed := auth.AuthorizedFromRequest(rq)
-	if !authed {
-		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-		handlerUnauthorized(w, rq)
-		return
-	}
-
 	if rq.Method == http.MethodGet {
 		templateExec(w, templateSettings, dataSettings{
 			Settings: types.Settings{
@@ -257,13 +263,6 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method != http.MethodPost {
 		handlerNotFound(w, rq)
-		return
-	}
-
-	authed := auth.AuthorizedFromRequest(rq)
-	if !authed {
-		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-		handlerUnauthorized(w, rq)
 		return
 	}
 
@@ -446,7 +445,7 @@ func handlerAbout(w http.ResponseWriter, rq *http.Request) {
 	}, rq)
 }
 
-func MixUpTitleLink(title *string, addr *string) {
+func mixUpTitleLink(title *string, addr *string) {
 	// If addr is a valid url we do not mix up
 	_, err := url.ParseRequestURI(*addr)
 	if err == nil {
@@ -501,13 +500,7 @@ type dataEditLink struct {
 }
 
 func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
-	var dataEditLinkInstance dataEditLink
-	authed := auth.AuthorizedFromRequest(rq)
-	if !authed {
-		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-		handlerUnauthorized(w, rq)
-		return
-	}
+	var viewData dataEditLink
 
 	common := emptyCommon()
 	common.head = `<script defer src="/static/autocompletion.js"></script>`
@@ -547,26 +540,26 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		post.Tags = types.SplitTags(rq.FormValue("tags"))
 
 		if post.URL == "" && post.Title == "" {
-			dataEditLinkInstance.emptyUrl(post, common, w, rq)
+			viewData.emptyUrl(post, common, w, rq)
 			return
 		}
 
-		MixUpTitleLink(&post.Title, &post.URL)
+		mixUpTitleLink(&post.Title, &post.URL)
 
 		if post.URL == "" {
-			dataEditLinkInstance.emptyUrl(post, common, w, rq)
+			viewData.emptyUrl(post, common, w, rq)
 			return
 		}
 
 		if post.Title == "" {
 			if _, err := url.ParseRequestURI(post.URL); err != nil {
-				dataEditLinkInstance.invalidUrl(post, common, w, rq)
+				viewData.invalidUrl(post, common, w, rq)
 				return
 			}
 			newTitle, err := getHtmlTitle(post.URL)
 			if err != nil {
 				log.Printf("Can't get HTML title from URL: %s\n", post.URL)
-				dataEditLinkInstance.titleNotFound(post, common, w, rq)
+				viewData.titleNotFound(post, common, w, rq)
 				return
 			}
 			post.Title = newTitle
@@ -574,7 +567,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 
 		if _, err := url.ParseRequestURI(post.URL); err != nil {
 			log.Printf("Invalid URL was passed, asking again: %s\n", post.URL)
-			dataEditLinkInstance.invalidUrl(post, common, w, rq)
+			viewData.invalidUrl(post, common, w, rq)
 			return
 		}
 
@@ -592,17 +585,11 @@ type dataEditTag struct {
 }
 
 func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
-	authed := auth.AuthorizedFromRequest(rq)
-	if !authed {
-		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-		handlerUnauthorized(w, rq)
-		return
-	}
-
-	var oldTag types.Tag
 	oldName := strings.TrimPrefix(rq.URL.Path, "/edit-tag/")
-	oldTag.Name = oldName
-	oldTag.Description = db.DescriptionForTag(oldName)
+	oldTag := types.Tag{
+		Name:        oldName,
+		Description: db.DescriptionForTag(oldName),
+	}
 
 	switch rq.Method {
 	case http.MethodGet:
@@ -626,7 +613,9 @@ func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
 				dataCommon:     emptyCommon(),
 			}, rq)
 			return
-		} else if !db.TagExists(oldTag.Name) {
+		}
+
+		if !db.TagExists(oldTag.Name) {
 			log.Printf("Trying to rename a non-existent tag %s.\n", oldTag.Name)
 			templateExec(w, templateEditTag, dataEditTag{
 				Tag:              oldTag,
@@ -634,17 +623,17 @@ func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
 				dataCommon:       emptyCommon(),
 			}, rq)
 			return
-		} else {
-			db.RenameTag(oldTag.Name, newTag.Name)
-			db.SetTagDescription(oldTag.Name, "")
-			db.SetTagDescription(newTag.Name, newTag.Description)
-			http.Redirect(w, rq, fmt.Sprintf("/tag/%s", newTag.Name), http.StatusSeeOther)
-			if oldTag.Name != newTag.Name {
-				log.Printf("Renamed tag %s to %s\n", oldTag.Name, newTag.Name)
-			}
-			if oldTag.Description != newTag.Description {
-				log.Printf("Set new description for tag %s\n", newTag.Name)
-			}
+		}
+
+		db.RenameTag(oldTag.Name, newTag.Name)
+		db.SetTagDescription(oldTag.Name, "")
+		db.SetTagDescription(newTag.Name, newTag.Description)
+		http.Redirect(w, rq, fmt.Sprintf("/tag/%s", newTag.Name), http.StatusSeeOther)
+		if oldTag.Name != newTag.Name {
+			log.Printf("Renamed tag %s to %s\n", oldTag.Name, newTag.Name)
+		}
+		if oldTag.Description != newTag.Description {
+			log.Printf("Set new description for tag %s\n", newTag.Name)
 		}
 	}
 }
@@ -652,13 +641,6 @@ func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
 func handlerDeleteTag(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method != http.MethodPost {
 		handlerNotFound(w, rq)
-		return
-	}
-
-	authed := auth.AuthorizedFromRequest(rq)
-	if !authed {
-		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-		handlerUnauthorized(w, rq)
 		return
 	}
 
@@ -697,11 +679,7 @@ type dataSaveLink struct {
 func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	var dataSaveLinkInstance dataSaveLink
 	var post types.Post
-	if !auth.AuthorizedFromRequest(rq) {
-		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-		handlerUnauthorized(w, rq)
-		return
-	}
+
 	common := emptyCommon()
 	common.head = `<script defer src="/static/autocompletion.js"></script>`
 	switch rq.Method {
@@ -728,7 +706,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 
-		MixUpTitleLink(&post.Title, &post.URL)
+		mixUpTitleLink(&post.Title, &post.URL)
 
 		if post.URL == "" {
 			dataSaveLinkInstance.emptyUrl(post, common, w, rq)
