@@ -261,7 +261,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
-	if rq.Method != http.MethodPost {
+	if rq.Method == http.MethodGet {
 		handlerNotFound(w, rq)
 		return
 	}
@@ -500,7 +500,6 @@ type dataEditLink struct {
 }
 
 func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
-	var viewData dataEditLink
 
 	common := emptyCommon()
 	common.head = `<script defer src="/static/autocompletion.js"></script>`
@@ -524,57 +523,59 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		handlerNotFound(w, rq)
 		return
 	}
-	post.Tags = db.TagsForPost(id)
 
-	switch rq.Method {
-	case http.MethodGet:
+	if rq.Method == http.MethodGet {
+		post.Tags = db.TagsForPost(id)
 		templateExec(w, templateEditLink, dataEditLink{
 			Post:       post,
 			dataCommon: common,
 		}, rq)
-	case http.MethodPost:
-		post.URL = rq.FormValue("url")
-		post.Title = rq.FormValue("title")
-		post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
-		post.Description = rq.FormValue("description")
-		post.Tags = types.SplitTags(rq.FormValue("tags"))
+		return
+	}
 
-		if post.URL == "" && post.Title == "" {
-			viewData.emptyUrl(post, common, w, rq)
-			return
-		}
+	post.URL = rq.FormValue("url")
+	post.Title = rq.FormValue("title")
+	post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
+	post.Description = rq.FormValue("description")
+	post.Tags = types.SplitTags(rq.FormValue("tags"))
 
-		mixUpTitleLink(&post.Title, &post.URL)
+	var viewData dataEditLink
 
-		if post.URL == "" {
-			viewData.emptyUrl(post, common, w, rq)
-			return
-		}
+	if post.URL == "" && post.Title == "" {
+		viewData.emptyUrl(post, common, w, rq)
+		return
+	}
 
-		if post.Title == "" {
-			if _, err := url.ParseRequestURI(post.URL); err != nil {
-				viewData.invalidUrl(post, common, w, rq)
-				return
-			}
-			newTitle, err := getHtmlTitle(post.URL)
-			if err != nil {
-				log.Printf("Can't get HTML title from URL: %s\n", post.URL)
-				viewData.titleNotFound(post, common, w, rq)
-				return
-			}
-			post.Title = newTitle
-		}
+	mixUpTitleLink(&post.Title, &post.URL)
 
+	if post.URL == "" {
+		viewData.emptyUrl(post, common, w, rq)
+		return
+	}
+
+	if post.Title == "" {
 		if _, err := url.ParseRequestURI(post.URL); err != nil {
-			log.Printf("Invalid URL was passed, asking again: %s\n", post.URL)
 			viewData.invalidUrl(post, common, w, rq)
 			return
 		}
-
-		db.EditPost(post)
-		http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
-		log.Printf("Edited post no. %d\n", id)
+		newTitle, err := getHtmlTitle(post.URL)
+		if err != nil {
+			log.Printf("Can't get HTML title from URL: %s\n", post.URL)
+			viewData.titleNotFound(post, common, w, rq)
+			return
+		}
+		post.Title = newTitle
 	}
+
+	if _, err := url.ParseRequestURI(post.URL); err != nil {
+		log.Printf("Invalid URL was passed, asking again: %s\n", post.URL)
+		viewData.invalidUrl(post, common, w, rq)
+		return
+	}
+
+	db.EditPost(post)
+	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
+	log.Printf("Edited post no. %d\n", id)
 }
 
 type dataEditTag struct {
@@ -591,55 +592,55 @@ func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
 		Description: db.DescriptionForTag(oldName),
 	}
 
-	switch rq.Method {
-	case http.MethodGet:
+	if rq.Method == http.MethodGet {
 		templateExec(w, templateEditTag, dataEditTag{
 			Tag:        oldTag,
 			dataCommon: emptyCommon(),
 		}, rq)
-	case http.MethodPost:
-		var newTag types.Tag
-		newName := types.CanonicalTagName(rq.FormValue("new-name"))
-		newTag.Name = newName
-		newTag.Description = strings.TrimSpace(rq.FormValue("description"))
+		return
+	}
 
-		merge := rq.FormValue("merge")
+	var newTag types.Tag
+	newName := types.CanonicalTagName(rq.FormValue("new-name"))
+	newTag.Name = newName
+	newTag.Description = strings.TrimSpace(rq.FormValue("description"))
 
-		if db.TagExists(newTag.Name) && merge != "true" && newTag.Name != oldTag.Name {
-			log.Printf("Trying to rename a tag %s to a taken name %s.\n", oldTag.Name, newTag.Name)
-			templateExec(w, templateEditTag, dataEditTag{
-				Tag:            oldTag,
-				ErrorTakenName: true,
-				dataCommon:     emptyCommon(),
-			}, rq)
-			return
-		}
+	merge := rq.FormValue("merge")
 
-		if !db.TagExists(oldTag.Name) {
-			log.Printf("Trying to rename a non-existent tag %s.\n", oldTag.Name)
-			templateExec(w, templateEditTag, dataEditTag{
-				Tag:              oldTag,
-				ErrorNonExistent: true,
-				dataCommon:       emptyCommon(),
-			}, rq)
-			return
-		}
+	if db.TagExists(newTag.Name) && merge != "true" && newTag.Name != oldTag.Name {
+		log.Printf("Trying to rename a tag %s to a taken name %s.\n", oldTag.Name, newTag.Name)
+		templateExec(w, templateEditTag, dataEditTag{
+			Tag:            oldTag,
+			ErrorTakenName: true,
+			dataCommon:     emptyCommon(),
+		}, rq)
+		return
+	}
 
-		db.RenameTag(oldTag.Name, newTag.Name)
-		db.SetTagDescription(oldTag.Name, "")
-		db.SetTagDescription(newTag.Name, newTag.Description)
-		http.Redirect(w, rq, fmt.Sprintf("/tag/%s", newTag.Name), http.StatusSeeOther)
-		if oldTag.Name != newTag.Name {
-			log.Printf("Renamed tag %s to %s\n", oldTag.Name, newTag.Name)
-		}
-		if oldTag.Description != newTag.Description {
-			log.Printf("Set new description for tag %s\n", newTag.Name)
-		}
+	if !db.TagExists(oldTag.Name) {
+		log.Printf("Trying to rename a non-existent tag %s.\n", oldTag.Name)
+		templateExec(w, templateEditTag, dataEditTag{
+			Tag:              oldTag,
+			ErrorNonExistent: true,
+			dataCommon:       emptyCommon(),
+		}, rq)
+		return
+	}
+
+	db.RenameTag(oldTag.Name, newTag.Name)
+	db.SetTagDescription(oldTag.Name, "")
+	db.SetTagDescription(newTag.Name, newTag.Description)
+	http.Redirect(w, rq, fmt.Sprintf("/tag/%s", newTag.Name), http.StatusSeeOther)
+	if oldTag.Name != newTag.Name {
+		log.Printf("Renamed tag %s to %s\n", oldTag.Name, newTag.Name)
+	}
+	if oldTag.Description != newTag.Description {
+		log.Printf("Set new description for tag %s\n", newTag.Name)
 	}
 }
 
 func handlerDeleteTag(w http.ResponseWriter, rq *http.Request) {
-	if rq.Method != http.MethodPost {
+	if rq.Method == http.MethodGet {
 		handlerNotFound(w, rq)
 		return
 	}
@@ -677,13 +678,13 @@ type dataSaveLink struct {
 }
 
 func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
-	var dataSaveLinkInstance dataSaveLink
+	var viewData dataSaveLink
 	var post types.Post
 
 	common := emptyCommon()
 	common.head = `<script defer src="/static/autocompletion.js"></script>`
-	switch rq.Method {
-	case http.MethodGet:
+
+	if rq.Method == http.MethodGet {
 		post.URL = rq.FormValue("url")
 		post.Title = rq.FormValue("title")
 		post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
@@ -694,59 +695,61 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			Post:       post,
 			dataCommon: common,
 		}, rq)
-	case http.MethodPost:
-		post.URL = rq.FormValue("url")
-		post.Title = rq.FormValue("title")
-		post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
-		post.Description = rq.FormValue("description")
-		post.Tags = types.SplitTags(rq.FormValue("tags"))
-
-		if post.URL == "" && post.Title == "" {
-			dataSaveLinkInstance.emptyUrl(post, common, w, rq)
-			return
-		}
-
-		mixUpTitleLink(&post.Title, &post.URL)
-
-		if post.URL == "" {
-			dataSaveLinkInstance.emptyUrl(post, common, w, rq)
-			return
-		}
-
-		if post.Title == "" {
-			if _, err := url.ParseRequestURI(post.URL); err != nil {
-				dataSaveLinkInstance.invalidUrl(post, common, w, rq)
-				return
-			}
-			newTitle, err := getHtmlTitle(post.URL)
-			if err != nil {
-				dataSaveLinkInstance.titleNotFound(post, common, w, rq)
-				return
-			}
-			post.Title = newTitle
-		}
-
-		if _, err := url.ParseRequestURI(post.URL); err != nil {
-			dataSaveLinkInstance.invalidUrl(post, common, w, rq)
-			return
-		}
-
-		id := db.AddPost(post)
-
-		another := rq.FormValue("another")
-		if another == "true" {
-			var anotherPost types.Post
-			anotherPost.Visibility = types.Public
-			templateExec(w, templateSaveLink, dataSaveLink{
-				dataCommon: common,
-				Post:       anotherPost,
-				Another:    true,
-			}, rq)
-			return
-		}
-
-		http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
+		return
 	}
+
+	post.URL = rq.FormValue("url")
+	post.Title = rq.FormValue("title")
+	post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
+	post.Description = rq.FormValue("description")
+	post.Tags = types.SplitTags(rq.FormValue("tags"))
+
+	if post.URL == "" && post.Title == "" {
+		viewData.emptyUrl(post, common, w, rq)
+		return
+	}
+
+	mixUpTitleLink(&post.Title, &post.URL)
+
+	if post.URL == "" {
+		viewData.emptyUrl(post, common, w, rq)
+		return
+	}
+
+	if post.Title == "" {
+		if _, err := url.ParseRequestURI(post.URL); err != nil {
+			viewData.invalidUrl(post, common, w, rq)
+			return
+		}
+		newTitle, err := getHtmlTitle(post.URL)
+		if err != nil {
+			viewData.titleNotFound(post, common, w, rq)
+			return
+		}
+		post.Title = newTitle
+	}
+
+	if _, err := url.ParseRequestURI(post.URL); err != nil {
+		viewData.invalidUrl(post, common, w, rq)
+		return
+	}
+
+	id := db.AddPost(post)
+
+	another := rq.FormValue("another")
+	if another == "true" {
+		var anotherPost types.Post
+		anotherPost.Visibility = types.Public
+		templateExec(w, templateSaveLink, dataSaveLink{
+			dataCommon: common,
+			Post:       anotherPost,
+			Another:    true,
+		}, rq)
+		return
+	}
+
+	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
+
 }
 
 type dataPost struct {

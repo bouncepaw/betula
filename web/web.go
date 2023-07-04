@@ -59,13 +59,28 @@ type dataAuthorized struct {
 }
 
 func (a *auther) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
-	if auth.Ready() ||
+	// Auth is OK if it is set up or the user wants to set it up or they request static data.
+	authOK := auth.Ready() ||
 		strings.HasPrefix(rq.URL.Path, "/static/") ||
-		strings.HasPrefix(rq.URL.Path, "/register") {
-		a.Handler.ServeHTTP(w, rq)
+		strings.HasPrefix(rq.URL.Path, "/register")
+
+	// We don't support anything else.
+	// A thought for a future Bouncepaw: maybe we should support HEAD?
+	allowedMethod := rq.Method == http.MethodGet || rq.Method == http.MethodPost
+
+	if !allowedMethod {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(
+			fmt.Sprintf("Method %s is not supported by this server. Use POST and GET.", rq.Method)))
 		return
 	}
-	templateExec(w, templateRegisterForm, dataAuthorized{
-		dataCommon: emptyCommon(),
-	}, rq)
+
+	if !authOK {
+		templateExec(w, templateRegisterForm, dataAuthorized{
+			dataCommon: emptyCommon(),
+		}, rq)
+		return
+	}
+
+	a.Handler.ServeHTTP(w, rq)
 }
