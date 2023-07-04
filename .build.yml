@@ -1,11 +1,14 @@
 image: alpine/edge
 packages:
   - go
+  - curl
 sources:
   - https://git.sr.ht/~bouncepaw/betula
 tasks:
-  - test: |
+  - test-go: |
       cd betula
       go test ./db
       go test ./feeds
-      # go test ./search ADD WHEN READY
+  - test-web: |
+      cd betula
+      sh test-web.sh
