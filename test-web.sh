@@ -165,6 +165,7 @@ Check
 Post '/save-link' -F url=gemini://kotobank.ch/~merlin -F title=Merlin -F tags=site,garden
 Post '/save-link' -F url=https://garden.bouncepaw.com -F tags=garden,me
 Post '/save-link' -F url=https://bouncepaw.com -F tags=me,site
+Post '/save-link' -F url=https://mycorrhiza.wiki -F title=Микориза
 
 Test 'Empty search'
 ExpectStatus 303
@@ -194,4 +195,10 @@ Test 'Tag search'
 ExpectStatus 200
 ExpectContent "1</span>"
 Get "/search?q=%23me%20-%23garden"
+Check
+
+Test 'Search case-insensitive non-ASCII'
+ExpectStatus 200
+ExpectContent "1</span>"
+Get '/search?q=микориза'
 Check
