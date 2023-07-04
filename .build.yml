@@ -12,3 +12,4 @@ tasks:
   - test-web: |
       cd betula
       sh test-web.sh
+      killall betula
