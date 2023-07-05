@@ -42,9 +42,6 @@
     .misc * {
         display: inline-block;
     }
-    .actions-heading {
-        display: none;
-    }
 }
 
 @media screen and (min-width: 40rem) {
@@ -59,15 +56,12 @@
     nav li {
         padding: 4px 8px;
     }
-    h1, .actions-heading {
+    h1 {
         margin: 8px;
     }
     main > article {
         max-width: 40rem;
         padding: 8px 16px;
-    }
-    .actions-heading {
-        display: none;
     }
 }
 
@@ -78,9 +72,6 @@
             "header main misc"
             "footer main misc";
         grid-column-gap: 8px;
-    }
-    .actions-heading {
-        display: block;
     }
 }
 
@@ -104,6 +95,16 @@ footer {
 }
 
 /* Design */
+main > * {
+    box-shadow: 0 4px 12px 0#0d234308;
+    border-radius: .5rem;
+}
+.u-url {
+    text-decoration: none;
+}
+.u-url:hover, .u-bookmark-of:hover {
+    text-decoration: underline;
+}
 .paginator {
     margin-top: .5rem;
     background: white;
@@ -268,7 +269,7 @@ h3 + *:not(p, .u-bookmark-of) {
     margin-top: 8px;
 }
 article + article {
-    margin-top: 1px;
+    margin-top: .5rem;
 }
 .about-post .p-category + .p-category {
     margin-left: .25rem;
@@ -292,7 +293,7 @@ pre {
 
 /* Colors */
 html {
-    background: rgb(242, 244, 247);
+    background: rgb(251, 251, 251);
     padding: 0;
 }
 main > article {
