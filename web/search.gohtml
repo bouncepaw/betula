@@ -7,17 +7,13 @@
 	</article>
     {{range .PostsInPage}}
 		<article class="h-entry">
-            {{if $authed}}
-                {{template "post buttons fragment" .}}
-            {{end}}
+            {{if $authed}}{{template "post buttons fragment" .}}{{end}}
 			<h3 class="p-name"><a class="u-url" href="/{{.ID}}">{{.Title}}</a></h3>
             {{template "post main fragment" .}}
 		</article>
-    {{else}}
-	    <article>
-		    Page not found. Choose a page from the paginator below.
-	    </article>
-    {{end}}
+    {{else}}{{if .TotalPosts}}
+	    <article>Page not found. Choose a page from the paginator below.</article>
+    {{end}}{{end}}
 	{{template "paginator" .}}
 </main>
 {{end}}

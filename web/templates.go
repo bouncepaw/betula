@@ -143,8 +143,8 @@ func (c *dataCommon) Pages() []types.Page {
 	return c.paginator
 }
 
-func (c *dataCommon) OnlyOnePage() bool {
-	return len(c.Pages()) == 1
+func (c *dataCommon) MultiplePages() bool {
+	return len(c.Pages()) > 1
 }
 
 func (c *dataCommon) Fill(C dataCommon) {
