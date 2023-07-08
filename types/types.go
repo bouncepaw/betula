@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/util"
 	"html/template"
+	"math"
 	"net/url"
 	"strings"
 )
@@ -102,8 +103,12 @@ type Page struct {
 	IsNext    bool
 }
 
+func countPages(totalPosts uint) uint {
+	return uint(math.Ceil(float64(totalPosts) / float64(PostsPerPage)))
+}
+
 func PaginatorFromURL(url *url.URL, currentPage uint, totalPosts uint) (pages []Page) {
-	totalPages := uint(totalPosts/PostsPerPage) + 1
+	totalPages := countPages(totalPosts)
 	values := url.Query()
 	pages = make([]Page, totalPages)
 
