@@ -296,6 +296,12 @@ pre {
     padding-left: 1rem;
     border-left: #999 2px solid;
 }
+.myco *:first-child {
+    margin-top: .25rem;
+}
+.myco *:last-child {
+    margin-bottom: .25rem;
+}
 
 /* Colors */
 html {
