@@ -63,6 +63,20 @@
         max-width: 40rem;
         padding: 8px 16px;
     }
+    .submit-another {
+        display: inline-block;
+        margin-left: 1rem;
+    }
+    .visibility-field input {
+        vertical-align: text-top;
+        margin-left: .5rem;
+    }
+    .visibility-field-title {
+        display: inline-block;
+    }
+    .tags-field {
+        margin-top: 0;
+    }
 }
 
 @media screen and (min-width: calc(40rem + 360px)) {
@@ -96,6 +110,9 @@ footer {
 }
 
 /* Design */
+.submit-another input {
+    margin-top: 1rem;
+}
 main > * {
     box-shadow: 0 4px 12px 0#0d234308;
     border-radius: .5rem;
@@ -247,6 +264,9 @@ textarea {
 }
 textarea:not(.one-row) {
     height: 100px;
+}
+#link-description {
+    height: 13rem;
 }
 .one-row {
     height: calc(1.5rem + 6px); /* 150% line-height + 2x 1px padding + 2x 2px border of a regular input*/

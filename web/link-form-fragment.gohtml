@@ -1,31 +1,27 @@
 {{define "form fragment"}}
 	<div>
 		<label for="link-url">URL</label>
-		<input type="text" id="link-url" name="url" value="{{.URL}}" autocomplete="off">
+		<input type="text" id="link-url" name="url" value="{{.URL}}" autocomplete="off" placeholder="https://example.org">
 	</div>
 	<div>
 		<label for="link-title">Title</label>
-		<input type="text" id="link-title" name="title" value="{{.Title}}" autocomplete="off">
+		<input type="text" id="link-title" name="title" value="{{.Title}}" autocomplete="off" placeholder="A cool website">
 	</div>
 	<div>
 		<label for="link-description">Description, quotes</label>
-		<textarea id="link-description" name="description" placeholder="Styling with Mycomarkup is supported">{{.Description}}</textarea>
+		<textarea id="link-description" name="description" placeholder="Styling with Mycomarkup is supported. **Bold**, //italic//, [[link]].">{{.Description}}</textarea>
 	</div>
-	<div>
-		<label>Visibility</label>
-		<div>
-			<input id="link-public" type="radio" name="visibility" value="public"{{if .Visibility}} checked{{end}}>
-			<label for="link-public">Public. Everyone can see this post</label>
-		</div>
-		<div>
-			<input id="link-private" type="radio" name="visibility" value="private"{{if not .Visibility}} checked{{end}}>
-			<label for="link-private">Private. Only you can see this post</label>
-		</div>
+	<div class="visibility-field">
+		<label class="visibility-field-title">Who can see this post?</label>
+		<input id="link-public" type="radio" name="visibility" value="public"{{if .Visibility}} checked{{end}}>
+		<label for="link-public">Everyone</label>
+
+		<input id="link-private" type="radio" name="visibility" value="private"{{if not .Visibility}} checked{{end}}>
+		<label for="link-private">Only you</label>
 	</div>
-	<div>
+	<div class="tags-field">
 		<label for="link-tags">Tags comma-separated</label>
 		<input type="text" id="link-tags" name="tags"
 		       value="{{.Tags | catsTogether}}" placeholder="video, programming" autocomplete="off">
-		<p class="input-caption">Some special characters are ignored.</p>
 	</div>
 {{end}}
