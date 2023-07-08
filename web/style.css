@@ -242,9 +242,14 @@ form input[type="submit"] {
     max-width: 15rem;
     margin-top: 8px;
 }
-form textarea {
-    height: 100px;
+textarea {
     padding: 1px;
+}
+textarea:not(.one-row) {
+    height: 100px;
+}
+.one-row {
+    height: calc(1.5rem + 6px); /* 150% line-height + 2x 1px padding + 2x 2px border of a regular input*/
 }
 .input-caption {
     font-size: small;

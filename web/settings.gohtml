@@ -23,14 +23,14 @@
 
 				<div>
 					<label for="site-title">Site title</label>
-					<input id="site-title" name="site-title" type="text" value="{{.SiteTitle}}" placeholder="Betula">
+					<textarea id="site-title" name="site-title" placeholder="Betula" class="one-row">{{.SiteTitle}}</textarea>
 					<p class="input-caption">
 						Displayed on the top of every page in h1.
 						HTML supported. If left empty, defaults to site name.</p>
 				</div>
 
 				<div>
-					<label for="site-description">Site description</label>
+					<label for="site-description">Site description</label><!-- Using textarea so Go does not escape HTML away. -->
 					<textarea id="site-description" name="site-description">{{.SiteDescriptionMycomarkup}}</textarea>
 					<p class="input-caption">
 						Formatted in Mycomarkup.
