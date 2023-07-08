@@ -1,11 +1,15 @@
 {{define "paginator"}}
-	<div class="paginator">
-		{{range .Pages}}
-			{{if .IsCurrent}}
-				<b class="paginator-entry">{{.Number}}</b>
-			{{else}}
-				<a class="paginator-entry" href="{{.URL}}"{{if .IsNext}} rel="next"{{else if .IsPrev}} rel="prev"{{end}}>{{.Number}}</a>
-			{{end}}
-		{{end}}
-	</div>
+    {{if .OnlyOnePage}}
+    {{else}}
+        <div class="paginator">
+            {{range .Pages}}
+                {{if .IsCurrent}}
+                    <b class="paginator-entry">{{.Number}}</b>
+                {{else}}
+                    <a class="paginator-entry"
+                       href="{{.URL}}"{{if .IsNext}} rel="next"{{else if .IsPrev}} rel="prev"{{end}}>{{.Number}}</a>
+                {{end}}
+            {{end}}
+        </div>
+    {{end}}
 {{end}}
