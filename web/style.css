@@ -80,6 +80,7 @@ body {
     display: grid;
     font-family: sans-serif;
     word-break: break-word;
+    line-height: 150%;
 }
 header {
     grid-area: header;
