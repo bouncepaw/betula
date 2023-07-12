@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/feeds"
+	"git.sr.ht/~bouncepaw/betula/help"
 	"git.sr.ht/~bouncepaw/betula/search"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"golang.org/x/net/html"
@@ -44,6 +45,8 @@ func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.Response
 
 func init() {
 	mux.HandleFunc("/", handlerFeed)
+	mux.HandleFunc("/help/en/", handlerEnglishHelp)
+	mux.HandleFunc("/help", handlerHelp)
 	mux.HandleFunc("/text/", handlerText)
 	mux.HandleFunc("/digest-rss", handlerDigestRss)
 	mux.HandleFunc("/posts-rss", handlerPostsRss)
@@ -65,6 +68,20 @@ func init() {
 	mux.HandleFunc("/settings", adminOnly(handlerSettings))
 	mux.HandleFunc("/static/style.css", handlerStyle)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerHelp(w http.ResponseWriter, rq *http.Request) {
+	http.Redirect(w, rq, "/help/en/index", http.StatusSeeOther)
+}
+
+func handlerEnglishHelp(w http.ResponseWriter, rq *http.Request) {
+	// TODO: Finish
+	topicName := strings.TrimPrefix(rq.URL.Path, "/help/en/")
+	if topicName == "/help/en" || topicName == "/" {
+		topicName = "index"
+	}
+	topic, _ := help.GetEnglishHelp(topicName)
+	_, _ = w.Write([]byte(topic.HTML))
 }
 
 func handlerStyle(w http.ResponseWriter, rq *http.Request) {
