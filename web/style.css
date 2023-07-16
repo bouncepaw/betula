@@ -391,6 +391,18 @@ a.btn_destructive:visited,
     color: white;
 }
 
+.bookmarklet {
+    border: 1px dashed #999;
+    border-radius: 5px;
+    padding: 15px;
+    text-align: center;
+}
+
+.bookmarklet a {
+    text-decoration: none;
+    font-weight: bold;
+}
+
 @media (prefers-color-scheme: dark) {
     .btn {
         border: #444 solid 1px;

@@ -26,8 +26,10 @@ import (
 
 var (
 	//go:embed *.gohtml *.css *.js
-	fs  embed.FS
-	mux = http.NewServeMux()
+	fs embed.FS
+	//go:embed bookmarklet.js
+	bookmarkletScript string
+	mux               = http.NewServeMux()
 )
 
 // Wrap handlers that only make sense for the admin with this thingy in init().
@@ -66,8 +68,21 @@ func init() {
 	mux.HandleFunc("/login", handlerLogin)
 	mux.HandleFunc("/logout", handlerLogout)
 	mux.HandleFunc("/settings", adminOnly(handlerSettings))
+	mux.HandleFunc("/bookmarklet", adminOnly(handlerBookmarklet))
 	mux.HandleFunc("/static/style.css", handlerStyle)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+type dataBookmarklet struct {
+	*dataCommon
+	Script string
+}
+
+func handlerBookmarklet(w http.ResponseWriter, rq *http.Request) {
+	templateExec(w, templateBookmarklet, dataBookmarklet{
+		dataCommon: emptyCommon(),
+		Script:     fmt.Sprintf(bookmarkletScript, settings.SiteURL()),
+	}, rq)
 }
 
 func handlerHelp(w http.ResponseWriter, rq *http.Request) {

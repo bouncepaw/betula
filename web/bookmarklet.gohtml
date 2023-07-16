@@ -1,0 +1,20 @@
+{{define "title"}}Bookmarklet{{end}}
+{{define "body"}}
+    <main>
+        <article>
+            <h2>Bookmarklet</h2>
+            <p>
+                This special link allows you to add a link to your betula directly by using a bookmark in your web
+                browser.
+            </p>
+            <div class="bookmarklet">
+                <a href="javascript:{{.Script}}">
+                    Add to Betula
+                </a>
+            </div>
+            <p>
+                Drag and drop this link to your bookmarks.
+            </p>
+        </article>
+    </main>
+{{end}}

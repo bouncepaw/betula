@@ -68,6 +68,7 @@ var templateDay = templateFrom(funcMapForPosts, "post-fragment", "day")
 var templateEditTag = templateFrom(funcMapForForm, "edit-tag")
 var templateHelp = templateFrom(nil, "help")
 var templateAbout = templateFrom(funcMapForTime, "about")
+var templateBookmarklet = templateFrom(nil, "bookmarklet")
 
 var funcMapForPosts = template.FuncMap{
 	"randomGlobe": func() string {

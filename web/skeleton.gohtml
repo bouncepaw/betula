@@ -31,6 +31,9 @@
 		<li>
 			<a href="/digest-rss">Site RSS</a>
 		</li>
+		{{if .Authorized}}
+			<li><a href="/bookmarklet">Bookmarklet</a></li>
+		{{end}}
 	</ul>
 </nav>
 {{template "body" .}}
