@@ -74,14 +74,28 @@ func handlerHelp(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, "/help/en/index", http.StatusSeeOther)
 }
 
+type dataHelp struct {
+	*dataCommon
+	This   help.Topic
+	Topics []help.Topic
+}
+
 func handlerEnglishHelp(w http.ResponseWriter, rq *http.Request) {
-	// TODO: Finish
 	topicName := strings.TrimPrefix(rq.URL.Path, "/help/en/")
 	if topicName == "/help/en" || topicName == "/" {
 		topicName = "index"
 	}
-	topic, _ := help.GetEnglishHelp(topicName)
-	_, _ = w.Write([]byte(topic.HTML))
+	topic, found := help.GetEnglishHelp(topicName)
+	if !found {
+		handlerNotFound(w, rq)
+		return
+	}
+
+	templateExec(w, templateHelp, dataHelp{
+		dataCommon: emptyCommon(),
+		This:       topic,
+		Topics:     help.Topics,
+	}, rq)
 }
 
 func handlerStyle(w http.ResponseWriter, rq *http.Request) {

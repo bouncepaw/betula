@@ -9,36 +9,39 @@ import (
 )
 
 type Topic struct {
-	Id             string
-	NameForSidebar string
-	HTML           template.HTML
+	Name         string
+	SidebarTitle string
+	Rendered     template.HTML
 }
 
 var (
 	//go:embed en/*
-	english       embed.FS
-	englishLookup = map[string]Topic{
-		"index":      {"index", "Betula introduction", ""},
-		"mycomarkup": {"mycomarkup", "Mycomarkup formatting", ""},
-		"search":     {"search", "Advanced search", ""},
+	english embed.FS
+	Topics  = []Topic{
+		{"index", "Betula introduction", ""},
+		{"mycomarkup", "Mycomarkup formatting", ""},
+		{"search", "Advanced search", ""},
 	}
 )
 
 func init() {
-	for name, topic := range englishLookup {
-		raw, err := english.ReadFile("en/" + name + ".myco")
+	for i, topic := range Topics {
+		raw, err := english.ReadFile("en/" + topic.Name + ".myco")
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		topic.HTML = myco.MarkupToHTML(string(raw))
-		englishLookup[name] = topic
+		topic.Rendered = myco.MarkupToHTML(string(raw))
+		Topics[i] = topic
 	}
 }
 
 // GetEnglishHelp returns English-language help for the given topic.
 func GetEnglishHelp(topicName string) (topic Topic, found bool) {
-	// Oh hey, we precalculate everything! How cool is that! Isn't that a O(1)!?
-	topic, found = englishLookup[topicName]
+	for _, topic := range Topics {
+		if topic.Name == topicName {
+			return topic, true
+		}
+	}
 	return
 }

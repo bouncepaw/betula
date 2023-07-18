@@ -1,0 +1,23 @@
+{{define "title"}}Help: {{.This.SidebarTitle}}{{end}}
+{{define "body"}}
+<main>
+	<article>
+		<h2>Betula documentation</h2>
+		<p>Choose a topic:</p>{{$this:=.This}}
+		<ul>
+            {{range .Topics}}
+                {{if ne .Name $this.Name}}
+					<li class="help-topic linked-help-topic">
+						<a href="/help/en/{{.Name}}">{{.SidebarTitle}}</a>
+					</li>
+                {{else}}
+					<li class="help-topic selected-help-topic">
+						<b>{{.SidebarTitle}}</b>
+					</li>
+                {{end}}
+            {{end}}
+		</ul>
+	</article>
+	{{.This.Rendered}}
+</main>
+{{end}}

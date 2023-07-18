@@ -66,7 +66,7 @@ var templateTag = templateFrom(funcMapForPosts, "paginator-fragment", "post-frag
 var templateTags = templateFrom(nil, "tags")
 var templateDay = templateFrom(funcMapForPosts, "post-fragment", "day")
 var templateEditTag = templateFrom(funcMapForForm, "edit-tag")
-
+var templateHelp = templateFrom(nil, "help")
 var templateAbout = templateFrom(funcMapForTime, "about")
 
 var funcMapForPosts = template.FuncMap{
