@@ -3,11 +3,12 @@ package types
 
 import (
 	"fmt"
-	"git.sr.ht/~bouncepaw/mycomarkup/v5/util"
 	"html/template"
 	"math"
 	"net/url"
 	"strings"
+
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/util"
 )
 
 // Visibility determines where the post is seen.
@@ -85,6 +86,7 @@ func SplitTags(commaSeparated string) []Tag {
 }
 
 type Settings struct {
+	NetworkHost string
 	NetworkPort uint
 	// SiteName is a plaintext name of the site.
 	SiteName string

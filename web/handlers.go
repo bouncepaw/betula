@@ -4,12 +4,6 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/auth"
-	"git.sr.ht/~bouncepaw/betula/feeds"
-	"git.sr.ht/~bouncepaw/betula/help"
-	"git.sr.ht/~bouncepaw/betula/search"
-	"git.sr.ht/~bouncepaw/betula/settings"
-	"golang.org/x/net/html"
 	"html/template"
 	"io"
 	"log"
@@ -19,6 +13,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/auth"
+	"git.sr.ht/~bouncepaw/betula/feeds"
+	"git.sr.ht/~bouncepaw/betula/help"
+	"git.sr.ht/~bouncepaw/betula/search"
+	"git.sr.ht/~bouncepaw/betula/settings"
+	"golang.org/x/net/html"
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -265,6 +266,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method == http.MethodGet {
 		templateExec(w, templateSettings, dataSettings{
 			Settings: types.Settings{
+				NetworkHost:               settings.NetworkHost(),
 				NetworkPort:               settings.NetworkPort(),
 				SiteName:                  settings.SiteName(),
 				SiteURL:                   settings.SiteURL(),
@@ -278,6 +280,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	var newSettings = types.Settings{
+		NetworkHost:               rq.FormValue("network-host"),
 		SiteName:                  rq.FormValue("site-name"),
 		SiteTitle:                 template.HTML(rq.FormValue("site-title")),
 		SiteDescriptionMycomarkup: rq.FormValue("site-description"),
@@ -299,8 +302,9 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	oldPort := settings.NetworkPort()
+	oldHost := settings.NetworkHost()
 	settings.SetSettings(newSettings)
-	if oldPort != settings.NetworkPort() {
+	if oldPort != settings.NetworkPort() || oldHost != settings.NetworkHost() {
 		restartServer()
 	}
 	http.Redirect(w, rq, "/", http.StatusSeeOther)

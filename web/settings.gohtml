@@ -41,6 +41,16 @@
 				<h3>Advanced</h3>
 
 				<div>
+					<label for="network-host">⚠️ Network address</label>
+					<input id="network-host" name="network-host" type="text" value="{{.NetworkHost}}" placeholder="0.0.0.0">
+					<p class="input-caption">
+						The URL you are using currently will probably stop working.
+						Betula will start working on the new hostname after saving settings.
+						Make sure you know what you are doing.</p>
+					<p class="input-caption">
+						Leave empty to listen on all interfaces.
+						You can also use a domain name.</p>
+					<p class="input-caption"> It will not affect ‘Site address’ setting.</p>
 					<label for="network-port">⚠️ Port</label>
                     {{if .ErrBadPort}}
 						<p class="error">Invalid port value was passed. Choose a number between 1 and 65535.</p>

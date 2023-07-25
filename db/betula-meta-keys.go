@@ -9,6 +9,7 @@ type BetulaMetaKey string
 const (
 	BetulaMetaAdminUsername     BetulaMetaKey = "Admin username"
 	BetulaMetaAdminPasswordHash BetulaMetaKey = "Admin password hash"
+	BetulaMetaNetworkHost       BetulaMetaKey = "Network hostname"
 	BetulaMetaNetworkPort       BetulaMetaKey = "Network port"
 	BetulaMetaSiteTitle         BetulaMetaKey = "Site title HTML"
 	BetulaMetaSiteName          BetulaMetaKey = "Site name plaintext"

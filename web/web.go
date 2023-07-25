@@ -2,47 +2,41 @@
 package web
 
 import (
+	"errors"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/auth"
-	"git.sr.ht/~bouncepaw/betula/settings"
 	"log"
 	"net/http"
 	"strings"
+
+	"git.sr.ht/~bouncepaw/betula/auth"
+	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
 var serverRestartChannel = make(chan struct{})
 
 func StartServer() {
-	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", settings.NetworkPort()),
-		Handler: &auther{mux},
-	}
-	go func() {
-		// слушать и служить
-		log.Printf("Starting HTTP server at port %d\n", settings.NetworkPort())
-		if err := srv.ListenAndServe(); err.Error() != "http: Server closed" {
-			log.Fatalln(err)
+	go restartServer()
+	var srv = &http.Server{}
+	for range serverRestartChannel {
+		if err := srv.Close(); err != nil {
+			// Is it important? Does it matter?
+			log.Println("Closing server:", err)
 		}
-	}()
-	for {
-		select {
-		case <-serverRestartChannel:
-			if err := srv.Close(); err != nil {
-				// Is it important? Does it matter?
-				log.Println(err)
-			}
-			srv = &http.Server{
-				Addr:    fmt.Sprintf(":%d", settings.NetworkPort()),
-				Handler: &auther{mux},
-			}
-			log.Printf("Restarting HTTP server at port %d\n", settings.NetworkPort())
-			go func() {
-				if err := srv.ListenAndServe(); err.Error() != "http: Server closed" {
-					log.Fatalln(err)
-				}
-			}()
+		srv = &http.Server{
+			Addr:    listenAddr(),
+			Handler: &auther{mux},
 		}
+		log.Printf("Running HTTP server at %s\n", srv.Addr)
+		go func() {
+			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Fatalln(err)
+			}
+		}()
 	}
+}
+
+func listenAddr() string {
+	return fmt.Sprintf("%s:%d", settings.NetworkHost(), settings.NetworkPort())
 }
 
 func restartServer() {

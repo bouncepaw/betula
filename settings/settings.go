@@ -4,15 +4,17 @@ package settings
 import (
 	"database/sql"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/myco"
-	"git.sr.ht/~bouncepaw/betula/types"
 	"html"
 	"html/template"
 	"log"
 	"net/url"
+
+	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/myco"
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
+const defaultHost = "0.0.0.0"
 const biggestPort = 65535
 const defaultPort = 1738
 
@@ -34,6 +36,18 @@ func validatePortFromDB(port sql.NullInt64) uint {
 	return defaultPort
 }
 
+func validateHostFromDB(addr sql.NullString) string {
+	if addr.Valid && addr.String != "" {
+		return addr.String
+	}
+
+	if addr.Valid && db.PostCount(true) > 0 {
+		log.Printf("An invalid network host is provided: %s. Using %s instead.\n", addr.String, defaultHost)
+	}
+
+	return defaultHost
+}
+
 func ValidatePortFromWeb[N ~int | uint](port N) uint {
 	if port <= 0 || port > biggestPort {
 		log.Printf("An invalid network port is provided: %d. Using %d instead.\n", port, defaultPort)
@@ -44,6 +58,9 @@ func ValidatePortFromWeb[N ~int | uint](port N) uint {
 
 // Index reads all settings from the db.
 func Index() {
+	unvalidatedNetworkHost := db.MetaEntry[sql.NullString](db.BetulaMetaNetworkHost)
+	cache.NetworkHost = validateHostFromDB(unvalidatedNetworkHost)
+
 	unvalidatedNetworkPort := db.MetaEntry[sql.NullInt64](db.BetulaMetaNetworkPort)
 	cache.NetworkPort = validatePortFromDB(unvalidatedNetworkPort)
 
@@ -91,6 +108,7 @@ func Index() {
 
 func SiteURL() string                    { return cache.SiteURL }
 func NetworkPort() uint                  { return cache.NetworkPort }
+func NetworkHost() string                { return cache.NetworkHost }
 func SiteName() string                   { return cache.SiteName }
 func SiteTitle() template.HTML           { return cache.SiteTitle }
 func SiteDescriptionHTML() template.HTML { return cacheSiteDescription }
@@ -101,6 +119,7 @@ func SetSettings(settings types.Settings) {
 	if settings.SiteName == "" {
 		settings.SiteName = "Betula"
 	}
+	db.SetMetaEntry(db.BetulaMetaNetworkHost, settings.NetworkHost)
 	db.SetMetaEntry(db.BetulaMetaNetworkPort, ValidatePortFromWeb(settings.NetworkPort))
 	db.SetMetaEntry(db.BetulaMetaSiteName, settings.SiteName)
 	db.SetMetaEntry(db.BetulaMetaSiteTitle, string(settings.SiteTitle))
