@@ -1,1 +1,39 @@
 = Advanced search
+You can use the search bar to look up posts with a query. There are several tricks for using the search bar which are described in this document.
+
+== Look for substring
+Query: `text`.
+
+Result: all posts that have `text` in its title, text or URL.
+
+Notes:
+* The text is case-insensitive, so queries `text` and `TEXT` yield the same results.
+* If the query is `text1 text2`, the search engine looks for `text1 text2`, not for `text1` and `text2` separately.
+
+== Require tag
+Query: `#tag`, `#tag1 #tag_two`.
+
+Results: all posts that have all the provided tags at once.
+
+Notes:
+* Use _ instead of spaces in the tag names.
+* The tag names are case-insensitive.
+* If you look for just one tag and nothing else, you are redirected to that tag's page.
+
+== Exclude tag
+Query: `-#tag`, `-#tag1 -#tag2`.
+
+Results: all posts that do not have the provided tags.
+
+Notes:
+* Use _ instead of spaces in the tag names.
+* The tag names are case-insensitive.
+* If you require and exclude the same tag, you get no results.
+
+== Combining
+You can combine all the syntaxes in one query.
+
+* `granny smith #apple`
+* `smith -#apple #actor`
+
+If a tag instruction is inserted between usual text, the text is combined first. So, these are equivalent: `granny #apple smith` and `granny smith #apple`.
