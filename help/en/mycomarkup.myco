@@ -1,1 +1,160 @@
 = Mycomarkup
+**Mycomarkup** is the markup used by Betula. You cannot use a different one.
+
+See also:
+
+=> https://mycorrhiza.wiki/help/en/mycomarkup | Mycomarkup in Mycorrhiza
+
+= Blocks
+Mycomarkup provides the following blocks in post and tag descriptions.
+
+== Paragraph
+**Paragraph** is the most basic block. Paragraphs are separated by empty lines:
+
+```myco
+This is the first paragraph.
+
+This is the second one.
+```
+
+> This is the first paragraph.
+>
+> This is the second one.
+
+You can include line breaks:
+
+```myco
+This is
+the first paragraph, but the first two words would always be on a separate line.
+```
+
+> This is
+> the first paragraph, but the first two words would always be on a separate line.
+
+You have the following formatting options for paragraphs:
+* **bold** `*\*bold*\*`
+* //italic// `/\/italic/\/`
+* `code` ` \`code\``
+* ++highlight++ `+\+highlight+\+`
+* ^^superscript^^ `^\^superscript^\^`
+* __subscript__ `_\_subscript_\_`
+* ~~deleted~~ `~\~deleted~\~`
+
+There are inline links:
+```
+You can link just like that: https://example.com
+
+It is a good idea to wrap links in double brackets: [[https://example.com]]. If you want, you can even set a title: [[https://example.com | Example link]].
+
+You can link local pages. To link the fourth post, use [[/4]]. To link a tag, use [[/tag/tag_name]]. Look at the address bar on the pages you want to link to see the address.
+```
+
+> You can link just like that: https://example.com
+>
+> It is a good idea to wrap links in double brackets: [[https://example.com]]. If you want, you can even set a title: [[https://example.com | Example link]].
+>
+> You can link local pages. To link the fourth post, use [[/4]]. To link a tag, use [[/tag/tag_name]]. Look at the address bar on the pages you want to link to see the address.
+
+== Quotes
+**Quotes** are used to show an excerpt from a different place, most often, the very document linked in the post. Quote the part you like the most, so you can find it later.
+
+Prepend multiple lines with the `>` character, and they will be shown as a quote:
+
+```
+Ahab’s voice was heard.
+
+> Hast seen the White Whale ?
+```
+
+> Ahab’s voice was heard.
+>
+> > Hast seen the White Whale ?
+
+As you can see, the markup examples are shown with quotes in this document as well. It is a good idea to add a space after the `>` character.
+
+You can quote any Mycomarkup text and nest quotes indefinitely.
+
+== Rocket links
+**Rocket links** are cooler links that are shown on a separate line. Usually used as a ‘see also’-like thing. The linking rules are the same as for the inline links:
+
+```myco
+=> /4
+=> /tag/programming | I love programming!
+=> https://example.org
+```
+
+>=> /4
+>=> /tag/programming | I love programming!
+>=> https://example.org
+
+== Image galleries
+**Image galleries** show images with optional descriptions:
+
+```myco
+img {
+   https://bouncepaw.com/mushroom.jpg
+   https://bouncepaw.com/mushroom.jpg | 40
+   https://bouncepaw.com/mushroom.jpg { Optional //description//. }
+}
+```
+
+> img {
+>    https://bouncepaw.com/mushroom.jpg
+>    https://bouncepaw.com/mushroom.jpg | 40
+>    https://bouncepaw.com/mushroom.jpg { Optional //description//. }
+> }
+
+If you write `img side` instead, the image will float to the right on wider screens. If you write `img grid`, the images will be arranged in two columns instead of just one.
+
+Most often your galleries will have just one image, which was taken from the linked document.
+
+== Codeblocks
+**Codeblocks** are listings of code, program output, preformatted text, etc.
+
+```myco
+ ```
+ #!/usr/bin/env python
+ print("Hello, world!")
+ ```
+```
+
+> ```
+> #!/usr/bin/env python
+> print("Hello, world!")
+> ```
+
+== Tables
+**Tables** are used to represent tabular date. You would rarely do that in Betula.
+
+```myco
+table {
+   ! No. ! Name ! Age! Favorite food
+   | 1   | Joe  | 45 | Pizza
+   | 2   | Tim  | 23 | //Udon//!
+   | 3   | Meg  || N/A
+   | 4   | Bob  | | {
+      Bob loves **sushi**!
+
+      And he loves the advanced tables in Mycomarkup!
+   }
+}
+```
+
+== Headings
+**Headings** are used to organize information hierarchically. You would rarely need them:
+```myco
+= Level 1
+== Level 2
+=== Level 3
+==== Level 4
+```
+
+== Thematic breaks
+**Thematic breaks** are horizontals line that separate information. In Betula, you would rarely need them, as the information is already separated into posts.
+
+```myco
+----
+```
+
+== Unsupported or reserved blocks
+Mycomarkup has more features, but not all of them work in Betula. Transclusion does not work, relative linking is too relative, interwiki basically does not exist. There are also some features not mentioned in this document at all. Consider them as easter eggs or bugs.
