@@ -173,6 +173,7 @@ a.edit-post-btn {
 .about-post {
     font-size: small;
     overflow: hidden;
+    clear: both;
 }
 .post-page .about-post {
     font-size: medium;
@@ -307,22 +308,6 @@ pre {
     text-decoration: underline;
 }
 
-/* Mycomarkup */
-.myco, .myco * {
-    max-width: 100%;
-}
-.myco blockquote {
-    margin-left: 0;
-    padding-left: 1rem;
-    border-left: #999 2px solid;
-}
-.myco *:first-child {
-    margin-top: .25rem;
-}
-.myco *:last-child {
-    margin-bottom: .25rem;
-}
-
 /* Colors */
 html {
     background: rgb(251, 251, 251);
@@ -451,4 +436,98 @@ a.btn_destructive:visited,
 .autocompletion-item:hover,
 .autocompletion-item.selected {
     background: #ccc;
+}
+
+/* Mycomarkup */
+.myco, .myco * {
+    max-width: 100%;
+}
+.myco blockquote {
+    margin-left: 0;
+    padding-left: 1rem;
+    border-left: #999 2px solid;
+}
+.myco *:first-child {
+    margin-top: .25rem;
+}
+.myco *:last-child {
+    margin-bottom: .25rem;
+}
+.myco figure:first-child {
+    margin-top: 0;
+}
+.myco figure:last-child {
+    margin-bottom: 0;
+}
+
+.codeblock {
+    padding:.5rem;
+    white-space: pre-wrap;
+    border-radius: .25rem;
+}
+
+code {
+    border-radius: .25rem;
+    font-size: 90%;
+    font-family: 'Menlo', 'PT Mono', monospace;
+}
+
+p code {
+    padding: .1rem .3rem;
+}
+
+.transclusion_failed { padding: 0 .5rem; }
+
+/* Derived from https://commons.wikimedia.org/wiki/File:U%2B21D2.svg */
+.launchpad__entry { list-style-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' version='1.0' width='25' height='12'%3E%3Cg transform='scale(0.7,0.8) translate(-613.21429,-421)'%3E%3Cpath fill='%23999' d='M 638.06773,429.49751 L 631.01022,436.87675 L 630.1898,436.02774 L 632.416,433.30375 L 613.46876,433.30375 L 613.46876,431.66382 L 633.82089,431.66382 L 635.57789,429.5261 L 633.79229,427.35979 L 613.46876,427.35979 L 613.46876,425.71985 L 632.416,425.71985 L 630.1898,422.99587 L 631.01022,422.08788 L 638.06773,429.49751 z '/%3E%3C/g%3E%3C/svg%3E"); }
+
+p code,
+article .codeblock,
+table,
+.transclusion_stand-out {
+    background-color: rgba(220, 220, 220, 0.5);
+}
+.transclusion_failed {
+    border: 1px solid #a55858;
+}
+
+.img-gallery { margin-top: .25rem; margin-bottom: .25rem; }
+@media screen and (min-width: 700px) {
+    .img-gallery_layout-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .img-gallery_layout-side {
+        float: right;
+        max-width: 50%;
+        margin-left: 1em;
+    }
+
+    .img-gallery_layout-normal {
+        display: table;
+    }
+    .img-gallery_layout-normal figure {
+        width: 100%;
+        display: table-row;
+    }
+    .img-gallery_layout-normal figure > a {
+        display: table-cell;
+    }
+    .img-gallery_layout-normal figure figcaption {
+        vertical-align: top;
+        display: table-cell;
+        padding-left: 1rem;
+        width: 300px;
+    }
+}
+.img-gallery img {
+    max-width: 100%;
+    max-height: 50vh;
+}
+figure {
+    margin: 0;
+}
+figcaption {
+    padding-bottom: .5rem;
 }
