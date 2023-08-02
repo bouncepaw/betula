@@ -1,5 +1,5 @@
 # 🌳 Betula, a personal link collection manager
-![A screenshot of Betula, featuring several links](https://betula.mycorrhiza.wiki/betula-v0.7.0.png)
+![A screenshot of Betula, featuring several links](https://betula.mycorrhiza.wiki/betula-v1.0.0.png)
 
 **Betula** is a single-user self-hosted bookmarking software.
 
@@ -17,3 +17,6 @@
 * The whole collection is saved as a single SQLite file.
 * [IndieWeb](https://indieweb.org) microformats are produced.
 * Simple installation: the program is one binary, the collection is one file, all configuration is done through the web interface.
+* Bookmarklet.
+* Built-in documentation.
+* Searching.
