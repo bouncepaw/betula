@@ -388,26 +388,6 @@ a.btn_destructive:visited,
     font-weight: bold;
 }
 
-@media (prefers-color-scheme: dark) {
-    .btn {
-        border: #444 solid 1px;
-    }
-
-    .btn:hover, .btn:active,
-    .btn:visited {
-        color: #ddd;
-    }
-
-    .btn_weak {
-        background-color: transparent;
-    }
-
-    .btn_destructive {
-        border-color: #e34343;
-        background-color: #b92828;
-    }
-}
-
 /* Autocompletion */
 .autocompletion-wrapper {
     position: relative;
