@@ -1,35 +1,41 @@
 = Betula
-**Betula** is a free self-hosted single-user bookmarking software for the independent web. Betula is used to organize references and linklogs like the very website you are reading this on.
+**Betula** is a free self-hosted single-user bookmarking software for the independent web. Use it to organize bookmarks, references and linklogs.
 
-Every Betula installation comes with a full copy of this documentation.
-
-Use the topic selector to read more about specific topics. The rest of the document deals with general questions about Betula.
+Every Betula installation comes with a full copy of this documentation. Use the topic selector to read more about specific topics.
 
 => https://betula.mycorrhiza.wiki | Official Betula website
 => /about | Information about this Betula instance
 
-== How do I get my own Betula?
-See the installation guide on the official site.
+== Saving links
+Press the [[/save-link | Save link]] link. There are multiple fields there:
 
-=> https://betula.mycorrhiza.wiki/installation.html
+* **URL** is the URL (address) of a web page. This is the only required field.
+* **Title** is the title of the post that will be created when you save the link. If you leave it empty, Betula will do its best to quess a title.
+* **Description** is a place for excerpts and conclusion from the saved link. Express your opinion here. You can format the text with [[/help/en/mycomarkup | Mycomarkup]].
+* Set **visibility** for your post. Make posts with sensitive or too boring information visible only for you.
+* **Tags** are separated with commas. Keywords and topics make good tags. Try to add at least one tag.
 
-If you want to go live on the internet, you would probably need a server and a domain. For local usage, nothing is required.
+== Tags
+On [[/tag | Tags]] page you can see all your tags. Unauthorized users only see tags that have public posts. Don't be scared if you end up having hundreds of tags with 1 to 3 posts each. This is pretty normal.
 
-== Free?
-When we say that Betula is free, we mean freedom. The source code is disclosed and cannot be closed by anybody, the development is done in open. If you want to, feel free to participate in the development. We work on SourceHut but Codeberg pull requests and issues are also very welcome. If you want to request something from the developers, these are the places to go as well.
+== Settings
+You really should [[/settings | set up your settings]].
 
-=> https://sr.ht/~bouncepaw/betula
-=> https://codeberg.org/bouncepaw/betula
+* **Site name** is shown in tab titles and will be used for the future federative capabilities.
+* **Site address** is the URL of your Betula. Basically required for installation that have internet connection.
+* **Site title** is shown in the top-left corner. It can be different from Site name.
+* **Site description** supports Mycomarkup.
+* Advanced settings
+** **Network address** and **port** combination sets up where Betula will listen for connection. Defaults are good. Set up your reverse proxy to redirect here.
+** **Custom CSS** is used for visual configuration.
 
-Betula is also free as in no money asked. If you want to support the development financially, consider donating Bouncepaw on Boosty. The donations are used to pay for the infrastructure.
+== Search
+There is a searchbar on every page. Use it to retrieve information.
 
-=> https://boosty.to/bouncepaw
+=> /help/en/search | See Advanced search
 
-== How is Betula related to Mycorrhiza?
-**Mycorrhiza** is a free wiki engine, developed by mostly the same people.
+== Bookmarklet
+It is highly recommended to use the [[/bookmarklet | bookmarklet]]. It lets you save any web page much quicker, bringing your Betula experience to the next level. It works in all desktop browsers and is known to work on iOS Safari. Android browser support remains unclear for now, but it probably works in some of them.
 
-=> https://mycorrhiza.wiki
-
-Betula is a newer project with easier administration and better technical design, but with a much more limited scope. Many people use both. If you find yourself writing essays in Betula, considering getting a Mycorrhiza. If you find yourself having hundreds of URL:s in your Mycorrhiza, consider getting a Betula.
-
-Both projects use the same markup language [[/help/en/mycomarkup | Mycomarkup]]. Both are licensed under AGPLv3-only and are written in the Go programming language.
+== RSS feed
+You can subscribe to any Betula with any RSS reader. Some browsers also support RSS feeds out of the box. It is much more convenient than visiting the said Betulas manually. There are two kinds of feeds: post feed and digest feed. The latter is probably what you want.

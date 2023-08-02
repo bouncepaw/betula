@@ -19,6 +19,7 @@ var (
 	english embed.FS
 	Topics  = []Topic{
 		{"index", "Betula introduction", ""},
+		{"meta", "Metainformation", ""},
 		{"mycomarkup", "Mycomarkup formatting", ""},
 		{"search", "Advanced search", ""},
 	}

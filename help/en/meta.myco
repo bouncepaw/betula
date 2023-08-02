@@ -1,0 +1,33 @@
+= Betula metainformation
+In this document you can find more detailed information about Betula and how it is done. You don't require to know any of this to operate Betula effectively. You can also think of this document as a kind of FAQ.
+
+== How do I get my own Betula?
+See the installation guide on the official site.
+
+=> https://betula.mycorrhiza.wiki/installation.html
+
+If you want to go live on the internet, you would probably need a server and a domain. For local usage, nothing is required.
+
+== Free?
+When we say that Betula is free, we mean freedom. The source code is disclosed and cannot be closed by anybody, the development is done in open. If you want to, feel free to participate in the development. We work on SourceHut but Codeberg pull requests and issues are also very welcome. If you want to request something from the developers, these are the places to go as well.
+
+=> https://sr.ht/~bouncepaw/betula
+=> https://codeberg.org/bouncepaw/betula
+
+Betula is also free as in no money asked. If you want to support the development financially, consider donating Bouncepaw on Boosty. The donations are used to pay for the infrastructure.
+
+=> https://boosty.to/bouncepaw
+
+== How is Betula related to Mycorrhiza?
+**Mycorrhiza** is a free wiki engine, developed by mostly the same people.
+
+=> https://mycorrhiza.wiki
+
+Betula is a newer project with easier administration and better technical design, but with a much more limited scope. Many people use both. If you find yourself writing essays in Betula, considering getting a Mycorrhiza. If you find yourself having hundreds of URL:s in your Mycorrhiza, consider getting a Betula.
+
+Both projects use the same markup language [[/help/en/mycomarkup | Mycomarkup]]. Both are licensed under AGPLv3-only and are written in the Go programming language.
+
+== Why only Mycomarkup is supported? Are you going to support Markdown?
+Mycomarkup served us well in Mycorrhiza. No, no support for other markups is planned.
+
+=> https://mycorrhiza.wiki/hypha/why_mycomarkup | See Mycorrhiza's answer to that question
