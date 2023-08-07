@@ -2,6 +2,7 @@ package web
 
 import (
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -48,6 +49,7 @@ func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.Response
 
 func init() {
 	mux.HandleFunc("/", handlerFeed)
+	mux.HandleFunc("/.well-known/mycoverse/inbox", handlerInbox)
 	mux.HandleFunc("/help/en/", handlerEnglishHelp)
 	mux.HandleFunc("/help", handlerHelp)
 	mux.HandleFunc("/text/", handlerText)
@@ -72,6 +74,29 @@ func init() {
 	mux.HandleFunc("/bookmarklet", adminOnly(handlerBookmarklet))
 	mux.HandleFunc("/static/style.css", handlerStyle)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerInbox(w http.ResponseWriter, rq *http.Request) {
+	if rq.Method != http.MethodPost {
+		handlerNotFound(w, rq)
+		return
+	}
+
+	data, err := io.ReadAll(rq.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	var dict = map[string]any{}
+	err = json.Unmarshal(data, &dict)
+	if err != nil {
+		log.Printf("Invalid activity came in. JSON unmarshalling failed with: %w\n", err)
+		// TODO: Handle somehow somewhat show an error dunno
+		return
+	}
+
+	log.Printf("An acitivity with type ‘%s’ came in.\n", dict["type"])
+	log.Printf("%q\n", dict)
 }
 
 type dataBookmarklet struct {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/web"
 	_ "git.sr.ht/~bouncepaw/betula/web" // For init()
@@ -42,4 +43,5 @@ func main() {
 	}
 	settings.Index()
 	web.StartServer()
+	go jobs.ListenAndWhisper()
 }
