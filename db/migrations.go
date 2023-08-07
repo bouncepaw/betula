@@ -58,7 +58,6 @@ create table TagDescriptions (
 create table Jobs (
 	ID integer primary key autoincrement,
 	Category text not null,
-	Priority integer not null,
 	Payload
 );
 
@@ -133,7 +132,6 @@ func migrate3To4() {
 create table Jobs (
 	ID integer primary key autoincrement,
 	Category text not null,
-	Priority integer not null,
 	Payload
 );
 

@@ -85,6 +85,22 @@ func SplitTags(commaSeparated string) []Tag {
 	return tags
 }
 
+type JobCategory string
+
+const (
+	NotifyAboutMyRepost JobCategory = "notify about my repost"
+	CheckTheirRepost    JobCategory = "check their repost"
+)
+
+// Job is a task for Betula to do later.
+type Job struct {
+	// ID is a unique identifier for the Job. You get it when reading from the database. Do not set it when issuing a new job.
+	ID       int
+	Category JobCategory
+	// Payload is some data.
+	Payload []byte
+}
+
 type Settings struct {
 	NetworkHost string
 	NetworkPort uint
