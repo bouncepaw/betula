@@ -6,10 +6,10 @@ import (
 	"log"
 )
 
-const expectedVersion = 3
+const expectedVersion = 4
 
 /*
-Wishes for schema version 4:
+Wishes for schema version 5:
 
 1.
 
@@ -24,7 +24,8 @@ create table Posts (
     Description text not null,
     Visibility integer check ( Visibility = 0 or Visibility = 1 ),
     CreationTime text not null default current_timestamp,
-    DeletionTime text                
+    DeletionTime text,
+    RepostOf text     
 );
 
 create table TagsToPosts (
@@ -40,7 +41,7 @@ create table BetulaMeta (
 );
 
 insert or ignore into BetulaMeta values
-	('DB version', 3),
+	('DB version', 4),
 	('Admin username', null),
 	('Admin password hash', null);
 
@@ -52,7 +53,20 @@ create table Sessions (
 create table TagDescriptions (
    TagName text primary key,
    Description text not null
-);`
+);
+
+create table Jobs (
+	ID integer primary key autoincrement,
+	Category text not null,
+	Priority integer not null,
+	Payload
+);
+
+create table KnownReposts (
+   RepostURL text primary key,
+   PostID integer
+);
+`
 
 func handleMigrations() {
 	curver, found := currentVersion()
@@ -69,16 +83,22 @@ func handleMigrations() {
 		log.Fatalf("The database file specifies version %d, but this version of Betula only supports versions up to %d. Please update Betula or fix your database somehow.\n", curver, expectedVersion)
 	}
 
+	// TODO: Come up with a more clever way:
 	switch curver {
+	case 3:
+		migrate3To4()
 	case 2:
 		migrate2To3()
+		migrate3To4()
 	case 1:
 		migrate1To2()
 		migrate2To3()
+		migrate3To4()
 	case 0:
 		migrate0To1()
 		migrate1To2()
 		migrate2To3()
+		migrate3To4()
 	default:
 		panic(fmt.Sprintf("unimplemented migration from %d to %d", curver, expectedVersion))
 	}
@@ -104,6 +124,43 @@ where Key = 'DB version';
 	}
 
 	return v.Int64, true
+}
+
+func migrate3To4() {
+	log.Println("Migrating from 3 to 4...")
+	const q = `
+-- The new tables.
+create table Jobs (
+	ID integer primary key autoincrement,
+	Category text not null,
+	Priority integer not null,
+	Payload
+);
+
+create table KnownReposts (
+   RepostURL text primary key,
+   PostID integer
+);
+
+-- New Posts!
+alter table Posts add column RepostOf text;
+
+-- Taking notes...
+replace into BetulaMeta (Key, Value) values ('DB version', 4);
+`
+	/* The past was as such:
+	create table Posts (
+	    ID integer primary key autoincrement,
+	    URL text not null check ( URL <> '' ),
+	    Title text not null check ( Title <> '' ),
+	    Description text not null,
+	    Visibility integer check ( Visibility = 0 or Visibility = 1 ),
+	    CreationTime text not null default current_timestamp,
+	    DeletionTime text
+	);
+	*/
+	mustExec(q)
+	log.Println("Migrated from 3 to 4...")
 }
 
 func migrate2To3() {
