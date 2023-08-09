@@ -26,6 +26,7 @@ const (
 	WishBookmarkOf
 	WishTags
 	WishMycomarkup
+	WishNoFeed
 )
 
 type wishmakerFunc func(context.Context, chan *html.Node, *Data)
@@ -34,6 +35,13 @@ var wishesToWishmakers = map[int]wishmakerFunc{
 	WishTitle:      listenForTitle,
 	WishPostName:   listenForPostName,
 	WishBookmarkOf: listenForBookmarkOf,
+	WishTags:       listenForTags,
+	WishMycomarkup: listenForMycomarkup,
+	WishNoFeed:     listenForHFeed,
+}
+
+var client = http.Client{
+	Timeout: 2 * time.Second,
 }
 
 // Data is all data returned by GetData. Specific fields are set iff you wish for them.
@@ -43,6 +51,7 @@ type Data struct {
 	BookmarkOf *url.URL
 	Tags       []string
 	Mycomarkup string
+	IsHFeed    bool
 }
 
 // GetTitle is a shorthand for wishing for page title only.
@@ -53,8 +62,8 @@ func GetTitle(link string) (string, error) {
 
 // GetData finds the data you wished for in the linked document, considering the timeouts.
 func GetData(link string, wishes int) (data Data, err error) {
-	// TODO: Set some timeout
-	resp, err := http.Get(link)
+	// TODO: Handle timeout
+	resp, err := client.Get(link)
 	if err != nil {
 		log.Printf("Can't get response from %s\n", link)
 		return data, err
@@ -72,10 +81,10 @@ func GetData(link string, wishes int) (data Data, err error) {
 		log.Printf("Can't parse html from %s\n", link)
 	}
 
-	// The wishmakers have 2 seconds to fulfill their fate. That's a lot of time!
+	// The wishmakers have 1 second to fulfill their fate. That's a lot of time!
 	// I'm being generous here. The showstopper will tell the wishmakers when
 	// the time is up.
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := makeContext(link)
 	defer cancel()
 
 	// Enter traverser. It goes through all the elements and yields them.
@@ -100,9 +109,11 @@ func GetData(link string, wishes int) (data Data, err error) {
 
 		go func(i int, wishmaker wishmakerFunc) {
 			wishmaker(ctx, nodeReceivers[i], &data)
-			close(nodeReceivers[i])
 			// Wishmaker tells fanouter it's done.
+			// — It's done.
+			// — It's done.
 			completeWishes <- i
+			close(nodeReceivers[i])
 		}(i, wishmaker)
 	}
 
@@ -129,6 +140,16 @@ func GetData(link string, wishes int) (data Data, err error) {
 	}()
 
 	return
+}
+
+func makeContext(link string) (context.Context, context.CancelFunc) {
+	addr, err := url.ParseRequestURI(link)
+	if err != nil {
+		log.Fatalln("That's some unfriendly way of programming!")
+	}
+	// We'll need the document's url to resolve relative links.
+	ctx := context.WithValue(context.Background(), "url", addr)
+	return context.WithTimeout(ctx, 2*time.Second)
 }
 
 func traverse(n *html.Node, outcoming chan *html.Node) {
