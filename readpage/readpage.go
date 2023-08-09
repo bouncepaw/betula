@@ -23,7 +23,7 @@ import (
 // FindTitle finds a <title> in the document.
 func FindTitle(link string) (string, error) {
 	data, err := findData(link, []worker{listenForTitle})
-	return data.Title, err
+	return data.title, err
 }
 
 // FindRepostData finds data relevant to reposts in the document.
@@ -43,12 +43,26 @@ var client = http.Client{
 
 // FoundData is all data found in a document. Specific fields are set iff you wish for them.
 type FoundData struct {
-	Title      string
-	PostName   string
+	// title is the first <title> found.
+	title string
+
+	// docurl is the URL of the very document we're working with now. Needed to resolve relative links.
+	docurl *url.URL
+
+	// PostName is the first p-name found.
+	PostName string
+
+	// BookmarkOf is the first u-bookmark-of found.
 	BookmarkOf *url.URL
-	Tags       []string
+
+	// Tags are all p-category found.
+	Tags []string
+
+	// Mycomarkup is the Mycomarkup text. It is fetched with a second request.
 	Mycomarkup string
-	IsHFeed    bool
+
+	// IsHFeed is true if the document has an h-feed somewhere in the beginning. You don't repost h-feed:s.
+	IsHFeed bool
 }
 
 // findData finds the data you wished for in the linked document, considering the timeouts.
@@ -67,14 +81,21 @@ func findData(link string, workers []worker) (data FoundData, err error) {
 		}
 	}(resp.Body)
 
+	addr, err := url.ParseRequestURI(link)
+	if err != nil {
+		log.Fatalln("Invalid URL passed.")
+	}
+
+	data.docurl = addr
+
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
-		log.Printf("Can't parse html from %s\n", link)
+		log.Printf("Can't parse HTML from %s\n", link)
 	}
 
 	// The workers have 1 second to fulfill their fate. That's a lot of time!
 	// I'm being generous here.
-	ctx, cancel := makeContext(link)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	// Enter traverser. It goes through all the elements and yields them.
@@ -123,24 +144,17 @@ func findData(link string, workers []worker) (data FoundData, err error) {
 	return
 }
 
-func makeContext(link string) (context.Context, context.CancelFunc) {
-	addr, err := url.ParseRequestURI(link)
-	if err != nil {
-		log.Fatalln("That's some unfriendly way of programming!")
-	}
-	// We'll need the document's url to resolve relative links.
-	ctx := context.WithValue(context.Background(), "url", addr)
-	return context.WithTimeout(ctx, 2*time.Second)
-}
-
+// Depth-first traversal.
 func traverse(n *html.Node, outcoming chan *html.Node) {
-	outcoming <- n
+	if n.Type == html.ElementNode || n.Type == html.TextNode {
+		outcoming <- n
+	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		traverse(c, outcoming)
 	}
 }
 
-func attrValue(node *html.Node, attrName string) (value string, found bool) {
+func nodeAttribute(node *html.Node, attrName string) (value string, found bool) {
 	for _, attr := range node.Attr {
 		if attr.Key == attrName {
 			return attr.Val, true
@@ -150,7 +164,7 @@ func attrValue(node *html.Node, attrName string) (value string, found bool) {
 }
 
 func nodeHasClass(node *html.Node, class string) bool {
-	classList, found := attrValue(node, "class")
+	classList, found := nodeAttribute(node, "class")
 	if !found {
 		return false
 	}

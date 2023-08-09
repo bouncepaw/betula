@@ -13,7 +13,7 @@ func listenForTitle(ctx context.Context, nodes chan *html.Node, data *FoundData)
 		select {
 		case node := <-nodes:
 			if node.Type == html.ElementNode && node.Data == "title" {
-				data.Title = node.FirstChild.Data
+				data.title = node.FirstChild.Data
 				return
 			}
 		case <-ctx.Done():
@@ -27,7 +27,7 @@ func listenForBookmarkOf(ctx context.Context, nodes chan *html.Node, data *Found
 		select {
 		case n := <-nodes:
 			if n.Type == html.ElementNode && nodeHasClass(n, "u-bookmark-of") {
-				href, found := attrValue(n, "href")
+				href, found := nodeAttribute(n, "href")
 				if !found {
 					// Huh? OK, a faulty document, stuff happens.
 					return
@@ -82,7 +82,7 @@ func listenForTags(ctx context.Context, nodes chan *html.Node, data *FoundData) 
 				tag := n.FirstChild.Data
 				data.Tags = append(data.Tags, tag)
 			}
-			// Not returning, there might be more...
+			// Not returning, there might be more.
 		}
 	}
 }
@@ -95,16 +95,16 @@ func listenForMycomarkup(ctx context.Context, nodes chan *html.Node, data *Found
 		case n := <-nodes:
 			// Looking for <link rel="alternate" type="text/mycomarkup" href="...">
 			if n.Type == html.ElementNode && n.Data == "link" {
-				rel, foundRel := attrValue(n, "rel")
-				kind, foundKind := attrValue(n, "type")
-				href, foundHref := attrValue(n, "href")
+				rel, foundRel := nodeAttribute(n, "rel")
+				kind, foundKind := nodeAttribute(n, "type")
+				href, foundHref := nodeAttribute(n, "href")
 
 				if !foundRel || !foundKind || !foundHref ||
 					rel != "alternate" || kind != "text/mycomarkup" {
 					continue
 				}
 
-				addr, err := ctx.Value("url").(*url.URL).Parse(href)
+				addr, err := data.docurl.Parse(href)
 				if err != nil {
 					log.Printf("URL ‘%s’ is a bad URL.\n", href)
 					// Link issue.
