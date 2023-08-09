@@ -3,8 +3,8 @@ package web
 import (
 	"embed"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/readpage"
 	"html/template"
 	"io"
 	"log"
@@ -16,13 +16,11 @@ import (
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/auth"
+	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/feeds"
 	"git.sr.ht/~bouncepaw/betula/help"
 	"git.sr.ht/~bouncepaw/betula/search"
 	"git.sr.ht/~bouncepaw/betula/settings"
-	"golang.org/x/net/html"
-
-	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -533,38 +531,6 @@ func mixUpTitleLink(title *string, addr *string) {
 	}
 }
 
-func traverse(n *html.Node) (string, error) {
-	if n.Type == html.ElementNode && n.Data == "title" {
-		return n.FirstChild.Data, nil
-	}
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		result, err := traverse(c)
-		if err == nil {
-			return result, nil
-		}
-	}
-	return "", errors.New("failed to traverse")
-}
-
-func getHtmlTitle(link string) (string, error) {
-	resp, err := http.Get(link)
-	if err != nil {
-		log.Printf("Can't get response from %s\n", link)
-		return "", err
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.Printf("Can't close the body of the response from %s\n", link)
-		}
-	}(resp.Body)
-	doc, err := html.Parse(resp.Body)
-	if err != nil {
-		log.Printf("Can't parse html from %s\n", link)
-	}
-	return traverse(doc)
-}
-
 type dataEditLink struct {
 	errorTemplate
 	*dataCommon
@@ -633,7 +599,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 			viewData.invalidUrl(post, common, w, rq)
 			return
 		}
-		newTitle, err := getHtmlTitle(post.URL)
+		newTitle, err := readpage.FindTitle(post.URL)
 		if err != nil {
 			log.Printf("Can't get HTML title from URL: %s\n", post.URL)
 			viewData.titleNotFound(post, common, w, rq)
@@ -796,7 +762,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			viewData.invalidUrl(post, common, w, rq)
 			return
 		}
-		newTitle, err := getHtmlTitle(post.URL)
+		newTitle, err := readpage.FindTitle(post.URL)
 		if err != nil {
 			viewData.titleNotFound(post, common, w, rq)
 			return
