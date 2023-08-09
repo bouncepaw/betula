@@ -8,7 +8,7 @@ import (
 	"net/url"
 )
 
-func listenForTitle(ctx context.Context, incoming chan *html.Node, data *Data) {
+func listenForTitle(ctx context.Context, incoming chan *html.Node, data *foundData) {
 	for {
 		select {
 		case node := <-incoming:
@@ -22,7 +22,7 @@ func listenForTitle(ctx context.Context, incoming chan *html.Node, data *Data) {
 	}
 }
 
-func listenForBookmarkOf(ctx context.Context, incoming chan *html.Node, data *Data) {
+func listenForBookmarkOf(ctx context.Context, incoming chan *html.Node, data *foundData) {
 	for {
 		select {
 		case n := <-incoming:
@@ -52,7 +52,7 @@ func listenForBookmarkOf(ctx context.Context, incoming chan *html.Node, data *Da
 	}
 }
 
-func listenForPostName(ctx context.Context, incoming chan *html.Node, data *Data) {
+func listenForPostName(ctx context.Context, incoming chan *html.Node, data *foundData) {
 	state := 0
 	// 0 nothing found yet
 	// 1 found a p-name
@@ -72,7 +72,7 @@ func listenForPostName(ctx context.Context, incoming chan *html.Node, data *Data
 	}
 }
 
-func listenForTags(ctx context.Context, nodes chan *html.Node, data *Data) {
+func listenForTags(ctx context.Context, nodes chan *html.Node, data *foundData) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -87,7 +87,7 @@ func listenForTags(ctx context.Context, nodes chan *html.Node, data *Data) {
 	}
 }
 
-func listenForMycomarkup(ctx context.Context, nodes chan *html.Node, data *Data) {
+func listenForMycomarkup(ctx context.Context, nodes chan *html.Node, data *foundData) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -130,7 +130,7 @@ func listenForMycomarkup(ctx context.Context, nodes chan *html.Node, data *Data)
 	}
 }
 
-func listenForHFeed(ctx context.Context, nodes chan *html.Node, data *Data) {
+func listenForHFeed(ctx context.Context, nodes chan *html.Node, data *foundData) {
 	for {
 		select {
 		case <-ctx.Done():

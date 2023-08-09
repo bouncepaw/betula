@@ -20,32 +20,46 @@ import (
 	— Leigh Harline, Ned Washington
 */
 
+// FindTitle finds a <title> in the document.
+func FindTitle(link string) (string, error) {
+	data, err := findData(link, wishTitle)
+	return data.Title, err
+}
+
+// FindRepostData finds data relevant to reposts in the document.
+func FindRepostData(link string) (foundData, error) {
+	wishes := wishPostName | wishBookmarkOf | wishTags | wishMycomarkup | wishNoFeed
+	return findData(link, wishes)
+}
+
+// The rest of the package is private.
+
 const (
-	WishTitle = 1 << iota
-	WishPostName
-	WishBookmarkOf
-	WishTags
-	WishMycomarkup
-	WishNoFeed
+	wishTitle = 1 << iota
+	wishPostName
+	wishBookmarkOf
+	wishTags
+	wishMycomarkup
+	wishNoFeed
 )
 
-type wishmakerFunc func(context.Context, chan *html.Node, *Data)
+type wishmakerFunc func(context.Context, chan *html.Node, *foundData)
 
 var wishesToWishmakers = map[int]wishmakerFunc{
-	WishTitle:      listenForTitle,
-	WishPostName:   listenForPostName,
-	WishBookmarkOf: listenForBookmarkOf,
-	WishTags:       listenForTags,
-	WishMycomarkup: listenForMycomarkup,
-	WishNoFeed:     listenForHFeed,
+	wishTitle:      listenForTitle,
+	wishPostName:   listenForPostName,
+	wishBookmarkOf: listenForBookmarkOf,
+	wishTags:       listenForTags,
+	wishMycomarkup: listenForMycomarkup,
+	wishNoFeed:     listenForHFeed,
 }
 
 var client = http.Client{
 	Timeout: 2 * time.Second,
 }
 
-// Data is all data returned by GetData. Specific fields are set iff you wish for them.
-type Data struct {
+// foundData is all data found by findData. Specific fields are set iff you wish for them.
+type foundData struct {
 	Title      string
 	PostName   string
 	BookmarkOf *url.URL
@@ -54,14 +68,8 @@ type Data struct {
 	IsHFeed    bool
 }
 
-// GetTitle is a shorthand for wishing for page title only.
-func GetTitle(link string) (string, error) {
-	data, err := GetData(link, WishTitle)
-	return data.Title, err
-}
-
-// GetData finds the data you wished for in the linked document, considering the timeouts.
-func GetData(link string, wishes int) (data Data, err error) {
+// findData finds the data you wished for in the linked document, considering the timeouts.
+func findData(link string, wishes int) (data foundData, err error) {
 	// TODO: Handle timeout
 	resp, err := client.Get(link)
 	if err != nil {
