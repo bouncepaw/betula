@@ -22,44 +22,27 @@ import (
 
 // FindTitle finds a <title> in the document.
 func FindTitle(link string) (string, error) {
-	data, err := findData(link, wishTitle)
+	data, err := findData(link, []worker{listenForTitle})
 	return data.Title, err
 }
 
 // FindRepostData finds data relevant to reposts in the document.
-func FindRepostData(link string) (foundData, error) {
-	wishes := wishPostName | wishBookmarkOf | wishTags | wishMycomarkup | wishNoFeed
-	return findData(link, wishes)
+func FindRepostData(link string) (FoundData, error) {
+	return findData(link, []worker{
+		listenForPostName, listenForBookmarkOf, listenForTags, listenForMycomarkup, listenForHFeed,
+	})
 }
 
 // The rest of the package is private.
 
-const (
-	wishTitle = 1 << iota
-	wishPostName
-	wishBookmarkOf
-	wishTags
-	wishMycomarkup
-	wishNoFeed
-)
-
-type wishmakerFunc func(context.Context, chan *html.Node, *foundData)
-
-var wishesToWishmakers = map[int]wishmakerFunc{
-	wishTitle:      listenForTitle,
-	wishPostName:   listenForPostName,
-	wishBookmarkOf: listenForBookmarkOf,
-	wishTags:       listenForTags,
-	wishMycomarkup: listenForMycomarkup,
-	wishNoFeed:     listenForHFeed,
-}
+type worker func(context.Context, chan *html.Node, *FoundData)
 
 var client = http.Client{
 	Timeout: 2 * time.Second,
 }
 
-// foundData is all data found by findData. Specific fields are set iff you wish for them.
-type foundData struct {
+// FoundData is all data found in a document. Specific fields are set iff you wish for them.
+type FoundData struct {
 	Title      string
 	PostName   string
 	BookmarkOf *url.URL
@@ -69,7 +52,7 @@ type foundData struct {
 }
 
 // findData finds the data you wished for in the linked document, considering the timeouts.
-func findData(link string, wishes int) (data foundData, err error) {
+func findData(link string, workers []worker) (data FoundData, err error) {
 	// TODO: Handle timeout
 	resp, err := client.Get(link)
 	if err != nil {
@@ -89,9 +72,8 @@ func findData(link string, wishes int) (data foundData, err error) {
 		log.Printf("Can't parse html from %s\n", link)
 	}
 
-	// The wishmakers have 1 second to fulfill their fate. That's a lot of time!
-	// I'm being generous here. The showstopper will tell the wishmakers when
-	// the time is up.
+	// The workers have 1 second to fulfill their fate. That's a lot of time!
+	// I'm being generous here.
 	ctx, cancel := makeContext(link)
 	defer cancel()
 
@@ -99,41 +81,32 @@ func findData(link string, wishes int) (data foundData, err error) {
 	nodes := make(chan *html.Node)
 	go traverse(doc, nodes)
 
-	// Enter wishmakers. They make your wishes come true!
+	// Enter workers. They make your wishes come true!
 	var (
-		completeWishes = make(chan int)
-		wishmakers     []wishmakerFunc
-		nodeReceivers  []chan *html.Node
-		i              = 0
+		workDone      = make(chan int)
+		nodeReceivers = make([]chan *html.Node, len(workers))
 	)
-	for wish, wishmaker := range wishesToWishmakers { // For all possible wishes
-		if wishes&wish == 0 {
-			// If this wish is not wished for, we don't care.
-			continue
-		}
-		wishmakers = append(wishmakers, wishmaker)
-		nodeReceivers = append(nodeReceivers, make(chan *html.Node))
-		i++
+	for i, wishmaker := range workers {
+		nodeReceivers[i] = make(chan *html.Node)
 
-		go func(i int, wishmaker wishmakerFunc) {
+		go func(i int, wishmaker worker) {
 			wishmaker(ctx, nodeReceivers[i], &data)
-			// Wishmaker tells fanouter it's done.
+			// Worker reports it's done.
 			// — It's done.
 			// — It's done.
-			completeWishes <- i
+			workDone <- i
 			close(nodeReceivers[i])
 		}(i, wishmaker)
 	}
 
-	// Enter fanouter. It broadcasts all found nodes to the wishmakers who are
-	// still online.
+	// Fan out nodes to workers.
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case i := <-completeWishes:
-				// Wishmaker told it's done. OK, don't take it into account later.
+			case i := <-workDone:
+				// A worker reported it's done. OK, taking notes.
 				nodeReceivers[i] = nil
 			case node := <-nodes:
 				for _, nodeReceiver := range nodeReceivers {

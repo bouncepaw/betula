@@ -8,10 +8,10 @@ import (
 	"net/url"
 )
 
-func listenForTitle(ctx context.Context, incoming chan *html.Node, data *foundData) {
+func listenForTitle(ctx context.Context, nodes chan *html.Node, data *FoundData) {
 	for {
 		select {
-		case node := <-incoming:
+		case node := <-nodes:
 			if node.Type == html.ElementNode && node.Data == "title" {
 				data.Title = node.FirstChild.Data
 				return
@@ -22,10 +22,10 @@ func listenForTitle(ctx context.Context, incoming chan *html.Node, data *foundDa
 	}
 }
 
-func listenForBookmarkOf(ctx context.Context, incoming chan *html.Node, data *foundData) {
+func listenForBookmarkOf(ctx context.Context, nodes chan *html.Node, data *FoundData) {
 	for {
 		select {
-		case n := <-incoming:
+		case n := <-nodes:
 			if n.Type == html.ElementNode && nodeHasClass(n, "u-bookmark-of") {
 				href, found := attrValue(n, "href")
 				if !found {
@@ -52,14 +52,14 @@ func listenForBookmarkOf(ctx context.Context, incoming chan *html.Node, data *fo
 	}
 }
 
-func listenForPostName(ctx context.Context, incoming chan *html.Node, data *foundData) {
+func listenForPostName(ctx context.Context, nodes chan *html.Node, data *FoundData) {
 	state := 0
 	// 0 nothing found yet
 	// 1 found a p-name
 	// When 1, look for a text node. After finding it, return.
 	for {
 		select {
-		case n := <-incoming:
+		case n := <-nodes:
 			switch {
 			case state == 0 && nodeHasClass(n, "p-name"):
 				state = 1
@@ -72,7 +72,7 @@ func listenForPostName(ctx context.Context, incoming chan *html.Node, data *foun
 	}
 }
 
-func listenForTags(ctx context.Context, nodes chan *html.Node, data *foundData) {
+func listenForTags(ctx context.Context, nodes chan *html.Node, data *FoundData) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -87,7 +87,7 @@ func listenForTags(ctx context.Context, nodes chan *html.Node, data *foundData) 
 	}
 }
 
-func listenForMycomarkup(ctx context.Context, nodes chan *html.Node, data *foundData) {
+func listenForMycomarkup(ctx context.Context, nodes chan *html.Node, data *FoundData) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -130,7 +130,7 @@ func listenForMycomarkup(ctx context.Context, nodes chan *html.Node, data *found
 	}
 }
 
-func listenForHFeed(ctx context.Context, nodes chan *html.Node, data *foundData) {
+func listenForHFeed(ctx context.Context, nodes chan *html.Node, data *FoundData) {
 	for {
 		select {
 		case <-ctx.Done():
