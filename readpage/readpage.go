@@ -24,6 +24,7 @@ import (
 
 var (
 	ErrNoTitleFound = errors.New("no title found in the document")
+	ErrTimeout      = errors.New("request timed out")
 
 	titleWorkers  = []worker{listenForTitle}
 	repostWorkers = []worker{
@@ -83,7 +84,7 @@ type FoundData struct {
 func findData(link string, workers []worker, doc *html.Node) (data FoundData, err error) {
 	addr, err := url.ParseRequestURI(link)
 	if err != nil {
-		log.Fatalln("Invalid URL passed.")
+		panic("Invalid URL passed.")
 	}
 
 	data.docurl = addr
@@ -139,6 +140,11 @@ func findDataByLink(link string, workers []worker) (data FoundData, err error) {
 	// TODO: Handle timeout
 	resp, err := client.Get(link)
 	if err != nil {
+		if err.(*url.Error).Timeout() {
+			log.Printf("Request to %s timed out\n", link)
+			return data, ErrTimeout
+		}
+
 		log.Printf("Can't get response from %s\n", link)
 		return data, err
 	}
@@ -153,6 +159,7 @@ func findDataByLink(link string, workers []worker) (data FoundData, err error) {
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
 		log.Printf("Can't parse HTML from %s\n", link)
+		return data, err
 	}
 
 	return findData(link, workers, doc)
@@ -165,6 +172,7 @@ func traverse(ctx context.Context, n *html.Node, nodes chan *html.Node) {
 		return
 	default:
 	}
+	// We don't care about other types of nodes. So let's just drop them!
 	if n.Type == html.ElementNode || n.Type == html.TextNode {
 		nodes <- n
 	}
