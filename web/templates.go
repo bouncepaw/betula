@@ -27,10 +27,10 @@ and running them, as well as all such templates.
 */
 
 func templateFrom(funcMap template.FuncMap, filenames ...string) *template.Template {
+	filenames = append(filenames, "skeleton")
 	for i, filename := range filenames {
-		filenames[i] = filename + ".gohtml"
+		filenames[i] = "views/" + filename + ".gohtml"
 	}
-	filenames = append(filenames, "skeleton.gohtml")
 	return template.Must(template.New("skeleton.gohtml").Funcs(funcMap).ParseFS(fs, filenames...))
 }
 

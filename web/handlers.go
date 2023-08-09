@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	//go:embed *.gohtml *.css *.js
+	//go:embed views/*.gohtml *.css *.js
 	fs embed.FS
 	//go:embed bookmarklet.js
 	bookmarkletScript string
