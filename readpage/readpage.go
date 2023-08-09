@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -92,48 +93,45 @@ func findData(link string, workers []worker, doc *html.Node) (data FoundData, er
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	// Enter traverser. It goes through all the elements and yields them.
-	nodes := make(chan *html.Node)
-	go traverse(doc, nodes)
+	var (
+		wg            sync.WaitGroup
+		nodeReceivers = make([]chan *html.Node, len(workers))
+		nodes         = make(chan *html.Node)
+	)
 
 	// Enter workers. They make your wishes come true!
-	var (
-		workDone      = make(chan int)
-		nodeReceivers = make([]chan *html.Node, len(workers))
-	)
-	for i, wishmaker := range workers {
+	for i, w := range workers {
 		nodeReceivers[i] = make(chan *html.Node)
+		wg.Add(1)
 
-		go func(i int, wishmaker worker) {
-			wishmaker(ctx, nodeReceivers[i], &data)
-			// Worker reports it's done.
-			// — It's done.
-			// — It's done.
-			workDone <- i
-			close(nodeReceivers[i])
-		}(i, wishmaker)
+		go func(i int, w worker) {
+			w(ctx, nodeReceivers[i], &data)
+			wg.Done()
+		}(i, w)
 	}
 
-	// Fan out nodes to workers.
+	// Enter traverser. It goes through all the elements and yields them.
+	wg.Add(1)
 	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case i := <-workDone:
-				// A worker reported it's done. OK, taking notes.
-				nodeReceivers[i] = nil
-			case node := <-nodes:
-				for _, nodeReceiver := range nodeReceivers {
-					if nodeReceiver == nil {
-						continue
-					}
-					// They will listen.
-					nodeReceiver <- node
-				}
-			}
-		}
+		traverse(ctx, doc, nodes)
+		close(nodes)
+		println("closed")
+		wg.Done()
 	}()
+
+	// Fan out nodes.
+	for node := range nodes {
+		for _, nodeReceiver := range nodeReceivers {
+			// They will listen.
+			nodeReceiver <- node
+		}
+	}
+	for _, nodeReceiver := range nodeReceivers {
+		close(nodeReceiver)
+	}
+	println("read all nodes too")
+
+	wg.Wait()
 
 	return
 }
@@ -163,12 +161,17 @@ func findDataByLink(link string, workers []worker) (data FoundData, err error) {
 }
 
 // Depth-first traversal.
-func traverse(n *html.Node, outcoming chan *html.Node) {
+func traverse(ctx context.Context, n *html.Node, nodes chan *html.Node) {
+	select {
+	case <-ctx.Done():
+		return
+	default:
+	}
 	if n.Type == html.ElementNode || n.Type == html.TextNode {
-		outcoming <- n
+		nodes <- n
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		traverse(c, outcoming)
+		traverse(ctx, c, nodes)
 	}
 }
 

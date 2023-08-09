@@ -16,12 +16,13 @@ func TestTitles(t *testing.T) {
 		"no-title-yes-heading": "",
 	}
 	for name, expectedTitle := range table {
+		t.Log("case", name)
 		file, _ := testdata.Open("testdata/" + name + ".html")
 		doc, _ := html.Parse(file)
-		data, _ := findData("https://bouncepaw.com", titleWorkers, doc)
+		data, err := findData("https://bouncepaw.com", titleWorkers, doc)
 		if data.title != expectedTitle {
-			t.Errorf("In ‘%s’, expected title ‘%s’, got ‘%s’",
-				name, expectedTitle, data.title)
+			t.Errorf("In ‘%s’, expected title ‘%s’, got ‘%s’. Error value is ‘%v’.",
+				name, expectedTitle, data.title, err)
 		}
 	}
 }

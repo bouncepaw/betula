@@ -9,17 +9,19 @@ import (
 )
 
 func listenForTitle(ctx context.Context, nodes chan *html.Node, data *FoundData) {
-	for {
-		select {
-		case node := <-nodes:
+	state := 0
+	// 0 looking
+	// 1 found
+	for node := range nodes {
+		log.Printf("Recv %v\n", node)
+		if state == 0 {
 			if node.Type == html.ElementNode && node.Data == "title" {
 				data.title = node.FirstChild.Data
-				return
+				state = 1
 			}
-		case <-ctx.Done():
-			return
 		}
 	}
+	println("read all nodes")
 }
 
 func listenForBookmarkOf(ctx context.Context, nodes chan *html.Node, data *FoundData) {
