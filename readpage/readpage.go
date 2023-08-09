@@ -50,7 +50,7 @@ func FindRepostData(link string) (FoundData, error) {
 
 // The rest of the package is private.
 
-type worker func(context.Context, chan *html.Node, *FoundData)
+type worker func(chan *html.Node, *FoundData)
 
 var client = http.Client{
 	Timeout: 2 * time.Second,
@@ -105,7 +105,7 @@ func findData(link string, workers []worker, doc *html.Node) (data FoundData, er
 		wg.Add(1)
 
 		go func(i int, w worker) {
-			w(ctx, nodeReceivers[i], &data)
+			w(nodeReceivers[i], &data)
 			wg.Done()
 		}(i, w)
 	}
@@ -115,7 +115,6 @@ func findData(link string, workers []worker, doc *html.Node) (data FoundData, er
 	go func() {
 		traverse(ctx, doc, nodes)
 		close(nodes)
-		println("closed")
 		wg.Done()
 	}()
 
@@ -129,7 +128,6 @@ func findData(link string, workers []worker, doc *html.Node) (data FoundData, er
 	for _, nodeReceiver := range nodeReceivers {
 		close(nodeReceiver)
 	}
-	println("read all nodes too")
 
 	wg.Wait()
 

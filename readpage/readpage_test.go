@@ -16,7 +16,6 @@ func TestTitles(t *testing.T) {
 		"no-title-yes-heading": "",
 	}
 	for name, expectedTitle := range table {
-		t.Log("case", name)
 		file, _ := testdata.Open("testdata/" + name + ".html")
 		doc, _ := html.Parse(file)
 		data, err := findData("https://bouncepaw.com", titleWorkers, doc)
