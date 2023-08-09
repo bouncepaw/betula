@@ -9,6 +9,7 @@ tasks:
       cd betula
       go test ./db
       go test ./feeds
+      go test ./readpage
   - test-web: |
       cd betula
       sh test-web.sh
