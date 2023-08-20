@@ -202,3 +202,35 @@ ExpectStatus 200
 ExpectContent "1</span>"
 Get '/search?q=микориза'
 Check
+
+Test 'Repost: Empty URL'
+ExpectStatus 400
+ExpectContent 'URL is not passed'
+Post '/repost' -F url=''
+Check
+
+Test 'Repost: Bad URL'
+ExpectStatus 400
+ExpectContent 'Invalid URL'
+Post '/repost' -F url='Phosphophyllite'
+Check
+
+Test 'Repost: Non-repostable URL'
+ExpectStatus 400
+ExpectContent 'impossible'
+Post '/repost' -F url='https://mycorrhiza.wiki'
+Check
+
+# Not testing timing out. How do I even test it?
+
+Test 'Repost: Successful repost'
+ExpectStatus 303
+ExpectContent 'Gestlings'
+Post '/repost' -F url='https://links.bouncepaw.com/1' --location
+Check
+
+Test 'Repost: Tags considered'
+ExpectContent 303
+ExpectContent 'p-category'
+Post '/repost' -F url='https://links.bouncepaw.com/1' -F copy-tags=true --location
+Check

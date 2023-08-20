@@ -49,6 +49,14 @@ func TestHEntries(t *testing.T) {
 			Mycomarkup: "",
 			IsHFeed:    false,
 		},
+
+		"h-feed with h-entries": {
+			PostName:   "CHAPTER 1. Loomings.",
+			BookmarkOf: nil,
+			Tags:       nil,
+			Mycomarkup: "",
+			IsHFeed:    true,
+		},
 	}
 
 	for name, expectedData := range table {

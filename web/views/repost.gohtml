@@ -10,7 +10,7 @@
 				<p>The link you have passed, <code>{{.URL}}</code>, is invalid. Please enter a correct URL.</p>
             {{else if .ErrorImpossible}}
 				<h2>Repost impossible</h2>
-				<p>The page you entered does not support Betula's reposts. Is it running Betula? Is the right page?</p>
+				<p>The page you entered does not support Betula's reposts. Is it running Betula? Is it the right page?</p>
 					<!-- TODO: all fields in the next line -->
 				<p>Do you want to <a href="/save-link?title={{.FoundData.PostName}}&url={{.URL}}&description={{.FoundData.Mycomarkup}}">save this link</a> instead? Saving never fails.</p>
 			{{else if .ErrorTimeout}}

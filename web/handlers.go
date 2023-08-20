@@ -101,48 +101,39 @@ func handlerRepost(w http.ResponseWriter, rq *http.Request) {
 		CopyTags:   rq.FormValue("copy-tags") == "true",
 	}
 
-	var foundData readpage.FoundData
-	var err error
-
-	// I call this a railway operator.
-	switch ok := true; {
-	case rq.Method == http.MethodGet:
+	if rq.Method == http.MethodGet {
 		templateExec(w, templateRepost, repost, rq)
 		return
+	}
 
-	case repost.URL == "":
+	goto good
+
+catchTheFire:
+	// All errors end up here.
+	w.WriteHeader(http.StatusBadRequest)
+	templateExec(w, templateRepost, repost, rq)
+	return
+
+good:
+	if repost.URL == "" {
 		repost.ErrorEmptyURL = true
-		ok = false // Mark errors like that.
-		fallthrough
-
-	case ok && !stricks.ValidURL(repost.URL):
+		goto catchTheFire
+	} else if !stricks.ValidURL(repost.URL) {
 		repost.ErrorInvalidURL = true
-		ok = false
-		fallthrough
+		goto catchTheFire
+	}
 
-	case ok:
-		foundData, err = readpage.FindRepostData(repost.URL)
-		fallthrough
+	foundData, err := readpage.FindRepostData(repost.URL)
 
-	case ok && errors.Is(err, readpage.ErrTimeout):
+	if errors.Is(err, readpage.ErrTimeout) {
 		repost.ErrorTimeout = true
-		ok = false
-		fallthrough
-
-	case ok && err != nil:
+		goto catchTheFire
+	} else if err != nil {
 		repost.Err = err
-		ok = false
-		fallthrough
-
-	case ok && (foundData.IsHFeed || foundData.BookmarkOf == nil || foundData.PostName == ""):
+		goto catchTheFire
+	} else if foundData.IsHFeed || foundData.BookmarkOf == nil || foundData.PostName == "" {
 		repost.ErrorImpossible = true
-		ok = false
-		fallthrough
-
-	case !ok: // All errors end up here.
-		w.WriteHeader(http.StatusBadRequest)
-		templateExec(w, templateRepost, repost, rq)
-		return
+		goto catchTheFire
 	}
 
 	post := types.Post{
