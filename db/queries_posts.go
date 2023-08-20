@@ -123,13 +123,13 @@ where ID = ?;
 	mustExec(q, id)
 }
 
-// AddPost adds a new post to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
+// AddPost adds a new original post to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
 func AddPost(post types.Post) int64 {
 	const q = `
-insert into Posts (URL, Title, Description, Visibility)
-values (?, ?, ?, ?);
+insert into Posts (URL, Title, Description, Visibility, RepostOf)
+values (?, ?, ?, ?, ?);
 `
-	res, err := db.Exec(q, post.URL, post.Title, post.Description, post.Visibility)
+	res, err := db.Exec(q, post.URL, post.Title, post.Description, post.Visibility, post.RepostOf)
 	if err != nil {
 		log.Fatalln(err)
 	}

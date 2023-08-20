@@ -11,3 +11,11 @@ func ListenAndWhisper() {
 		}
 	}
 }
+
+func CheckThisRepostLater(url string) {
+
+}
+
+func NotifyAboutMyRepost(postId int) {
+
+}

@@ -1,0 +1,52 @@
+{{define "title"}}Repost{{end}}
+{{define "body"}}
+	<main>
+		<article>
+            {{if .ErrorEmptyURL}}
+				<h2>URL is not passed</h2>
+				<p>Please, provide a link.</p>
+            {{else if .ErrorInvalidURL}}
+				<h2>Invalid URL</h2>
+				<p>The link you have passed, <code>{{.URL}}</code>, is invalid. Please enter a correct URL.</p>
+            {{else if .ErrorImpossible}}
+				<h2>Repost impossible</h2>
+				<p>The page you entered does not support Betula's reposts. Is it running Betula? Is the right page?</p>
+					<!-- TODO: all fields in the next line -->
+				<p>Do you want to <a href="/save-link?title={{.FoundData.PostName}}&url={{.URL}}&description={{.FoundData.Mycomarkup}}">save this link</a> instead? Saving never fails.</p>
+			{{else if .ErrorTimeout}}
+	            <h2>Server timed out</h2>
+	            <p>The page takes too long to load, cannot repost now.</p>
+		            <!-- Keep in sync with the similar line in the previous branch! -->
+	            <p>Do you want to <a href="/save-link?title={{.FoundData.PostName}}&url={{.URL}}&description={{.FoundData.Mycomarkup}}">save this link</a> instead? Saving never fails.</p>
+            {{else if .Err}}
+	            <h2>Error</h2>
+	            <p>Error message: {{.Err.Error}}.</p>
+            {{else}}
+				<h2>Repost</h2>
+				<p>Share posts from other Betulæ and compatible software quickly. Reposts link back the original posts. You can edit the reposts' data freely.</p>
+            {{end}}
+			<form method="post" action="/repost">
+				<div>
+					<label for="link-url">URL</label>
+					<input type="text" id="link-url" name="url" value="{{.URL}}" autocomplete="off" placeholder="https://links.example.org/42">
+				</div>
+
+				<div class="visibility-field">
+					<label class="visibility-field-title">Who can see the repost?</label>
+					<input id="link-public" type="radio" name="visibility" value="public"{{if .Visibility}} checked{{end}}>
+					<label for="link-public">Everyone</label>
+
+					<input id="link-private" type="radio" name="visibility" value="private"{{if not .Visibility}} checked{{end}}>
+					<label for="link-private">Only you</label>
+				</div>
+
+				<div>
+					<input type="checkbox" name="copy-tags" id="copy-tags" {{if .CopyTags}}checked{{end}} value="true">
+					<label for="copy-tags">Copy their tags</label>
+				</div>
+
+				<input type="submit" class="btn" value="Repost">
+			</form>
+		</article>
+	</main>
+{{end}}

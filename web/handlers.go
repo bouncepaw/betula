@@ -3,8 +3,11 @@ package web
 import (
 	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/readpage"
+	"git.sr.ht/~bouncepaw/betula/stricks"
 	"html/template"
 	"io"
 	"log"
@@ -47,6 +50,7 @@ func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.Response
 
 func init() {
 	mux.HandleFunc("/", handlerFeed)
+	mux.HandleFunc("/repost", adminOnly(handlerRepost))
 	mux.HandleFunc("/.well-known/mycoverse/inbox", handlerInbox)
 	mux.HandleFunc("/help/en/", handlerEnglishHelp)
 	mux.HandleFunc("/help", handlerHelp)
@@ -72,6 +76,91 @@ func init() {
 	mux.HandleFunc("/bookmarklet", adminOnly(handlerBookmarklet))
 	mux.HandleFunc("/static/style.css", handlerStyle)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+type dataRepost struct {
+	*dataCommon
+
+	ErrorInvalidURL,
+	ErrorEmptyURL,
+	ErrorImpossible,
+	ErrorTimeout bool
+	Err error
+
+	FoundData  readpage.FoundData
+	URL        string
+	Visibility types.Visibility
+	CopyTags   bool
+}
+
+func handlerRepost(w http.ResponseWriter, rq *http.Request) {
+	repost := dataRepost{
+		dataCommon: emptyCommon(),
+		URL:        rq.FormValue("url"),
+		Visibility: types.VisibilityFromString(rq.FormValue("visibility")),
+		CopyTags:   rq.FormValue("copy-tags") == "true",
+	}
+
+	var foundData readpage.FoundData
+	var err error
+
+	// I call this a railway operator.
+	switch ok := true; {
+	case rq.Method == http.MethodGet:
+		templateExec(w, templateRepost, repost, rq)
+		return
+
+	case repost.URL == "":
+		repost.ErrorEmptyURL = true
+		ok = false // Mark errors like that.
+		fallthrough
+
+	case ok && !stricks.ValidURL(repost.URL):
+		repost.ErrorInvalidURL = true
+		ok = false
+		fallthrough
+
+	case ok:
+		foundData, err = readpage.FindRepostData(repost.URL)
+		fallthrough
+
+	case ok && errors.Is(err, readpage.ErrTimeout):
+		repost.ErrorTimeout = true
+		ok = false
+		fallthrough
+
+	case ok && err != nil:
+		repost.Err = err
+		ok = false
+		fallthrough
+
+	case ok && (foundData.IsHFeed || foundData.BookmarkOf == nil || foundData.PostName == ""):
+		repost.ErrorImpossible = true
+		ok = false
+		fallthrough
+
+	case !ok: // All errors end up here.
+		w.WriteHeader(http.StatusBadRequest)
+		templateExec(w, templateRepost, repost, rq)
+		return
+	}
+
+	post := types.Post{
+		URL:         foundData.BookmarkOf.String(),
+		Title:       foundData.PostName,
+		Description: foundData.Mycomarkup,
+		Visibility:  repost.Visibility,
+		RepostOf:    &repost.URL,
+	}
+
+	if repost.CopyTags {
+		post.Tags = types.TagsFromStringSlice(foundData.Tags)
+	}
+
+	id := db.AddPost(post)
+
+	go jobs.NotifyAboutMyRepost(int(id))
+	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 }
 
 func handlerInbox(w http.ResponseWriter, rq *http.Request) {

@@ -48,6 +48,8 @@ type Post struct {
 	Description string
 	// Visibility sets who can see the post.
 	Visibility Visibility
+	// RepostOf is URL of the post reposted. Nil if this is an original post.
+	RepostOf *string
 }
 
 type Tag struct {
@@ -81,6 +83,14 @@ func SplitTags(commaSeparated string) []Tag {
 		tags[i] = Tag{
 			Name: CanonicalTagName(tagName),
 		}
+	}
+	return tags
+}
+
+func TagsFromStringSlice(ss []string) []Tag {
+	tags := make([]Tag, len(ss))
+	for i, tag := range ss {
+		tags[i] = Tag{Name: tag}
 	}
 	return tags
 }

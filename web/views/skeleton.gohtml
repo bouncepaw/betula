@@ -24,7 +24,8 @@
 		<input type="text" aria-label="Search query" placeholder="Search query" name="q" value="{{.SearchQuery}}">
 	</form>
 	<ul>
-        {{if .Authorized}}<li><a href="/save-link" accesskey="s">Save link</a></li>{{end}}
+        {{if .Authorized}}<li><a href="/save-link">Save link</a></li>
+        <li><a href="/repost">Repost</a></li>{{end}}
 		<li>
             {{if .Authorized}}<a href="/settings">Settings</a>
             {{else}}<a href="/login">Log in</a>{{end}}
