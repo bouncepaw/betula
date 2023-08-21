@@ -7,3 +7,11 @@ func ValidURL(s string) bool {
 	_, err := url.ParseRequestURI(s)
 	return err == nil
 }
+
+func ParseValidURL(s string) *url.URL {
+	u, err := url.ParseRequestURI(s)
+	if err != nil {
+		panic(err)
+	}
+	return u
+}

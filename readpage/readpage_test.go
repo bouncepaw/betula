@@ -2,8 +2,8 @@ package readpage
 
 import (
 	"embed"
+	"git.sr.ht/~bouncepaw/betula/stricks"
 	"golang.org/x/net/html"
-	"net/url"
 	"reflect"
 	"testing"
 )
@@ -28,10 +28,8 @@ func TestTitles(t *testing.T) {
 }
 
 func TestHEntries(t *testing.T) {
-	gutenberg := func() *url.URL {
-		u, _ := url.ParseRequestURI("https://www.gutenberg.org/files/2701/2701-h/2701-h.htm#link2HCH0001")
-		return u
-	}()
+	gutenberg := stricks.ParseValidURL("https://www.gutenberg.org/files/2701/2701-h/2701-h.htm#link2HCH0001")
+	mushatlas := stricks.ParseValidURL("https://mushroomcoloratlas.com/")
 
 	table := map[string]FoundData{
 		"h-entry with p-name": {
@@ -56,6 +54,14 @@ func TestHEntries(t *testing.T) {
 			Tags:       nil,
 			Mycomarkup: "",
 			IsHFeed:    true,
+		},
+
+		"mycomarkup linked": {
+			PostName:   "Mushroom color atlas",
+			BookmarkOf: mushatlas,
+			Tags:       []string{"myco"},
+			Mycomarkup: "Many cool colors",
+			IsHFeed:    false,
 		},
 	}
 
