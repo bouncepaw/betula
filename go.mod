@@ -10,7 +10,10 @@ require (
 	golang.org/x/net v0.5.0
 )
 
-require github.com/kr/pretty v0.3.1 // indirect
+require (
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/superseriousbusiness/activity v1.4.0-gts // indirect
+)
 
 // Temporary fix for musl! We use musl on builds.sr.ht.
 // Should be removed when https://github.com/mattn/go-sqlite3/pull/1177 gets merged

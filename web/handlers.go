@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"errors"
@@ -8,6 +9,8 @@ import (
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/readpage"
 	"git.sr.ht/~bouncepaw/betula/stricks"
+	"github.com/superseriousbusiness/activity/streams"
+	"github.com/superseriousbusiness/activity/streams/vocab"
 	"html/template"
 	"io"
 	"log"
@@ -160,7 +163,7 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	data, err := io.ReadAll(rq.Body)
+	data, err := io.ReadAll(io.LimitReader(rq.Body, 32*1000*1000)) // Read no more than 32 KB.
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -168,13 +171,45 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 	var dict = map[string]any{}
 	err = json.Unmarshal(data, &dict)
 	if err != nil {
-		log.Printf("Invalid activity came in. JSON unmarshalling failed with: %w\n", err)
-		// TODO: Handle somehow somewhat show an error dunno
+		log.Printf("Invalid activity came in. JSON unmarshalling failed with: %v\n", err)
 		return
 	}
 
-	log.Printf("An acitivity with type ‘%s’ came in.\n", dict["type"])
-	log.Printf("%q\n", dict)
+	announceCallback := func(ctx context.Context, activity vocab.ActivityStreamsAnnounce) error {
+		objs := activity.GetActivityStreamsObject()
+		urls := activity.GetActivityStreamsUrl()
+
+		if objs == nil || objs.Len() != 1 || urls == nil || urls.Len() != 1 {
+			log.Println("Invalid or unsupported activity came in: something is wrong with object or url field.")
+			return nil
+		}
+
+		obj := objs.At(0)
+		url := urls.At(0)
+
+		if !obj.IsIRI() || !url.IsIRI() {
+			log.Println("Expected some URL, got something else...")
+			return nil
+		}
+
+		myPostIRI := obj.GetIRI()
+		repostIRI := url.GetIRI()
+		_ = myPostIRI // We don't need it??
+
+		log.Println("Got a good repost!")
+
+		go jobs.CheckThisRepostLater(repostIRI)
+		return nil
+	}
+	activityCallback := func(ctx context.Context, activity vocab.ActivityStreamsObject) error {
+		fmt.Printf("Invalid or unsupported activity came in: %v\n", activity)
+		return nil
+	}
+	resolver, err := streams.NewJSONResolver(announceCallback, activityCallback)
+	err = resolver.Resolve(context.Background(), dict)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 type dataBookmarklet struct {
