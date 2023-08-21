@@ -11,10 +11,7 @@ import (
 	"log"
 )
 
-// Initialize opens a SQLite3 database with the given filename. The connection is encapsulated, you cannot access the database directly, you are to use the functions provided by the package.
-func Initialize(filename string) {
-	var err error
-
+func init() {
 	var sqlite3conn []*sqlite3.SQLiteConn
 	sql.Register("betulizator",
 		&sqlite3.SQLiteDriver{
@@ -31,6 +28,11 @@ func Initialize(filename string) {
 				return nil
 			},
 		})
+}
+
+// Initialize opens a SQLite3 database with the given filename. The connection is encapsulated, you cannot access the database directly, you are to use the functions provided by the package.
+func Initialize(filename string) {
+	var err error
 
 	db, err = sql.Open("betulizator", filename+"?cache=shared")
 	if err != nil {
