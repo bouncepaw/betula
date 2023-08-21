@@ -51,7 +51,7 @@ func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.Response
 func init() {
 	mux.HandleFunc("/", handlerFeed)
 	mux.HandleFunc("/repost", adminOnly(handlerRepost))
-	mux.HandleFunc("/.well-known/mycoverse/inbox", handlerInbox)
+	mux.HandleFunc("/inbox", handlerInbox)
 	mux.HandleFunc("/help/en/", handlerEnglishHelp)
 	mux.HandleFunc("/help", handlerHelp)
 	mux.HandleFunc("/text/", handlerText)
