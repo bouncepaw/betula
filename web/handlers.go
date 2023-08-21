@@ -903,10 +903,13 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 
 	log.Printf("Viewing post %d\n", id)
 
+	common := emptyCommon()
+	common.head = template.HTML(fmt.Sprintf(`<link rel="alternate" type="text/mycomarkup" href="/text/%d">`, id))
+
 	post.Tags = db.TagsForPost(id)
 	templateExec(w, templatePost, dataPost{
 		Post:       post,
-		dataCommon: emptyCommon(),
+		dataCommon: common,
 	}, rq)
 }
 
