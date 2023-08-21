@@ -7,26 +7,33 @@ import (
 	"net/url"
 )
 
+const (
+	stateLooking = iota
+	stateFound
+	stateFoundText
+)
+
+const (
+	stateNotSure = iota
+	stateSure
+)
+
 func listenForTitle(nodes chan *html.Node, data *FoundData) {
-	state := 0
-	// 0 looking
-	// 1 found
+	state := stateLooking
 	for n := range nodes {
-		if state == 0 {
+		if state == stateLooking {
 			if n.Type == html.ElementNode && n.Data == "title" {
 				data.title = n.FirstChild.Data
-				state = 1
+				state = stateFound
 			}
 		}
 	}
 }
 
 func listenForBookmarkOf(nodes chan *html.Node, data *FoundData) {
-	state := 0
-	// 0 looking
-	// 1 found
+	state := stateLooking
 	for n := range nodes {
-		if state == 1 {
+		if state == stateFound {
 			continue
 		}
 
@@ -48,25 +55,22 @@ func listenForBookmarkOf(nodes chan *html.Node, data *FoundData) {
 			}
 
 			data.BookmarkOf = uri
-			state = 1
+			state = stateFound
 		}
 	}
 }
 
 func listenForPostName(nodes chan *html.Node, data *FoundData) {
-	state := 0
-	// 0 nothing found yet
-	// 1 found a p-name
-	// 2 found the p-name's text
+	state := stateLooking
 	for n := range nodes {
 		switch {
-		case state == 2:
+		case state == stateFoundText:
 			continue
-		case state == 1 && n.Type == html.TextNode:
+		case state == stateFound && n.Type == html.TextNode:
 			data.PostName = n.Data
-			state = 2
-		case state == 0 && nodeHasClass(n, "p-name"):
-			state = 1
+			state = stateFoundText
+		case state == stateLooking && nodeHasClass(n, "p-name"):
+			state = stateFound
 		}
 	}
 }
@@ -81,9 +85,9 @@ func listenForTags(nodes chan *html.Node, data *FoundData) {
 }
 
 func listenForMycomarkup(nodes chan *html.Node, data *FoundData) {
-	state := 0 // 0 looking 1 found
+	state := stateLooking
 	for n := range nodes {
-		if state == 1 {
+		if state == stateFound {
 			continue
 		}
 
@@ -124,22 +128,22 @@ func listenForMycomarkup(nodes chan *html.Node, data *FoundData) {
 }
 
 func listenForHFeed(nodes chan *html.Node, data *FoundData) {
-	state := 0 // 0 not sure 1 sure
+	state := stateNotSure
 	for n := range nodes {
-		if state == 1 {
+		if state == stateSure {
 			continue
 		}
 
 		if nodeHasClass(n, "h-feed") {
 			data.IsHFeed = true
-			state = 1
+			state = stateSure
 			continue
 		}
 
 		// If we've found an h-entry, then it's highly-highly unlikely that the
 		// document is an h-feed. At least in Betula.
 		if nodeHasClass(n, "h-entry") {
-			state = 1
+			state = stateSure
 		}
 	}
 }
