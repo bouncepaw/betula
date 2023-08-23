@@ -68,7 +68,6 @@
         margin-left: 1rem;
     }
     .visibility-field input {
-        vertical-align: text-top;
         margin-left: .5rem;
     }
     .visibility-field-title {
@@ -234,6 +233,10 @@ form > div + div {
 form label {
     display: block;
     margin-bottom: 8px;
+}
+input[type="radio"] {
+    margin-top: -1px;
+    vertical-align: middle;
 }
 form input[type="radio"] + label,
 form input[type="checkbox"] + label {
