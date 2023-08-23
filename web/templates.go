@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/myco"
 	"git.sr.ht/~bouncepaw/betula/settings"
@@ -9,6 +10,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -83,8 +85,16 @@ var funcMapForPosts = template.FuncMap{
 		}
 		return t.Format("2006-01-02 15:04")
 	},
-	"stripCommonProtocol": types.StripCommonProtocol,
-	"mycomarkup":          myco.MarkupToHTML,
+	"shortenLink": func(a string) template.HTML {
+		b := types.StripCommonProtocol(a)
+		before, after, _ := strings.Cut(b, "/")
+		result := before
+		if after != "" {
+			result += fmt.Sprintf(`<span class="url-path">/%s</span>`, after)
+		}
+		return template.HTML(result)
+	},
+	"mycomarkup": myco.MarkupToHTML,
 	"timestampToDayStamp": func(stamp string) string {
 		// len("2000-00-00") == 10
 		return stamp[:10] // Pray 🙏

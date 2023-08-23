@@ -1,5 +1,5 @@
 {{define "post main fragment"}}
-	<a class="u-bookmark-of h-cite" href="{{.URL}}">{{stripCommonProtocol .URL}}</a>
+	<a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
 	{{if .Description}}
 		<div class="myco e-content">
 			{{mycomarkup .Description}}
