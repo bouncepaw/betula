@@ -5,6 +5,8 @@
 			<h2>Settings</h2>
 			<p><a href="/logout">Log out</a></p>
 
+			<h3>Basic</h3>
+
 			<form method="post" action="/settings">
 				<div>
 					<label for="site-name">Site name</label>
@@ -50,7 +52,7 @@
 					<p class="input-caption">
 						Leave empty to listen on all interfaces.
 						You can also use a domain name.</p>
-					<p class="input-caption"> It will not affect ‘Site address’ setting.</p>
+					<p class="input-caption"> It will not affect the ‘Site address’ setting.</p>
 					<label for="network-port">⚠️ Port</label>
                     {{if .ErrBadPort}}
 						<p class="error">Invalid port value was passed. Choose a number between 1 and 65535.</p>
