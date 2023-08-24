@@ -7,14 +7,34 @@ package db
 
 import (
 	"database/sql"
+	"github.com/mattn/go-sqlite3"
 	"log"
 )
+
+func init() {
+	var sqlite3conn []*sqlite3.SQLiteConn
+	sql.Register("betulizator",
+		&sqlite3.SQLiteDriver{
+			ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+				sqlite3conn = append(sqlite3conn, conn)
+				conn.RegisterUpdateHook(func(op int, db string, table string, rowid int64) {
+					switch op {
+					case sqlite3.SQLITE_INSERT:
+						if table == "Jobs" {
+							JobChannel <- rowid
+						}
+					}
+				})
+				return nil
+			},
+		})
+}
 
 // Initialize opens a SQLite3 database with the given filename. The connection is encapsulated, you cannot access the database directly, you are to use the functions provided by the package.
 func Initialize(filename string) {
 	var err error
 
-	db, err = sql.Open("sqlite", filename+"?cache=shared")
+	db, err = sql.Open("betulizator", filename+"?cache=shared")
 	if err != nil {
 		log.Fatalln(err)
 	}
