@@ -5,12 +5,6 @@ packages:
 sources:
   - https://git.sr.ht/~bouncepaw/betula
 tasks:
-  - test-go: |
+  - test: |
       cd betula
-      go test ./db
-      go test ./feeds
-      go test ./readpage
-  - test-web: |
-      cd betula
-      sh test-web.sh
-      killall betula
+      make test
