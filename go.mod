@@ -14,8 +14,3 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/superseriousbusiness/activity v1.4.0-gts // indirect
 )
-
-// Temporary fix for musl! We use musl on builds.sr.ht.
-// Should be removed when https://github.com/mattn/go-sqlite3/pull/1177 gets merged
-// or https://github.com/mattn/go-sqlite3/pull/1177 gets fixed in any way.
-replace github.com/mattn/go-sqlite3 => github.com/leso-kn/go-sqlite3 v0.0.0-20230710125852-03158dc838ed
