@@ -1,16 +1,13 @@
 package web
 
 import (
-	"context"
 	"embed"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/activities"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/readpage"
 	"git.sr.ht/~bouncepaw/betula/stricks"
-	"github.com/superseriousbusiness/activity/streams"
-	"github.com/superseriousbusiness/activity/streams/vocab"
 	"html/template"
 	"io"
 	"log"
@@ -168,47 +165,19 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		log.Fatalln(err)
 	}
 
-	var dict = map[string]any{}
-	err = json.Unmarshal(data, &dict)
+	report, err := activities.Guess(data)
 	if err != nil {
-		log.Printf("Invalid activity came in. JSON unmarshalling failed with: %v\n", err)
+		log.Printf("Error while parsing incoming activity: %v\n", err)
 		return
 	}
 
-	announceCallback := func(ctx context.Context, activity vocab.ActivityStreamsAnnounce) error {
-		objs := activity.GetActivityStreamsObject()
-		urls := activity.GetActivityStreamsUrl()
-
-		if objs == nil || objs.Len() != 1 || urls == nil || urls.Len() != 1 {
-			log.Println("Invalid or unsupported activity came in: something is wrong with object or url field.")
-			return nil
-		}
-
-		obj := objs.At(0)
-		url := urls.At(0)
-
-		if !obj.IsIRI() || !url.IsIRI() {
-			log.Println("Expected some URL, got something else...")
-			return nil
-		}
-
-		myPostIRI := obj.GetIRI()
-		repostIRI := url.GetIRI()
-		_ = myPostIRI // We don't need it??
-
-		log.Println("Got a good repost!")
-
-		go jobs.CheckThisRepostLater(repostIRI)
-		return nil
-	}
-	activityCallback := func(ctx context.Context, activity vocab.ActivityStreamsObject) error {
-		fmt.Printf("Invalid or unsupported activity came in: %v\n", activity)
-		return nil
-	}
-	resolver, err := streams.NewJSONResolver(announceCallback, activityCallback)
-	err = resolver.Resolve(context.Background(), dict)
-	if err != nil {
-		log.Println(err)
+	switch report := report.(type) {
+	case activities.AnnounceReport:
+		log.Printf("%s reposted %s at %s\n", report.ReposterUsername, report.RepostedPage, report.RepostPage)
+		// TODO: Parse URLs and schedule jobs and whatnot
+	default:
+		// Not meant to happen
+		log.Printf("Invalid report type")
 	}
 }
 
