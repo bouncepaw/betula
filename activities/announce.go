@@ -2,6 +2,7 @@ package activities
 
 import (
 	"encoding/json"
+	"git.sr.ht/~bouncepaw/betula/stricks"
 	"net/url"
 )
 
@@ -85,6 +86,14 @@ func guessAnnounce(activity map[string]any) (reportMaybe any, err error) {
 		},
 	); err != nil {
 		return nil, err
+	}
+
+	if !stricks.ValidURL(report.RepostedPage) {
+		return nil, ErrNoObject
+	}
+
+	if !stricks.ValidURL(report.RepostPage) {
+		return nil, ErrNoId
 	}
 
 	return report, nil

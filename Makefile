@@ -17,5 +17,6 @@ test: clean betula
 	go test ./db
 	go test ./feeds
 	go test ./readpage
+	go test ./activities
 	sh test-web.sh
 	killall betula

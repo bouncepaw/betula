@@ -150,7 +150,7 @@ good:
 
 	id := db.AddPost(post)
 
-	go jobs.NotifyAboutMyRepost(int(id))
+	go jobs.NotifyAboutMyRepost(id)
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 }
 
@@ -174,7 +174,7 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 	switch report := report.(type) {
 	case activities.AnnounceReport:
 		log.Printf("%s reposted %s at %s\n", report.ReposterUsername, report.RepostedPage, report.RepostPage)
-		// TODO: Parse URLs and schedule jobs and whatnot
+		go jobs.CheckThisRepostLater(report.RepostPage)
 	default:
 		// Not meant to happen
 		log.Printf("Invalid report type")
