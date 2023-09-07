@@ -43,5 +43,5 @@ func main() {
 	}
 	settings.Index()
 	web.StartServer()
-	go jobs.ListenAndWhisper()
+	jobs.ListenAndWhisper()
 }

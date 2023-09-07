@@ -11,7 +11,7 @@ import (
 
 var jobch = make(chan types.Job)
 
-func init() {
+func ListenAndWhisper() {
 	lateJobs := db.LoadAllJobs()
 	go func() {
 		for job := range jobch {
