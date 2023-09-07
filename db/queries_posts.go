@@ -77,8 +77,8 @@ func Posts(authorized bool, page uint) (posts []types.Post, totalPosts uint) {
 	totalPosts = querySingleValue[uint](`
 select count(ID)
 from Posts
-where DeletionTime is null;
-`, types.PostsPerPage)
+where DeletionTime is null and (Visibility = 1 or ?);
+`, authorized)
 
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime
