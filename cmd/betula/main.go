@@ -42,6 +42,6 @@ func main() {
 		settings.WritePort(port)
 	}
 	settings.Index()
+	go jobs.ListenAndWhisper()
 	web.StartServer()
-	jobs.ListenAndWhisper()
 }
