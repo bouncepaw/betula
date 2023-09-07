@@ -1,0 +1,17 @@
+{{define "title"}}Reposts for {{.ID}}{{end}}
+{{define "body"}}
+    <main>
+        <article>
+            <h2>Reposts for <a href="/{{.ID}}">{{.Title}}</a></h2>
+            {{if .Reposts}}
+                <ul>
+               {{range .Reposts}}
+                   <li><a href="{{.URL}}">Repost</a> at {{.Timestamp | timeToHuman}}</li>
+               {{end}}
+                </ul>
+            {{else}}
+                <p>This post was not reposted before, or you were not told about any reposts.</p>
+            {{end}}
+        </article>
+    </main>
+{{end}}

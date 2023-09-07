@@ -50,6 +50,7 @@ func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.Response
 
 func init() {
 	mux.HandleFunc("/", handlerFeed)
+	mux.HandleFunc("/reposts-for/", handlerRepostsFor)
 	mux.HandleFunc("/repost", adminOnly(handlerRepost))
 	mux.HandleFunc("/inbox", handlerInbox)
 	mux.HandleFunc("/help/en/", handlerEnglishHelp)
@@ -76,6 +77,45 @@ func init() {
 	mux.HandleFunc("/bookmarklet", adminOnly(handlerBookmarklet))
 	mux.HandleFunc("/static/style.css", handlerStyle)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+type dataRepostsFor struct {
+	*dataCommon
+
+	types.Post
+	Reposts []types.RepostInfo
+}
+
+func handlerRepostsFor(w http.ResponseWriter, rq *http.Request) {
+	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/reposts-for/"))
+	if err != nil {
+		log.Println(err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	post, found := db.PostForID(id)
+	if !found {
+		log.Println(err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	authed := auth.AuthorizedFromRequest(rq)
+	if post.Visibility == types.Private && !authed {
+		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		handlerUnauthorized(w, rq)
+		return
+	}
+
+	reposts := db.RepostsFor(post.ID)
+	templateExec(w, templateRepostsFor, dataRepostsFor{
+		dataCommon: emptyCommon(),
+		Post:       post,
+		Reposts:    reposts,
+	}, rq)
+
+	log.Printf("Show %d reposts for post no. %d\n", len(reposts), id)
 }
 
 type dataRepost struct {

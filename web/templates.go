@@ -63,6 +63,7 @@ var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment", "save-
 var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment", "edit-link")
 var templateRepost = templateFrom(funcMapForForm, "repost")
 var templatePost = templateFrom(funcMapForPosts, "post-fragment", "post")
+var templateRepostsFor = templateFrom(funcMapForTime, "reposts-for")
 var templateFeed = templateFrom(funcMapForPosts, "paginator-fragment", "post-fragment", "feed")
 var templateSearch = templateFrom(funcMapForPosts, "paginator-fragment", "post-fragment", "search")
 var templateTag = templateFrom(funcMapForPosts, "paginator-fragment", "post-fragment", "tag")

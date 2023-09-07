@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/url"
 	"strings"
+	"time"
 
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/util"
 )
@@ -156,6 +157,12 @@ func PaginatorFromURL(url *url.URL, currentPage uint, totalPosts uint) (pages []
 	}
 
 	return pages
+}
+
+type RepostInfo struct {
+	Timestamp time.Time
+	URL       string
+	Name      string
 }
 
 // not really a type:
