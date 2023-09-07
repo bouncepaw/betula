@@ -3,7 +3,11 @@
 	<main>
 		<article>
 			<h2>Settings</h2>
-			<p><a href="/logout">Log out</a></p>
+			{{if .FirstRun}}
+				<p>Set up your Betula. You can always revisit these settings later.</p>
+			{{else}}
+				<p><a href="/logout">Log out</a></p>
+			{{end}}
 
 			<h3>Basic</h3>
 
@@ -20,7 +24,7 @@
 					<p class="input-caption">
 						The address at which your Betula is hosted.
 						Type out the protocol (http or https).
-						This information is used for RSS feed and bookmarklet generation.</p>
+						This information is used for RSS feed, bookmarklet generation and reposts.</p>
 				</div>
 
 				<div>

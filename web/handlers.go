@@ -367,6 +367,7 @@ type dataSettings struct {
 	types.Settings
 	*dataCommon
 	ErrBadPort bool
+	FirstRun   bool
 }
 
 func handlerSettings(w http.ResponseWriter, rq *http.Request) {
@@ -382,6 +383,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 				CustomCSS:                 settings.CustomCSS(),
 			},
 			dataCommon: emptyCommon(),
+			FirstRun:   rq.FormValue("first-run") == "true",
 		}, rq)
 		return
 	}
@@ -530,7 +532,7 @@ func handlerRegister(w http.ResponseWriter, rq *http.Request) {
 	)
 	auth.SetCredentials(name, pass)
 	auth.LogInResponse(w)
-	http.Redirect(w, rq, "/", http.StatusSeeOther)
+	http.Redirect(w, rq, "/settings?first-run=true", http.StatusSeeOther)
 }
 
 type dataTags struct {
