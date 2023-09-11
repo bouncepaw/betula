@@ -1,6 +1,12 @@
 {{define "title"}}Edit link{{end}}
 {{define "body"}}
 	<main>
+		{{if .RepostOf}}
+		<article>
+			<h2>Edit repost</h2>
+			<p>You cannot edit contents of reposts.</p>
+		</article>
+		{{else}}
 		<article>
 			{{if .ErrorInvalidURL}}
 				<h2>Invalid link</h2>
@@ -19,8 +25,25 @@
 				<input type="submit" class="btn" value="Save">
 			</form>
 		</article>
+		{{end}}
+		{{if .RepostOf}}
+		<article>
+			<h2>Unrepost</h2>
+			<p>You can make this post yours and edit it afterwards.
+				The original post owner will be notified of the repost being removed.</p>
+			<form method="post" action="/unrepost/{{.ID}}">
+				<div>
+					<input type="checkbox" name="confirmed" id="unrepost-confirmed" value="true" required>
+					<label for="unrepost-confirmed">Yes, unrepost this link.</label>
+					<br>
+					<input type="submit" id="unrepost-btn" value="Unrepost" class="btn">
+				</div>
+			</form>
+		</article>
+		{{end}}
 		<article>
 			<h2>Delete link</h2>
+			{{if .RepostOf}}<p>The original post owner will be notified of the repost being removed.</p>{{end}}
 			<form method="post" action="/delete-link/{{.ID}}">
 				<div>
 					<input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required>
