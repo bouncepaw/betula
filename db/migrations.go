@@ -2,21 +2,20 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 )
 
-const expectedVersion = 4
+const expectedVersion = 5
 
 /*
-Wishes for schema version 5:
+Wishes for schema version 6:
 
 1.
 
 Write more here. Implement all when there is an actual need to have a new schema.
 */
 
-const currentSchema = `
+const currentSchema string = `
 create table Posts (
     ID integer primary key autoincrement,
     URL text not null check ( URL <> '' ),
@@ -57,6 +56,7 @@ create table TagDescriptions (
 
 create table Jobs (
 	ID integer primary key autoincrement,
+	Due not null default current_timestamp,
 	Category text not null,
 	Payload
 );
@@ -82,24 +82,10 @@ func handleMigrations() {
 		log.Fatalf("The database file specifies version %d, but this version of Betula only supports versions up to %d. Please update Betula or fix your database somehow.\n", curver, expectedVersion)
 	}
 
-	// TODO: Come up with a more clever way:
-	switch curver {
-	case 3:
-		migrate3To4()
-	case 2:
-		migrate2To3()
-		migrate3To4()
-	case 1:
-		migrate1To2()
-		migrate2To3()
-		migrate3To4()
-	case 0:
-		migrate0To1()
-		migrate1To2()
-		migrate2To3()
-		migrate3To4()
-	default:
-		panic(fmt.Sprintf("unimplemented migration from %d to %d", curver, expectedVersion))
+	migrators := []func(){migrate0To1, migrate1To2, migrate2To3, migrate3To4, migrate4To5}
+	for _, migrator := range migrators[curver:] {
+		log.Printf("Migrating from DB schema version %d to %d...\n", curver, curver+1)
+		migrator()
 	}
 }
 
@@ -125,8 +111,23 @@ where Key = 'DB version';
 	return v.Int64, true
 }
 
+func migrate4To5() {
+	/* -- Old jobs
+	create table Jobs (
+		ID integer primary key autoincrement,
+		Category text not null,
+		Payload
+	);
+	*/
+	const q = `
+alter table Jobs add column Due not null default current_timestamp;
+
+replace into BetulaMeta (Key, Value) values ('DB version', 5);
+`
+	mustExec(q)
+}
+
 func migrate3To4() {
-	log.Println("Migrating from 3 to 4...")
 	const q = `
 -- The new tables.
 create table Jobs (
@@ -158,11 +159,9 @@ replace into BetulaMeta (Key, Value) values ('DB version', 4);
 	);
 	*/
 	mustExec(q)
-	log.Println("Migrated from 3 to 4...")
 }
 
 func migrate2To3() {
-	log.Println("Migrating from 2 to 3...")
 	/* Past is as such
 	create table CategoriesToPosts (
 	    CatName text not null,
@@ -212,12 +211,9 @@ drop table CategoryDescriptions;
 replace into BetulaMeta (Key, Value) values ('DB version', 3);
 `
 	mustExec(q)
-
-	log.Println("Migrated from 2 to 3")
 }
 
 func migrate1To2() {
-	log.Println("Migrating from 1 to 2...")
 	/*-- Past is as such:
 	create table Posts (
 		ID integer primary key autoincrement,
@@ -282,11 +278,9 @@ alter table NewSessions rename to Sessions;
 replace into BetulaMeta (Key, Value) values ('DB version', 2);
 `
 	mustExec(q)
-	log.Println("Migrated from 1 to 2")
 }
 
 func migrate0To1() {
-	log.Println("Migrating from 0 to 1...")
 	/*
 		--This was the definition in the past:
 		create table if not exists Posts (
@@ -327,6 +321,4 @@ alter table NewPosts rename to Posts;
 replace into BetulaMeta (Key, Value) values ('DB version', 1);
 `
 	mustExec(q)
-
-	log.Println("Migrated from 0 to 1")
 }
