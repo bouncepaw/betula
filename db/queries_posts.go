@@ -9,7 +9,7 @@ import (
 func PostsForDay(authorized bool, dayStamp string) (posts []types.Post) {
 	const q = `
 select
-	ID, URL, Title, Description, Visibility, CreationTime
+	ID, URL, Title, Description, Visibility, CreationTime, RepostOf
 from
 	Posts
 where
@@ -20,7 +20,7 @@ order by
 	rows := mustQuery(q, authorized, dayStamp+"%")
 	for rows.Next() {
 		var post types.Post
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
 		posts = append(posts, post)
 	}
 	for i, post := range posts {
@@ -44,7 +44,7 @@ where
 
 	const q = `
 select
-	ID, URL, Title, Description, Visibility, CreationTime
+	ID, URL, Title, Description, Visibility, CreationTime, RepostOf
 from
 	Posts
 inner join
@@ -58,7 +58,7 @@ limit ? offset ?;
 	rows := mustQuery(q, tagName, authorized, types.PostsPerPage, types.PostsPerPage*(page-1))
 	for rows.Next() {
 		var post types.Post
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
 		posts = append(posts, post)
 	}
 	for i, post := range posts {
@@ -81,7 +81,7 @@ where DeletionTime is null and (Visibility = 1 or ?);
 `, authorized)
 
 	const q = `
-select ID, URL, Title, Description, Visibility, CreationTime
+select ID, URL, Title, Description, Visibility, CreationTime, RepostOf
 from Posts
 where DeletionTime is null
 order by CreationTime desc
@@ -92,7 +92,7 @@ offset (? * (? - 1));
 
 	for rows.Next() {
 		var post types.Post
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
 		if !authorized && post.Visibility == types.Private {
 			continue
 		}
@@ -160,13 +160,13 @@ where
 // PostForID returns the post corresponding to the given id, if there is any.
 func PostForID(id int) (post types.Post, found bool) {
 	const q = `
-select ID, URL, Title, Description, Visibility, CreationTime from Posts
+select ID, URL, Title, Description, Visibility, CreationTime, RepostOf from Posts
 where ID = ? and DeletionTime is null
 limit 1;
 `
 	rows := mustQuery(q, id)
 	for rows.Next() {
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
 		found = true
 	}
 	return post, found
@@ -203,7 +203,7 @@ with
 	   select ID from Posts where Visibility = 0 and not ?
 	)
 select 
-    ID, URL, Title, Description, Visibility, CreationTime 
+    ID, URL, Title, Description, Visibility, CreationTime, RepostOf 
 from 
     Posts 
 where 
@@ -214,7 +214,7 @@ limit 1;
 `
 	rows := mustQuery(q, authorized)
 	for rows.Next() {
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
 		found = true
 	}
 	return post, found

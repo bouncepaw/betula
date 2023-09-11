@@ -1,4 +1,5 @@
 {{define "post main fragment"}}
+	{{if .RepostOf}}<a href="{{.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
 	<a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
 	{{if .Description}}
 		<div class="myco e-content">
@@ -16,9 +17,7 @@
 {{end}}
 
 {{define "post buttons fragment"}}
-	<a class="edit-post-btn" href="/edit-link/{{.ID}}">
-		Edit
-	</a>
+	<a class="edit-post-btn" href="/edit-link/{{.ID}}">Edit</a>
 	<div class="globe"
 	     title="{{if .Visibility}}Public post{{else}}Private post{{end}}"
 	     aria-label="{{if .Visibility}}Public post{{else}}Private post{{end}}">

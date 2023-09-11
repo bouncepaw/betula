@@ -116,6 +116,9 @@ main > * {
     box-shadow: 0 4px 12px 0#0d234308;
     border-radius: .5rem;
 }
+.u-repost-of {
+    font-size: small;
+}
 .u-url {
     text-decoration: none;
 }
@@ -189,6 +192,7 @@ a.edit-post-btn {
     font-size: small;
     text-decoration: none;
 }
+.post-page .u-repost-of,
 .post-page .u-bookmark-of {
     font-size: medium;
     line-height: 150%;
