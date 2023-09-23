@@ -122,7 +122,7 @@ func ListenAndWhisper() {
 	lateJobs := db.LoadAllJobs()
 	go func() {
 		for job := range jobch {
-			log.Printf("Received job no. %d ‘%s: %v’\n", job.ID, job.Category, job.Payload)
+			log.Printf("Received job no. %d ‘%s’\n", job.ID, job.Category)
 			switch job.Category {
 			case types.NotifyAboutMyRepost:
 				notifyJob(job)

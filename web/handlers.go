@@ -204,6 +204,7 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	log.Printf("Incoming activity: %s\n", string(data))
 
 	report, err := activities.Guess(data)
 	if err != nil {
