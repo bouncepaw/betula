@@ -20,5 +20,5 @@ func SaveRepost(postId int, repost types.RepostInfo) {
 	const q = `
 insert into KnownReposts (RepostURL, PostID, ReposterName)
 values (?, ?, ?)`
-	mustExec(repost.URL, repost.URL, postId, repost.Name)
+	mustExec(q, repost.URL, postId, repost.Name)
 }

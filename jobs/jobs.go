@@ -88,6 +88,11 @@ func verifyJob(job types.Job) {
 			log.Printf("While unmarshaling announce report %v: %v\n", v, err)
 			return
 		}
+	case string:
+		if err := json.Unmarshal([]byte(v), &report); err != nil {
+			log.Printf("While unmarshaling announce report %v: %v\n", v, err)
+			return
+		}
 	default:
 		log.Printf("Bad payload for VerifyTheirRepost job: %v\n", v)
 		return
@@ -107,11 +112,13 @@ func verifyJob(job types.Job) {
 	// getting postId
 	parts := strings.Split(report.RepostedPage, "/")
 	postId, err := strconv.Atoi(parts[len(parts)-1])
+	println(postId)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
+	log.Println("Saving repost")
 	db.SaveRepost(postId, types.RepostInfo{
 		URL:  report.RepostPage,
 		Name: report.ReposterUsername,
