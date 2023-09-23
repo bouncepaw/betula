@@ -28,21 +28,26 @@ var client = http.Client{
 
 func sendActivity(uri string, activity []byte) error {
 	url := stricks.ParseValidURL(uri)
-	inbox := fmt.Sprintf("%s//%s/inbox", url.Scheme, url.Host)
+	inbox := fmt.Sprintf("%s://%s/inbox", url.Scheme, url.Host)
 	resp, err := client.Post(
 		inbox,
 		"application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"",
 		bytes.NewReader(activity),
 	)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	log.Printf("Sending activity %s\n", activity)
 	log.Printf("Activity sent to %s returned %d status\n", inbox, resp.StatusCode)
-	return err
+	return nil
 }
 
 func notifyJob(job types.Job) {
 	var postId int
 	switch v := job.Payload.(type) {
-	case int:
-		postId = v
+	case int64:
+		postId = int(v)
 	default:
 		log.Printf("Unexpected payload for NotifyAboutMyRepost of type %T: %v\n", v, v)
 		return

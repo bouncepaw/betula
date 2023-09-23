@@ -11,16 +11,7 @@ func NewAnnounce(originalURL string, repostURL string) ([]byte, error) {
 		"type":     "Announce",
 		"actor":    betulaActor,
 		"id":       repostURL,
-		"object": map[string]any{
-			"type": "Note",
-			"url": []map[string]string{
-				{
-					"type":      "Link",
-					"href":      originalURL,
-					"mediaType": "text/html",
-				},
-			},
-		},
+		"object":   originalURL,
 	}
 	return json.Marshal(activity)
 }

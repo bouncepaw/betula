@@ -4,6 +4,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/activities"
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/jobs"
@@ -42,6 +43,7 @@ func main() {
 		settings.WritePort(port)
 	}
 	settings.Index()
+	activities.GenerateBetulaActor()
 	go jobs.ListenAndWhisper()
 	web.StartServer()
 }
