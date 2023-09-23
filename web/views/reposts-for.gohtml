@@ -6,7 +6,7 @@
             {{if .Reposts}}
                 <ul>
                {{range .Reposts}}
-                   <li><a href="{{.URL}}">Repost</a> at {{.Timestamp | timeToHuman}}</li>
+                   <li><a href="{{.URL}}">{{.Name}}</a> reposted at {{.Timestamp | timeToHuman}}</li>
                {{end}}
                 </ul>
             {{else}}

@@ -25,6 +25,11 @@ select RepostURL, ReposterName, RepostedAt from KnownReposts where PostID = ?;
 	return reposts, nil
 }
 
+func CountRepostsFor(id int) int {
+	const q = `select count(*) from KnownReposts where PostID = ?;`
+	return querySingleValue[int](q, id)
+}
+
 func SaveRepost(postId int, repost types.RepostInfo) {
 	const q = `
 insert into KnownReposts (RepostURL, PostID, ReposterName)

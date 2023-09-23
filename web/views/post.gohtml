@@ -6,6 +6,7 @@
                 {{template "post buttons fragment" .Post}}
             {{end}}
 			<h2 class="p-name"><a class="u-url" href="/{{.Post.ID}}">{{.Post.Title}}</a></h2>
+			{{if .RepostCount}}<p><a href="/reposts-for/{{.Post.ID}}">{{.RepostCount}} repost{{if gt .RepostCount 1}}s{{end}}</a></p>{{end}}
 			{{template "post main fragment" .Post}}
 		</article>
 	</main>

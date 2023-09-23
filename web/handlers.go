@@ -922,7 +922,8 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataPost struct {
-	Post types.Post
+	Post        types.Post
+	RepostCount int
 	*dataCommon
 }
 
@@ -956,8 +957,9 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 
 	post.Tags = db.TagsForPost(id)
 	templateExec(w, templatePost, dataPost{
-		Post:       post,
-		dataCommon: common,
+		Post:        post,
+		RepostCount: db.CountRepostsFor(id),
+		dataCommon:  common,
 	}, rq)
 }
 
