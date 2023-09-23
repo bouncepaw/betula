@@ -68,7 +68,7 @@ func TestHEntries(t *testing.T) {
 	for name, expectedData := range table {
 		file, _ := testdata.Open("testdata/" + name + ".html")
 		doc, _ := html.Parse(file)
-		data, err := findData("https://bouncepaw.com", repostWorkers, doc)
+		data, err := findData("https://bouncepaw.com", makeRepostWorkers, doc)
 		data.docurl = nil
 		if !reflect.DeepEqual(data, expectedData) {
 			t.Errorf("In ‘%s’,\nwant %v,\ngot %v. Error value is ‘%v’.",

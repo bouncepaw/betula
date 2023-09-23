@@ -4,6 +4,7 @@ package readpage
 import (
 	"context"
 	"errors"
+	"git.sr.ht/~bouncepaw/betula/activities"
 	"golang.org/x/net/html"
 	"io"
 	"log"
@@ -26,10 +27,11 @@ var (
 	ErrNoTitleFound = errors.New("no title found in the document")
 	ErrTimeout      = errors.New("request timed out")
 
-	titleWorkers  = []worker{listenForTitle}
-	repostWorkers = []worker{
+	titleWorkers      = []worker{listenForTitle}
+	makeRepostWorkers = []worker{
 		listenForPostName, listenForBookmarkOf, listenForTags, listenForMycomarkup, listenForHFeed,
 	}
+	checkRepostWorkers = []worker{listenForRepostOf}
 )
 
 // FindTitle finds a <title> in the document.
@@ -44,9 +46,15 @@ func FindTitle(link string) (string, error) {
 	return data.title, err
 }
 
-// FindRepostData finds data relevant to reposts in the document.
-func FindRepostData(link string) (FoundData, error) {
-	return findDataByLink(link, repostWorkers)
+// FindDataForMyRepost finds data relevant for us to make a repost.
+func FindDataForMyRepost(link string) (FoundData, error) {
+	return findDataByLink(link, makeRepostWorkers)
+}
+
+func IsThisValidRepost(report activities.AnnounceReport) (validRepost bool, err error) {
+	data, err := findDataByLink(report.RepostPage, checkRepostWorkers)
+	valid := data.RepostOf != nil && data.RepostOf.String() == report.RepostedPage
+	return valid, err
 }
 
 // The rest of the package is private.
@@ -79,6 +87,8 @@ type FoundData struct {
 
 	// IsHFeed is true if the document has an h-feed somewhere in the beginning. You don't repost h-feed:s.
 	IsHFeed bool
+
+	RepostOf *url.URL
 }
 
 func findData(link string, workers []worker, doc *html.Node) (data FoundData, err error) {

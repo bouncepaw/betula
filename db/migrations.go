@@ -5,10 +5,10 @@ import (
 	"log"
 )
 
-const expectedVersion = 5
+const expectedVersion = 6
 
 /*
-Wishes for schema version 6:
+Wishes for schema version 7:
 
 1.
 
@@ -40,7 +40,7 @@ create table BetulaMeta (
 );
 
 insert or ignore into BetulaMeta values
-	('DB version', 4),
+	('DB version', 6),
 	('Admin username', null),
 	('Admin password hash', null);
 
@@ -63,6 +63,8 @@ create table Jobs (
 
 create table KnownReposts (
    RepostURL text primary key,
+   ReposterName text,
+   RepostedAt text not null default current_timestamp,
    PostID integer
 );
 `
@@ -82,7 +84,7 @@ func handleMigrations() {
 		log.Fatalf("The database file specifies version %d, but this version of Betula only supports versions up to %d. Please update Betula or fix your database somehow.\n", curver, expectedVersion)
 	}
 
-	migrators := []func(){migrate0To1, migrate1To2, migrate2To3, migrate3To4, migrate4To5}
+	migrators := []func(){migrate0To1, migrate1To2, migrate2To3, migrate3To4, migrate4To5, migrate5To6}
 	for _, migrator := range migrators[curver:] {
 		log.Printf("Migrating from DB schema version %d to %d...\n", curver, curver+1)
 		migrator()
@@ -109,6 +111,23 @@ where Key = 'DB version';
 	}
 
 	return v.Int64, true
+}
+
+func migrate5To6() {
+	/*
+		-- Old
+		create table KnownReposts (
+		   RepostURL text primary key,
+		   PostID integer
+		);
+	*/
+	const q = `
+alter table KnownReposts add column ReposterName text;
+alter table KnownReposts add column RepostedAt text not null default current_timestamp;
+
+replace into BetulaMeta (Key, Value) values ('DB version', 6);
+`
+	mustExec(q)
 }
 
 func migrate4To5() {

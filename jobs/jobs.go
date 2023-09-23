@@ -4,12 +4,114 @@
 package jobs
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"git.sr.ht/~bouncepaw/betula/activities"
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/readpage"
+	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var jobch = make(chan types.Job)
+
+var client = http.Client{
+	Timeout: time.Second,
+}
+
+func sendActivity(uri string, activity []byte) error {
+	url := stricks.ParseValidURL(uri)
+	inbox := fmt.Sprintf("%s//%s/inbox", url.Scheme, url.Host)
+	resp, err := client.Post(
+		inbox,
+		"application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"",
+		bytes.NewReader(activity),
+	)
+	log.Printf("Activity sent to %s returned %d status\n", inbox, resp.StatusCode)
+	return err
+}
+
+func notifyJob(job types.Job) {
+	var postId int
+	switch v := job.Payload.(type) {
+	case int:
+		postId = v
+	default:
+		log.Printf("Unexpected payload for NotifyAboutMyRepost of type %T: %v\n", v, v)
+		return
+	}
+
+	post, found := db.PostForID(postId)
+	if !found {
+		log.Printf("Can't notify about non-existent repost no. %d\n", postId)
+		return
+	}
+
+	if post.RepostOf == nil {
+		log.Printf("Post %d is not a repost\n", postId)
+		return
+	}
+
+	activity, err := activities.NewAnnounce(
+		*post.RepostOf,
+		fmt.Sprintf("%s/%d", settings.SiteURL(), postId),
+	)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	err = sendActivity(*post.RepostOf, activity)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func verifyJob(job types.Job) {
+	var report activities.AnnounceReport
+	switch v := job.Payload.(type) {
+	case []byte:
+		if err := json.Unmarshal(v, &report); err != nil {
+			log.Printf("While unmarshaling announce report %v: %v\n", v, err)
+			return
+		}
+	default:
+		log.Printf("Bad payload for VerifyTheirRepost job: %v\n", v)
+		return
+	}
+
+	valid, err := readpage.IsThisValidRepost(report)
+	if err != nil {
+		log.Printf("While parsing repost page %s: %v\n", report.RepostPage, err)
+		return
+	}
+
+	if !valid {
+		log.Printf("There is no repost of %s at %s\n", report.RepostedPage, report.RepostPage)
+		return
+	}
+
+	// getting postId
+	parts := strings.Split(report.RepostedPage, "/")
+	postId, err := strconv.Atoi(parts[len(parts)-1])
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	db.SaveRepost(postId, types.RepostInfo{
+		URL:  report.RepostPage,
+		Name: report.ReposterUsername,
+	})
+}
 
 func ListenAndWhisper() {
 	lateJobs := db.LoadAllJobs()
@@ -18,9 +120,9 @@ func ListenAndWhisper() {
 			log.Printf("Received job no. %d ‘%s: %v’\n", job.ID, job.Category, job.Payload)
 			switch job.Category {
 			case types.NotifyAboutMyRepost:
-				// TODO: handle job
+				notifyJob(job)
 			case types.VerifyTheirRepost:
-				// TODO: handle job
+				verifyJob(job)
 			default:
 				panic("unhandled job type")
 			}
@@ -32,12 +134,16 @@ func ListenAndWhisper() {
 	}
 }
 
-// CheckThisRepostLater plans a job to check if the repost at iri is fine.
-// The iri is expected to be valid.
-func CheckThisRepostLater(iri string) {
+// CheckThisRepostLater plans a job to check the specified announce if it's true.
+func CheckThisRepostLater(announce activities.AnnounceReport) {
+	data, err := json.Marshal(announce)
+	if err != nil {
+		log.Printf("While scheduling repost checking: %v\n", err)
+		return
+	}
 	job := types.Job{
 		Category: types.VerifyTheirRepost,
-		Payload:  iri,
+		Payload:  data,
 	}
 	id := db.PlanJob(job)
 	job.ID = id

@@ -60,6 +60,36 @@ func listenForBookmarkOf(nodes chan *html.Node, data *FoundData) {
 	}
 }
 
+func listenForRepostOf(nodes chan *html.Node, data *FoundData) {
+	state := stateLooking
+	for n := range nodes {
+		if state == stateFound {
+			continue
+		}
+
+		if n.Type == html.ElementNode && nodeHasClass(n, "u-repost-of") {
+			href, found := nodeAttribute(n, "href")
+			if !found {
+				// Huh? OK, a faulty document, stuff happens.
+				return
+			}
+
+			uri, err := url.ParseRequestURI(href)
+			if err != nil {
+				// Huh? Can't you produce a worthy document once in a while? OK.
+				//
+				// Maybe we could overcome it sometimes later. However, Betula
+				// provides valid absolute URL:s here, so whatever. Other
+				// implementations strive for better!
+				return
+			}
+
+			data.RepostOf = uri
+			state = stateFound
+		}
+	}
+}
+
 func listenForPostName(nodes chan *html.Node, data *FoundData) {
 	state := stateLooking
 	for n := range nodes {

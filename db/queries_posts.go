@@ -219,16 +219,3 @@ limit 1;
 	}
 	return post, found
 }
-
-func RepostsFor(id int) (reposts []types.RepostInfo) {
-	const q = `
-select RepostURL from KnownReposts where PostID = ?;
-`
-	rows := mustQuery(q, id)
-	for rows.Next() {
-		var repost types.RepostInfo
-		mustScan(rows, &repost.URL)
-		reposts = append(reposts, repost)
-	}
-	return reposts
-}

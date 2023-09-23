@@ -3,21 +3,20 @@ package activities
 import (
 	"encoding/json"
 	"git.sr.ht/~bouncepaw/betula/stricks"
-	"net/url"
 )
 
-func NewAnnounce(originalURL *url.URL, repostURL *url.URL) ([]byte, error) {
+func NewAnnounce(originalURL string, repostURL string) ([]byte, error) {
 	activity := map[string]any{
 		"@context": "https://www.w3.org/ns/activitystreams",
 		"type":     "Announce",
 		"actor":    betulaActor,
-		"id":       repostURL.String(),
+		"id":       repostURL,
 		"object": map[string]any{
 			"type": "Note",
 			"url": []map[string]string{
 				{
 					"type":      "Link",
-					"href":      originalURL.String(),
+					"href":      originalURL,
 					"mediaType": "text/html",
 				},
 			},
