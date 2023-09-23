@@ -38,7 +38,7 @@ func sendActivity(uri string, activity []byte) error {
 		log.Println(err)
 		return err
 	}
-	log.Printf("Sending activity %s\n", activity)
+	log.Printf("Sending activity %s\n", string(activity))
 	log.Printf("Activity sent to %s returned %d status\n", inbox, resp.StatusCode)
 	return nil
 }

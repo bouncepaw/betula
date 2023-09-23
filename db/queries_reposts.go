@@ -4,7 +4,7 @@ import "git.sr.ht/~bouncepaw/betula/types"
 
 // RepostsFor returns all reposts known about the specified post.
 func RepostsFor(id int) (reposts []types.RepostInfo) {
-	const q string = `
+	const q = `
 select RepostURL, ReposterName, RepostedAt from KnownReposts where PostID = ?;
 `
 	rows := mustQuery(q, id)
@@ -17,5 +17,8 @@ select RepostURL, ReposterName, RepostedAt from KnownReposts where PostID = ?;
 }
 
 func SaveRepost(postId int, repost types.RepostInfo) {
-	panic("ara")
+	const q = `
+insert into KnownReposts (RepostURL, PostID, ReposterName)
+values (?, ?, ?)`
+	mustExec(repost.URL, repost.URL, postId, repost.Name)
 }

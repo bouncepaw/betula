@@ -88,6 +88,7 @@ func handleMigrations() {
 	for _, migrator := range migrators[curver:] {
 		log.Printf("Migrating from DB schema version %d to %d...\n", curver, curver+1)
 		migrator()
+		curver++
 	}
 }
 
