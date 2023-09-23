@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-// RepostsFor returns all reposts known about the specified post.
-func RepostsFor(id int) (reposts []types.RepostInfo, err error) {
+// RepostsOf returns all reposts known about the specified post.
+func RepostsOf(id int) (reposts []types.RepostInfo, err error) {
 	const q = `
 select RepostURL, ReposterName, RepostedAt from KnownReposts where PostID = ?;
 `
@@ -25,7 +25,7 @@ select RepostURL, ReposterName, RepostedAt from KnownReposts where PostID = ?;
 	return reposts, nil
 }
 
-func CountRepostsFor(id int) int {
+func CountRepostsOf(id int) int {
 	const q = `select count(*) from KnownReposts where PostID = ?;`
 	return querySingleValue[int](q, id)
 }

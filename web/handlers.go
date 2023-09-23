@@ -50,7 +50,7 @@ func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.Response
 
 func init() {
 	mux.HandleFunc("/", handlerFeed)
-	mux.HandleFunc("/reposts-for/", handlerRepostsFor)
+	mux.HandleFunc("/reposts-of/", handlerRepostsOf)
 	mux.HandleFunc("/repost", adminOnly(handlerRepost))
 	mux.HandleFunc("/inbox", handlerInbox)
 	mux.HandleFunc("/help/en/", handlerEnglishHelp)
@@ -79,15 +79,15 @@ func init() {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 }
 
-type dataRepostsFor struct {
+type dataRepostsOf struct {
 	*dataCommon
 
 	types.Post
 	Reposts []types.RepostInfo
 }
 
-func handlerRepostsFor(w http.ResponseWriter, rq *http.Request) {
-	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/reposts-for/"))
+func handlerRepostsOf(w http.ResponseWriter, rq *http.Request) {
+	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/reposts-of/"))
 	if err != nil {
 		log.Println(err)
 		handlerNotFound(w, rq)
@@ -108,9 +108,9 @@ func handlerRepostsFor(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	reposts, err := db.RepostsFor(post.ID)
+	reposts, err := db.RepostsOf(post.ID)
 	_ = err // TODO: handle the error
-	templateExec(w, templateRepostsFor, dataRepostsFor{
+	templateExec(w, templateRepostsFor, dataRepostsOf{
 		dataCommon: emptyCommon(),
 		Post:       post,
 		Reposts:    reposts,
@@ -958,7 +958,7 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 	post.Tags = db.TagsForPost(id)
 	templateExec(w, templatePost, dataPost{
 		Post:        post,
-		RepostCount: db.CountRepostsFor(id),
+		RepostCount: db.CountRepostsOf(id),
 		dataCommon:  common,
 	}, rq)
 }

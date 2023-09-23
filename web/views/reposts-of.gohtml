@@ -1,8 +1,8 @@
-{{define "title"}}Reposts for {{.ID}}{{end}}
+{{define "title"}}Reposts of {{.ID}}{{end}}
 {{define "body"}}
     <main>
         <article>
-            <h2>Reposts for <a href="/{{.ID}}">{{.Title}}</a></h2>
+            <h2>Reposts of <a href="/{{.ID}}">{{.Title}}</a></h2>
             {{if .Reposts}}
                 <ul>
                {{range .Reposts}}
@@ -12,6 +12,7 @@
             {{else}}
                 <p>This post was not reposted before, or you were not told about any reposts.</p>
             {{end}}
+            <p>Want to repost? Paste the URL of the post on the Repost page in your Betula.</p>
         </article>
     </main>
 {{end}}
