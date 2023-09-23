@@ -108,7 +108,8 @@ func handlerRepostsFor(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	reposts := db.RepostsFor(post.ID)
+	reposts, err := db.RepostsFor(post.ID)
+	_ = err // TODO: handle the error
 	templateExec(w, templateRepostsFor, dataRepostsFor{
 		dataCommon: emptyCommon(),
 		Post:       post,

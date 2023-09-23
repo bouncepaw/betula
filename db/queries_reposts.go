@@ -1,19 +1,28 @@
 package db
 
-import "git.sr.ht/~bouncepaw/betula/types"
+import (
+	"git.sr.ht/~bouncepaw/betula/types"
+	"log"
+	"time"
+)
 
 // RepostsFor returns all reposts known about the specified post.
-func RepostsFor(id int) (reposts []types.RepostInfo) {
+func RepostsFor(id int) (reposts []types.RepostInfo, err error) {
 	const q = `
 select RepostURL, ReposterName, RepostedAt from KnownReposts where PostID = ?;
 `
 	rows := mustQuery(q, id)
 	for rows.Next() {
 		var repost types.RepostInfo
-		mustScan(rows, &repost.URL, &repost.Name, &repost.Timestamp)
+		var timestamp string
+		mustScan(rows, &repost.URL, &repost.Name, &timestamp)
+		repost.Timestamp, err = time.Parse(types.TimeLayout, timestamp)
+		if err != nil {
+			log.Println(err)
+		}
 		reposts = append(reposts, repost)
 	}
-	return reposts
+	return reposts, nil
 }
 
 func SaveRepost(postId int, repost types.RepostInfo) {
