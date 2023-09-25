@@ -4,7 +4,17 @@
 		{{if .RepostOf}}
 		<article>
 			<h2>Edit repost</h2>
-			<p>You cannot edit contents of reposts.</p>
+
+			<form method="post" action="/edit-link-tags/{{.ID}}">
+				<div class="tags-field">
+					<label for="link-tags">Tags comma-separated</label>
+					<input type="text" id="link-tags" name="tags"
+						   value="{{.Tags | catsTogether}}" placeholder="video, programming" autocomplete="off">
+					<p class="input-caption">You can only edit tags of reposts.</p>
+					<input type="hidden" name="next" value="/{{.ID}}">
+				</div>
+				<input type="submit" class="btn" value="Save tags">
+			</form>
 		</article>
 		{{else}}
 		<article>
@@ -29,8 +39,8 @@
 		{{if .RepostOf}}
 		<article>
 			<h2>Unrepost</h2>
-			<p>You can make this post yours and edit it afterwards.
-				The original post owner will be notified of the repost being removed.</p>
+			<p>You can make this post yours and edit it fully afterwards.
+				The original post owner will be notified of the repost being removed. TODO: actually notify them.</p>
 			<form method="post" action="/unrepost/{{.ID}}">
 				<div>
 					<input type="checkbox" name="confirmed" id="unrepost-confirmed" value="true" required>
@@ -43,7 +53,7 @@
 		{{end}}
 		<article>
 			<h2>Delete link</h2>
-			{{if .RepostOf}}<p>The original post owner will be notified of the repost being removed.</p>{{end}}
+			{{if .RepostOf}}<p>The original post owner will be notified of the repost being removed. TODO: actually notify them.</p>{{end}}
 			<form method="post" action="/delete-link/{{.ID}}">
 				<div>
 					<input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required>

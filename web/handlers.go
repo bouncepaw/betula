@@ -60,6 +60,7 @@ func init() {
 	mux.HandleFunc("/posts-rss", handlerPostsRss)
 	mux.HandleFunc("/save-link", adminOnly(handlerSaveLink))
 	mux.HandleFunc("/edit-link/", adminOnly(handlerEditLink))
+	mux.HandleFunc("/edit-link-tags/", adminOnly(handlerEditLinkTags))
 	mux.HandleFunc("/delete-link/", adminOnly(handlerDeleteLink))
 	mux.HandleFunc("/post/", handlerPost)
 	mux.HandleFunc("/last/", handlerPostLast)
@@ -496,6 +497,7 @@ func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerNotFound(w http.ResponseWriter, rq *http.Request) {
+	log.Printf("404 Not found: %s\n", rq.URL.Path)
 	w.WriteHeader(http.StatusNotFound)
 	templateExec(w, templateStatus, dataAuthorized{
 		dataCommon: emptyCommon(),
@@ -504,6 +506,7 @@ func handlerNotFound(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerUnauthorized(w http.ResponseWriter, rq *http.Request) {
+	log.Printf("401 Unauthorized: %s\n", rq.URL.Path)
 	w.WriteHeader(http.StatusUnauthorized)
 	templateExec(w, templateStatus, dataAuthorized{
 		dataCommon: emptyCommon(),
@@ -659,6 +662,26 @@ func mixUpTitleLink(title *string, addr *string) {
 	}
 }
 
+func handlerEditLinkTags(w http.ResponseWriter, rq *http.Request) {
+	if rq.Method != "POST" {
+		handlerNotFound(w, rq)
+		return
+	}
+
+	s := strings.TrimPrefix(rq.URL.Path, "/edit-link-tags/")
+	id, err := strconv.Atoi(s)
+	if err != nil {
+		handlerNotFound(w, rq)
+		return
+	}
+
+	tags := types.SplitTags(rq.FormValue("tags"))
+	db.SetTagsFor(id, tags)
+
+	next := rq.FormValue("next")
+	http.Redirect(w, rq, next, http.StatusSeeOther)
+}
+
 type dataEditLink struct {
 	errorTemplate
 	*dataCommon
@@ -669,7 +692,6 @@ type dataEditLink struct {
 }
 
 func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
-
 	common := emptyCommon()
 	common.head = `<script defer src="/static/autocompletion.js"></script>`
 
