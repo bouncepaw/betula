@@ -1,14 +1,8 @@
 # Federation capabilities in Betula
 
-Betula uses a homebrew mixture of ActivityPub and whatnot. Sometimes your system might work with Betula out of the box. Sometimes not.
+Betula uses a homebrew mixture of ActivityPub and whatnot. Sometimes your system might work with Betula out of the box. Usually not. Most importantly, Betula does not implement HTTP signatures, which is a deal breaker for most other implementations. We'll have them later.
 
 This document describes all outgoing and incoming Activities. Supporting them ensures your compatibility. Betula will also try to be more standards-compliant later, but it's not a priority for now.
-
-## Federation-connected instances
-A Betula instance is considered _federation-connected_ if it:
-
-* Has a domain set up.
-* Does not have federation turned off in the settings.
 
 ## User identification
 Every Betula is a single-user installation. Thus, Betula's URL is also its admin's URL.
@@ -19,7 +13,7 @@ The inbox is found at `/inbox`. Unknown Activities are dropped.
 Betula does not yet implement HTTP signatures and relies on manual resource fetching instead. HTTP signatures support may be implemented in the future.
 
 ## Repost notification
-Public federation-connected reposts are reported to authors of original posts.
+Public reposts are reported to authors of original posts.
 
 A notification like this is made when Alice reposts Bob's post 42, and her repost gets number 84:
 
@@ -38,3 +32,25 @@ A notification like this is made when Alice reposts Bob's post 42, and her repos
     "object": "https://links.bob/42"
 }
 ```
+
+You are to verify the repost yourself. We use microformats.
+
+## Repost cancellation
+If a repost is turned into a regular post or deleted, you will get a notification like this:
+
+```json
+{
+    "@context": "https://www.w3.org/ns/activitystreams",
+    "type": "Undo",
+    "actor": {
+        "type": "Person",
+        "id": "https://links.alice",
+        "inbox": "https://links.alice/inbox",
+        "name": "Alice",
+        "preferredUsername": "alice"
+    },
+    "object": "https://links.alice/84"
+}
+```
+
+You are to verify the lack of repost yourself. We use microformats.
