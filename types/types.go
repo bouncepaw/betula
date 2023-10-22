@@ -101,6 +101,7 @@ type JobCategory string
 const (
 	NotifyAboutMyRepost JobCategory = "notify about my repost"
 	VerifyTheirRepost   JobCategory = "verify their repost"
+	ReceiveUnrepost     JobCategory = "receive unrepost"
 )
 
 // Job is a task for Betula to do later.

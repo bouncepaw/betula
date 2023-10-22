@@ -87,7 +87,7 @@ var table = []struct {
 	{json1, nil, AnnounceReport{
 		ReposterUsername: "alice",
 		RepostPage:       "https://links.alice/84",
-		RepostedPage:     "https://links.bob/42",
+		OriginalPage:     "https://links.bob/42",
 	}},
 	{jsonNoId, ErrNoId, nil},
 	{jsonBadId, ErrNoId, nil},

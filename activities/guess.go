@@ -29,9 +29,12 @@ func Guess(raw []byte) (report any, err error) {
 	}
 	switch v := val.(type) {
 	case string:
-		if v == "Announce" {
+		switch v {
+		case "Announce":
 			return guessAnnounce(activity)
-		} else {
+		case "Undo":
+			return guessUndo(activity)
+		default:
 			return nil, ErrUnknownType
 		}
 	default:

@@ -36,3 +36,7 @@ insert into KnownReposts (RepostURL, PostID, ReposterName)
 values (?, ?, ?)`
 	mustExec(q, repost.URL, postId, repost.Name)
 }
+
+func DeleteRepost(postId int, repostURL string) {
+	mustExec(`delete from KnownReposts where RepostURL = ? and PostID = ?`, repostURL, postId)
+}

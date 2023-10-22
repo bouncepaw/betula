@@ -49,7 +49,12 @@ If a repost is turned into a regular post or deleted, you will get a notificatio
         "name": "Alice",
         "preferredUsername": "alice"
     },
-    "object": "https://links.alice/84"
+    "object": {
+        "type": "Announce",
+        "id": "https://links.alice/84",
+        "actor": "https://links.alice",
+        "object": "https://links.bob/42"
+    }
 }
 ```
 

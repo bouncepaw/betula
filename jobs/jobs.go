@@ -105,14 +105,13 @@ func verifyJob(job types.Job) {
 	}
 
 	if !valid {
-		log.Printf("There is no repost of %s at %s\n", report.RepostedPage, report.RepostPage)
+		log.Printf("There is no repost of %s at %s\n", report.OriginalPage, report.RepostPage)
 		return
 	}
 
 	// getting postId
-	parts := strings.Split(report.RepostedPage, "/")
+	parts := strings.Split(report.OriginalPage, "/")
 	postId, err := strconv.Atoi(parts[len(parts)-1])
-	println(postId)
 	if err != nil {
 		log.Println(err)
 		return
@@ -125,6 +124,42 @@ func verifyJob(job types.Job) {
 	})
 }
 
+func receiveUnrepostJob(job types.Job) {
+	var report activities.UndoAnnounceReport
+
+	switch v := job.Payload.(type) {
+	case []byte:
+		if err := json.Unmarshal(v, &report); err != nil {
+			log.Printf("While unmarshaling UndoAnnounceReport %v: %v\n", v, err)
+			return
+		}
+	default:
+		log.Printf("Bad payload for ReceiveUnrepost job: %v\n", v)
+		return
+	}
+
+	valid, err := readpage.IsThisValidRepost(report.AnnounceReport)
+	if err != nil {
+		log.Printf("While parsing repost page %s: %v\n", report.RepostPage, err)
+		return
+	}
+
+	if valid {
+		log.Printf("There is still a repost of %s at %s\n", report.OriginalPage, report.RepostPage)
+		return
+	}
+
+	parts := strings.Split(report.OriginalPage, "/")
+	postId, err := strconv.Atoi(parts[len(parts)-1])
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	log.Printf("Deleting %s's repost of %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
+	db.DeleteRepost(postId, report.RepostPage)
+}
+
 func ListenAndWhisper() {
 	lateJobs := db.LoadAllJobs()
 	go func() {
@@ -135,6 +170,8 @@ func ListenAndWhisper() {
 				notifyJob(job)
 			case types.VerifyTheirRepost:
 				verifyJob(job)
+			case types.ReceiveUnrepost:
+				receiveUnrepostJob(job)
 			default:
 				panic("unhandled job type")
 			}
@@ -166,6 +203,21 @@ func NotifyAboutMyRepost(postId int64) {
 	job := types.Job{
 		Category: types.NotifyAboutMyRepost,
 		Payload:  postId,
+	}
+	id := db.PlanJob(job)
+	job.ID = id
+	jobch <- job
+}
+
+func ReceiveUnrepost(report activities.UndoAnnounceReport) {
+	data, err := json.Marshal(report)
+	if err != nil {
+		log.Printf("While scheduling unrepost checking: %v\n", err)
+		return
+	}
+	job := types.Job{
+		Category: types.ReceiveUnrepost,
+		Payload:  data,
 	}
 	id := db.PlanJob(job)
 	job.ID = id

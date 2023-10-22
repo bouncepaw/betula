@@ -53,7 +53,7 @@ func FindDataForMyRepost(link string) (FoundData, error) {
 
 func IsThisValidRepost(report activities.AnnounceReport) (validRepost bool, err error) {
 	data, err := findDataByLink(report.RepostPage, checkRepostWorkers)
-	valid := data.RepostOf != nil && data.RepostOf.String() == report.RepostedPage
+	valid := data.RepostOf != nil && data.RepostOf.String() == report.OriginalPage
 	return valid, err
 }
 

@@ -215,8 +215,11 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	switch report := report.(type) {
+	case activities.UndoAnnounceReport:
+		log.Printf("%s revoked their repost of %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
+		go jobs.ReceiveUnrepost(report)
 	case activities.AnnounceReport:
-		log.Printf("%s reposted %s at %s\n", report.ReposterUsername, report.RepostedPage, report.RepostPage)
+		log.Printf("%s reposted %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
 		go jobs.CheckThisRepostLater(report)
 	default:
 		// Not meant to happen

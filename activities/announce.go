@@ -19,7 +19,7 @@ func NewAnnounce(originalURL string, repostURL string) ([]byte, error) {
 type AnnounceReport struct {
 	ReposterUsername string
 	RepostPage       string // page where the repost is
-	RepostedPage     string // page that was reposted
+	OriginalPage     string // page that was reposted
 }
 
 func mustHaveSuchField[T any](activity map[string]any, field string, errOnLack error, lambdaOnPresence func(T)) error {
@@ -63,7 +63,7 @@ func guessAnnounce(activity map[string]any) (reportMaybe any, err error) {
 	if err := mustHaveSuchField(
 		activity, "object", ErrNoObject,
 		func(v string) {
-			report.RepostedPage = v
+			report.OriginalPage = v
 		},
 	); err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func guessAnnounce(activity map[string]any) (reportMaybe any, err error) {
 		return nil, err
 	}
 
-	if !stricks.ValidURL(report.RepostedPage) {
+	if !stricks.ValidURL(report.OriginalPage) {
 		return nil, ErrNoObject
 	}
 
