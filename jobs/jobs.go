@@ -64,6 +64,11 @@ func notifyJob(job types.Job) {
 		return
 	}
 
+	if post.Visibility != types.Public {
+		log.Printf("Repost %d is not public, not notifying\n", postId)
+		return
+	}
+
 	activity, err := activities.NewAnnounce(
 		*post.RepostOf,
 		fmt.Sprintf("%s/%d", settings.SiteURL(), postId),
