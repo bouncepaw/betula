@@ -136,6 +136,20 @@ func receiveUnrepostJob(job types.Job) {
 }
 
 func notifyAboutMyUnrepost(job types.Job) {
-	panic("todo")
-	// TODO: implement
+	var report activities.UndoAnnounceReport
+
+	switch v := job.Payload.(type) {
+	case []byte:
+		if err := json.Unmarshal(v, &report); err != nil {
+			log.Printf("While unmarshaling UndoAnnounceReport %v: %v\n", v, err)
+			return
+		}
+		err := sendActivity(report.OriginalPage, v)
+		if err != nil {
+			log.Printf("While sending unrepost notification: %s\n", err)
+		}
+	default:
+		log.Printf("Bad payload for ReceiveUnrepost job: %v\n", v)
+		return
+	}
 }

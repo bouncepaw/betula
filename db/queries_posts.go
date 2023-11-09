@@ -149,11 +149,12 @@ set
     URL = ?,
     Title = ?,
     Description = ?,
-    Visibility = ?
+    Visibility = ?,
+	RepostOf = ?
 where
     ID = ? and DeletionTime is null;
 `
-	mustExec(q, post.URL, post.Title, post.Description, post.Visibility, post.ID)
+	mustExec(q, post.URL, post.Title, post.Description, post.Visibility, post.RepostOf, post.ID)
 	SetTagsFor(post.ID, post.Tags)
 }
 

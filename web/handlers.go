@@ -52,6 +52,7 @@ func init() {
 	mux.HandleFunc("/", handlerFeed)
 	mux.HandleFunc("/reposts-of/", handlerRepostsOf)
 	mux.HandleFunc("/repost", adminOnly(handlerRepost))
+	mux.HandleFunc("/unrepost/", adminOnly(handlerUnrepost))
 	mux.HandleFunc("/inbox", handlerInbox)
 	mux.HandleFunc("/help/en/", handlerEnglishHelp)
 	mux.HandleFunc("/help", handlerHelp)
@@ -78,6 +79,55 @@ func init() {
 	mux.HandleFunc("/bookmarklet", adminOnly(handlerBookmarklet))
 	mux.HandleFunc("/static/style.css", handlerStyle)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerUnrepost(w http.ResponseWriter, rq *http.Request) {
+	if rq.Method == http.MethodGet {
+		handlerNotFound(w, rq)
+		return
+	}
+
+	s := strings.TrimPrefix(rq.URL.Path, "/unrepost/")
+	if s == "" {
+		handlerNotFound(w, rq)
+		return
+	}
+
+	id, err := strconv.Atoi(s)
+	if err != nil {
+		log.Println(err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	if confirmed := rq.FormValue("confirmed"); confirmed != "true" {
+		http.Redirect(w, rq, fmt.Sprintf("/edit-link/%d", id), http.StatusSeeOther)
+		return
+	}
+
+	post, found := db.PostForID(id)
+	if !found {
+		log.Printf("Trying to unrepost non-existent post no. %d\n", id)
+		handlerNotFound(w, rq)
+		return
+	}
+	if post.RepostOf == nil {
+		log.Printf("Trying to unrepost a non-repost post no. %d\n", id)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	originalPage := *post.RepostOf
+	post.RepostOf = nil
+	db.EditPost(post)
+	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
+	go jobs.NotifyAboutMyUnrepost(activities.UndoAnnounceReport{
+		AnnounceReport: activities.AnnounceReport{
+			ReposterUsername: db.MetaEntry[string](db.BetulaMetaAdminUsername),
+			RepostPage:       fmt.Sprintf("%s/%d", settings.SiteURL(), post.ID),
+			OriginalPage:     originalPage,
+		},
+	})
 }
 
 type dataRepostsOf struct {
