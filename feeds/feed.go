@@ -127,7 +127,7 @@ func descriptionForOnePost(post types.Post) string {
 		post.ID,
 		post.Title,
 		post.URL,
-		types.StripCommonProtocol(post.URL),
+		types.CleanerLink(post.URL),
 		func() string {
 			if len(post.Tags) > 0 {
 				return "<p>🏷 " + tagBuf.String() + "</p>"

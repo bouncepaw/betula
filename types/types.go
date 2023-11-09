@@ -167,16 +167,21 @@ type RepostInfo struct {
 	Name      string
 }
 
-// not really a type:
-
+// TimeLayout is the time layout used across Betula.
 const TimeLayout = "2006-01-02 15:04:05"
 
-func StripCommonProtocol(a string) string {
+// CleanerLink returns the link a with https:// or http:// prefix and the / suffix and percent-encoding reversed.
+func CleanerLink(a string) string {
 	b := strings.TrimPrefix(a, "https://")
 	c := strings.TrimPrefix(b, "http://")
 	// Gemini, Gopher, FTP, Mail are not stripped, to emphasize them, when they are.
 	d := strings.TrimSuffix(c, "/")
-	return d
+	e, err := url.QueryUnescape(d)
+	if err != nil {
+		// Better luck next time.
+		return d
+	}
+	return e
 }
 
 const (
