@@ -11,18 +11,17 @@
             {{else if .ErrorImpossible}}
 				<h2>Repost impossible</h2>
 				<p>The page you entered does not support Betula's reposts. Is it running Betula? Is it the right page?</p>
-					<!-- TODO: all fields in the next line -->
-				<p>Do you want to <a href="/save-link?title={{.FoundData.PostName}}&url={{.URL}}&description={{.FoundData.Mycomarkup}}">save this link</a> instead? Saving never fails.</p>
+				<p>Do you want to <a href="/save-link?title={{.FoundData.PostName}}&url={{.URL}}&description={{.FoundData.Mycomarkup}}&tags={{.FoundData.Tags | catStringsTogether}}">save this link</a> instead? Saving never fails.</p>
 			{{else if .ErrorTimeout}}
 	            <h2>Server timed out</h2>
 	            <p>The page takes too long to load, cannot repost now.</p>
 		            <!-- Keep in sync with the similar line in the previous branch! -->
-	            <p>Do you want to <a href="/save-link?title={{.FoundData.PostName}}&url={{.URL}}&description={{.FoundData.Mycomarkup}}">save this link</a> instead? Saving never fails.</p>
+	            <p>Do you want to <a href="/save-link?title={{.FoundData.PostName}}&url={{.URL}}&description={{.FoundData.Mycomarkup}}&tags={{.FoundData.Tags | catStringsTogether}}">save this link</a> instead? Saving never fails.</p>
             {{else if .Err}}
 	            <h2>Error</h2>
 	            <p>Error message: {{.Err.Error}}.</p>
             {{else}}
-				<h2>Repost</h2>
+				<h2>Repost (experimental)</h2>
 				<p>Share posts from other Betulæ and compatible software quickly. Reposts link back the original posts. You can edit the reposts' data freely.</p>
             {{end}}
 			<form method="post" action="/repost">
