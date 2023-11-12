@@ -43,10 +43,10 @@
 				The original post owner will be notified of the repost being removed. TODO: actually notify them.</p>
 			<form method="post" action="/unrepost/{{.ID}}">
 				<div>
-					<input type="checkbox" name="confirmed" id="unrepost-confirmed" value="true" required>
+					<input type="checkbox" name="confirmed" id="unrepost-confirmed" value="true" required class="confirmation-tick">
 					<label for="unrepost-confirmed">Yes, unrepost this link.</label>
 					<br>
-					<input type="submit" id="unrepost-btn" value="Unrepost" class="btn">
+					<input type="submit" id="unrepost-btn" value="Unrepost" class="btn btn_confirmation-tick">
 				</div>
 			</form>
 		</article>
@@ -56,10 +56,10 @@
 			{{if .RepostOf}}<p>The original post owner will be notified of the repost being removed. TODO: actually notify them.</p>{{end}}
 			<form method="post" action="/delete-link/{{.ID}}">
 				<div>
-					<input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required>
+					<input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required class="confirmation-tick">
 					<label for="delete-confirmed">Yes, delete this link.</label>
 					<br>
-					<input type="submit" id="delete-btn" value="Delete" class="btn">
+					<input type="submit" value="Delete" class="btn btn_confirmation-tick">
 				</div>
 			</form>
 		</article>

@@ -356,13 +356,13 @@ nav a, nav a:hover, nav a:visited {
     font-weight: bold;
 }
 
-#delete-confirmed:checked ~ #delete-btn {
+.confirmation-tick:checked ~ .btn_confirmation-tick {
     border: 1px #999 solid;
     background: #eee;
     cursor: pointer;
 }
 
-#delete-confirmed:not(checked) ~ #delete-btn {
+.confirmation-tick:not(checked) ~ .btn_confirmation-tick {
     border: 1px dashed #999;
     background-color: transparent;
     cursor: not-allowed;

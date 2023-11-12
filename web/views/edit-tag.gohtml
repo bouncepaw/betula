@@ -42,10 +42,10 @@
             <h2>Delete tag</h2>
             <form method="post" action="/delete-tag/{{.Name}}">
                 <div>
-                    <input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required>
+                    <input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required class="confirmation-tick">
                     <label for="delete-confirmed">Yes, delete this tag.</label>
                     <br>
-                    <input type="submit" id="delete-btn" value="Delete" class="btn">
+                    <input type="submit" value="Delete" class="btn btn_confirmation-tick">
                 </div>
             </form>
         </article>
