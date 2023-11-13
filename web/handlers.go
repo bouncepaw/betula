@@ -50,6 +50,7 @@ func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.Response
 
 func init() {
 	mux.HandleFunc("/", handlerFeed)
+	mux.HandleFunc("/subscriptions", adminOnly(handlerSubscriptions))
 	mux.HandleFunc("/reposts-of/", handlerRepostsOf)
 	mux.HandleFunc("/repost", adminOnly(handlerRepost))
 	mux.HandleFunc("/unrepost/", adminOnly(handlerUnrepost))
@@ -79,6 +80,33 @@ func init() {
 	mux.HandleFunc("/bookmarklet", adminOnly(handlerBookmarklet))
 	mux.HandleFunc("/static/style.css", handlerStyle)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+type dataSubscriptions struct {
+	*dataCommon
+
+	PostsInPage []types.Post
+}
+
+func handlerSubscriptions(w http.ResponseWriter, rq *http.Request) {
+	// Mockup
+
+	var currentPage uint
+	if page, err := strconv.Atoi(rq.FormValue("page")); err != nil || page == 0 {
+		currentPage = 1
+	} else {
+		currentPage = uint(page)
+	}
+
+	common := emptyCommon()
+
+	posts, totalPosts := db.Posts(true, currentPage)
+	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
+
+	templateExec(w, templateSubscriptions, dataSubscriptions{
+		PostsInPage: posts,
+		dataCommon:  common,
+	}, rq)
 }
 
 func handlerUnrepost(w http.ResponseWriter, rq *http.Request) {

@@ -1,0 +1,23 @@
+{{define "title"}}Subscription feed{{end}}
+{{define "body"}}
+    <main class="h-feed">
+        <article>
+            <h2 class="p-name">Subscription feed</h2>
+            <p>New bookmarks from people you have subscribed to go here.</p>
+            <a class="btn">Subscribe to somebody</a>
+            <a class="btn">Manage subscriptions</a>
+            <a class="btn">RSS feed</a>
+        </article>
+        {{range .PostsInPage}}
+            <article class="h-entry">
+                <h3 class="p-name"><a class="u-url" href="/{{.ID}}">{{.Title}}</a></h3>
+                {{template "post main fragment" .}}
+            </article>
+        {{else}}
+            <article>
+                No bookmarks yet.
+            </article>
+        {{end}}
+        {{template "paginator" .}}
+    </main>
+{{end}}
