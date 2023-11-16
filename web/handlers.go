@@ -141,7 +141,7 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 		siteURL,             // publicKey/owner
 		"-----BEGIN PUBLIC KEY-----\\nTODO\\n----END PUBLIC KEY----", // TODO: implement keys
 	)
-	w.Header().Set("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
+	w.Header().Set("Content-Type", types.ActivityType)
 	if _, err := fmt.Fprintf(w, doc); err != nil {
 		log.Printf("Error when serving /actor: %s\n", err)
 	}

@@ -1,5 +1,7 @@
 package types
 
+const ActivityType = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""
+
 type ServerSoftwareKind string
 
 const (
@@ -8,11 +10,11 @@ const (
 )
 
 type Actor struct {
-	ID                string             `json:"id"`
-	Inbox             string             `json:"inbox"`
-	PreferredUsername string             `json:"preferredUsername"`
-	DisplayedName     string             `json:"name"`
-	Summary           string             `json:"summary,omitempty"`
-	IconID            string             `json:"icon,omitempty"`
-	ServerSoftware    ServerSoftwareKind `json:"-"`
+	ID                string `json:"id"`
+	Inbox             string `json:"inbox"`
+	PreferredUsername string `json:"preferredUsername"`
+	DisplayedName     string `json:"name"`
+	Summary           string `json:"summary,omitempty"`
+	//IconID            string             `json:"icon,omitempty"`
+	ServerSoftware ServerSoftwareKind `json:"-"`
 }

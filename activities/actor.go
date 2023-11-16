@@ -6,6 +6,8 @@ import (
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
+// TODO: something is deeply wrong with this file. Make use of types.Actor
+
 type actor struct {
 	Type              string `json:"type"`
 	Id                string `json:"id"`
