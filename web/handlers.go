@@ -96,7 +96,7 @@ func init() {
 
 func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
 	resource := rq.FormValue("resource")
-	expected := fmt.Sprintf("acct:%s@%s", db.MetaEntry[string](db.BetulaMetaAdminUsername), settings.SiteURL())
+	expected := fmt.Sprintf("acct:%s@%s", db.MetaEntry[string](db.BetulaMetaAdminUsername), types.CleanerLink(settings.SiteURL()))
 	if resource != expected {
 		log.Printf("WebFinger: Unexpected resource %s\n", resource)
 	}
