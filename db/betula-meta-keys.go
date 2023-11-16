@@ -16,4 +16,6 @@ const (
 	BetulaMetaSiteDescription   BetulaMetaKey = "Site description Mycomarkup"
 	BetulaMetaSiteURL           BetulaMetaKey = "WWW URL"
 	BetulaMetaCustomCSS         BetulaMetaKey = "Custom CSS"
+	BetulaMetaPrivateKey        BetulaMetaKey = "RSA PRIVATE KEY"
+	BetulaMetaPublicKey         BetulaMetaKey = "RSA PUBLIC KEY"
 )
