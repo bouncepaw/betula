@@ -87,8 +87,34 @@ func init() {
 	mux.HandleFunc("/.well-known/nodeinfo", handlerWellKnownNodeInfo)
 	mux.HandleFunc("/nodeinfo/2.0", handlerNodeInfo)
 
+	// WebFinger
+	mux.HandleFunc("/.well-known/webfinger", handlerWebFinger)
+
 	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
+	resource := rq.FormValue("resource")
+	expected := fmt.Sprintf("acct:%s@%s", db.MetaEntry[string](db.BetulaMetaAdminUsername), settings.SiteURL())
+	if resource != expected {
+		log.Printf("WebFinger: Unexpected resource %s\n", resource)
+		return
+	}
+	doc := fmt.Sprintf(`{
+  "subject":"%s",
+  "links":[
+    {
+      "rel":"self",
+      "type":"application/activity+json",
+      "href":"%s/actor"
+    }
+  ]
+}`, expected, settings.SiteURL())
+	w.Header().Set("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
+	if _, err := fmt.Fprintf(w, doc); err != nil {
+		log.Printf("Error when serving WebFinger: %s\n", err)
+	}
 }
 
 func handlerActor(w http.ResponseWriter, rq *http.Request) {
