@@ -79,7 +79,63 @@ func init() {
 	mux.HandleFunc("/settings", adminOnly(handlerSettings))
 	mux.HandleFunc("/bookmarklet", adminOnly(handlerBookmarklet))
 	mux.HandleFunc("/static/style.css", handlerStyle)
+
+	// NodeInfo
+	mux.HandleFunc("/.well-known/nodeinfo", handlerWellKnownNodeInfo)
+	mux.HandleFunc("/nodeinfo/2.0", handlerNodeInfo)
+
+	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerNodeInfo(w http.ResponseWriter, rq *http.Request) {
+	// See:
+	// => https://github.com/jhass/nodeinfo/blob/main/schemas/2.0/example.json
+	doc := fmt.Sprintf(`{
+		"version": "2.0",
+		"software": {
+			"name": "betula",
+			"version": "%s"
+		},
+		"protocols": ["activitypub"],
+		"services": {
+			"inbound": [],
+			"outbound": ["rss2.0"]
+		},
+		"openRegistrations": false,
+		"usage": {
+			"users": {
+			  "total": 1,
+			  "activeHalfyear": 1,
+			  "activeMonth": 1
+			},
+			"localPosts": %d,
+			"localComments": 0
+		  },
+		  "metadata": {}
+	}`, "1.2.0", db.PostCount(false))
+	w.Header().Set("Content-Type", "application/json; profile=\"http://nodeinfo.diaspora.software/ns/schema/2.0#\"")
+	if _, err := fmt.Fprintf(w, doc); err != nil {
+		log.Printf("Error when serving /nodeinfo/2.0: %s\n", err)
+	}
+}
+
+func handlerWellKnownNodeInfo(w http.ResponseWriter, rq *http.Request) {
+	// See:
+	// => https://github.com/jhass/nodeinfo/blob/main/PROTOCOL.md
+	// => https://docs.joinmastodon.org/dev/routes/#nodeinfo
+	doc := `{
+		"links": [
+			{
+				"rel": "http://nodeinfo.diaspora.software/ns/schema/2.0",
+				"href": "%s/nodeinfo/2.0"
+			}
+		]
+	}`
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := fmt.Fprintf(w, fmt.Sprintf(doc, settings.SiteURL())); err != nil {
+		log.Printf("Error when serving /.well-known/nodeinfo: %s\n", err)
+	}
 }
 
 type dataSubscriptions struct {
