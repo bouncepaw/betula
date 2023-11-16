@@ -54,7 +54,6 @@ func init() {
 	mux.HandleFunc("/reposts-of/", handlerRepostsOf)
 	mux.HandleFunc("/repost", adminOnly(handlerRepost))
 	mux.HandleFunc("/unrepost/", adminOnly(handlerUnrepost))
-	mux.HandleFunc("/inbox", handlerInbox)
 	mux.HandleFunc("/help/en/", handlerEnglishHelp)
 	mux.HandleFunc("/help", handlerHelp)
 	mux.HandleFunc("/text/", handlerText)
@@ -80,12 +79,47 @@ func init() {
 	mux.HandleFunc("/bookmarklet", adminOnly(handlerBookmarklet))
 	mux.HandleFunc("/static/style.css", handlerStyle)
 
+	// ActivityPub
+	mux.HandleFunc("/inbox", handlerInbox)
+	mux.HandleFunc("/actor", handlerActor)
+
 	// NodeInfo
 	mux.HandleFunc("/.well-known/nodeinfo", handlerWellKnownNodeInfo)
 	mux.HandleFunc("/nodeinfo/2.0", handlerNodeInfo)
 
 	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerActor(w http.ResponseWriter, rq *http.Request) {
+	siteURL := settings.SiteURL()
+	doc := fmt.Sprintf(`
+{
+  "@context": [
+    "https://www.w3.org/ns/activitystreams",
+    "https://w3id.org/security/v1"
+  ],
+  "type": "Person",
+  "id": "%s",
+  "preferredUsername": "%s",
+  "inbox": "%s",
+  "publicKey": {
+    "id": "%s",
+    "owner": "%s",
+    "publicKeyPem": "%s"
+  }
+}`,
+		siteURL, // id
+		db.MetaEntry[string](db.BetulaMetaAdminUsername), // preferredUsername
+		siteURL+"/inbox",    // inbox
+		siteURL+"#main-key", // publicKey/id
+		siteURL,             // publicKey/owner
+		"-----BEGIN PUBLIC KEY-----\\nTODO\\n----END PUBLIC KEY----", // TODO: implement keys
+	)
+	w.Header().Set("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
+	if _, err := fmt.Fprintf(w, doc); err != nil {
+		log.Printf("Error when serving /actor: %s\n", err)
+	}
 }
 
 func handlerNodeInfo(w http.ResponseWriter, rq *http.Request) {
