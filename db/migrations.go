@@ -2,20 +2,26 @@ package db
 
 import (
 	"database/sql"
+	"embed"
+	"fmt"
 	"log"
 )
 
-const expectedVersion = 6
+const expectedVersion = 7
 
-/*
-Wishes for schema version 7:
+//go:embed scripts/*.sql
+var scripts embed.FS
 
-1.
+func getScript(name string) string {
+	data, err := scripts.ReadFile("scripts/" + name + ".sql")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return string(data)
+}
 
-Write more here. Implement all when there is an actual need to have a new schema.
-*/
-
-const currentSchema string = `
+// Never update the SQL here. Add comments maybe.
+const schemaV6 string = `
 create table Posts (
     ID integer primary key autoincrement,
     URL text not null check ( URL <> '' ),
@@ -71,23 +77,41 @@ create table KnownReposts (
 
 func handleMigrations() {
 	curver, found := currentVersion()
+
+	// DB was never populated! Let's write the latest schema we have.
 	if !found {
-		mustExec(currentSchema)
+		mustExec(schemaV6) // Up to 6
+		goto past6         // And newer
 		return
 	}
 
+	// Seems to be update, we're done here.
 	if curver == expectedVersion {
 		return
 	}
 
+	// Whoa, a db from a newer Betula? We better get out of here.
 	if curver > expectedVersion {
-		log.Fatalf("The database file specifies version %d, but this version of Betula only supports versions up to %d. Please update Betula or fix your database somehow.\n", curver, expectedVersion)
+		log.Fatalf("The database file specifies database version %d, but this version of Betula only supports database versions up to %d. Please update your Betula.\n", curver, expectedVersion)
 	}
 
-	migrators := []func(){migrate0To1, migrate1To2, migrate2To3, migrate3To4, migrate4To5, migrate5To6}
-	for _, migrator := range migrators[curver:] {
+	// Here, curver < expectedVersion
+
+	// Migration up to 6 were made using a different mechanism. Let's get up to 6 first.
+	if curver < 6 {
+		migrators := []func(){migrate0To1, migrate1To2, migrate2To3, migrate3To4, migrate4To5, migrate5To6}
+		for _, migrator := range migrators[curver:] {
+			log.Printf("Migrating from DB schema version %d to %d...\n", curver, curver+1)
+			migrator()
+			curver++
+		}
+	}
+
+past6:
+	for curver < expectedVersion {
 		log.Printf("Migrating from DB schema version %d to %d...\n", curver, curver+1)
-		migrator()
+		mustExec(getScript(fmt.Sprintf("%d", curver+1)))
+		mustExec(fmt.Sprintf(`replace into BetulaMeta (Key, Value) values ('DB version', %d);`, curver+1))
 		curver++
 	}
 }
