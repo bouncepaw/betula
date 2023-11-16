@@ -99,7 +99,6 @@ func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
 	expected := fmt.Sprintf("acct:%s@%s", db.MetaEntry[string](db.BetulaMetaAdminUsername), settings.SiteURL())
 	if resource != expected {
 		log.Printf("WebFinger: Unexpected resource %s\n", resource)
-		return
 	}
 	doc := fmt.Sprintf(`{
   "subject":"%s",
