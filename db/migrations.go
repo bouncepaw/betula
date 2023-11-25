@@ -81,6 +81,7 @@ func handleMigrations() {
 	// DB was never populated! Let's write the latest schema we have.
 	if !found {
 		mustExec(schemaV6) // Up to 6
+		curver = 6
 		goto past6         // And newer
 		return
 	}
