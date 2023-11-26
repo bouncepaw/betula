@@ -44,7 +44,7 @@ func templateExec(w http.ResponseWriter, temp *template.Template, data viewData,
 	data.Fill(common)
 	err := temp.ExecuteTemplate(w, "skeleton.gohtml", data)
 	if err != nil {
-		log.Fatalln(err)
+		log.Printf("While writing template: %s\n", err)
 	}
 }
 
