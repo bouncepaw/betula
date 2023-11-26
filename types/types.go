@@ -107,7 +107,7 @@ type Settings struct {
 	SiteDescriptionMycomarkup string
 	SiteURL                   string
 	CustomCSS                 string
-	EnableFederation          bool
+	FederationEnabled         bool
 }
 
 type Page struct {

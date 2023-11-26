@@ -48,10 +48,20 @@ func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.Response
 	}
 }
 
+func federatedOnly(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, rq *http.Request) {
+		federated := settings.FederationEnabled()
+		if !federated {
+			log.Printf("Attempt to access %s failed because Betula is not federated. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+			handlerNotFederated(w, rq)
+			return
+		}
+		next(w, rq)
+	}
+}
+
 func init() {
 	mux.HandleFunc("/", handlerFeed)
-	mux.HandleFunc("/subscribe", handlerSubscribe)
-	mux.HandleFunc("/subscriptions", adminOnly(handlerSubscriptions))
 	mux.HandleFunc("/reposts-of/", handlerRepostsOf)
 	mux.HandleFunc("/repost", adminOnly(handlerRepost))
 	mux.HandleFunc("/unrepost/", adminOnly(handlerUnrepost))
@@ -80,16 +90,20 @@ func init() {
 	mux.HandleFunc("/bookmarklet", adminOnly(handlerBookmarklet))
 	mux.HandleFunc("/static/style.css", handlerStyle)
 
+	// Federation interface
+	mux.HandleFunc("/subscribe", federatedOnly(handlerSubscribe))
+	mux.HandleFunc("/subscriptions", adminOnly(federatedOnly(handlerSubscriptions)))
+
 	// ActivityPub
-	mux.HandleFunc("/inbox", handlerInbox)
-	mux.HandleFunc("/actor", handlerActor)
+	mux.HandleFunc("/inbox", federatedOnly(handlerInbox))
+	mux.HandleFunc("/actor", federatedOnly(handlerActor))
 
 	// NodeInfo
 	mux.HandleFunc("/.well-known/nodeinfo", handlerWellKnownNodeInfo)
 	mux.HandleFunc("/nodeinfo/2.0", handlerNodeInfo)
 
 	// WebFinger
-	mux.HandleFunc("/.well-known/webfinger", handlerWebFinger)
+	mux.HandleFunc("/.well-known/webfinger", federatedOnly(handlerWebFinger))
 
 	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
@@ -638,7 +652,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 				SiteTitle:                 settings.SiteTitle(),
 				SiteDescriptionMycomarkup: settings.SiteDescriptionMycomarkup(),
 				CustomCSS:                 settings.CustomCSS(),
-				EnableFederation:          settings.EnableFederation(),
+				FederationEnabled:         settings.FederationEnabled(),
 			},
 			dataCommon: emptyCommon(),
 			FirstRun:   rq.FormValue("first-run") == "true",
@@ -653,7 +667,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 		SiteDescriptionMycomarkup: rq.FormValue("site-description"),
 		SiteURL:                   rq.FormValue("site-url"),
 		CustomCSS:                 rq.FormValue("custom-css"),
-		EnableFederation:          rq.FormValue("enable-federation") == "true",
+		FederationEnabled:         rq.FormValue("enable-federation") == "true",
 	}
 
 	// If the port ≤ 0 or not really numeric, show error.
@@ -727,6 +741,16 @@ func handlerUnauthorized(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, templateStatus, dataAuthorized{
 		dataCommon: emptyCommon(),
 		Status:     http.StatusText(http.StatusUnauthorized),
+	}, rq)
+}
+
+func handlerNotFederated(w http.ResponseWriter, rq *http.Request) {
+	// TODO: a proper separate error page!
+	log.Printf("404 Not found + Not federated: %s\n", rq.URL.Path)
+	w.WriteHeader(http.StatusNotFound)
+	templateExec(w, templateStatus, dataAuthorized{
+		dataCommon: emptyCommon(),
+		Status:     "Not federated",
 	}, rq)
 }
 
