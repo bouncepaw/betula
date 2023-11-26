@@ -29,13 +29,16 @@ func Guess(raw []byte) (report any, err error) {
 	}
 	switch v := val.(type) {
 	case string:
-		switch v {
-		case "Announce":
-			return guessAnnounce(activity)
-		case "Undo":
-			return guessUndo(activity)
-		default:
+		var m = map[string]func(map[string]any) (any, error){
+			"Announce": guessAnnounce,
+			"Undo":     guessUndo,
+			"Follow":   guessFollow,
+			// TODO: add more guessers
+		}
+		if f, ok := m[v]; !ok {
 			return nil, ErrUnknownType
+		} else {
+			return f(activity)
 		}
 	default:
 		return nil, ErrNoType
