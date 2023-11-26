@@ -3,10 +3,10 @@ package types
 
 import (
 	"fmt"
+	"golang.org/x/net/idna"
 	"html/template"
 	"math"
 	"net/url"
-	"golang.org/x/net/idna"
 	"strings"
 	"time"
 
@@ -107,6 +107,7 @@ type Settings struct {
 	SiteDescriptionMycomarkup string
 	SiteURL                   string
 	CustomCSS                 string
+	EnableFederation          bool
 }
 
 type Page struct {

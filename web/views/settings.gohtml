@@ -6,7 +6,7 @@
 			{{if .FirstRun}}
 				<p>Set up your Betula. You can always revisit these settings later.</p>
 			{{else}}
-				<p><a href="/logout">Log out</a></p>
+				<p><a href="/logout" class="btn">Log out</a></p>
 			{{end}}
 
 			<h3>Basic</h3>
@@ -43,6 +43,16 @@
 						Shown on the Bookmarks and About pages.
 					</p>
 				</div>
+
+				<div>
+					<input id="enable-federation" name="enable-federation" type="checkbox" {{if .EnableFederation}}checked {{end}}value="true">
+					<label for="enable-federation">Enable federation (Fediverse)</label>
+					<p class="input-caption">With enabled federation, you can subscribe to other federated Betulæ,
+						they can subscribe to you, and reposts are fully functional.
+						Federation works only if you have the domain name set up properly.
+					</p>
+				</div>
+
 
 				<h3>Advanced</h3>
 

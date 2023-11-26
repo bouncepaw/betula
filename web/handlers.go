@@ -638,6 +638,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 				SiteTitle:                 settings.SiteTitle(),
 				SiteDescriptionMycomarkup: settings.SiteDescriptionMycomarkup(),
 				CustomCSS:                 settings.CustomCSS(),
+				EnableFederation:          settings.EnableFederation(),
 			},
 			dataCommon: emptyCommon(),
 			FirstRun:   rq.FormValue("first-run") == "true",
@@ -652,6 +653,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 		SiteDescriptionMycomarkup: rq.FormValue("site-description"),
 		SiteURL:                   rq.FormValue("site-url"),
 		CustomCSS:                 rq.FormValue("custom-css"),
+		EnableFederation:          rq.FormValue("enable-federation") == "true",
 	}
 
 	// If the port ≤ 0 or not really numeric, show error.
@@ -673,7 +675,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	if oldPort != settings.NetworkPort() || oldHost != settings.NetworkHost() {
 		restartServer()
 	}
-	http.Redirect(w, rq, "/", http.StatusSeeOther)
+	http.Redirect(w, rq, "/settings", http.StatusSeeOther)
 }
 
 func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {

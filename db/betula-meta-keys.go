@@ -18,4 +18,5 @@ const (
 	BetulaMetaCustomCSS         BetulaMetaKey = "Custom CSS"
 	BetulaMetaPrivateKey        BetulaMetaKey = "RSA PRIVATE KEY"
 	BetulaMetaPublicKey         BetulaMetaKey = "RSA PUBLIC KEY"
+	BetulaMetaEnableFederation  BetulaMetaKey = "Enable federation"
 )

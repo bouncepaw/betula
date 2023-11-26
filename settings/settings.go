@@ -106,6 +106,13 @@ func Index() {
 			cache.SiteURL = siteURL.String
 		}
 	}
+
+	enableFederation := db.MetaEntry[sql.NullInt64](db.BetulaMetaEnableFederation)
+	if !enableFederation.Valid || enableFederation.Int64 != 0 {
+		cache.EnableFederation = true
+	} else {
+		cache.EnableFederation = false
+	}
 }
 
 func SiteURL() string                    { return cache.SiteURL }
@@ -116,6 +123,7 @@ func SiteTitle() template.HTML           { return cache.SiteTitle }
 func SiteDescriptionHTML() template.HTML { return cacheSiteDescription }
 func SiteDescriptionMycomarkup() string  { return cache.SiteDescriptionMycomarkup }
 func CustomCSS() string                  { return cache.CustomCSS }
+func EnableFederation() bool             { return cache.EnableFederation }
 
 func SetSettings(settings types.Settings) {
 	if settings.SiteName == "" {
@@ -128,6 +136,7 @@ func SetSettings(settings types.Settings) {
 	db.SetMetaEntry(db.BetulaMetaSiteDescription, settings.SiteDescriptionMycomarkup)
 	db.SetMetaEntry(db.BetulaMetaSiteURL, settings.SiteURL)
 	db.SetMetaEntry(db.BetulaMetaCustomCSS, settings.CustomCSS)
+	db.SetMetaEntry(db.BetulaMetaEnableFederation, settings.EnableFederation)
 	Index()
 }
 
