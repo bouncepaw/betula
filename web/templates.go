@@ -114,11 +114,12 @@ var funcMapForTime = template.FuncMap{
 
 // Do not bother to fill it.
 type dataCommon struct {
-	authorized  bool
-	siteTitle   template.HTML
-	siteName    string
-	head        template.HTML
-	searchQuery string
+	federationEnabled bool
+	authorized        bool
+	siteTitle         template.HTML
+	siteName          string
+	head              template.HTML
+	searchQuery       string
 
 	paginator []types.Page
 }
@@ -158,6 +159,10 @@ func (c *dataCommon) Pages() []types.Page {
 
 func (c *dataCommon) MultiplePages() bool {
 	return len(c.Pages()) > 1
+}
+
+func (c *dataCommon) FederationEnabled() bool {
+	return settings.FederationEnabled()
 }
 
 func (c *dataCommon) Fill(C dataCommon) {

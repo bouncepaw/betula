@@ -82,7 +82,7 @@ func handleMigrations() {
 	if !found {
 		mustExec(schemaV6) // Up to 6
 		curver = 6
-		goto past6         // And newer
+		goto past6 // And newer
 		return
 	}
 
