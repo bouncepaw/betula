@@ -10,7 +10,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -88,12 +87,8 @@ var funcMapForPosts = template.FuncMap{
 		return t.Format("2006-01-02 15:04")
 	},
 	"shortenLink": func(a string) template.HTML {
-		b := types.CleanerLink(a)
-		before, after, _ := strings.Cut(b, "/")
-		result := before
-		if after != "" {
-			result += fmt.Sprintf(`<span class="url-path">/%s</span>`, after)
-		}
+		result, pathPart := types.CleanerLinkParts(a)
+		result += fmt.Sprintf(`<span class="url-path">%s</span>`, pathPart)
 		return template.HTML(result)
 	},
 	"mycomarkup": myco.MarkupToHTML,

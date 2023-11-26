@@ -15,6 +15,7 @@ clean:
 
 test: clean betula
 	go test ./db
+	go test ./types
 	go test ./feeds
 	go test ./readpage
 	go test ./activities

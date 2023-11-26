@@ -10,4 +10,7 @@ require (
 	golang.org/x/net v0.5.0
 )
 
-require github.com/kr/pretty v0.3.1 // indirect
+require (
+	github.com/kr/pretty v0.3.1 // indirect
+	golang.org/x/text v0.6.0 // indirect
+)

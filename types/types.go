@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"math"
 	"net/url"
+	"golang.org/x/net/idna"
 	"strings"
 	"time"
 
@@ -152,18 +153,75 @@ type RepostInfo struct {
 // TimeLayout is the time layout used across Betula.
 const TimeLayout = "2006-01-02 15:04:05"
 
-// CleanerLink returns the link a with https:// or http:// prefix and the / suffix and percent-encoding reversed.
-func CleanerLink(a string) string {
-	b := strings.TrimPrefix(a, "https://")
-	c := strings.TrimPrefix(b, "http://")
-	// Gemini, Gopher, FTP, Mail are not stripped, to emphasize them, when they are.
-	d := strings.TrimSuffix(c, "/")
-	e, err := url.QueryUnescape(d)
+// CleanerLinkParts returns the link a with https:// or http:// prefix and the / suffix,
+// percent-encoding reversed and Punycode decoded.
+//
+// Link is returned in two parts: scheme + authority and the rest (path, query, fragment).
+func CleanerLinkParts(a string) (string, string) {
+	u, err := url.Parse(a)
 	if err != nil {
-		// Better luck next time.
-		return d
+		// Welp, we tried our best.
+		return a, ""
 	}
-	return e
+
+	var hostPart string
+	if u.Scheme != "http" && u.Scheme != "https" {
+		// Gemini, Gopher, FTP, Mail etc are not stripped to emphasize them.
+		hostPart += fmt.Sprintf("%s:", u.Scheme)
+		// "Opaque" is defined for schemes like `mailto:` or tel:`, where there is no `//`.
+		if u.Opaque == "" {
+			hostPart += "//"
+		}
+	}
+
+	if u.User != nil {
+		hostPart += u.User.String()
+	}
+
+	if u.Host != "" {
+		host, err := idna.ToUnicode(u.Host)
+		if err != nil {
+			// Was worth a shot.
+			host = u.Host
+		}
+		hostPart += host
+	}
+
+	if u.Opaque != "" {
+		hostPart += u.Opaque
+	}
+
+	pathPart := ""
+
+	path := strings.TrimSuffix(u.Path, "/")
+	if path != "" {
+		if !strings.HasPrefix(path, "/") {
+			pathPart += "/"
+		}
+		pathPart += path
+	}
+
+	if u.RawQuery != "" {
+		query, err := url.QueryUnescape(u.RawQuery)
+		if err != nil {
+			// Better luck next time.
+			query = u.RawQuery
+		}
+
+		pathPart += "?" + query
+	}
+
+	if u.Fragment != "" {
+		pathPart += "#" + u.Fragment
+	}
+
+	return hostPart, pathPart
+}
+
+// Same as CleanerLinkParts, but merges the parts back into one url.
+func CleanerLink(a string) string {
+	left, right := CleanerLinkParts(a)
+	return left + right
 }
 
 const (
