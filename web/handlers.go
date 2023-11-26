@@ -50,6 +50,7 @@ func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.Response
 
 func init() {
 	mux.HandleFunc("/", handlerFeed)
+	mux.HandleFunc("/subscribe", handlerSubscribe)
 	mux.HandleFunc("/subscriptions", adminOnly(handlerSubscriptions))
 	mux.HandleFunc("/reposts-of/", handlerRepostsOf)
 	mux.HandleFunc("/repost", adminOnly(handlerRepost))
@@ -92,6 +93,23 @@ func init() {
 
 	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+type dataSubscribe struct {
+	*dataCommon
+
+	SiteURL string
+}
+
+func handlerSubscribe(w http.ResponseWriter, rq *http.Request) {
+	if rq.Method == http.MethodGet {
+		templateExec(w, templateSubscribe, dataSubscribe{
+			dataCommon: emptyCommon(),
+			SiteURL:    settings.SiteURL(),
+		}, rq)
+		return
+	}
+	panic("not implemented")
 }
 
 func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
