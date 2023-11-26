@@ -112,7 +112,13 @@ func init() {
 type dataSubscribe struct {
 	*dataCommon
 
+	// GET
 	SiteURL string
+
+	// POST results
+	ErrCannotSubscribe bool
+	ErrMessage         string
+	RequestWasSent     bool
 }
 
 func handlerSubscribe(w http.ResponseWriter, rq *http.Request) {
@@ -123,7 +129,33 @@ func handlerSubscribe(w http.ResponseWriter, rq *http.Request) {
 		}, rq)
 		return
 	}
-	panic("not implemented")
+
+	authed := auth.AuthorizedFromRequest(rq)
+	if !authed {
+		log.Println("Unauthorized POST to /subscribe")
+		handlerUnauthorized(w, rq)
+		return
+	}
+
+	// If cannot subscribe: show an error
+	can := false
+	err := errors.New("unimplemented")
+	if !can {
+		templateExec(w, templateSubscribe, dataSubscribe{
+			dataCommon:         emptyCommon(),
+			ErrCannotSubscribe: true,
+			ErrMessage:         err.Error(),
+		}, rq)
+		return
+	}
+
+	// TODO: Send a request
+
+	// Follow request was sent
+	templateExec(w, templateSubscribe, dataSubscribe{
+		dataCommon:     emptyCommon(),
+		RequestWasSent: true,
+	}, rq)
 }
 
 func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {

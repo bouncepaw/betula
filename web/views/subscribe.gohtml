@@ -12,6 +12,9 @@
         <article>
             {{if .Authorized}}
                 <h2>Subscribe</h2>
+                {{if .ErrCannotSubscribe}}
+                    <p class="error">Cannot subscribe. Error: {{.ErrMessage}}</p>
+                {{end}}
                 <p>Subscribe to other Betulæ.
                     Their new bookmarks will be delivered to <a href="/subscriptions">Subscriptions</a>.
                     Subscriptions are not anonymous.
