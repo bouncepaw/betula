@@ -4,7 +4,6 @@
 package activities
 
 import (
-	"database/sql"
 	"errors"
 
 	"git.sr.ht/~bouncepaw/betula/db"
@@ -50,10 +49,9 @@ var betulaActor types.Actor
 // GenerateBetulaActor updates what actor to use for outgoing activities.
 // It makes no validation.
 func GenerateBetulaActor() {
-	username := "betula"
-	usernameMaybe := db.MetaEntry[sql.NullString](db.BetulaMetaAdminUsername)
-	if usernameMaybe.Valid {
-		username = usernameMaybe.String
+	username := db.AdminUsername()
+	if username == "" {
+		username = "betula"
 	}
 	betulaActor = types.Actor{
 		ID:                settings.SiteURL(),

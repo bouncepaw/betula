@@ -17,10 +17,10 @@ var (
 func Initialize() {
 	ready.Store(false)
 	var (
-		name = db.MetaEntry[sql.NullString](db.BetulaMetaAdminUsername)
+		name = db.AdminUsername()
 		pass = db.MetaEntry[sql.NullString](db.BetulaMetaAdminPasswordHash)
 	)
-	ready.Store(name.Valid && pass.Valid)
+	ready.Store(name != "" && pass.Valid)
 }
 
 // Ready returns if the admin account is set up. If it is not, Betula should demand it and refuse to work until then.
@@ -35,7 +35,7 @@ func Ready() bool {
 
 // CredentialsMatch checks if the credentials match.
 func CredentialsMatch(name, pass string) bool {
-	if name != db.MetaEntry[string](db.BetulaMetaAdminUsername) {
+	if name != db.AdminUsername() {
 		log.Println("Matching credentials. Name mismatches.")
 		return false
 	}

@@ -19,7 +19,7 @@ func TestSessionOps(t *testing.T) {
 func TestSetCredentials(t *testing.T) {
 	InitInMemoryDB()
 	SetCredentials(pufferfish, tropicfish)
-	if MetaEntry[string](BetulaMetaAdminUsername) != pufferfish {
+	if AdminUsername() != pufferfish {
 		t.Errorf("Wrong username returned")
 	}
 	if MetaEntry[string](BetulaMetaAdminPasswordHash) != tropicfish {

@@ -160,7 +160,7 @@ func handlerSubscribe(w http.ResponseWriter, rq *http.Request) {
 
 func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
 	resource := rq.FormValue("resource")
-	expected := fmt.Sprintf("acct:%s@%s", db.MetaEntry[string](db.BetulaMetaAdminUsername), types.CleanerLink(settings.SiteURL()))
+	expected := fmt.Sprintf("acct:%s@%s", db.AdminUsername(), types.CleanerLink(settings.SiteURL()))
 	if resource != expected {
 		log.Printf("WebFinger: Unexpected resource %s\n", resource)
 	}
@@ -198,8 +198,8 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
     "publicKeyPem": "%s"
   }
 }`,
-		siteURL, // id
-		db.MetaEntry[string](db.BetulaMetaAdminUsername), // preferredUsername
+		siteURL,             // id
+		db.AdminUsername(),  // preferredUsername
 		siteURL+"/inbox",    // inbox
 		siteURL+"#main-key", // publicKey/id
 		siteURL,             // publicKey/owner
@@ -330,7 +330,7 @@ func handlerUnrepost(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 	go jobs.NotifyAboutMyUnrepost(activities.UndoAnnounceReport{
 		AnnounceReport: activities.AnnounceReport{
-			ReposterUsername: db.MetaEntry[string](db.BetulaMetaAdminUsername),
+			ReposterUsername: db.AdminUsername(),
 			RepostPage:       fmt.Sprintf("%s/%d", settings.SiteURL(), post.ID),
 			OriginalPage:     originalPage,
 		},

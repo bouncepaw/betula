@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+func AdminUsername() string {
+	maybe := MetaEntry[sql.NullString](BetulaMetaAdminUsername)
+	if maybe.Valid {
+		return maybe.String
+	}
+	return ""
+}
+
 func MetaEntry[T any](key BetulaMetaKey) T {
 	const q = `select Value from BetulaMeta where Key = ? limit 1;`
 	return querySingleValue[T](q, key)
