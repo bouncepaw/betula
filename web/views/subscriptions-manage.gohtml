@@ -1,0 +1,62 @@
+{{define "title"}}Manage subscriptions{{end}}
+{{define "body"}}
+    <main>
+        <article>
+            <h2>Manage subscriptions</h2>
+            <a href="/subscriptions" class="btn">🔙 See new posts</a>
+        </article>
+        <article>
+            <h3>My subscriptions</h3>
+            {{if .Subscriptions}}
+                <ul class="people-list">
+                    {{range .Subscriptions}}
+                        <li class="people-list-entry">
+                            <span class="people-list-name">{{.Name}}</span>
+                            <a href="{{.URL}}" class="people-list-url"></a>
+                            {{if .Pending}}<span class="people-list-status">Pending</span>{{end}}
+                            <form method="post" action="/unsubscribe-from">
+                                <input type="hidden" value="{{.ID}}">
+                                <input type="submit" value="Unsubscribe">
+                            </form>
+                        </li>
+                    {{end}}
+                </ul>
+            {{end}}
+        </article>
+        <article>
+            <h3>My subscribers</h3>
+            {{if .Subscribers}}
+                <ul class="people-list">
+                    {{range .Subscribers}}
+                        <li class="people-list-entry">
+                            <span class="people-list-name">{{.Name}}</span>
+                            <a href="{{.URL}}" class="people-list-url"></a>
+                            <form method="post" action="/block">
+                                <input type="hidden" value="{{.ID}}">
+                                <input type="submit" value="Block">
+                            </form>
+                        </li>
+                    {{end}}
+                </ul>
+            {{end}}
+        </article>
+        <article>
+            <h3>Blocked</h3>
+            <p>These people cannot subscribe to you.</p>
+            {{if .Blocked}}
+                <ul class="people-list">
+                    {{range .Blocked}}
+                        <li class="people-list-entry">
+                            <span class="people-list-name">{{.Name}}</span>
+                            <a href="{{.URL}}" class="people-list-url"></a>
+                            <form method="post" action="/unblock">
+                                <input type="hidden" value="{{.ID}}">
+                                <input type="submit" value="Unblock">
+                            </form>
+                        </li>
+                    {{end}}
+                </ul>
+            {{end}}
+        </article>
+    </main>
+{{end}}
