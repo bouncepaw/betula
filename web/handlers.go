@@ -109,6 +109,46 @@ func init() {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 }
 
+func handlerAt(w http.ResponseWriter, rq *http.Request) {
+	var (
+		wantsActivity      = rq.Header.Get("Accept") == types.ActivityType
+		userAtHost         = strings.TrimPrefix(rq.URL.Path, "/@")
+		user, host, remote = strings.Cut(userAtHost, "@")
+	)
+
+	if wantsActivity {
+		w.Header().Set("Content-Type", types.ActivityType)
+	}
+
+	if remote && wantsActivity {
+		fmt.Printf("Request remote user %s@%s as an activity\n", user, host)
+		// TODO: write the activity
+		return
+	}
+
+	if remote && !wantsActivity {
+		fmt.Printf("Request remote user %s@%s as a page\n", user, host)
+		// TODO: write the page
+		return
+	}
+
+	if user != db.AdminUsername() {
+		fmt.Printf("Request local user %s, but our username is different! 404\n", user)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	if wantsActivity {
+		fmt.Printf("Request info about you as an activity\n")
+		// TODO: write the activity
+		return
+	}
+
+	fmt.Println("Viewing your profile")
+
+	// TODO: show the profile
+}
+
 type dataSubscribe struct {
 	*dataCommon
 
@@ -1286,6 +1326,10 @@ var regexpPost = regexp.MustCompile("^/[0-9]+")
 func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	if regexpPost.MatchString(rq.URL.Path) {
 		handlerPost(w, rq)
+		return
+	}
+	if strings.HasPrefix(rq.URL.Path, "/@") {
+		handlerAt(w, rq)
 		return
 	}
 	if rq.URL.Path != "/" {
