@@ -11,6 +11,7 @@ const (
 
 type Actor struct {
 	ID                string `json:"id"`
+	Type              string `json:"type"`
 	Inbox             string `json:"inbox"`
 	PreferredUsername string `json:"preferredUsername"`
 	DisplayedName     string `json:"name"`

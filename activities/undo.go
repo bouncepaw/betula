@@ -9,32 +9,31 @@ type UndoAnnounceReport struct {
 	AnnounceReport
 }
 
-func newUndo(objectId string, object map[string]any) ([]byte, error) {
+func newUndo(objectId string, object dict) ([]byte, error) {
 	object["id"] = objectId
-	activity := map[string]any{
-		"@context": "https://www.w3.org/ns/activitystreams",
+	return json.Marshal(dict{
+		"@context": atContext,
 		"type":     "Undo",
 		"actor":    betulaActor,
 		"id":       objectId + "?undo",
 		"object":   object,
-	}
-	return json.Marshal(activity)
+	})
 }
 
 func NewUndoAnnounce(repostURL string, originalPostURL string) ([]byte, error) {
 	return newUndo(
 		repostURL,
-		map[string]any{
+		dict{
 			"type":   "Announce",
 			"actor":  settings.SiteURL(),
 			"object": originalPostURL,
 		})
 }
 
-func guessUndo(activity map[string]any) (reportMaybe any, err error) {
+func guessUndo(activity dict) (reportMaybe any, err error) {
 	var (
 		report    UndoAnnounceReport
-		objectMap map[string]any
+		objectMap dict
 	)
 
 	if err := mustHaveSuchField(
@@ -68,6 +67,7 @@ func guessUndo(activity map[string]any) (reportMaybe any, err error) {
 			report.OriginalPage = original
 		}
 		return report, nil
+		// TODO: Follow
 	default:
 		return nil, ErrUnknownType
 	}

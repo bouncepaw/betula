@@ -2,15 +2,16 @@ package activities
 
 import "encoding/json"
 
-func NewAccept(acceptedActivity map[string]any) ([]byte, error) {
+// NewAccept wraps the acceptedActivity in an Accept activity.
+// The @context of the wrapped activity is deleted.
+func NewAccept(acceptedActivity dict) ([]byte, error) {
 	delete(acceptedActivity, "@context")
-	activity := map[string]any{
-		"@context": "https://www.w3.org/ns/activitystreams",
+	return json.Marshal(dict{
+		"@context": atContext,
 		"type":     "Accept",
 		"actor":    betulaActor,
 		"object":   acceptedActivity,
-	}
-	return json.Marshal(activity)
+	})
 }
 
 type AcceptReport struct {
@@ -32,7 +33,7 @@ func guessAccept(activity map[string]any) (any, error) {
 	}
 	if obj, ok := activity["object"]; ok {
 		switch v := obj.(type) {
-		case map[string]any:
+		case dict:
 			report.Object = v
 		}
 	}

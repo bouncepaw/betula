@@ -7,7 +7,7 @@ import (
 
 func NewAnnounce(originalURL string, repostURL string) ([]byte, error) {
 	activity := map[string]any{
-		"@context": "https://www.w3.org/ns/activitystreams",
+		"@context": atContext,
 		"type":     "Announce",
 		"actor":    betulaActor,
 		"id":       repostURL,

@@ -2,21 +2,19 @@ package activities
 
 import (
 	"encoding/json"
-	"errors"
 )
 
-var (
-	ErrNoType          = errors.New("activities: type absent or invalid")
-	ErrNoActor         = errors.New("activities: actor absent or invalid")
-	ErrNoActorUsername = errors.New("activities: actor with absent or invalid username")
-	ErrUnknownType     = errors.New("activities: unknown activity type")
-	ErrNoId            = errors.New("activities: id absent or invalid")
-	ErrNoObject        = errors.New("activities: object absent or invalid")
-)
+var guesserMap = map[string]func(dict) (any, error){
+	"Announce": guessAnnounce,
+	"Undo":     guessUndo,
+	"Follow":   guessFollow,
+	"Accept":   guessAccept,
+	"Reject":   guessReject,
+}
 
 func Guess(raw []byte) (report any, err error) {
 	var (
-		activity map[string]any
+		activity = dict{}
 		val      any
 		ok       bool
 	)
@@ -29,14 +27,7 @@ func Guess(raw []byte) (report any, err error) {
 	}
 	switch v := val.(type) {
 	case string:
-		var m = map[string]func(map[string]any) (any, error){
-			"Announce": guessAnnounce,
-			"Undo":     guessUndo,
-			"Follow":   guessFollow,
-			"Accept":   guessAccept,
-			"Reject":   guessReject,
-		}
-		if f, ok := m[v]; !ok {
+		if f, ok := guesserMap[v]; !ok {
 			return nil, ErrUnknownType
 		} else {
 			return f(activity)

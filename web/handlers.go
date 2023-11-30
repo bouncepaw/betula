@@ -718,6 +718,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	oldPort := settings.NetworkPort()
 	oldHost := settings.NetworkHost()
 	settings.SetSettings(newSettings)
+	activities.GenerateBetulaActor()
 	if oldPort != settings.NetworkPort() || oldHost != settings.NetworkHost() {
 		restartServer()
 	}
