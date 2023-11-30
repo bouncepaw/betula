@@ -12,11 +12,6 @@ func NewFollow(objectID string) ([]byte, error) {
 	return json.Marshal(activity)
 }
 
-type FollowReport struct {
-	ActorID  string
-	ObjectID string
-}
-
 func getIDSomehow(activity map[string]any, field string) string {
 	m := activity[field]
 	switch v := m.(type) {
@@ -35,6 +30,11 @@ func getIDSomehow(activity map[string]any, field string) string {
 		}
 	}
 	return ""
+}
+
+type FollowReport struct {
+	ActorID  string
+	ObjectID string
 }
 
 func guessFollow(activity map[string]any) (any, error) {

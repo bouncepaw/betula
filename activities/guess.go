@@ -33,7 +33,8 @@ func Guess(raw []byte) (report any, err error) {
 			"Announce": guessAnnounce,
 			"Undo":     guessUndo,
 			"Follow":   guessFollow,
-			// TODO: add more guessers
+			"Accept":   guessAccept,
+			"Reject":   guessReject,
 		}
 		if f, ok := m[v]; !ok {
 			return nil, ErrUnknownType
