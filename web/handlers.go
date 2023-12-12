@@ -110,43 +110,58 @@ func init() {
 }
 
 func handlerAt(w http.ResponseWriter, rq *http.Request) {
+	/*
+		Show profile. Imagine this Betula's author username is goremyka. Then:
+
+			* /@goremyka resolves to their profile. It is public.
+			* /@anything is 404 for everyone.
+			* /@boris@godun.ov is not available for strangers, but the Boris's profile for the admin.
+
+		This endpoint is available in both HTML and Activity form.
+
+			* The HTML form shows what you expect. Some posts maybe.
+			* The Activity form shows the Actor object.
+	*/
 	var (
-		wantsActivity      = rq.Header.Get("Accept") == types.ActivityType
-		userAtHost         = strings.TrimPrefix(rq.URL.Path, "/@")
-		user, host, remote = strings.Cut(userAtHost, "@")
+		wantsActivity        = rq.Header.Get("Accept") == types.ActivityType
+		userAtHost           = strings.TrimPrefix(rq.URL.Path, "/@")
+		user, host, isRemote = strings.Cut(userAtHost, "@")
+		authed               = auth.AuthorizedFromRequest(rq)
+		ourUsername          = db.AdminUsername()
 	)
 
-	if wantsActivity {
+	switch {
+	case isRemote && !authed:
+		log.Printf("Somebody requests remote profile @%s, rejecting\n", userAtHost)
+		handlerUnauthorized(w, rq)
+	case isRemote && wantsActivity:
 		w.Header().Set("Content-Type", types.ActivityType)
-	}
-
-	if remote && wantsActivity {
-		fmt.Printf("Request remote user %s@%s as an activity\n", user, host)
+		log.Printf("Request remote user %s@%s as an activity\n", user, host)
 		// TODO: write the activity
-		return
-	}
 
-	if remote && !wantsActivity {
-		fmt.Printf("Request remote user %s@%s as a page\n", user, host)
+	case isRemote && !wantsActivity:
+		log.Printf("Request remote user %s@%s as a page\n", user, host)
 		// TODO: write the page
-		return
-	}
+		wa, found, err := readpage.GetWebFinger(user, host)
+		if !found {
+			log.Printf("Not found\n")
+		}
+		if err != nil {
+			log.Printf(err.Error())
+		}
+		print(string(wa.Document))
 
-	if user != db.AdminUsername() {
-		fmt.Printf("Request local user %s, but our username is different! 404\n", user)
+	case !isRemote && userAtHost != ourUsername:
+		log.Printf("Request local user @%s, not found\n", userAtHost)
 		handlerNotFound(w, rq)
-		return
-	}
-
-	if wantsActivity {
-		fmt.Printf("Request info about you as an activity\n")
+	case !isRemote && wantsActivity:
+		log.Printf("Request info about you as an activity\n")
+		w.Header().Set("Content-Type", types.ActivityType)
 		// TODO: write the activity
-		return
+	case !isRemote && !wantsActivity:
+		log.Println("Viewing your profile")
+		// TODO: show the profile
 	}
-
-	fmt.Println("Viewing your profile")
-
-	// TODO: show the profile
 }
 
 type dataSubscribe struct {
