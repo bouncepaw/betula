@@ -95,7 +95,7 @@ func init() {
 	/// TODO: Rename/merge these one day
 	mux.HandleFunc("/subscribe", federatedOnly(handlerSubscribe))
 	mux.HandleFunc("/subscriptions", adminOnly(federatedOnly(handlerSubscriptions)))
-	mux.HandleFunc("/follow/", adminOnly(federatedOnly(handlerFollow)))
+	mux.HandleFunc("/follow", adminOnly(federatedOnly(handlerFollow)))
 
 	// ActivityPub
 	mux.HandleFunc("/inbox", federatedOnly(handlerInbox))
@@ -111,8 +111,60 @@ func init() {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 }
 
+// handlerFollow follows the account specified and redirects next if successful, shows an error if not.
+// Both parameters are required.
+//
+//     /follow?account=@bouncepaw@links.bouncepaw.com&next=/@bouncepaw@links.bouncepaw.com
 func handlerFollow(w http.ResponseWriter, rq *http.Request) {
+	var (
+		account = rq.FormValue("account")
+		next = rq.FormValue("next")
+	)
 
+	if account == "" || next == "" {
+		log.Println("/follow: required parameters were not passed")
+		handlerNotFound(w, rq)
+		return
+	}
+
+	var (
+		userAtHost           = strings.TrimPrefix(account, "@")
+		user, host, ok = strings.Cut(userAtHost, "@")
+	)
+
+	if !ok {
+		log.Printf("/follow: bad username: %s\n", userAtHost)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	wa, found, err := readpage.GetWebFinger(user, host)
+	if !found {
+		log.Printf("@%s@%s was not found. 404.\n", user, host)
+		handlerNotFound(w, rq)
+		return
+	}
+	if err != nil {
+		log.Printf("While fetching @%s@%s, got the error: %w. 404.\n", err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	actor, err := readpage.RequestActor(wa.ActorURL)
+	if err != nil {
+		log.Printf("While fetching %s profile, got the error: %w\n", wa.ActorURL)
+		handlerNotFound(w, rq)
+		return
+	}
+	inbox := actor.Inbox
+
+	activity, err := activities.NewFollow(actor.ID)
+	if err != nil {
+		log.Printf("When creating Follow activity: %w\n", err)
+		return
+	}
+	jobs.SendActivityToInbox(activity, inbox)
+	http.Redirect(w, rq, next, http.StatusSeeOther)
 }
 
 type dataRemoteProfile struct {

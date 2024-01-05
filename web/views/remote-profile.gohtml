@@ -30,7 +30,7 @@
             {{else if eq $status "pending mutual"}}
                 <p>They follow you. Subscription pending.</p>
             {{else}}
-                <form action="/unfollow/{{.Account.Acct}}">
+                <form action="/follow?account={{.Account.Acct}}&next=/{{.Account.Acct}}" method="post">
                     <input type="submit" value="Follow" class="btn">
                 </form>
             {{end}}

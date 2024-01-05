@@ -46,9 +46,7 @@ func ListenAndWhisper() {
 	}
 }
 
-func sendActivity(uri string, activity []byte) error {
-	url := stricks.ParseValidURL(uri)
-	inbox := fmt.Sprintf("%s://%s/inbox", url.Scheme, url.Host)
+func SendActivityToInbox(activity []byte, inbox string) error {
 	rq, err := http.NewRequest(http.MethodPost, inbox, bytes.NewReader(activity))
 	if err != nil {
 		log.Println(err)
@@ -66,6 +64,12 @@ func sendActivity(uri string, activity []byte) error {
 	}
 	log.Printf("Activity sent to %s returned %d status\n", inbox, resp.StatusCode)
 	return nil
+}
+
+func sendActivity(uri string, activity []byte) error {
+	url := stricks.ParseValidURL(uri)
+	inbox := fmt.Sprintf("%s://%s/inbox", url.Scheme, url.Host)
+	return SendActivityToInbox(activity, inbox)
 }
 
 func planJob(category types.JobCategory, data any) {

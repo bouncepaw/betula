@@ -23,7 +23,7 @@ var (
 )
 
 func PublicKey() string {
-	s, err := httpsig.EncodeKey(publicKey.Key)
+	s, err := httpsig.EncodeKey(publicKey)
 	if err != nil {
 		log.Println(err)
 	}
