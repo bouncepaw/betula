@@ -20,7 +20,7 @@
 
 				<div>
 					<label for="site-url">Site address</label>
-					<input id="site-url" name="site-url" type="url" value="{{.SiteURL}}" placeholder="https://links.example.org" autocomplete="off">
+					<input id="site-url" name="site-url" type="url" value="{{if .FirstRun}}https://{{.RequestHost}}{{else}}{{.SiteURL}}{{end}}" placeholder="https://links.example.org" autocomplete="off">
 					<p class="input-caption">
 						The address at which your Betula is hosted.
 						Type out the protocol (http or https).

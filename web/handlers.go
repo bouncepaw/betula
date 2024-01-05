@@ -763,9 +763,11 @@ type dataSettings struct {
 	*dataCommon
 	ErrBadPort bool
 	FirstRun   bool
+	RequestHost string
 }
 
 func handlerSettings(w http.ResponseWriter, rq *http.Request) {
+	isFirstRun := rq.FormValue("first-run") == "true"
 	if rq.Method == http.MethodGet {
 		templateExec(w, templateSettings, dataSettings{
 			Settings: types.Settings{
@@ -779,7 +781,8 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 				FederationEnabled:         settings.FederationEnabled(),
 			},
 			dataCommon: emptyCommon(),
-			FirstRun:   rq.FormValue("first-run") == "true",
+			FirstRun:   isFirstRun,
+			RequestHost: rq.Host,
 		}, rq)
 		return
 	}
@@ -814,7 +817,11 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	if oldPort != settings.NetworkPort() || oldHost != settings.NetworkHost() {
 		restartServer()
 	}
-	http.Redirect(w, rq, "/settings", http.StatusSeeOther)
+	if isFirstRun {
+		http.Redirect(w, rq, "/", http.StatusSeeOther)
+	} else {
+		http.Redirect(w, rq, "/settings", http.StatusSeeOther)
+	}
 }
 
 func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
