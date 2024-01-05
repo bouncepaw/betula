@@ -1,5 +1,7 @@
 # Federation capabilities in Betula
 
+**This document is outdated, sorry.**
+
 Betula uses a homebrew mixture of ActivityPub and whatnot. Sometimes your system might work with Betula out of the box. Usually not. Most importantly, Betula does not implement HTTP signatures, which is a deal breaker for most other implementations. We'll have them later.
 
 This document describes all outgoing and incoming Activities. Supporting them ensures your compatibility. Betula will also try to be more standards-compliant later, but it's not a priority for now.
