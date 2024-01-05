@@ -91,8 +91,10 @@ func init() {
 	mux.HandleFunc("/static/style.css", handlerStyle)
 
 	// Federation interface
+	/// TODO: Rename/merge these one day
 	mux.HandleFunc("/subscribe", federatedOnly(handlerSubscribe))
 	mux.HandleFunc("/subscriptions", adminOnly(federatedOnly(handlerSubscriptions)))
+	mux.HandleFunc("/follow/", adminOnly(federatedOnly(handlerFollow)))
 
 	// ActivityPub
 	mux.HandleFunc("/inbox", federatedOnly(handlerInbox))
@@ -106,6 +108,10 @@ func init() {
 
 	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func handlerFollow(w http.ResponseWriter, rq *http.Request) {
+
 }
 
 type dataRemoteProfile struct {

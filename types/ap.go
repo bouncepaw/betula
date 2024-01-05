@@ -26,8 +26,10 @@ type Actor struct {
 type SubscriptionRelation string
 
 const (
-	SubscriptionNone       SubscriptionRelation = ""
-	SubscriptionTheyFollow SubscriptionRelation = "follower"
-	SubscriptionIFollow    SubscriptionRelation = "following"
-	SubscriptionMutual     SubscriptionRelation = "mutual"
+	SubscriptionNone          SubscriptionRelation = ""
+	SubscriptionTheyFollow    SubscriptionRelation = "follower"
+	SubscriptionIFollow       SubscriptionRelation = "following"
+	SubscriptionMutual        SubscriptionRelation = "mutual"
+	SubscriptionPending       SubscriptionRelation = "pending"
+	SubscriptionPendingMutual SubscriptionRelation = "pending mutual" // yours pending, theirs accepted
 )

@@ -13,16 +13,25 @@ func AddFollowing(id string) {
 func SubscriptionStatus(id string) types.SubscriptionRelation {
 	// TODO: make it just 1 request.
 	var iFollow, theyFollow bool
+	var status int
 
-	rows := mustQuery(`select 1 from Following where ActorID = ?`, id)
-	iFollow = rows.Next()
-	_ = rows.Close()
+	rows := mustQuery(`select AcceptedStatus from Following where ActorID = ?`, id)
+	for rows.Next() {
+		iFollow = true
+		mustScan(rows, &status)
+	}
 
 	rows = mustQuery(`select 1 from Followers where ActorID = ?`, id)
 	theyFollow = rows.Next()
 	_ = rows.Close()
 
+	pending := status == 0
+
 	switch {
+	case pending && iFollow && theyFollow:
+		return types.SubscriptionPendingMutual
+	case pending && iFollow:
+		return types.SubscriptionPending
 	case iFollow && theyFollow:
 		return types.SubscriptionMutual
 	case iFollow:

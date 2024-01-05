@@ -11,13 +11,28 @@
             </ul>
             {{$status := .Account.SubscriptionStatus}}
             {{if eq $status "mutual"}}
-                <p>You are mutuals! <a href="/unfollow/{{.Account.Acct}}">Unfollow?</a></p>
+                <form action="/unfollow/{{.Account.Acct}}">
+                    You are mutuals!
+                    <input type="submit" value="Unfollow" class="btn">
+                </form>
             {{else if eq $status "following"}}
-                <p>Following. <a href="/unfollow/{{.Account.Acct}}">Unfollow?</a></p>
+                <form action="/unfollow/{{.Account.Acct}}">
+                    Following
+                    <input type="submit" value="Unfollow" class="btn">
+                </form>
             {{else if eq $status "follower"}}
-                <p>They follow you. <a href="/follow/{{.Account.Acct}}">Follow back?</a></p>
+                <form action="/unfollow/{{.Account.Acct}}">
+                    They follow you.
+                    <input type="submit" value="Follow back" class="btn">
+                </form>
+            {{else if eq $status "pending"}}
+                <p>Follow pending.</p>
+            {{else if eq $status "pending mutual"}}
+                <p>They follow you. Subscription pending.</p>
             {{else}}
-                <p><a href="/follow/{{.Account.Acct}}">Follow?</a></p>
+                <form action="/unfollow/{{.Account.Acct}}">
+                    <input type="submit" value="Follow" class="btn">
+                </form>
             {{end}}
         </article>
         <article class="no-feed-notice">
