@@ -274,18 +274,20 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
   "preferredUsername": "%s",
   "name": "%s",
   "inbox": "%s",
+  "summary": "%s",
   "publicKey": {
     "id": "%s",
     "owner": "%s",
     "publicKeyPem": "%s"
   }
 }`,
-		siteURL,             // id
-		db.AdminUsername(),  // preferredUsername
-		settings.SiteName(), // name
-		siteURL+"/inbox",    // inbox
-		siteURL+"#main-key", // publicKey/id
-		siteURL,             // publicKey/owner
+		siteURL,                              // id
+		db.AdminUsername(),                   // preferredUsername
+		settings.SiteName(),                  // name
+		siteURL+"/inbox",                     // inbox
+		siteURL+"#main-key",                  // publicKey/id
+		siteURL,                              // publicKey/owner
+		settings.SiteDescriptionMycomarkup(), // summary. TODO: think about it
 		"-----BEGIN PUBLIC KEY-----\\nTODO\\n----END PUBLIC KEY----", // TODO: implement keys
 	)
 	w.Header().Set("Content-Type", types.ActivityType)
