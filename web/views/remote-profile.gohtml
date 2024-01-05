@@ -1,0 +1,29 @@
+{{define "title"}}{{.Account.DisplayedName}}{{end}}
+{{define "body"}}
+    <main>
+        <article class="profile-card">
+            <h2>{{.Account.DisplayedName}}</h2>
+            <div><a href="{{.Account.ID}}">{{.Account.Acct}}</a></div>
+            <div>{{.Account.Summary}}</div>
+            <ul class="profile-bookmark-stats">
+                {{/*}}<li>{{.Account.BookmarkCount}} bookmark{{if ne 1 .Account.BookmarkCount}}s{{end}}</li>
+                <li>{{.Account.TagCount}} tag{{if ne 1 .Account.TagCount}}s{{end}}</li>{{*/}}
+            </ul>
+            {{$status := .Account.SubscriptionStatus}}
+            {{if eq $status "mutual"}}
+                <p>You are mutuals! <a href="/unfollow/{{.Account.Acct}}">Unfollow?</a></p>
+            {{else if eq $status "following"}}
+                <p>Following. <a href="/unfollow/{{.Account.Acct}}">Unfollow?</a></p>
+            {{else if eq $status "follower"}}
+                <p>They follow you. <a href="/follow/{{.Account.Acct}}">Follow back?</a></p>
+            {{else}}
+                <p><a href="/follow/{{.Account.Acct}}">Follow?</a></p>
+            {{end}}
+        </article>
+        <article class="no-feed-notice">
+            Bookmarks from remote profiles do not yet arrive.
+            If you subscribe to this account,
+            the bookmarks will flow in later, hopefully.
+        </article>
+    </main>
+{{end}}

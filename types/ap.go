@@ -18,4 +18,16 @@ type Actor struct {
 	Summary           string `json:"summary,omitempty"`
 	//IconID            string             `json:"icon,omitempty"`
 	ServerSoftware ServerSoftwareKind `json:"-"`
+
+	SubscriptionStatus SubscriptionRelation `json:"-"` // Set manually
+	Acct               string               // Set manually
 }
+
+type SubscriptionRelation string
+
+const (
+	SubscriptionNone       SubscriptionRelation = ""
+	SubscriptionTheyFollow SubscriptionRelation = "follower"
+	SubscriptionIFollow    SubscriptionRelation = "following"
+	SubscriptionMutual     SubscriptionRelation = "mutual"
+)

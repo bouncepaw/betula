@@ -22,6 +22,7 @@ create table Actors
     foreign key (IconID) references Artifacts (ID)
 );
 
+-- DROPPED IN 9: the table was split into two and simplified
 -- Subscriptions lists all known subscriptionship relations between you and others.
 create table Subscriptions
 (
@@ -33,6 +34,7 @@ create table Subscriptions
     foreign key (AuthorID) references Actors (ID),
     foreign key (SubscriberID) references Actors (ID)
 );
+-- END DROPPED
 
 -- IncomingPosts lists all known posts that were sent from who we follow our way.
 -- These posts can and will be deleted at user's will.

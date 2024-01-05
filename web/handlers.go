@@ -109,6 +109,12 @@ func init() {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 }
 
+type dataRemoteProfile struct {
+	*dataCommon
+
+	Account types.Actor
+}
+
 func handlerAt(w http.ResponseWriter, rq *http.Request) {
 	/*
 		Show profile. Imagine this Betula's author username is goremyka. Then:
@@ -140,16 +146,33 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		// TODO: write the activity
 
 	case isRemote && !wantsActivity:
-		log.Printf("Request remote user %s@%s as a page\n", user, host)
-		// TODO: write the page
+		log.Printf("Request remote user @%s@%s as a page\n", user, host)
+
 		wa, found, err := readpage.GetWebFinger(user, host)
 		if !found {
-			log.Printf("Not found\n")
+			log.Printf("@%s@%s was not found. 404.\n", user, host)
+			handlerNotFound(w, rq)
+			return
 		}
 		if err != nil {
-			log.Printf(err.Error())
+			log.Printf("While fetching @%s@%s, got the error: %w. 404.\n", err)
+			handlerNotFound(w, rq)
+			return
 		}
-		print(string(wa.Document))
+
+		actor, err := readpage.RequestActor(wa.ActorURL)
+		if err != nil {
+			log.Printf("While fetching %s profile, got the error: %w\n", wa.ActorURL)
+			handlerNotFound(w, rq)
+			return
+		}
+		actor.SubscriptionStatus = db.SubscriptionStatus(actor.ID)
+		actor.Acct = fmt.Sprintf("@%s@%s", user, host)
+
+		templateExec(w, templateRemoteProfile, dataRemoteProfile{
+			dataCommon: emptyCommon(),
+			Account:    *actor,
+		}, rq)
 
 	case !isRemote && userAtHost != ourUsername:
 		log.Printf("Request local user @%s, not found\n", userAtHost)

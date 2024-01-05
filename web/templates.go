@@ -75,6 +75,9 @@ var templateHelp = templateFrom(nil, "help")
 var templateAbout = templateFrom(funcMapForTime, "about")
 var templateBookmarklet = templateFrom(nil, "bookmarklet")
 
+// Fedded verse views:
+var templateRemoteProfile = templateFrom(nil, "remote-profile")
+
 var funcMapForPosts = template.FuncMap{
 	"randomGlobe": func() string {
 		return string([]rune{[]rune("🌍🌎🌏")[rand.Intn(3)]})
