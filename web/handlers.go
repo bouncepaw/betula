@@ -96,7 +96,6 @@ func init() {
 
 	// ActivityPub
 	mux.HandleFunc("/inbox", federatedOnly(handlerInbox))
-	mux.HandleFunc("/actor", federatedOnly(handlerActor))
 
 	// NodeInfo
 	mux.HandleFunc("/.well-known/nodeinfo", handlerWellKnownNodeInfo)
@@ -180,7 +179,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 	case !isRemote && wantsActivity:
 		log.Printf("Request info about you as an activity\n")
 		w.Header().Set("Content-Type", types.ActivityType)
-		// TODO: write the activity
+		handlerActor(w, rq)
 	case !isRemote && !wantsActivity:
 		log.Println("Viewing your profile")
 		// TODO: show the profile
@@ -237,10 +236,14 @@ func handlerSubscribe(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
+	adminUsername := db.AdminUsername()
+
 	resource := rq.FormValue("resource")
-	expected := fmt.Sprintf("acct:%s@%s", db.AdminUsername(), types.CleanerLink(settings.SiteURL()))
+	expected := fmt.Sprintf("acct:%s@%s", adminUsername, types.CleanerLink(settings.SiteURL()))
 	if resource != expected {
 		log.Printf("WebFinger: Unexpected resource %s\n", resource)
+		handlerNotFound(w, rq)
+		return
 	}
 	doc := fmt.Sprintf(`{
   "subject":"%s",
@@ -248,10 +251,10 @@ func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
     {
       "rel":"self",
       "type":"application/activity+json",
-      "href":"%s/actor"
+      "href":"%s/@%s"
     }
   ]
-}`, expected, settings.SiteURL())
+}`, expected, settings.SiteURL(), adminUsername)
 	w.Header().Set("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
 	if _, err := fmt.Fprintf(w, doc); err != nil {
 		log.Printf("Error when serving WebFinger: %s\n", err)
@@ -269,6 +272,7 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
   "type": "Person",
   "id": "%s",
   "preferredUsername": "%s",
+  "name": "%s",
   "inbox": "%s",
   "publicKey": {
     "id": "%s",
@@ -278,6 +282,7 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 }`,
 		siteURL,             // id
 		db.AdminUsername(),  // preferredUsername
+		settings.SiteName(), // name
 		siteURL+"/inbox",    // inbox
 		siteURL+"#main-key", // publicKey/id
 		siteURL,             // publicKey/owner
@@ -285,7 +290,7 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 	)
 	w.Header().Set("Content-Type", types.ActivityType)
 	if _, err := fmt.Fprintf(w, doc); err != nil {
-		log.Printf("Error when serving /actor: %s\n", err)
+		log.Printf("Error when serving Actor: %s\n", err)
 	}
 }
 
