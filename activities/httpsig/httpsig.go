@@ -37,6 +37,7 @@ type KeyType int
 
 const (
 	None KeyType = iota
+
 	RSA
 	Ed25519
 )

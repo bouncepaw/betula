@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/activities"
+	"git.sr.ht/~bouncepaw/betula/activities/sign"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/readpage"
 	"git.sr.ht/~bouncepaw/betula/stricks"
@@ -294,7 +295,7 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 		settings.SiteDescriptionMycomarkup(), // summary. TODO: think about it
 		siteURL+"#main-key",                  // publicKey/id
 		siteURL,                              // publicKey/owner
-		"-----BEGIN PUBLIC KEY-----\\nTODO\\n----END PUBLIC KEY----", // TODO: implement keys
+		sign.PublicKey(),
 	)
 	w.Header().Set("Content-Type", types.ActivityType)
 	if _, err := fmt.Fprintf(w, doc); err != nil {

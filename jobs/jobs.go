@@ -6,6 +6,7 @@ package jobs
 import (
 	"bytes"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/activities/sign"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -48,16 +49,21 @@ func ListenAndWhisper() {
 func sendActivity(uri string, activity []byte) error {
 	url := stricks.ParseValidURL(uri)
 	inbox := fmt.Sprintf("%s://%s/inbox", url.Scheme, url.Host)
-	resp, err := client.Post(
-		inbox,
-		"application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"",
-		bytes.NewReader(activity),
-	)
+	rq, err := http.NewRequest(http.MethodPost, inbox, bytes.NewReader(activity))
 	if err != nil {
 		log.Println(err)
 		return err
 	}
+
+	rq.Header.Set("Content-Type", types.ActivityType)
+	sign.SignRequest(rq, activity)
+
 	log.Printf("Sending activity %s\n", string(activity))
+	resp, err := client.Do(rq)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	log.Printf("Activity sent to %s returned %d status\n", inbox, resp.StatusCode)
 	return nil
 }
