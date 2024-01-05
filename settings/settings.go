@@ -58,8 +58,6 @@ func ValidatePortFromWeb[N ~int | uint](port N) uint {
 
 // Index reads all settings from the db.
 func Index() {
-	ensureKeys()
-
 	unvalidatedNetworkHost := db.MetaEntry[sql.NullString](db.BetulaMetaNetworkHost)
 	cache.NetworkHost = validateHostFromDB(unvalidatedNetworkHost)
 
