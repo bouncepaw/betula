@@ -21,13 +21,6 @@ var client = http.Client{
 	Timeout: time.Second,
 }
 
-var catmap = map[types.JobCategory]func(job types.Job){
-	types.NotifyAboutMyRepost:   notifyJob,
-	types.VerifyTheirRepost:     verifyJob,
-	types.ReceiveUnrepost:       receiveUnrepostJob,
-	types.NotifyAboutMyUnrepost: notifyAboutMyUnrepost,
-}
-
 func ListenAndWhisper() {
 	lateJobs := db.LoadAllJobs()
 	go func() {

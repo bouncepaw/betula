@@ -618,9 +618,39 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 	case activities.UndoAnnounceReport:
 		log.Printf("%s revoked their repost of %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
 		go jobs.ReceiveUnrepost(report)
+
 	case activities.AnnounceReport:
 		log.Printf("%s reposted %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
 		go jobs.CheckThisRepostLater(report)
+
+	case activities.FollowReport:
+		if report.ObjectID == settings.SiteURL()+"/@"+db.AdminUsername() {
+			log.Printf("%s asked to follow us\n", report.ActorID)
+			go jobs.SendAcceptFollow(report)
+		} else {
+			log.Printf("%s asked to follow %s, which is not us\n", report.ActorID, report.ObjectID)
+			go jobs.SendRejectFollow(report)
+		}
+
+	case activities.AcceptReport:
+		switch report.Object["type"] {
+		case "Follow":
+			report := activities.FollowReport{
+				ActorID:  stricks.StringifyAnything(report.Object["actor"]),
+				ObjectID: stricks.StringifyAnything(report.Object["object"]),
+			}
+			go jobs.ReceiveAcceptFollow(report)
+		}
+
+	case activities.RejectReport:
+		switch report.Object["type"] {
+		case "Follow":
+			go jobs.ReceiveReceiveFollow(activities.FollowReport{
+				ActorID:  stricks.StringifyAnything(report.Object["actor"]),
+				ObjectID: stricks.StringifyAnything(report.Object["object"]),
+			})
+		}
+
 	default:
 		// Not meant to happen
 		log.Printf("Invalid report type")

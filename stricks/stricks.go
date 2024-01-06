@@ -15,3 +15,12 @@ func ParseValidURL(s string) *url.URL {
 	}
 	return u
 }
+
+func StringifyAnything(o any) string {
+	switch s := o.(type) {
+	case string:
+		return s
+	default:
+		return ""
+	}
+}

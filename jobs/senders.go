@@ -38,3 +38,29 @@ func NotifyAboutMyUnrepost(report activities.UndoAnnounceReport) {
 	}
 	planJob(types.NotifyAboutMyUnrepost, data)
 }
+
+func SendAcceptFollow(report activities.FollowReport) {
+	data, err := json.Marshal(report)
+	if err != nil {
+		log.Printf("While scheduling %s: %v\n", types.SendAcceptFollow, err)
+		return
+	}
+	planJob(types.SendAcceptFollow, data)
+}
+
+func SendRejectFollow(report activities.FollowReport) {
+	data, err := json.Marshal(report)
+	if err != nil {
+		log.Printf("While scheduling %s: %v\n", types.SendRejectFollow, err)
+		return
+	}
+	planJob(types.SendRejectFollow, data)
+}
+
+func ReceiveAcceptFollow(report activities.FollowReport) {
+
+}
+
+func ReceiveReceiveFollow(report activities.FollowReport) {
+
+}

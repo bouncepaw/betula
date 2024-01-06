@@ -11,6 +11,13 @@ const (
 	VerifyTheirRepost     JobCategory = "verify their repost"
 	ReceiveUnrepost       JobCategory = "receive unrepost"
 	NotifyAboutMyUnrepost JobCategory = "notify about my unrepost"
+
+	/* I changed the style from now. The new style is below. */
+
+	SendAcceptFollow    JobCategory = "Send Accept{Follow}"
+	SendRejectFollow    JobCategory = "Send Reject{Follow}"
+	ReceiveAcceptFollow JobCategory = "Receive Accept{Follow}"
+	ReceiveRejectFollow JobCategory = "Receive Reject{Follow}"
 )
 
 // Job is a task for Betula to do later.

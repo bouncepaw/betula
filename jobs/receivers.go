@@ -13,6 +13,17 @@ import (
 	"strings"
 )
 
+var catmap = map[types.JobCategory]func(job types.Job){
+	types.NotifyAboutMyRepost:   notifyJob,
+	types.VerifyTheirRepost:     verifyJob,
+	types.ReceiveUnrepost:       receiveUnrepostJob,
+	types.NotifyAboutMyUnrepost: notifyAboutMyUnrepost,
+	types.SendAcceptFollow:      sendAcceptFollow,
+	types.SendRejectFollow:      sendRejectFollow,
+	types.ReceiveAcceptFollow:   receiveAcceptFollow,
+	types.ReceiveRejectFollow:   receiveRejectFollow,
+}
+
 func notifyJob(job types.Job) {
 	var postId int
 	switch v := job.Payload.(type) {
