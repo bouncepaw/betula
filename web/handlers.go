@@ -2,6 +2,7 @@ package web
 
 import (
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/activities"
@@ -321,36 +322,34 @@ func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerActor(w http.ResponseWriter, rq *http.Request) {
-	siteURL := settings.SiteURL()
-	doc := fmt.Sprintf(`
-{
-  "@context": [
-    "https://www.w3.org/ns/activitystreams",
-    "https://w3id.org/security/v1"
-  ],
-  "type": "Person",
-  "id": "%s",
-  "preferredUsername": "%s",
-  "name": "%s",
-  "inbox": "%s",
-  "summary": "%s",
-  "publicKey": {
-    "id": "%s",
-    "owner": "%s",
-    "publicKeyPem": "%s"
-  }
-}`,
-		siteURL,                              // id
-		db.AdminUsername(),                   // preferredUsername
-		settings.SiteName(),                  // name
-		siteURL+"/inbox",                     // inbox
-		settings.SiteDescriptionMycomarkup(), // summary. TODO: think about it
-		siteURL+"#main-key",                  // publicKey/id
-		siteURL,                              // publicKey/owner
-		signing.PublicKey(),
+	var (
+		siteURL       = settings.SiteURL()
+		adminUsername = db.AdminUsername()
+		actorID       = fmt.Sprintf("%s/@%s", siteURL, adminUsername)
 	)
+
+	doc, err := json.Marshal(map[string]any{
+		"@context":          []string{"https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1"},
+		"type":              "Person",
+		"id":                actorID,
+		"preferredUsername": adminUsername,
+		"name":              settings.SiteName(),
+		"inbox":             siteURL + "/inbox",
+		"summary":           settings.SiteDescriptionMycomarkup(), // TODO: Think about it
+		"publicKey": map[string]string{
+			"id":           siteURL + "#main-key",
+			"owner":        actorID,
+			"publicKeyPem": signing.PublicKey(),
+		},
+	})
+	if err != nil {
+		log.Printf("When marshaling actor activity: %s\n", err)
+		handlerNotFound(w, rq)
+		return
+	}
+
 	w.Header().Set("Content-Type", types.ActivityType)
-	if _, err := fmt.Fprintf(w, doc); err != nil {
+	if _, err := w.Write(doc); err != nil {
 		log.Printf("Error when serving Actor: %s\n", err)
 	}
 }
