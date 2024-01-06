@@ -14,7 +14,7 @@ import (
 var actorStorage = map[string]*types.Actor{}
 
 // RequestActor fetches the actor activity on the specified address.
-func RequestActor(actorID string) (actor *types.Actor, err error) {
+func RequestActor(actorID string) (*types.Actor, error) {
 	if cachedActor, ok := actorStorage[actorID]; ok {
 		return cachedActor, nil
 	}
@@ -49,7 +49,7 @@ func RequestActor(actorID string) (actor *types.Actor, err error) {
 		return nil, cope(err)
 	}
 
-	db.SavePublicKey(actor.PublicKey.ID, actor.PublicKey.Owner, actor.PublicKey.PublicKeyPEM)
+	db.SavePublicKey(a.PublicKey.ID, a.PublicKey.Owner, a.PublicKey.PublicKeyPEM)
 
 	return &a, nil
 }
