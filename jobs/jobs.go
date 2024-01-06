@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
@@ -20,6 +21,29 @@ var jobch = make(chan jobtype.Job)
 
 var client = http.Client{
 	Timeout: time.Second,
+}
+
+// ScheduleDatum schedules a job with the given category and data of any type, which will be saved as is.
+//
+// TODO: get rid of it.
+func ScheduleDatum(category jobtype.JobCategory, data any) {
+	job := jobtype.Job{
+		Category: category,
+		Payload:  data,
+	}
+	id := db.PlanJob(job)
+	job.ID = id
+	jobch <- job
+}
+
+// ScheduleJSON schedules a job with the given category and data, which will be marshaled into JSON before saving to database. This is the one you should use, unlike ScheduleDatum.
+func ScheduleJSON(category jobtype.JobCategory, dataJSON any) {
+	data, err := json.Marshal(dataJSON)
+	if err != nil {
+		log.Printf("While scheduling a %s job: %s\n", category, err)
+		return
+	}
+	ScheduleDatum(category, data)
 }
 
 func ListenAndWhisper() {
@@ -40,6 +64,7 @@ func ListenAndWhisper() {
 	}
 }
 
+// TODO: Move to a proper place
 func SendActivityToInbox(activity []byte, inbox string) error {
 	rq, err := http.NewRequest(http.MethodPost, inbox, bytes.NewReader(activity))
 	if err != nil {
@@ -64,14 +89,4 @@ func sendActivity(uri string, activity []byte) error {
 	url := stricks.ParseValidURL(uri)
 	inbox := fmt.Sprintf("%s://%s/inbox", url.Scheme, url.Host)
 	return SendActivityToInbox(activity, inbox)
-}
-
-func planJob(category jobtype.JobCategory, data any) {
-	job := jobtype.Job{
-		Category: category,
-		Payload:  data,
-	}
-	id := db.PlanJob(job)
-	job.ID = id
-	jobch <- job
 }

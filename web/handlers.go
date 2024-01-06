@@ -6,9 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
-	activities2 "git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/jobs"
+	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/readpage"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"html/template"
@@ -160,7 +161,7 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 	}
 	inbox := actor.Inbox
 
-	activity, err := activities2.NewFollow(actor.ID)
+	activity, err := activities.NewFollow(actor.ID)
 	if err != nil {
 		log.Printf("When creating Follow activity: %s\n", err)
 		return
@@ -472,13 +473,14 @@ func handlerUnrepost(w http.ResponseWriter, rq *http.Request) {
 	post.RepostOf = nil
 	db.EditPost(post)
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
-	go jobs.NotifyAboutMyUnrepost(activities2.UndoAnnounceReport{
-		AnnounceReport: activities2.AnnounceReport{
+	report := activities.UndoAnnounceReport{
+		AnnounceReport: activities.AnnounceReport{
 			ReposterUsername: db.AdminUsername(),
 			RepostPage:       fmt.Sprintf("%s/%d", settings.SiteURL(), post.ID),
 			OriginalPage:     originalPage,
 		},
-	})
+	}
+	go jobs.ScheduleJSON(jobtype.SendUndoAnnounce, report)
 }
 
 type dataRepostsOf struct {
@@ -593,7 +595,7 @@ good:
 
 	id := db.AddPost(post)
 
-	go jobs.NotifyAboutMyRepost(id)
+	go jobs.ScheduleDatum(jobtype.SendAnnounce, id)
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 }
 
@@ -609,47 +611,48 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 	}
 	log.Printf("Incoming activity: %s\n", string(data))
 
-	report, err := activities2.Guess(data)
+	report, err := activities.Guess(data)
 	if err != nil {
 		log.Printf("Error while parsing incoming activity: %v\n", err)
 		return
 	}
 
 	switch report := report.(type) {
-	case activities2.UndoAnnounceReport:
+	case activities.UndoAnnounceReport:
 		log.Printf("%s revoked their repost of %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
-		go jobs.ReceiveUnrepost(report)
+		go jobs.ScheduleJSON(jobtype.ReceiveUndoAnnounce, report)
 
-	case activities2.AnnounceReport:
+	case activities.AnnounceReport:
 		log.Printf("%s reposted %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
-		go jobs.CheckThisRepostLater(report)
+		go jobs.ScheduleJSON(jobtype.ReceiveAnnounce, report)
 
-	case activities2.FollowReport:
+	case activities.FollowReport:
 		if report.ObjectID == settings.SiteURL()+"/@"+db.AdminUsername() {
 			log.Printf("%s asked to follow us\n", report.ActorID)
-			go jobs.SendAcceptFollow(report)
+			go jobs.ScheduleJSON(jobtype.SendAcceptFollow, report)
 		} else {
 			log.Printf("%s asked to follow %s, which is not us\n", report.ActorID, report.ObjectID)
-			go jobs.SendRejectFollow(report)
+			go jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
 		}
 
-	case activities2.AcceptReport:
+	case activities.AcceptReport:
 		switch report.Object["type"] {
 		case "Follow":
-			report := activities2.FollowReport{
+			report := activities.FollowReport{
 				ActorID:  stricks.StringifyAnything(report.Object["actor"]),
 				ObjectID: stricks.StringifyAnything(report.Object["object"]),
 			}
-			go jobs.ReceiveAcceptFollow(report)
+			go jobs.ScheduleJSON(jobtype.ReceiveAcceptFollow, report)
 		}
 
-	case activities2.RejectReport:
+	case activities.RejectReport:
 		switch report.Object["type"] {
 		case "Follow":
-			go jobs.ReceiveReceiveFollow(activities2.FollowReport{
+			report := activities.FollowReport{
 				ActorID:  stricks.StringifyAnything(report.Object["actor"]),
 				ObjectID: stricks.StringifyAnything(report.Object["object"]),
-			})
+			}
+			go jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
 		}
 
 	default:
@@ -895,7 +898,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	oldPort := settings.NetworkPort()
 	oldHost := settings.NetworkHost()
 	settings.SetSettings(newSettings)
-	activities2.GenerateBetulaActor()
+	activities.GenerateBetulaActor()
 	if oldPort != settings.NetworkPort() || oldHost != settings.NetworkHost() {
 		restartServer()
 	}
