@@ -152,7 +152,7 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 
 	actor, err := readpage.RequestActor(wa.ActorURL)
 	if err != nil {
-		log.Printf("While fetching %s profile, got the error: %s\n", wa.ActorURL)
+		log.Printf("While fetching %s profile, got the error: %s\n", wa.ActorURL, err)
 		handlerNotFound(w, rq)
 		return
 	}
@@ -213,14 +213,14 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 		if err != nil {
-			log.Printf("While fetching @%s@%s, got the error: %s. 404.\n", err)
+			log.Printf("While fetching @%s@%s, got the error: %s. 404.\n", user, host, err)
 			handlerNotFound(w, rq)
 			return
 		}
 
 		actor, err := readpage.RequestActor(wa.ActorURL)
 		if err != nil {
-			log.Printf("While fetching %s profile, got the error: %s\n", wa.ActorURL)
+			log.Printf("While fetching %s profile, got the error: %s\n", wa.ActorURL, err)
 			handlerNotFound(w, rq)
 			return
 		}
