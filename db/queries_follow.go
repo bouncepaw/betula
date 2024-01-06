@@ -6,8 +6,16 @@ func AddFollower(id string) {
 	mustExec(`insert into Followers (ActorID) values (?)`, id)
 }
 
-func AddFollowing(id string) {
+func AddPendingFollowing(id string) {
 	mustExec(`insert into Following (ActorID) values (?)`, id)
+}
+
+func MarkAsSurelyFollowing(id string) {
+	mustExec(`update Following set AcceptedStatus = 1 where ActorID = ?`, id)
+}
+
+func StopFollowing(id string) {
+	mustExec(`delete from Following where ActorID = ?`, id)
 }
 
 func SubscriptionStatus(id string) types.SubscriptionRelation {

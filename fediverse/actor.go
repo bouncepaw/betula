@@ -6,16 +6,17 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"io"
+	"log"
 	"net/http"
 )
 
 // RequestActor fetches the actor activity on the specified address.
-func RequestActor(addr string) (actor *types.Actor, err error) {
+func RequestActor(actorID string) (actor *types.Actor, err error) {
 	cope := func(err error) error {
 		return fmt.Errorf("requesting actor: %w", err)
 	}
 
-	req, err := http.NewRequest("GET", addr, nil)
+	req, err := http.NewRequest("GET", actorID, nil)
 	if err != nil {
 		return nil, cope(err)
 	}
@@ -42,4 +43,13 @@ func RequestActor(addr string) (actor *types.Actor, err error) {
 	}
 
 	return &a, nil
+}
+
+func RequestActorInbox(actorID string) string {
+	actor, err := RequestActor(actorID)
+	if err != nil {
+		log.Printf("When requesting actor %s inbox: %s\n", actorID, err)
+		return ""
+	}
+	return actor.Inbox
 }

@@ -161,7 +161,7 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 	}
 	inbox := actor.Inbox
 
-	activity, err := activities.NewFollow(actor.ID)
+	activity, err := activities.NewFollowFromUs(actor.ID)
 	if err != nil {
 		log.Printf("When creating Follow activity: %s\n", err)
 		return
@@ -639,8 +639,9 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		switch report.Object["type"] {
 		case "Follow":
 			report := activities.FollowReport{
-				ActorID:  stricks.StringifyAnything(report.Object["actor"]),
-				ObjectID: stricks.StringifyAnything(report.Object["object"]),
+				ActorID:          stricks.StringifyAnything(report.Object["actor"]),
+				ObjectID:         stricks.StringifyAnything(report.Object["object"]),
+				OriginalActivity: report.Object,
 			}
 			go jobs.ScheduleJSON(jobtype.ReceiveAcceptFollow, report)
 		}
@@ -649,8 +650,9 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		switch report.Object["type"] {
 		case "Follow":
 			report := activities.FollowReport{
-				ActorID:  stricks.StringifyAnything(report.Object["actor"]),
-				ObjectID: stricks.StringifyAnything(report.Object["object"]),
+				ActorID:          stricks.StringifyAnything(report.Object["actor"]),
+				ObjectID:         stricks.StringifyAnything(report.Object["object"]),
+				OriginalActivity: report.Object,
 			}
 			go jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
 		}

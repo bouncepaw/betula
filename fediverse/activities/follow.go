@@ -2,7 +2,7 @@ package activities
 
 import "encoding/json"
 
-func NewFollow(objectID string) ([]byte, error) {
+func NewFollowFromUs(objectID string) ([]byte, error) {
 	activity := dict{
 		"@context": atContext,
 		"type":     "Follow",
@@ -13,14 +13,16 @@ func NewFollow(objectID string) ([]byte, error) {
 }
 
 type FollowReport struct {
-	ActorID  string
-	ObjectID string
+	ActorID          string
+	ObjectID         string
+	OriginalActivity map[string]any
 }
 
 func guessFollow(activity map[string]any) (any, error) {
 	report := FollowReport{
-		ActorID:  getIDSomehow(activity, "actor"),
-		ObjectID: getIDSomehow(activity, "object"),
+		ActorID:          getIDSomehow(activity, "actor"),
+		ObjectID:         getIDSomehow(activity, "object"),
+		OriginalActivity: activity,
 	}
 	if report.ActorID == "" {
 		return nil, ErrNoActor

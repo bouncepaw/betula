@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/readpage"
@@ -15,37 +16,80 @@ import (
 	"strings"
 )
 
+func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.Job) {
+	return func(job jobtype.Job) {
+		data, ok := job.Payload.([]byte)
+		if !ok {
+			log.Printf("Unexpected payload for %s job of type %T: %v\n", jobcat, job.Payload, job.Payload)
+			return
+		}
+
+		var report T
+		err := json.Unmarshal(data, &report)
+		if err != nil {
+			log.Printf("When unmarshaling payload for job %s: %s\n", jobcat, err)
+			return
+		}
+
+		next(report)
+	}
+}
+
 var catmap = map[jobtype.JobCategory]func(job jobtype.Job){
 	jobtype.SendAnnounce:        notifyJob,
 	jobtype.ReceiveAnnounce:     verifyJob,
 	jobtype.ReceiveUndoAnnounce: receiveUnrepostJob,
 	jobtype.SendUndoAnnounce:    notifyAboutMyUnrepost,
-	jobtype.SendAcceptFollow:    sendAcceptFollow,
-	jobtype.SendRejectFollow:    sendRejectFollow,
-	jobtype.ReceiveAcceptFollow: receiveAcceptFollow,
-	jobtype.ReceiveRejectFollow: receiveRejectFollow,
+	jobtype.SendAcceptFollow:    callForJSON[activities.FollowReport](jobtype.SendAcceptFollow, sendAcceptFollow),
+	jobtype.SendRejectFollow:    callForJSON[activities.FollowReport](jobtype.SendRejectFollow, sendRejectFollow),
+	jobtype.ReceiveAcceptFollow: callForJSON[activities.FollowReport](jobtype.ReceiveAcceptFollow, receiveAcceptFollow),
+	jobtype.ReceiveRejectFollow: callForJSON[activities.FollowReport](jobtype.ReceiveRejectFollow, receiveRejectFollow),
 }
 
-func sendAcceptFollow(job jobtype.Job) {
-	data, ok := job.Payload.([]byte)
-	if !ok {
-		log.Printf("Unexpected payload for NotifyAboutMyRepost of type %T: %v\n", job.Payload, job.Payload)
-		return
-	}
+func receiveAcceptFollow(report activities.FollowReport) {
+	// We assume that they are actually talking about us, because we filtered out wrong activities in the inbox.
 
-	var report activities.FollowReport
-	err := json.Unmarshal(data, &report)
-	if err != nil {
-		log.Printf("When unmarshaling payload for job: %s\n", err)
-		return
+	if status := db.SubscriptionStatus(report.ObjectID); status.IsPending() {
+		log.Printf("Received Accept{Follow} to %s\n", report.ObjectID)
+		db.MarkAsSurelyFollowing(report.ObjectID)
+	} else {
+		log.Printf("Received an invalid Accept{Follow}, status is %s. Ignoring. Activity: %s\n", status, report.OriginalActivity)
 	}
+}
 
+func receiveRejectFollow(report activities.FollowReport) {
+	// We assume that they are actually talking about us, because we filtered out wrong activities in the inbox.
+
+	if status := db.SubscriptionStatus(report.ObjectID); status.IsPending() {
+		log.Printf("Received Reject{Follow} to %s\n", report.ObjectID)
+		db.StopFollowing(report.ObjectID)
+	} else {
+		log.Printf("Received an invalid Reject{Follow}, status is %s. Ignoring. Activity: %s\n", status, report.OriginalActivity)
+	}
+}
+
+func sendRejectFollow(report activities.FollowReport) {
 	if !stricks.ValidURL(report.ActorID) {
 		log.Printf("Invaling actor ID: %s. Dropping activity.\n", report.ActorID)
 	}
 
-	db.AddFollower(report.ObjectID)
-	finish
+	activity, err := activities.NewReject(report.OriginalActivity)
+	if err = SendActivityToInbox(activity, fediverse.RequestActorInbox(report.ActorID)); err != nil {
+		log.Println(err)
+	}
+}
+
+func sendAcceptFollow(report activities.FollowReport) {
+	if !stricks.ValidURL(report.ActorID) {
+		log.Printf("Invaling actor ID: %s. Dropping activity.\n", report.ActorID)
+	}
+
+	activity, err := activities.NewAccept(report.OriginalActivity)
+	if err = SendActivityToInbox(activity, fediverse.RequestActorInbox(report.ActorID)); err != nil {
+		log.Println(err)
+	} else {
+		db.AddFollower(report.ObjectID)
+	}
 }
 
 func notifyJob(job jobtype.Job) {

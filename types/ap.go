@@ -33,3 +33,7 @@ const (
 	SubscriptionPending       SubscriptionRelation = "pending"
 	SubscriptionPendingMutual SubscriptionRelation = "pending mutual" // yours pending, theirs accepted
 )
+
+func (sr SubscriptionRelation) IsPending() bool {
+	return sr == SubscriptionPending || sr == SubscriptionPendingMutual
+}
