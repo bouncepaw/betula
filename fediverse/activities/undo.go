@@ -2,6 +2,7 @@ package activities
 
 import (
 	"encoding/json"
+
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
 

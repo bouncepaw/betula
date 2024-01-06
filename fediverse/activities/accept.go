@@ -17,10 +17,10 @@ func NewAccept(acceptedActivity dict) ([]byte, error) {
 type AcceptReport struct {
 	ActorID  string
 	ObjectID string
-	Object   map[string]any
+	Object   dict
 }
 
-func guessAccept(activity map[string]any) (any, error) {
+func guessAccept(activity dict) (any, error) {
 	report := AcceptReport{
 		ActorID:  getIDSomehow(activity, "actor"),
 		ObjectID: getIDSomehow(activity, "object"),
@@ -29,7 +29,7 @@ func guessAccept(activity map[string]any) (any, error) {
 		return nil, ErrNoActor
 	}
 	if report.ObjectID == "" {
-		return nil, ErrNoActor
+		return nil, ErrNoObject
 	}
 	if obj, ok := activity["object"]; ok {
 		switch v := obj.(type) {

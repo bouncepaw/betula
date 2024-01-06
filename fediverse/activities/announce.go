@@ -22,7 +22,7 @@ type AnnounceReport struct {
 	OriginalPage     string // page that was reposted
 }
 
-func mustHaveSuchField[T any](activity map[string]any, field string, errOnLack error, lambdaOnPresence func(T)) error {
+func mustHaveSuchField[T any](activity dict, field string, errOnLack error, lambdaOnPresence func(T)) error {
 	if val, ok := activity[field]; !ok {
 		return errOnLack
 	} else {
@@ -36,15 +36,15 @@ func mustHaveSuchField[T any](activity map[string]any, field string, errOnLack e
 	}
 }
 
-func guessAnnounce(activity map[string]any) (reportMaybe any, err error) {
+func guessAnnounce(activity dict) (reportMaybe any, err error) {
 	var (
-		actorMap map[string]any
+		actorMap dict
 		report   AnnounceReport
 	)
 
 	if err := mustHaveSuchField(
 		activity, "actor", ErrNoActor,
-		func(v map[string]any) {
+		func(v dict) {
 			actorMap = v
 		},
 	); err != nil {

@@ -11,13 +11,13 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-func getIDSomehow(activity map[string]any, field string) string {
+func getIDSomehow(activity dict, field string) string {
 	m := activity[field]
 	switch v := m.(type) {
 	case string:
 		return v
 	}
-	for k, v := range m.(map[string]any) {
+	for k, v := range m.(dict) {
 		if k != "id" {
 			continue
 		}

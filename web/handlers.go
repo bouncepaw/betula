@@ -166,7 +166,10 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 		log.Printf("When creating Follow activity: %s\n", err)
 		return
 	}
-	jobs.SendActivityToInbox(activity, inbox)
+	if err = jobs.SendActivityToInbox(activity, inbox); err != nil {
+		log.Printf("When sending activity: %s\n", err)
+		return
+	}
 	http.Redirect(w, rq, next, http.StatusSeeOther)
 }
 
@@ -615,6 +618,17 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 	if err != nil {
 		log.Printf("Error while parsing incoming activity: %v\n", err)
 		return
+	}
+
+	signedOK := signing.VerifyRequest(rq, data)
+	if !signedOK {
+		switch report.(type) {
+		case activities.UndoAnnounceReport, activities.AnnounceReport:
+			// For a couple of versions, we won't be checking signatures for these activities
+			break
+		default:
+			return
+		}
 	}
 
 	switch report := report.(type) {

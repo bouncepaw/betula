@@ -2,9 +2,9 @@ package activities
 
 import "encoding/json"
 
-func NewReject(rejectedActivity map[string]any) ([]byte, error) {
+func NewReject(rejectedActivity dict) ([]byte, error) {
 	delete(rejectedActivity, "@context")
-	activity := map[string]any{
+	activity := dict{
 		"@context": atContext,
 		"type":     "Reject",
 		"actor":    betulaActor,
@@ -16,10 +16,10 @@ func NewReject(rejectedActivity map[string]any) ([]byte, error) {
 type RejectReport struct {
 	ActorID  string
 	ObjectID string
-	Object   map[string]any
+	Object   dict
 }
 
-func guessReject(activity map[string]any) (any, error) {
+func guessReject(activity dict) (any, error) {
 	report := RejectReport{
 		ActorID:  getIDSomehow(activity, "actor"),
 		ObjectID: getIDSomehow(activity, "object"),
@@ -32,7 +32,7 @@ func guessReject(activity map[string]any) (any, error) {
 	}
 	if obj, ok := activity["object"]; ok {
 		switch v := obj.(type) {
-		case map[string]any:
+		case dict:
 			report.Object = v
 		}
 	}

@@ -15,10 +15,10 @@ func NewFollowFromUs(objectID string) ([]byte, error) {
 type FollowReport struct {
 	ActorID          string
 	ObjectID         string
-	OriginalActivity map[string]any
+	OriginalActivity dict
 }
 
-func guessFollow(activity map[string]any) (any, error) {
+func guessFollow(activity dict) (any, error) {
 	report := FollowReport{
 		ActorID:          getIDSomehow(activity, "actor"),
 		ObjectID:         getIDSomehow(activity, "object"),
@@ -28,7 +28,7 @@ func guessFollow(activity map[string]any) (any, error) {
 		return nil, ErrNoActor
 	}
 	if report.ObjectID == "" {
-		return nil, ErrNoActor
+		return nil, ErrNoObject
 	}
 	return report, nil
 }
