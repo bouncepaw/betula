@@ -1,4 +1,5 @@
-package types
+// Package jobtype holds types for jobs and their categories.
+package jobtype
 
 import "time"
 
@@ -7,10 +8,10 @@ import "time"
 type JobCategory string
 
 const (
-	NotifyAboutMyRepost   JobCategory = "notify about my repost"
-	VerifyTheirRepost     JobCategory = "verify their repost"
-	ReceiveUnrepost       JobCategory = "receive unrepost"
-	NotifyAboutMyUnrepost JobCategory = "notify about my unrepost"
+	SendAnnounce        JobCategory = "notify about my repost"
+	ReceiveAnnounce     JobCategory = "verify their repost"
+	ReceiveUndoAnnounce JobCategory = "receive unrepost"
+	SendUndoAnnounce    JobCategory = "notify about my unrepost"
 
 	/* I changed the style from now. The new style is below. */
 

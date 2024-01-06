@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/signing"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -15,7 +16,7 @@ import (
 	"time"
 )
 
-var jobch = make(chan types.Job)
+var jobch = make(chan jobtype.Job)
 
 var client = http.Client{
 	Timeout: time.Second,
@@ -65,8 +66,8 @@ func sendActivity(uri string, activity []byte) error {
 	return SendActivityToInbox(activity, inbox)
 }
 
-func planJob(category types.JobCategory, data any) {
-	job := types.Job{
+func planJob(category jobtype.JobCategory, data any) {
+	job := jobtype.Job{
 		Category: category,
 		Payload:  data,
 	}

@@ -3,7 +3,7 @@ package jobs
 import (
 	"encoding/json"
 	"git.sr.ht/~bouncepaw/betula/activities"
-	"git.sr.ht/~bouncepaw/betula/types"
+	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"log"
 )
 
@@ -14,11 +14,11 @@ func CheckThisRepostLater(announce activities.AnnounceReport) {
 		log.Printf("While scheduling repost checking: %v\n", err)
 		return
 	}
-	planJob(types.VerifyTheirRepost, data)
+	planJob(jobtype.ReceiveAnnounce, data)
 }
 
 func NotifyAboutMyRepost(postId int64) {
-	planJob(types.NotifyAboutMyRepost, postId)
+	planJob(jobtype.SendAnnounce, postId)
 }
 
 func ReceiveUnrepost(report activities.UndoAnnounceReport) {
@@ -27,7 +27,7 @@ func ReceiveUnrepost(report activities.UndoAnnounceReport) {
 		log.Printf("While scheduling unrepost checking: %v\n", err)
 		return
 	}
-	planJob(types.ReceiveUnrepost, data)
+	planJob(jobtype.ReceiveUndoAnnounce, data)
 }
 
 func NotifyAboutMyUnrepost(report activities.UndoAnnounceReport) {
@@ -36,25 +36,25 @@ func NotifyAboutMyUnrepost(report activities.UndoAnnounceReport) {
 		log.Printf("While scheduling repost cancel notification: %v\n", err)
 		return
 	}
-	planJob(types.NotifyAboutMyUnrepost, data)
+	planJob(jobtype.SendUndoAnnounce, data)
 }
 
 func SendAcceptFollow(report activities.FollowReport) {
 	data, err := json.Marshal(report)
 	if err != nil {
-		log.Printf("While scheduling %s: %v\n", types.SendAcceptFollow, err)
+		log.Printf("While scheduling %s: %v\n", jobtype.SendAcceptFollow, err)
 		return
 	}
-	planJob(types.SendAcceptFollow, data)
+	planJob(jobtype.SendAcceptFollow, data)
 }
 
 func SendRejectFollow(report activities.FollowReport) {
 	data, err := json.Marshal(report)
 	if err != nil {
-		log.Printf("While scheduling %s: %v\n", types.SendRejectFollow, err)
+		log.Printf("While scheduling %s: %v\n", jobtype.SendRejectFollow, err)
 		return
 	}
-	planJob(types.SendRejectFollow, data)
+	planJob(jobtype.SendRejectFollow, data)
 }
 
 func ReceiveAcceptFollow(report activities.FollowReport) {

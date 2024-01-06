@@ -5,32 +5,56 @@ import (
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/activities"
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/readpage"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
 	"strconv"
 	"strings"
 )
 
-var catmap = map[types.JobCategory]func(job types.Job){
-	types.NotifyAboutMyRepost:   notifyJob,
-	types.VerifyTheirRepost:     verifyJob,
-	types.ReceiveUnrepost:       receiveUnrepostJob,
-	types.NotifyAboutMyUnrepost: notifyAboutMyUnrepost,
-	types.SendAcceptFollow:      sendAcceptFollow,
-	types.SendRejectFollow:      sendRejectFollow,
-	types.ReceiveAcceptFollow:   receiveAcceptFollow,
-	types.ReceiveRejectFollow:   receiveRejectFollow,
+var catmap = map[jobtype.JobCategory]func(job jobtype.Job){
+	jobtype.SendAnnounce:        notifyJob,
+	jobtype.ReceiveAnnounce:     verifyJob,
+	jobtype.ReceiveUndoAnnounce: receiveUnrepostJob,
+	jobtype.SendUndoAnnounce:    notifyAboutMyUnrepost,
+	jobtype.SendAcceptFollow:    sendAcceptFollow,
+	jobtype.SendRejectFollow:    sendRejectFollow,
+	jobtype.ReceiveAcceptFollow: receiveAcceptFollow,
+	jobtype.ReceiveRejectFollow: receiveRejectFollow,
 }
 
-func notifyJob(job types.Job) {
+func sendAcceptFollow(job jobtype.Job) {
+	data, ok := job.Payload.([]byte)
+	if !ok {
+		log.Printf("Unexpected payload for NotifyAboutMyRepost of type %T: %v\n", job.Payload, job.Payload)
+		return
+	}
+
+	var report activities.FollowReport
+	err := json.Unmarshal(data, &report)
+	if err != nil {
+		log.Printf("When unmarshaling payload for job: %s\n", err)
+		return
+	}
+
+	if !stricks.ValidURL(report.ActorID) {
+		log.Printf("Invaling actor ID: %s. Dropping activity.\n", report.ActorID)
+	}
+
+	db.AddFollower(report.ObjectID)
+	finish
+}
+
+func notifyJob(job jobtype.Job) {
 	var postId int
 	switch v := job.Payload.(type) {
 	case int64:
 		postId = int(v)
 	default:
-		log.Printf("Unexpected payload for NotifyAboutMyRepost of type %T: %v\n", v, v)
+		log.Printf("Unexpected payload for notifyJob of type %T: %v\n", v, v)
 		return
 	}
 
@@ -66,7 +90,7 @@ func notifyJob(job types.Job) {
 	}
 }
 
-func verifyJob(job types.Job) {
+func verifyJob(job jobtype.Job) {
 	var report activities.AnnounceReport
 	switch v := job.Payload.(type) {
 	case []byte:
@@ -110,7 +134,7 @@ func verifyJob(job types.Job) {
 	})
 }
 
-func receiveUnrepostJob(job types.Job) {
+func receiveUnrepostJob(job jobtype.Job) {
 	var report activities.UndoAnnounceReport
 
 	switch v := job.Payload.(type) {
@@ -146,7 +170,7 @@ func receiveUnrepostJob(job types.Job) {
 	db.DeleteRepost(postId, report.RepostPage)
 }
 
-func notifyAboutMyUnrepost(job types.Job) {
+func notifyAboutMyUnrepost(job jobtype.Job) {
 	var report activities.UndoAnnounceReport
 
 	switch v := job.Payload.(type) {
