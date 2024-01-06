@@ -31,7 +31,7 @@ func fiveLastDays(now time.Time) (days []time.Time, dayStamps []string, dayPosts
 
 func Posts() *feeds.Feed {
 	author := &feeds.Author{
-		Name: db.AdminUsername(),
+		Name: settings.AdminUsername(),
 	}
 	now := time.Now().AddDate(0, 0, 1)
 	_, _, dayPosts := fiveLastDays(now)
@@ -72,7 +72,7 @@ func Posts() *feeds.Feed {
 
 func Digest() *feeds.Feed {
 	author := &feeds.Author{
-		Name: db.AdminUsername(),
+		Name: settings.AdminUsername(),
 	}
 	now := time.Now()
 	days, dayStamps, dayPosts := fiveLastDays(now)

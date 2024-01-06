@@ -38,13 +38,13 @@ func main() {
 
 	db.Initialize(filename)
 	defer db.Finalize()
+	settings.Index()
 	auth.Initialize()
 	// If the user provided a non-zero port, use it. Write it to the DB. It will be picked up later by settings.Index(). If they did not provide such a port, whatever, settings.Index() will figure something out 🙏
 	if port > 0 {
 		settings.WritePort(port)
 	}
 	signing.EnsureKeysFromDatabase()
-	settings.Index()
 	activities.GenerateBetulaActor()
 	go jobs.ListenAndWhisper()
 	web.StartServer()

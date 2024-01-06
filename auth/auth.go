@@ -4,6 +4,7 @@ package auth
 import (
 	"database/sql"
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/settings"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"sync/atomic"
@@ -17,7 +18,7 @@ var (
 func Initialize() {
 	ready.Store(false)
 	var (
-		name = db.AdminUsername()
+		name = settings.AdminUsername()
 		pass = db.MetaEntry[sql.NullString](db.BetulaMetaAdminPasswordHash)
 	)
 	ready.Store(name != "" && pass.Valid)
@@ -35,7 +36,7 @@ func Ready() bool {
 
 // CredentialsMatch checks if the credentials match.
 func CredentialsMatch(name, pass string) bool {
-	if name != db.AdminUsername() {
+	if name != settings.AdminUsername() {
 		log.Println("Matching credentials. Name mismatches.")
 		return false
 	}

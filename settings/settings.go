@@ -19,6 +19,7 @@ const biggestPort = 65535
 const defaultPort = 1738
 
 var cache types.Settings
+var adminUsername string
 
 // Those that did not fit in cache go in their own variables below. Handle with thought.
 var cacheSiteDescription template.HTML
@@ -58,6 +59,8 @@ func ValidatePortFromWeb[N ~int | uint](port N) uint {
 
 // Index reads all settings from the db.
 func Index() {
+	adminUsername = db.MetaEntry[string](db.BetulaMetaAdminUsername) // not a setting per se
+
 	unvalidatedNetworkHost := db.MetaEntry[sql.NullString](db.BetulaMetaNetworkHost)
 	cache.NetworkHost = validateHostFromDB(unvalidatedNetworkHost)
 
@@ -113,6 +116,7 @@ func Index() {
 	}
 }
 
+func AdminUsername() string              { return adminUsername }
 func SiteURL() string                    { return cache.SiteURL }
 func NetworkPort() uint                  { return cache.NetworkPort }
 func NetworkHost() string                { return cache.NetworkHost }

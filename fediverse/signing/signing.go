@@ -13,7 +13,7 @@ import (
 
 // SignRequest signs the request.
 func SignRequest(rq *http.Request, content []byte) {
-	keyId := settings.SiteURL() + "/@" + db.AdminUsername() + "#main-key"
+	keyId := settings.SiteURL() + "/@" + settings.AdminUsername() + "#main-key"
 	httpsig.SignRequest(keyId, privateKey, rq, content)
 }
 

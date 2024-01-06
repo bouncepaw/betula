@@ -197,7 +197,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		userAtHost           = strings.TrimPrefix(rq.URL.Path, "/@")
 		user, host, isRemote = strings.Cut(userAtHost, "@")
 		authed               = auth.AuthorizedFromRequest(rq)
-		ourUsername          = db.AdminUsername()
+		ourUsername          = settings.AdminUsername()
 	)
 
 	switch {
@@ -301,7 +301,7 @@ func handlerSubscribe(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
-	adminUsername := db.AdminUsername()
+	adminUsername := settings.AdminUsername()
 
 	resource := rq.FormValue("resource")
 	expected := fmt.Sprintf("acct:%s@%s", adminUsername, types.CleanerLink(settings.SiteURL()))
@@ -329,7 +329,7 @@ func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
 func handlerActor(w http.ResponseWriter, rq *http.Request) {
 	var (
 		siteURL       = settings.SiteURL()
-		adminUsername = db.AdminUsername()
+		adminUsername = settings.AdminUsername()
 		actorID       = fmt.Sprintf("%s/@%s", siteURL, adminUsername)
 	)
 
@@ -478,7 +478,7 @@ func handlerUnrepost(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 	report := activities.UndoAnnounceReport{
 		AnnounceReport: activities.AnnounceReport{
-			ReposterUsername: db.AdminUsername(),
+			ReposterUsername: settings.AdminUsername(),
 			RepostPage:       fmt.Sprintf("%s/%d", settings.SiteURL(), post.ID),
 			OriginalPage:     originalPage,
 		},
@@ -641,7 +641,7 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		go jobs.ScheduleJSON(jobtype.ReceiveAnnounce, report)
 
 	case activities.FollowReport:
-		if report.ObjectID == settings.SiteURL()+"/@"+db.AdminUsername() {
+		if report.ObjectID == settings.SiteURL()+"/@"+settings.AdminUsername() {
 			log.Printf("%s asked to follow us\n", report.ActorID)
 			go jobs.ScheduleJSON(jobtype.SendAcceptFollow, report)
 		} else {
