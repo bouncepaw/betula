@@ -1,5 +1,5 @@
-git.sr.ht/~bouncepaw/mycomarkup/v5 v5.4.0 h1:n57ze2WEmtjhlDDDPKctp40rzo8T2bGfuR9s7UAOaVg=
-git.sr.ht/~bouncepaw/mycomarkup/v5 v5.4.0/go.mod h1:TCzFBqW11En4EjLfcQtJu8C/Ro7FIFR8vZ+nM9f6Q28=
+git.sr.ht/~bouncepaw/mycomarkup/v5 v5.6.0 h1:zAZwMF+6x8U/nunpqPRVYoDiqVUMBHI04PG8GsDrFOk=
+git.sr.ht/~bouncepaw/mycomarkup/v5 v5.6.0/go.mod h1:TCzFBqW11En4EjLfcQtJu8C/Ro7FIFR8vZ+nM9f6Q28=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/gorilla/feeds v1.1.1 h1:HwKXxqzcRNg9to+BbvJog4+f3s/xzvtZXICcQGutYfY=
 github.com/gorilla/feeds v1.1.1/go.mod h1:Nk0jZrvPFZX1OBe5NPiddPw7CfwF6Q9eqzaBbaightA=
