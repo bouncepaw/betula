@@ -7,7 +7,6 @@ import (
 	"errors"
 
 	"git.sr.ht/~bouncepaw/betula/settings"
-	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 func getIDSomehow(activity dict, field string) string {
@@ -43,7 +42,7 @@ var (
 	ErrNoObject        = errors.New("activities: object absent or invalid")
 )
 
-var betulaActor types.Actor
+var betulaActor string
 
 // GenerateBetulaActor updates what actor to use for outgoing activities.
 // It makes no validation.
@@ -52,13 +51,5 @@ func GenerateBetulaActor() {
 	if username == "" {
 		username = "betula"
 	}
-	betulaActor = types.Actor{
-		ID:                settings.SiteURL() + "/@" + settings.AdminUsername(),
-		Type:              "Person",
-		Inbox:             settings.SiteURL() + "/inbox",
-		PreferredUsername: username,
-		DisplayedName:     settings.SiteName(),
-		Summary:           "", // TODO:
-		ServerSoftware:    "", // TODO:
-	}
+	betulaActor = settings.SiteURL() + "/@" + username
 }
