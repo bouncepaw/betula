@@ -54,7 +54,7 @@ func GenerateBetulaActor() {
 		username = "betula"
 	}
 	betulaActor = types.Actor{
-		ID:                settings.SiteURL(),
+		ID:                settings.SiteURL() + "/" + db.AdminUsername(),
 		Type:              "Person",
 		Inbox:             settings.SiteURL() + "/inbox",
 		PreferredUsername: username,
