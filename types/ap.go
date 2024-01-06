@@ -16,6 +16,11 @@ type Actor struct {
 	PreferredUsername string `json:"preferredUsername"`
 	DisplayedName     string `json:"name"`
 	Summary           string `json:"summary,omitempty"`
+	PublicKey         struct {
+		ID           string `json:"id"`
+		Owner        string `json:"owner"`
+		PublicKeyPEM string `json:"publicKeyPem"`
+	} `json:"publicKey,omitempty"`
 	//IconID            string             `json:"icon,omitempty"`
 	ServerSoftware ServerSoftwareKind `json:"-"`
 

@@ -61,7 +61,7 @@ where DeletionTime is null and (Visibility = 1 or ?);
 
 // SavePublicKey saves the public key triplet. See https://docs.joinmastodon.org/spec/activitypub/#publicKey
 func SavePublicKey(id, owner, pem string) {
-	mustExec(`insert into PublicKeys (ID, Owner, PublicKeyPEM) values (?, ?, ?)`,
+	mustExec(`replace into PublicKeys (ID, Owner, PublicKeyPEM) values (?, ?, ?)`,
 		id, owner, pem)
 }
 

@@ -342,7 +342,7 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 		"inbox":             siteURL + "/inbox",
 		"summary":           settings.SiteDescriptionMycomarkup(), // TODO: Think about it
 		"publicKey": map[string]string{
-			"id":           siteURL + "#main-key",
+			"id":           siteURL + "/@" + adminUsername + "#main-key",
 			"owner":        actorID,
 			"publicKeyPem": signing.PublicKey(),
 		},

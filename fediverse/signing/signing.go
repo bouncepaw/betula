@@ -13,7 +13,7 @@ import (
 
 // SignRequest signs the request.
 func SignRequest(rq *http.Request, content []byte) {
-	keyId := settings.SiteURL() + "#main-key"
+	keyId := settings.SiteURL() + "/@" + db.AdminUsername() + "#main-key"
 	httpsig.SignRequest(keyId, privateKey, rq, content)
 }
 
@@ -30,7 +30,7 @@ func VerifyRequest(rq *http.Request, content []byte) bool {
 		return pub, err
 	})
 	if err != nil {
-		log.Printf("When verifying the signature of request to %s from %s got error: %s\n", rq.URL.RequestURI(), rq.Host, err)
+		log.Printf("When verifying the signature of request to %s got error: %s\n", rq.URL.RequestURI(), err)
 		return false
 	}
 	return true
