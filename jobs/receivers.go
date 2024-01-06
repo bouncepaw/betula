@@ -3,8 +3,8 @@ package jobs
 import (
 	"encoding/json"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/activities"
 	"git.sr.ht/~bouncepaw/betula/db"
+	activities2 "git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/readpage"
 	"git.sr.ht/~bouncepaw/betula/settings"
@@ -33,7 +33,7 @@ func sendAcceptFollow(job jobtype.Job) {
 		return
 	}
 
-	var report activities.FollowReport
+	var report activities2.FollowReport
 	err := json.Unmarshal(data, &report)
 	if err != nil {
 		log.Printf("When unmarshaling payload for job: %s\n", err)
@@ -74,7 +74,7 @@ func notifyJob(job jobtype.Job) {
 		return
 	}
 
-	activity, err := activities.NewAnnounce(
+	activity, err := activities2.NewAnnounce(
 		*post.RepostOf,
 		fmt.Sprintf("%s/%d", settings.SiteURL(), postId),
 	)
@@ -91,7 +91,7 @@ func notifyJob(job jobtype.Job) {
 }
 
 func verifyJob(job jobtype.Job) {
-	var report activities.AnnounceReport
+	var report activities2.AnnounceReport
 	switch v := job.Payload.(type) {
 	case []byte:
 		if err := json.Unmarshal(v, &report); err != nil {
@@ -135,7 +135,7 @@ func verifyJob(job jobtype.Job) {
 }
 
 func receiveUnrepostJob(job jobtype.Job) {
-	var report activities.UndoAnnounceReport
+	var report activities2.UndoAnnounceReport
 
 	switch v := job.Payload.(type) {
 	case []byte:
@@ -171,7 +171,7 @@ func receiveUnrepostJob(job jobtype.Job) {
 }
 
 func notifyAboutMyUnrepost(job jobtype.Job) {
-	var report activities.UndoAnnounceReport
+	var report activities2.UndoAnnounceReport
 
 	switch v := job.Payload.(type) {
 	case []byte:

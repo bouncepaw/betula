@@ -1,4 +1,4 @@
-package readpage
+package fediverse
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ import (
 
 // https://docs.joinmastodon.org/spec/webfinger/
 
-func GetWebFinger(user, host string) (wa types.WebfingerAcct, found bool, err error) {
+func RequestWebFinger(user, host string) (wa types.WebfingerAcct, found bool, err error) {
 	requestURL := fmt.Sprintf("https://%s/.well-known/webfinger?resource=acct:%s@%s", host, user, host)
 
 	resp, err := client.Get(requestURL)
@@ -25,6 +25,7 @@ func GetWebFinger(user, host string) (wa types.WebfingerAcct, found bool, err er
 		return wa, false, err
 	}
 
+	// TODO: unmarshal into struct
 	obj := map[string]any{}
 	if err = json.Unmarshal(data, &obj); err != nil {
 		return wa, false, err

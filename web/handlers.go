@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/activities"
+	"git.sr.ht/~bouncepaw/betula/fediverse"
+	activities2 "git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/readpage"
-	"git.sr.ht/~bouncepaw/betula/signing"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"html/template"
 	"io"
@@ -139,7 +140,7 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	wa, found, err := readpage.GetWebFinger(user, host)
+	wa, found, err := fediverse.RequestWebFinger(user, host)
 	if !found {
 		log.Printf("@%s@%s was not found. 404.\n", user, host)
 		handlerNotFound(w, rq)
@@ -151,7 +152,7 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	actor, err := readpage.RequestActor(wa.ActorURL)
+	actor, err := fediverse.RequestActor(wa.ActorURL)
 	if err != nil {
 		log.Printf("While fetching %s profile, got the error: %s\n", wa.ActorURL, err)
 		handlerNotFound(w, rq)
@@ -159,7 +160,7 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 	}
 	inbox := actor.Inbox
 
-	activity, err := activities.NewFollow(actor.ID)
+	activity, err := activities2.NewFollow(actor.ID)
 	if err != nil {
 		log.Printf("When creating Follow activity: %s\n", err)
 		return
@@ -207,7 +208,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 	case isRemote && !wantsActivity:
 		log.Printf("Request remote user @%s@%s as a page\n", user, host)
 
-		wa, found, err := readpage.GetWebFinger(user, host)
+		wa, found, err := fediverse.RequestWebFinger(user, host)
 		if !found {
 			log.Printf("@%s@%s was not found. 404.\n", user, host)
 			handlerNotFound(w, rq)
@@ -219,7 +220,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 
-		actor, err := readpage.RequestActor(wa.ActorURL)
+		actor, err := fediverse.RequestActor(wa.ActorURL)
 		if err != nil {
 			log.Printf("While fetching %s profile, got the error: %s\n", wa.ActorURL, err)
 			handlerNotFound(w, rq)
@@ -471,8 +472,8 @@ func handlerUnrepost(w http.ResponseWriter, rq *http.Request) {
 	post.RepostOf = nil
 	db.EditPost(post)
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
-	go jobs.NotifyAboutMyUnrepost(activities.UndoAnnounceReport{
-		AnnounceReport: activities.AnnounceReport{
+	go jobs.NotifyAboutMyUnrepost(activities2.UndoAnnounceReport{
+		AnnounceReport: activities2.AnnounceReport{
 			ReposterUsername: db.AdminUsername(),
 			RepostPage:       fmt.Sprintf("%s/%d", settings.SiteURL(), post.ID),
 			OriginalPage:     originalPage,
@@ -608,22 +609,22 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 	}
 	log.Printf("Incoming activity: %s\n", string(data))
 
-	report, err := activities.Guess(data)
+	report, err := activities2.Guess(data)
 	if err != nil {
 		log.Printf("Error while parsing incoming activity: %v\n", err)
 		return
 	}
 
 	switch report := report.(type) {
-	case activities.UndoAnnounceReport:
+	case activities2.UndoAnnounceReport:
 		log.Printf("%s revoked their repost of %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
 		go jobs.ReceiveUnrepost(report)
 
-	case activities.AnnounceReport:
+	case activities2.AnnounceReport:
 		log.Printf("%s reposted %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
 		go jobs.CheckThisRepostLater(report)
 
-	case activities.FollowReport:
+	case activities2.FollowReport:
 		if report.ObjectID == settings.SiteURL()+"/@"+db.AdminUsername() {
 			log.Printf("%s asked to follow us\n", report.ActorID)
 			go jobs.SendAcceptFollow(report)
@@ -632,20 +633,20 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 			go jobs.SendRejectFollow(report)
 		}
 
-	case activities.AcceptReport:
+	case activities2.AcceptReport:
 		switch report.Object["type"] {
 		case "Follow":
-			report := activities.FollowReport{
+			report := activities2.FollowReport{
 				ActorID:  stricks.StringifyAnything(report.Object["actor"]),
 				ObjectID: stricks.StringifyAnything(report.Object["object"]),
 			}
 			go jobs.ReceiveAcceptFollow(report)
 		}
 
-	case activities.RejectReport:
+	case activities2.RejectReport:
 		switch report.Object["type"] {
 		case "Follow":
-			go jobs.ReceiveReceiveFollow(activities.FollowReport{
+			go jobs.ReceiveReceiveFollow(activities2.FollowReport{
 				ActorID:  stricks.StringifyAnything(report.Object["actor"]),
 				ObjectID: stricks.StringifyAnything(report.Object["object"]),
 			})
@@ -894,7 +895,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	oldPort := settings.NetworkPort()
 	oldHost := settings.NetworkHost()
 	settings.SetSettings(newSettings)
-	activities.GenerateBetulaActor()
+	activities2.GenerateBetulaActor()
 	if oldPort != settings.NetworkPort() || oldHost != settings.NetworkHost() {
 		restartServer()
 	}

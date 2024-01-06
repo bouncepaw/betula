@@ -2,13 +2,13 @@ package jobs
 
 import (
 	"encoding/json"
-	"git.sr.ht/~bouncepaw/betula/activities"
+	activities2 "git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"log"
 )
 
 // CheckThisRepostLater plans a job to check the specified announce if it's true.
-func CheckThisRepostLater(announce activities.AnnounceReport) {
+func CheckThisRepostLater(announce activities2.AnnounceReport) {
 	data, err := json.Marshal(announce)
 	if err != nil {
 		log.Printf("While scheduling repost checking: %v\n", err)
@@ -21,7 +21,7 @@ func NotifyAboutMyRepost(postId int64) {
 	planJob(jobtype.SendAnnounce, postId)
 }
 
-func ReceiveUnrepost(report activities.UndoAnnounceReport) {
+func ReceiveUnrepost(report activities2.UndoAnnounceReport) {
 	data, err := json.Marshal(report)
 	if err != nil {
 		log.Printf("While scheduling unrepost checking: %v\n", err)
@@ -30,7 +30,7 @@ func ReceiveUnrepost(report activities.UndoAnnounceReport) {
 	planJob(jobtype.ReceiveUndoAnnounce, data)
 }
 
-func NotifyAboutMyUnrepost(report activities.UndoAnnounceReport) {
+func NotifyAboutMyUnrepost(report activities2.UndoAnnounceReport) {
 	data, err := json.Marshal(report)
 	if err != nil {
 		log.Printf("While scheduling repost cancel notification: %v\n", err)
@@ -39,7 +39,7 @@ func NotifyAboutMyUnrepost(report activities.UndoAnnounceReport) {
 	planJob(jobtype.SendUndoAnnounce, data)
 }
 
-func SendAcceptFollow(report activities.FollowReport) {
+func SendAcceptFollow(report activities2.FollowReport) {
 	data, err := json.Marshal(report)
 	if err != nil {
 		log.Printf("While scheduling %s: %v\n", jobtype.SendAcceptFollow, err)
@@ -48,7 +48,7 @@ func SendAcceptFollow(report activities.FollowReport) {
 	planJob(jobtype.SendAcceptFollow, data)
 }
 
-func SendRejectFollow(report activities.FollowReport) {
+func SendRejectFollow(report activities2.FollowReport) {
 	data, err := json.Marshal(report)
 	if err != nil {
 		log.Printf("While scheduling %s: %v\n", jobtype.SendRejectFollow, err)
@@ -57,10 +57,10 @@ func SendRejectFollow(report activities.FollowReport) {
 	planJob(jobtype.SendRejectFollow, data)
 }
 
-func ReceiveAcceptFollow(report activities.FollowReport) {
+func ReceiveAcceptFollow(report activities2.FollowReport) {
 
 }
 
-func ReceiveReceiveFollow(report activities.FollowReport) {
+func ReceiveReceiveFollow(report activities2.FollowReport) {
 
 }

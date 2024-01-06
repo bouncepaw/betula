@@ -1,8 +1,9 @@
-package readpage
+package fediverse
 
 import (
 	"encoding/json"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"io"
 	"net/http"
@@ -19,6 +20,7 @@ func RequestActor(addr string) (actor *types.Actor, err error) {
 		return nil, cope(err)
 	}
 	req.Header.Set("Accept", types.ActivityType)
+	signing.SignRequest(req, nil)
 
 	resp, err := client.Do(req)
 	if err != nil {

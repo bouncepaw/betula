@@ -4,7 +4,7 @@ package readpage
 import (
 	"context"
 	"errors"
-	"git.sr.ht/~bouncepaw/betula/activities"
+	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"golang.org/x/net/html"
 	"io"
 	"log"
