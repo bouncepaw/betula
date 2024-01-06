@@ -26,9 +26,15 @@
                     <input type="submit" value="Follow back" class="btn">
                 </form>
             {{else if eq $status "pending"}}
-                <p>Follow pending.</p>
+                <form action="/follow?account={{.Account.Acct}}&next=/{{.Account.Acct}}" method="post">
+                    <p>Follow pending.</p>
+                    <input type="submit" value="Try to follow again" class="btn">
+                </form>
             {{else if eq $status "pending mutual"}}
-                <p>They follow you. Subscription pending.</p>
+                <form action="/follow?account={{.Account.Acct}}&next=/{{.Account.Acct}}" method="post">
+                    <p>They follow you. Subscription pending.</p>
+                    <input type="submit" value="Try to follow again" class="btn">
+                </form>
             {{else}}
                 <form action="/follow?account={{.Account.Acct}}&next=/{{.Account.Acct}}" method="post">
                     <input type="submit" value="Follow" class="btn">

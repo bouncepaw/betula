@@ -20,7 +20,7 @@ type Actor struct {
 	ServerSoftware ServerSoftwareKind `json:"-"`
 
 	SubscriptionStatus SubscriptionRelation `json:"-"` // Set manually
-	Acct               string               // Set manually
+	Acct               string               `json:"-"` // Set manually
 }
 
 type SubscriptionRelation string
