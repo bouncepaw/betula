@@ -30,7 +30,7 @@ func VerifyRequest(rq *http.Request, content []byte) bool {
 		return pub, err
 	})
 	if err != nil {
-		log.Printf("When verifying the signature of request to %s from %s got error: %w\n", rq.URL.RequestURI(), rq.Host, err)
+		log.Printf("When verifying the signature of request to %s from %s got error: %s\n", rq.URL.RequestURI(), rq.Host, err)
 		return false
 	}
 	return true

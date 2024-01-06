@@ -145,14 +145,14 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	if err != nil {
-		log.Printf("While fetching @%s@%s, got the error: %w. 404.\n", err)
+		log.Printf("While fetching @%s@%s, got the error: %s. 404.\n", user, host, err)
 		handlerNotFound(w, rq)
 		return
 	}
 
 	actor, err := readpage.RequestActor(wa.ActorURL)
 	if err != nil {
-		log.Printf("While fetching %s profile, got the error: %w\n", wa.ActorURL)
+		log.Printf("While fetching %s profile, got the error: %s\n", wa.ActorURL)
 		handlerNotFound(w, rq)
 		return
 	}
@@ -160,7 +160,7 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 
 	activity, err := activities.NewFollow(actor.ID)
 	if err != nil {
-		log.Printf("When creating Follow activity: %w\n", err)
+		log.Printf("When creating Follow activity: %s\n", err)
 		return
 	}
 	jobs.SendActivityToInbox(activity, inbox)
@@ -213,14 +213,14 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 		if err != nil {
-			log.Printf("While fetching @%s@%s, got the error: %w. 404.\n", err)
+			log.Printf("While fetching @%s@%s, got the error: %s. 404.\n", err)
 			handlerNotFound(w, rq)
 			return
 		}
 
 		actor, err := readpage.RequestActor(wa.ActorURL)
 		if err != nil {
-			log.Printf("While fetching %s profile, got the error: %w\n", wa.ActorURL)
+			log.Printf("While fetching %s profile, got the error: %s\n", wa.ActorURL)
 			handlerNotFound(w, rq)
 			return
 		}
