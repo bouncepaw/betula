@@ -1,9 +1,6 @@
 package db
 
-/*
-This file hold keys used in the BetulaMeta table.
-*/
-
+// BetulaMetaKey is key from the BetulaMeta table.
 type BetulaMetaKey string
 
 const (
@@ -16,7 +13,6 @@ const (
 	BetulaMetaSiteDescription   BetulaMetaKey = "Site description Mycomarkup"
 	BetulaMetaSiteURL           BetulaMetaKey = "WWW URL"
 	BetulaMetaCustomCSS         BetulaMetaKey = "Custom CSS"
-	BetulaMetaPrivateKey        BetulaMetaKey = "RSA PRIVATE KEY"
-	BetulaMetaPublicKey         BetulaMetaKey = "RSA PUBLIC KEY"
+	BetulaMetaPrivateKey        BetulaMetaKey = "Private key PEM"
 	BetulaMetaEnableFederation  BetulaMetaKey = "Federation enabled"
 )

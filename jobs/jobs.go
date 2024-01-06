@@ -6,8 +6,8 @@ package jobs
 import (
 	"bytes"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/activities/sign"
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/signing"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
@@ -54,7 +54,7 @@ func SendActivityToInbox(activity []byte, inbox string) error {
 	}
 
 	rq.Header.Set("Content-Type", types.ActivityType)
-	sign.SignRequest(rq, activity)
+	signing.SignRequest(rq, activity)
 
 	log.Printf("Sending activity %s\n", string(activity))
 	resp, err := client.Do(rq)

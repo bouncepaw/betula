@@ -5,11 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/activities"
-	"git.sr.ht/~bouncepaw/betula/activities/sign"
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/signing"
 	"git.sr.ht/~bouncepaw/betula/web"
 	_ "git.sr.ht/~bouncepaw/betula/web" // For init()
 	"log"
@@ -43,7 +43,7 @@ func main() {
 	if port > 0 {
 		settings.WritePort(port)
 	}
-	sign.EnsureKeys()
+	signing.EnsureKeysFromDatabase()
 	settings.Index()
 	activities.GenerateBetulaActor()
 	go jobs.ListenAndWhisper()

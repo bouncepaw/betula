@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/activities"
-	"git.sr.ht/~bouncepaw/betula/activities/sign"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/readpage"
+	"git.sr.ht/~bouncepaw/betula/signing"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"html/template"
 	"io"
@@ -114,11 +114,11 @@ func init() {
 // handlerFollow follows the account specified and redirects next if successful, shows an error if not.
 // Both parameters are required.
 //
-//     /follow?account=@bouncepaw@links.bouncepaw.com&next=/@bouncepaw@links.bouncepaw.com
+//	/follow?account=@bouncepaw@links.bouncepaw.com&next=/@bouncepaw@links.bouncepaw.com
 func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 	var (
 		account = rq.FormValue("account")
-		next = rq.FormValue("next")
+		next    = rq.FormValue("next")
 	)
 
 	if account == "" || next == "" {
@@ -128,7 +128,7 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	var (
-		userAtHost           = strings.TrimPrefix(account, "@")
+		userAtHost     = strings.TrimPrefix(account, "@")
 		user, host, ok = strings.Cut(userAtHost, "@")
 	)
 
@@ -347,7 +347,7 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 		settings.SiteDescriptionMycomarkup(), // summary. TODO: think about it
 		siteURL+"#main-key",                  // publicKey/id
 		siteURL,                              // publicKey/owner
-		sign.PublicKey(),
+		signing.PublicKey(),
 	)
 	w.Header().Set("Content-Type", types.ActivityType)
 	if _, err := fmt.Fprintf(w, doc); err != nil {
@@ -813,8 +813,8 @@ func handlerDay(w http.ResponseWriter, rq *http.Request) {
 type dataSettings struct {
 	types.Settings
 	*dataCommon
-	ErrBadPort bool
-	FirstRun   bool
+	ErrBadPort  bool
+	FirstRun    bool
 	RequestHost string
 }
 
@@ -832,8 +832,8 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 				CustomCSS:                 settings.CustomCSS(),
 				FederationEnabled:         settings.FederationEnabled(),
 			},
-			dataCommon: emptyCommon(),
-			FirstRun:   isFirstRun,
+			dataCommon:  emptyCommon(),
+			FirstRun:    isFirstRun,
 			RequestHost: rq.Host,
 		}, rq)
 		return
