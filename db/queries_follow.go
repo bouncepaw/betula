@@ -22,6 +22,27 @@ func StopFollowing(id string) {
 	mustExec(`delete from Following where ActorID = ?`, id)
 }
 
+// Only ID and Acct are set in the actors
+func GetFollowing() (actors []types.Actor) {
+	rows := mustQuery(`select ActorID, Acct from Following, WebFingerAccts where ActorID = ActorURL`)
+	for rows.Next() {
+		var actor types.Actor
+		mustScan(rows, &actor.ID, &actor.Acct)
+		actors = append(actors, actor)
+	}
+	return
+}
+
+func GetFollowers() (actors []types.Actor) {
+	rows := mustQuery(`select ActorID, Acct from Followers, WebFingerAccts where ActorID = ActorURL`)
+	for rows.Next() {
+		var actor types.Actor
+		mustScan(rows, &actor.ID, &actor.Acct)
+		actors = append(actors, actor)
+	}
+	return
+}
+
 func SubscriptionStatus(id string) types.SubscriptionRelation {
 	// TODO: make it just 1 request.
 	var iFollow, theyFollow bool

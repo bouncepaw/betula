@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"io"
@@ -49,12 +50,14 @@ func RequestWebFinger(user, host string) (wa types.WebfingerAcct, found bool, er
 		}
 		if rel == "self" && typ == "application/activity+json" && stricks.ValidURL(href) {
 			// Found what we were looking for
-			return types.WebfingerAcct{
+			wa = types.WebfingerAcct{
 				Acct:          user + "@" + host,
 				ActorURL:      href,
 				Document:      data,
 				LastCheckedAt: time.Now().Format(types.TimeLayout),
-			}, true, nil
+			}
+			db.InsertWebfingerAcct(wa)
+			return wa, true, nil
 		}
 	}
 

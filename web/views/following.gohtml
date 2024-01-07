@@ -1,0 +1,17 @@
+{{define "title"}}Following{{end}}
+{{define "body"}}
+    <main>
+        <article>
+            <h2>Following {{len .Actors}}</h2>
+            <p>See also <a href="/followers">Followers</a>.</p>
+        </article>
+        {{range .Actors}}
+            <article>
+                <h3><a href="/@{{.Acct}}">@{{.Acct}}</a></h3>
+                <a href="{{.ID}}">{{.ID}}</a>
+            </article>
+        {{else}}
+            <article>Empty here...</article>
+        {{end}}
+    </main>
+{{end}}

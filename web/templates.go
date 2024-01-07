@@ -77,6 +77,8 @@ var templateBookmarklet = templateFrom(nil, "bookmarklet")
 
 // Fedded verse views:
 var templateRemoteProfile = templateFrom(nil, "remote-profile")
+var templateFollowing = templateFrom(nil, "following")
+var templateFollowers = templateFrom(nil, "followers")
 
 var funcMapForPosts = template.FuncMap{
 	"randomGlobe": func() string {

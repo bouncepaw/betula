@@ -75,6 +75,21 @@ func postOnly(next func(http.ResponseWriter, *http.Request)) func(http.ResponseW
 	}
 }
 
+func fediverseWebFork(
+	nextFedi func(http.ResponseWriter, *http.Request),
+	nextWeb func(http.ResponseWriter, *http.Request),
+) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, rq *http.Request) {
+		if rq.Header.Get("Accept") == types.ActivityType && nextFedi != nil {
+			federatedOnly(nextFedi)(w, rq)
+		} else if nextWeb != nil {
+			nextWeb(w, rq)
+		} else {
+			handlerNotFound(w, rq)
+		}
+	}
+}
+
 func init() {
 	mux.HandleFunc("/", handlerFeed)
 	mux.HandleFunc("/reposts-of/", handlerRepostsOf)
@@ -111,6 +126,8 @@ func init() {
 	mux.HandleFunc("/subscriptions", adminOnly(federatedOnly(handlerSubscriptions)))
 	mux.HandleFunc("/follow", postOnly(adminOnly(federatedOnly(handlerFollow))))
 	mux.HandleFunc("/unfollow", postOnly(adminOnly(federatedOnly(handlerUnfollow))))
+	mux.HandleFunc("/following", fediverseWebFork(nil, handlerFollowingWeb))
+	mux.HandleFunc("/followers", fediverseWebFork(nil, handlerFollowersWeb))
 
 	// ActivityPub
 	mux.HandleFunc("/inbox", federatedOnly(handlerInbox))
@@ -124,6 +141,26 @@ func init() {
 
 	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+type dataActorList struct {
+	*dataCommon
+
+	Actors []types.Actor
+}
+
+func handlerFollowersWeb(w http.ResponseWriter, rq *http.Request) {
+	templateExec(w, rq, templateFollowers, dataActorList{
+		dataCommon: emptyCommon(),
+		Actors:     db.GetFollowers(),
+	})
+}
+
+func handlerFollowingWeb(w http.ResponseWriter, rq *http.Request) {
+	templateExec(w, rq, templateFollowing, dataActorList{
+		dataCommon: emptyCommon(),
+		Actors:     db.GetFollowing(),
+	})
 }
 
 // handlerUnfollow is similar to handlerFollow excepts it's unfollow
