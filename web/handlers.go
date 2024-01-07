@@ -620,7 +620,7 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	signedOK := signing.VerifyRequest(rq, data)
+	signedOK := fediverse.VerifyRequest(rq, data)
 	if !signedOK {
 		switch report.(type) {
 		case activities.UndoAnnounceReport, activities.AnnounceReport:
@@ -641,6 +641,12 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		go jobs.ScheduleJSON(jobtype.ReceiveAnnounce, report)
 
 	case activities.FollowReport:
+		_, err := fediverse.RequestActor(report.ActorID)
+		if err != nil {
+			log.Printf("Couldn't fetch actor: %s\n", err)
+			return
+		}
+
 		if report.ObjectID == settings.SiteURL()+"/@"+settings.AdminUsername() {
 			log.Printf("%s asked to follow us\n", report.ActorID)
 			go jobs.ScheduleJSON(jobtype.SendAcceptFollow, report)
@@ -650,6 +656,12 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 	case activities.AcceptReport:
+		_, err := fediverse.RequestActor(report.ActorID)
+		if err != nil {
+			log.Printf("Couldn't fetch actor: %s\n", err)
+			return
+		}
+
 		switch report.Object["type"] {
 		case "Follow":
 			report := activities.FollowReport{
@@ -661,6 +673,12 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 	case activities.RejectReport:
+		_, err := fediverse.RequestActor(report.ActorID)
+		if err != nil {
+			log.Printf("Couldn't fetch actor: %s\n", err)
+			return
+		}
+
 		switch report.Object["type"] {
 		case "Follow":
 			report := activities.FollowReport{

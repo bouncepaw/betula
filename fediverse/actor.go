@@ -11,11 +11,9 @@ import (
 	"net/http"
 )
 
-var actorStorage = map[string]*types.Actor{}
-
 // RequestActor fetches the actor activity on the specified address.
 func RequestActor(actorID string) (*types.Actor, error) {
-	if cachedActor, ok := actorStorage[actorID]; ok {
+	if cachedActor, ok := ActorStorage[actorID]; ok {
 		return cachedActor, nil
 	}
 
@@ -36,7 +34,7 @@ func RequestActor(actorID string) (*types.Actor, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("requesting actor: status not 200")
+		return nil, fmt.Errorf("requesting actor: status not 200, id est %d", resp.StatusCode)
 	}
 
 	data, err := io.ReadAll(resp.Body)
@@ -49,6 +47,8 @@ func RequestActor(actorID string) (*types.Actor, error) {
 		return nil, cope(err)
 	}
 
+	ActorStorage[a.ID] = &a
+	KeyPEMStorage[a.PublicKey.ID] = a.PublicKey.PublicKeyPEM
 	db.SavePublicKey(a.PublicKey.ID, a.PublicKey.Owner, a.PublicKey.PublicKeyPEM)
 
 	return &a, nil
@@ -61,4 +61,13 @@ func RequestActorInbox(actorID string) string {
 		return ""
 	}
 	return actor.Inbox
+}
+
+func RequestPublicKeyPEM(actorID string) string {
+	actor, err := RequestActor(actorID)
+	if err != nil {
+		log.Printf("When requesting actor %s PEM: %s\n", actorID, err)
+		return ""
+	}
+	return actor.PublicKey.PublicKeyPEM
 }

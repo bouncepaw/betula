@@ -17,25 +17,6 @@ func SignRequest(rq *http.Request, content []byte) {
 	httpsig.SignRequest(keyId, privateKey, rq, content)
 }
 
-// VerifyRequest returns true if the request is alright. This function makes HTTP requests on your behalf to retrieve the public key.
-func VerifyRequest(rq *http.Request, content []byte) bool {
-	_, err := httpsig.VerifyRequest(rq, content, func(keyId string) (httpsig.PublicKey, error) {
-		pem := db.GetPublicKeyPEM(keyId)
-		if pem == "" {
-			// The zero PublicKey has a None key type, which the underlying VerifyRequest handles well.
-			return httpsig.PublicKey{}, nil
-		}
-
-		_, pub, err := httpsig.DecodeKey(pem)
-		return pub, err
-	})
-	if err != nil {
-		log.Printf("When verifying the signature of request to %s got error: %s\n", rq.URL.RequestURI(), err)
-		return false
-	}
-	return true
-}
-
 var (
 	privateKey   httpsig.PrivateKey
 	publicKey    httpsig.PublicKey
