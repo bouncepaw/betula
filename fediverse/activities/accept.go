@@ -1,6 +1,11 @@
 package activities
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/stricks"
+)
 
 // NewAccept wraps the acceptedActivity in an Accept activity.
 // The @context of the wrapped activity is deleted.
@@ -8,6 +13,7 @@ func NewAccept(acceptedActivity dict) ([]byte, error) {
 	delete(acceptedActivity, "@context")
 	return json.Marshal(dict{
 		"@context": atContext,
+		"id":       fmt.Sprintf("%s/temp/%s", settings.SiteURL(), stricks.RandomWhatever()),
 		"type":     "Accept",
 		"actor":    betulaActor,
 		"object":   acceptedActivity,
