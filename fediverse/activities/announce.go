@@ -2,6 +2,7 @@ package activities
 
 import (
 	"encoding/json"
+	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 )
 
@@ -9,9 +10,12 @@ func NewAnnounce(originalURL string, repostURL string) ([]byte, error) {
 	activity := map[string]any{
 		"@context": atContext,
 		"type":     "Announce",
-		"actor":    betulaActor,
-		"id":       repostURL,
-		"object":   originalURL,
+		"actor": map[string]string{
+			"id":                betulaActor,
+			"preferredUsername": settings.AdminUsername(),
+		},
+		"id":     repostURL,
+		"object": originalURL,
 	}
 	return json.Marshal(activity)
 }

@@ -3,7 +3,6 @@ package activities
 import (
 	"encoding/json"
 	"git.sr.ht/~bouncepaw/betula/settings"
-	"log"
 )
 
 type UndoAnnounceReport struct {
@@ -42,17 +41,6 @@ func guessUndo(activity dict) (reportMaybe any, err error) {
 	)
 
 	if err := mustHaveSuchField(
-		activity, "actor", ErrNoActor,
-		func(v map[string]any) {
-			switch un := v["preferredUsername"].(type) {
-			case string:
-				report.ReposterUsername = un
-			}
-		}); err != nil {
-		return nil, err
-	}
-
-	if err := mustHaveSuchField(
 		activity, "object", ErrNoObject,
 		func(v map[string]any) {
 			objectMap = v
@@ -71,19 +59,23 @@ func guessUndo(activity dict) (reportMaybe any, err error) {
 		case string:
 			report.OriginalPage = original
 		}
+		switch actor := objectMap["actor"].(type) {
+		case dict:
+			switch username := actor["preferredUsername"].(type) {
+			case string:
+				report.ReposterUsername = username
+			}
+		}
 		return report, nil
 	case "Follow":
-		switch object := objectMap["object"].(type) {
-		case dict:
-			followReport, err := guessFollow(object)
-			if err != nil {
-				return nil, err
-			}
-			return UndoFollowReport{followReport.(FollowReport)}, nil
-		default:
-			log.Printf("Invalid Follow.object of type %T: %q\n", object, object)
+		if objectMap == nil {
 			return nil, ErrNoObject
 		}
+		followReport, err := guessFollow(objectMap)
+		if err != nil {
+			return nil, err
+		}
+		return UndoFollowReport{followReport.(FollowReport)}, nil
 	default:
 		return nil, ErrUnknownType
 	}
