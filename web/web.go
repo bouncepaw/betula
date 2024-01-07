@@ -70,9 +70,9 @@ func (a *auther) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if !authOK {
-		templateExec(w, templateRegisterForm, dataAuthorized{
+		templateExec(w, rq, templateRegisterForm, dataAuthorized{
 			dataCommon: emptyCommon(),
-		}, rq)
+		})
 		return
 	}
 

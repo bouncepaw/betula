@@ -255,10 +255,10 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		actor.SubscriptionStatus = db.SubscriptionStatus(actor.ID)
 		actor.Acct = fmt.Sprintf("@%s@%s", user, host)
 
-		templateExec(w, templateRemoteProfile, dataRemoteProfile{
+		templateExec(w, rq, templateRemoteProfile, dataRemoteProfile{
 			dataCommon: emptyCommon(),
 			Account:    *actor,
-		}, rq)
+		})
 
 	case !isRemote && userAtHost != ourUsername:
 		log.Printf("Request local user @%s, not found\n", userAtHost)
@@ -287,10 +287,10 @@ type dataSubscribe struct {
 
 func handlerSubscribe(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method == http.MethodGet {
-		templateExec(w, templateSubscribe, dataSubscribe{
+		templateExec(w, rq, templateSubscribe, dataSubscribe{
 			dataCommon: emptyCommon(),
 			SiteURL:    settings.SiteURL(),
-		}, rq)
+		})
 		return
 	}
 
@@ -305,21 +305,21 @@ func handlerSubscribe(w http.ResponseWriter, rq *http.Request) {
 	can := false
 	err := errors.New("unimplemented")
 	if !can {
-		templateExec(w, templateSubscribe, dataSubscribe{
+		templateExec(w, rq, templateSubscribe, dataSubscribe{
 			dataCommon:         emptyCommon(),
 			ErrCannotSubscribe: true,
 			ErrMessage:         err.Error(),
-		}, rq)
+		})
 		return
 	}
 
 	// TODO: Send a request
 
 	// Follow request was sent
-	templateExec(w, templateSubscribe, dataSubscribe{
+	templateExec(w, rq, templateSubscribe, dataSubscribe{
 		dataCommon:     emptyCommon(),
 		RequestWasSent: true,
-	}, rq)
+	})
 }
 
 func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
@@ -452,10 +452,10 @@ func handlerSubscriptions(w http.ResponseWriter, rq *http.Request) {
 	posts, totalPosts := db.Posts(true, currentPage)
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
 
-	templateExec(w, templateSubscriptions, dataSubscriptions{
+	templateExec(w, rq, templateSubscriptions, dataSubscriptions{
 		PostsInPage: posts,
 		dataCommon:  common,
-	}, rq)
+	})
 }
 
 func handlerUnrepost(w http.ResponseWriter, rq *http.Request) {
@@ -539,11 +539,11 @@ func handlerRepostsOf(w http.ResponseWriter, rq *http.Request) {
 
 	reposts, err := db.RepostsOf(post.ID)
 	_ = err // TODO: handle the error
-	templateExec(w, templateRepostsFor, dataRepostsOf{
+	templateExec(w, rq, templateRepostsFor, dataRepostsOf{
 		dataCommon: emptyCommon(),
 		Post:       post,
 		Reposts:    reposts,
-	}, rq)
+	})
 
 	log.Printf("Show %d reposts for post no. %d\n", len(reposts), id)
 }
@@ -572,7 +572,7 @@ func handlerRepost(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if rq.Method == http.MethodGet {
-		templateExec(w, templateRepost, repost, rq)
+		templateExec(w, rq, templateRepost, repost)
 		return
 	}
 
@@ -581,7 +581,7 @@ func handlerRepost(w http.ResponseWriter, rq *http.Request) {
 catchTheFire:
 	// All errors end up here.
 	w.WriteHeader(http.StatusBadRequest)
-	templateExec(w, templateRepost, repost, rq)
+	templateExec(w, rq, templateRepost, repost)
 	return
 
 good:
@@ -737,10 +737,10 @@ type dataBookmarklet struct {
 }
 
 func handlerBookmarklet(w http.ResponseWriter, rq *http.Request) {
-	templateExec(w, templateBookmarklet, dataBookmarklet{
+	templateExec(w, rq, templateBookmarklet, dataBookmarklet{
 		dataCommon: emptyCommon(),
 		Script:     fmt.Sprintf(bookmarkletScript, settings.SiteURL()),
-	}, rq)
+	})
 }
 
 func handlerHelp(w http.ResponseWriter, rq *http.Request) {
@@ -764,11 +764,11 @@ func handlerEnglishHelp(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	templateExec(w, templateHelp, dataHelp{
+	templateExec(w, rq, templateHelp, dataHelp{
 		dataCommon: emptyCommon(),
 		This:       topic,
 		Topics:     help.Topics,
-	}, rq)
+	})
 }
 
 func handlerStyle(w http.ResponseWriter, rq *http.Request) {
@@ -824,12 +824,12 @@ func handlerSearch(w http.ResponseWriter, rq *http.Request) {
 	common.paginator = types.PaginatorFromURL(rq.URL, uint(currentPage), totalPosts)
 	common.searchQuery = query
 	log.Printf("Searching ‘%s’. Authorized: %v\n", query, authed)
-	templateExec(w, templateSearch, dataSearch{
+	templateExec(w, rq, templateSearch, dataSearch{
 		dataCommon:  common,
 		Query:       query,
 		PostsInPage: posts,
 		TotalPosts:  totalPosts,
-	}, rq)
+	})
 }
 
 func handlerText(w http.ResponseWriter, rq *http.Request) {
@@ -906,11 +906,11 @@ func handlerDay(w http.ResponseWriter, rq *http.Request) {
 		handlerNotFound(w, rq)
 		return
 	}
-	templateExec(w, templateDay, dataDay{
+	templateExec(w, rq, templateDay, dataDay{
 		dataCommon: emptyCommon(),
 		DayStamp:   dayStamp,
 		Posts:      db.PostsForDay(authed, dayStamp),
-	}, rq)
+	})
 }
 
 type dataSettings struct {
@@ -924,7 +924,7 @@ type dataSettings struct {
 func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	isFirstRun := rq.FormValue("first-run") == "true"
 	if rq.Method == http.MethodGet {
-		templateExec(w, templateSettings, dataSettings{
+		templateExec(w, rq, templateSettings, dataSettings{
 			Settings: types.Settings{
 				NetworkHost:               settings.NetworkHost(),
 				NetworkPort:               settings.NetworkPort(),
@@ -938,7 +938,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 			dataCommon:  emptyCommon(),
 			FirstRun:    isFirstRun,
 			RequestHost: rq.Host,
-		}, rq)
+		})
 		return
 	}
 
@@ -955,11 +955,11 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	// If the port ≤ 0 or not really numeric, show error.
 	if port, err := strconv.Atoi(rq.FormValue("network-port")); err != nil || port <= 0 {
 		newSettings.NetworkPort = uint(port)
-		templateExec(w, templateSettings, dataSettings{
+		templateExec(w, rq, templateSettings, dataSettings{
 			Settings:   newSettings,
 			ErrBadPort: true,
 			dataCommon: emptyCommon(),
-		}, rq)
+		})
 		return
 	} else {
 		newSettings.NetworkPort = settings.ValidatePortFromWeb(port)
@@ -1016,36 +1016,36 @@ func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
 func handlerNotFound(w http.ResponseWriter, rq *http.Request) {
 	log.Printf("404 Not found: %s\n", rq.URL.Path)
 	w.WriteHeader(http.StatusNotFound)
-	templateExec(w, templateStatus, dataAuthorized{
+	templateExec(w, rq, templateStatus, dataAuthorized{
 		dataCommon: emptyCommon(),
 		Status:     http.StatusText(http.StatusNotFound),
-	}, rq)
+	})
 }
 
 func handlerUnauthorized(w http.ResponseWriter, rq *http.Request) {
 	log.Printf("401 Unauthorized: %s\n", rq.URL.Path)
 	w.WriteHeader(http.StatusUnauthorized)
-	templateExec(w, templateStatus, dataAuthorized{
+	templateExec(w, rq, templateStatus, dataAuthorized{
 		dataCommon: emptyCommon(),
 		Status:     http.StatusText(http.StatusUnauthorized),
-	}, rq)
+	})
 }
 
 func handlerNotFederated(w http.ResponseWriter, rq *http.Request) {
 	// TODO: a proper separate error page!
 	log.Printf("404 Not found + Not federated: %s\n", rq.URL.Path)
 	w.WriteHeader(http.StatusNotFound)
-	templateExec(w, templateStatus, dataAuthorized{
+	templateExec(w, rq, templateStatus, dataAuthorized{
 		dataCommon: emptyCommon(),
 		Status:     "Not federated",
-	}, rq)
+	})
 }
 
 func handlerLogout(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method == http.MethodGet {
-		templateExec(w, templateLogoutForm, dataAuthorized{
+		templateExec(w, rq, templateLogoutForm, dataAuthorized{
 			dataCommon: emptyCommon(),
-		}, rq)
+		})
 		return
 	}
 
@@ -1063,9 +1063,9 @@ type dataLogin struct {
 
 func handlerLogin(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method == http.MethodGet {
-		templateExec(w, templateLoginForm, dataLogin{
+		templateExec(w, rq, templateLoginForm, dataLogin{
 			dataCommon: emptyCommon(),
-		}, rq)
+		})
 		return
 	}
 
@@ -1077,12 +1077,12 @@ func handlerLogin(w http.ResponseWriter, rq *http.Request) {
 	if !auth.CredentialsMatch(name, pass) {
 		// If incorrect password, ask the client to try again.
 		w.WriteHeader(http.StatusBadRequest)
-		templateExec(w, templateLoginForm, dataLogin{
+		templateExec(w, rq, templateLoginForm, dataLogin{
 			Name:       name,
 			Pass:       pass,
 			Incorrect:  true,
 			dataCommon: emptyCommon(),
-		}, rq)
+		})
 		return
 	}
 
@@ -1114,10 +1114,10 @@ type dataTags struct {
 
 func handlerTags(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
-	templateExec(w, templateTags, dataTags{
+	templateExec(w, rq, templateTags, dataTags{
 		Tags:       db.Tags(authed),
 		dataCommon: emptyCommon(),
-	}, rq)
+	})
 }
 
 type dataTag struct {
@@ -1144,7 +1144,7 @@ func handlerTag(w http.ResponseWriter, rq *http.Request) {
 	common := emptyCommon()
 	common.searchQuery = "#" + tagName
 	common.paginator = types.PaginatorFromURL(rq.URL, uint(currentPage), totalPosts)
-	templateExec(w, templateTag, dataTag{
+	templateExec(w, rq, templateTag, dataTag{
 		Tag: types.Tag{
 			Name:        tagName,
 			Description: db.DescriptionForTag(tagName),
@@ -1152,7 +1152,7 @@ func handlerTag(w http.ResponseWriter, rq *http.Request) {
 		PostsInPage: posts,
 		TotalPosts:  totalPosts,
 		dataCommon:  common,
-	}, rq)
+	})
 }
 
 type dataAbout struct {
@@ -1166,14 +1166,14 @@ type dataAbout struct {
 
 func handlerAbout(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
-	templateExec(w, templateAbout, dataAbout{
+	templateExec(w, rq, templateAbout, dataAbout{
 		dataCommon:      emptyCommon(),
 		LinkCount:       db.PostCount(authed),
 		TagCount:        db.TagCount(authed),
 		OldestTime:      db.OldestTime(authed),
 		NewestTime:      db.NewestTime(authed),
 		SiteDescription: settings.SiteDescriptionHTML(),
-	}, rq)
+	})
 }
 
 func mixUpTitleLink(title *string, addr *string) {
@@ -1244,10 +1244,10 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 
 	if rq.Method == http.MethodGet {
 		post.Tags = db.TagsForPost(id)
-		templateExec(w, templateEditLink, dataEditLink{
+		templateExec(w, rq, templateEditLink, dataEditLink{
 			Post:       post,
 			dataCommon: common,
-		}, rq)
+		})
 		return
 	}
 
@@ -1311,10 +1311,10 @@ func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if rq.Method == http.MethodGet {
-		templateExec(w, templateEditTag, dataEditTag{
+		templateExec(w, rq, templateEditTag, dataEditTag{
 			Tag:        oldTag,
 			dataCommon: emptyCommon(),
-		}, rq)
+		})
 		return
 	}
 
@@ -1327,21 +1327,21 @@ func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
 
 	if db.TagExists(newTag.Name) && merge != "true" && newTag.Name != oldTag.Name {
 		log.Printf("Trying to rename a tag %s to a taken name %s.\n", oldTag.Name, newTag.Name)
-		templateExec(w, templateEditTag, dataEditTag{
+		templateExec(w, rq, templateEditTag, dataEditTag{
 			Tag:            oldTag,
 			ErrorTakenName: true,
 			dataCommon:     emptyCommon(),
-		}, rq)
+		})
 		return
 	}
 
 	if !db.TagExists(oldTag.Name) {
 		log.Printf("Trying to rename a non-existent tag %s.\n", oldTag.Name)
-		templateExec(w, templateEditTag, dataEditTag{
+		templateExec(w, rq, templateEditTag, dataEditTag{
 			Tag:              oldTag,
 			ErrorNonExistent: true,
 			dataCommon:       emptyCommon(),
-		}, rq)
+		})
 		return
 	}
 
@@ -1409,10 +1409,10 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 		post.Description = rq.FormValue("description")
 		post.Tags = types.SplitTags(rq.FormValue("tags"))
 		// TODO: Document the param behaviour
-		templateExec(w, templateSaveLink, dataSaveLink{
+		templateExec(w, rq, templateSaveLink, dataSaveLink{
 			Post:       post,
 			dataCommon: common,
-		}, rq)
+		})
 		return
 	}
 
@@ -1458,11 +1458,11 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	if another == "true" {
 		var anotherPost types.Post
 		anotherPost.Visibility = types.Public
-		templateExec(w, templateSaveLink, dataSaveLink{
+		templateExec(w, rq, templateSaveLink, dataSaveLink{
 			dataCommon: common,
 			Post:       anotherPost,
 			Another:    true,
-		}, rq)
+		})
 		return
 	}
 
@@ -1505,11 +1505,11 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 	common.head = template.HTML(fmt.Sprintf(`<link rel="alternate" type="text/mycomarkup" href="/text/%d">`, id))
 
 	post.Tags = db.TagsForPost(id)
-	templateExec(w, templatePost, dataPost{
+	templateExec(w, rq, templatePost, dataPost{
 		Post:        post,
 		RepostCount: db.CountRepostsOf(id),
 		dataCommon:  common,
-	}, rq)
+	})
 }
 
 func handlerPostLast(w http.ResponseWriter, rq *http.Request) {
@@ -1522,10 +1522,10 @@ func handlerPostLast(w http.ResponseWriter, rq *http.Request) {
 	}
 	log.Printf("Viewing the latest post %d\n", post.ID)
 	post.Tags = db.TagsForPost(post.ID)
-	templateExec(w, templatePost, dataPost{
+	templateExec(w, rq, templatePost, dataPost{
 		Post:       post,
 		dataCommon: emptyCommon(),
-	}, rq)
+	})
 }
 
 type dataFeed struct {
@@ -1566,12 +1566,12 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	posts, totalPosts := db.Posts(authed, currentPage)
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
 
-	templateExec(w, templateFeed, dataFeed{
+	templateExec(w, rq, templateFeed, dataFeed{
 		TotalPosts:      totalPosts,
 		PostsInPage:     posts,
 		SiteDescription: settings.SiteDescriptionHTML(),
 		dataCommon:      common,
-	}, rq)
+	})
 }
 
 func handlerGo(w http.ResponseWriter, rq *http.Request) {

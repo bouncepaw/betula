@@ -35,7 +35,7 @@ func templateFrom(funcMap template.FuncMap, filenames ...string) *template.Templ
 	return template.Must(template.New("skeleton.gohtml").Funcs(funcMap).ParseFS(fs, filenames...))
 }
 
-func templateExec(w http.ResponseWriter, temp *template.Template, data viewData, rq *http.Request) {
+func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Template, data viewData) {
 	common := dataCommon{
 		authorized: auth.AuthorizedFromRequest(rq),
 		siteTitle:  settings.SiteTitle(),
