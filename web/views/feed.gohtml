@@ -5,7 +5,7 @@
 			<h2 class="p-name">Bookmarks</h2>{{$authed := .Authorized}}
 			<p><span class="mv-count">{{.TotalPosts}}</span> bookmark{{if ne .TotalPosts 1}}s{{end}} saved.</p>
             {{if eq .TotalPosts 0 | and .Authorized}}
-				<a class="btn btn-accent" href="/save-link">Save link</a>
+				<div style="margin-top:.5rem"><a class="btn btn-accent" href="/save-link">Save link</a></div>
             {{end}}
 			{{if .SiteDescription}}<p class="p-summary">{{.SiteDescription}}</p>{{end}}
 		</article>
@@ -18,9 +18,11 @@
                 {{template "post main fragment" .}}
 			</article>
 		{{else}}
+			{{if ne .TotalPosts 0}}
 	        <article>
 		        Page not found. Choose a page from the paginator below.
 	        </article>
+			{{end}}
         {{end}}
 		{{template "paginator" .}}
 	</main>
