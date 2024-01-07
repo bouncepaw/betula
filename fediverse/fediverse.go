@@ -3,6 +3,7 @@ package fediverse
 
 import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing/httpsig"
+	"git.sr.ht/~bouncepaw/betula/settings"
 	"log"
 	"net/http"
 	"time"
@@ -29,4 +30,8 @@ func VerifyRequest(rq *http.Request, content []byte) bool {
 		return false
 	}
 	return true
+}
+
+func OurID() string {
+	return settings.SiteURL() + "/@" + settings.AdminUsername()
 }

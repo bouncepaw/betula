@@ -3,10 +3,15 @@ package activities
 import (
 	"encoding/json"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	"log"
 )
 
 type UndoAnnounceReport struct {
 	AnnounceReport
+}
+
+type UndoFollowReport struct {
+	FollowReport
 }
 
 func newUndo(objectId string, object dict) ([]byte, error) {
@@ -67,7 +72,18 @@ func guessUndo(activity dict) (reportMaybe any, err error) {
 			report.OriginalPage = original
 		}
 		return report, nil
-		// TODO: Follow
+	case "Follow":
+		switch object := objectMap["object"].(type) {
+		case dict:
+			followReport, err := guessFollow(object)
+			if err != nil {
+				return nil, err
+			}
+			return UndoFollowReport{followReport.(FollowReport)}, nil
+		default:
+			log.Printf("Invalid Follow.object of type %T: %q\n", object, object)
+			return nil, ErrNoObject
+		}
 	default:
 		return nil, ErrUnknownType
 	}

@@ -6,6 +6,10 @@ func AddFollower(id string) {
 	mustExec(`replace into Followers (ActorID) values (?)`, id)
 }
 
+func RemoveFollower(id string) {
+	mustExec(`delete from Followers where ActorID = ?`, id)
+}
+
 func AddPendingFollowing(id string) {
 	mustExec(`replace into Following (ActorID) values (?)`, id)
 }

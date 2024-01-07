@@ -42,3 +42,7 @@ const (
 func (sr SubscriptionRelation) IsPending() bool {
 	return sr == SubscriptionPending || sr == SubscriptionPendingMutual
 }
+
+func (sr SubscriptionRelation) TheyFollowUs() bool {
+	return sr == SubscriptionTheyFollow || sr == SubscriptionMutual || sr == SubscriptionPendingMutual
+}

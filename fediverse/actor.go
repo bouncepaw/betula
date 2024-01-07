@@ -3,7 +3,6 @@ package fediverse
 import (
 	"encoding/json"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"io"
@@ -39,6 +38,7 @@ func RequestActorByNickname(nickname string) (*types.Actor, error) {
 // RequestActor fetches the actor activity on the specified address.
 func RequestActor(actorID string) (*types.Actor, error) {
 	if cachedActor, ok := ActorStorage[actorID]; ok {
+		log.Printf("Returning cached author %s\n", actorID)
 		return cachedActor, nil
 	}
 
@@ -74,7 +74,6 @@ func RequestActor(actorID string) (*types.Actor, error) {
 
 	ActorStorage[a.ID] = &a
 	KeyPEMStorage[a.PublicKey.ID] = a.PublicKey.PublicKeyPEM
-	db.SavePublicKey(a.PublicKey.ID, a.PublicKey.Owner, a.PublicKey.PublicKeyPEM)
 
 	return &a, nil
 }
@@ -86,13 +85,4 @@ func RequestActorInbox(actorID string) string {
 		return ""
 	}
 	return actor.Inbox
-}
-
-func RequestPublicKeyPEM(actorID string) string {
-	actor, err := RequestActor(actorID)
-	if err != nil {
-		log.Printf("When requesting actor %s PEM: %s\n", actorID, err)
-		return ""
-	}
-	return actor.PublicKey.PublicKeyPEM
 }

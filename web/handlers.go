@@ -642,17 +642,6 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	signedOK := fediverse.VerifyRequest(rq, data)
-	if !signedOK {
-		switch report.(type) {
-		case activities.UndoAnnounceReport, activities.AnnounceReport:
-			// For a couple of versions, we won't be checking signatures for these activities
-			break
-		default:
-			return
-		}
-	}
-
 	switch report := report.(type) {
 	case activities.UndoAnnounceReport:
 		log.Printf("%s revoked their repost of %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
@@ -662,14 +651,31 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		log.Printf("%s reposted %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
 		go jobs.ScheduleJSON(jobtype.ReceiveAnnounce, report)
 
+	case activities.UndoFollowReport:
+		// We'll schedule no job because we are making no network request to handle this.
+		if report.ObjectID != fediverse.OurID() {
+			log.Printf("%s asked to unfollow %s, and that's not us; ignoring.\n", report.ActorID, report.ObjectID)
+			return
+		}
+		if !db.SubscriptionStatus(report.ActorID).TheyFollowUs() {
+			log.Printf("%s asked to unfollow us, but they don't follow us; ignoring.\n", report.ActorID)
+			return
+		}
+		log.Printf("%s asked to unfollow us. Thanks for being with us, goodbye!\n", report.ActorID)
+		db.RemoveFollower(report.ActorID)
+
 	case activities.FollowReport:
 		_, err := fediverse.RequestActor(report.ActorID)
 		if err != nil {
 			log.Printf("Couldn't fetch actor: %s\n", err)
 			return
 		}
+		if signedOK := fediverse.VerifyRequest(rq, data); !signedOK {
+			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
+			return
+		}
 
-		if report.ObjectID == settings.SiteURL()+"/@"+settings.AdminUsername() {
+		if report.ObjectID == fediverse.OurID() {
 			log.Printf("%s asked to follow us\n", report.ActorID)
 			go jobs.ScheduleJSON(jobtype.SendAcceptFollow, report)
 		} else {
@@ -681,6 +687,10 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		_, err := fediverse.RequestActor(report.ActorID)
 		if err != nil {
 			log.Printf("Couldn't fetch actor: %s\n", err)
+			return
+		}
+		if signedOK := fediverse.VerifyRequest(rq, data); !signedOK {
+			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
 			return
 		}
 
@@ -698,6 +708,10 @@ func handlerInbox(w http.ResponseWriter, rq *http.Request) {
 		_, err := fediverse.RequestActor(report.ActorID)
 		if err != nil {
 			log.Printf("Couldn't fetch actor: %s\n", err)
+			return
+		}
+		if signedOK := fediverse.VerifyRequest(rq, data); !signedOK {
+			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
 			return
 		}
 
