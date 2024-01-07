@@ -11,17 +11,17 @@
             </ul>
             {{$status := .Account.SubscriptionStatus}}
             {{if eq $status "mutual"}}
-                <form action="/unfollow/{{.Account.Acct}}">
+                <form action="/unfollow?account={{.Account.Acct}}&next=/{{.Account.Acct}}">
                     <p>You are mutuals!</p>
                     <input type="submit" value="Unfollow" class="btn">
                 </form>
             {{else if eq $status "following"}}
-                <form action="/unfollow/{{.Account.Acct}}">
+                <form action="/unfollow?account={{.Account.Acct}}&next=/{{.Account.Acct}}">
                     <p>Following</p>
                     <input type="submit" value="Unfollow" class="btn">
                 </form>
             {{else if eq $status "follower"}}
-                <form action="/unfollow/{{.Account.Acct}}">
+                <form action="/follow?account={{.Account.Acct}}&next=/{{.Account.Acct}}">
                     <p>They follow you.</p>
                     <input type="submit" value="Follow back" class="btn">
                 </form>
@@ -44,7 +44,8 @@
         <article class="no-feed-notice">
             Bookmarks from remote profiles do not yet arrive.
             If you subscribe to this account,
-            the bookmarks will flow in later, hopefully.
+            their bookmarks will flow in a later version,
+            hopefully.
         </article>
     </main>
 {{end}}
