@@ -89,7 +89,7 @@ func sendAcceptFollow(report activities.FollowReport) {
 	if err = SendActivityToInbox(activity, fediverse.RequestActorInbox(report.ActorID)); err != nil {
 		log.Println(err)
 	} else {
-		db.AddFollower(report.ObjectID)
+		db.AddFollower(report.ActorID)
 	}
 }
 

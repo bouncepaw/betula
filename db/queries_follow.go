@@ -3,11 +3,11 @@ package db
 import "git.sr.ht/~bouncepaw/betula/types"
 
 func AddFollower(id string) {
-	mustExec(`insert into Followers (ActorID) values (?)`, id)
+	mustExec(`replace into Followers (ActorID) values (?)`, id)
 }
 
 func AddPendingFollowing(id string) {
-	mustExec(`insert into Following (ActorID) values (?)`, id)
+	mustExec(`replace into Following (ActorID) values (?)`, id)
 }
 
 func MarkAsSurelyFollowing(id string) {
