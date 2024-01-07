@@ -352,22 +352,25 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 	var (
 		siteURL       = settings.SiteURL()
 		adminUsername = settings.AdminUsername()
-		actorID       = fmt.Sprintf("%s/@%s", siteURL, adminUsername)
 	)
 
 	doc, err := json.Marshal(map[string]any{
 		"@context":          []string{"https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1"},
 		"type":              "Person",
-		"id":                actorID,
+		"id":                fediverse.OurID(),
 		"preferredUsername": adminUsername,
 		"name":              settings.SiteName(),
 		"inbox":             siteURL + "/inbox",
 		"summary":           settings.SiteDescriptionMycomarkup(), // TODO: Think about it
 		"publicKey": map[string]string{
-			"id":           siteURL + "/@" + adminUsername + "#main-key",
-			"owner":        actorID,
+			"id":           fediverse.OurID() + "#main-key",
+			"owner":        fediverse.OurID(),
 			"publicKeyPem": signing.PublicKey(),
 		},
+		"followers": siteURL + "/followers",
+		"following": siteURL + "/following",
+		"outbox":    siteURL + "/outbox",
+		"url":       fediverse.OurID(),
 	})
 	if err != nil {
 		log.Printf("When marshaling actor activity: %s\n", err)
