@@ -64,6 +64,17 @@ func federatedOnly(next func(http.ResponseWriter, *http.Request)) func(http.Resp
 	}
 }
 
+func postOnly(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, rq *http.Request) {
+		if rq.Method != http.MethodPost {
+			log.Printf("Accessing %s with method %s, which is not POST. 404.\n", rq.URL.Path, rq.Method)
+			handlerNotFound(w, rq)
+			return
+		}
+		next(w, rq)
+	}
+}
+
 func init() {
 	mux.HandleFunc("/", handlerFeed)
 	mux.HandleFunc("/reposts-of/", handlerRepostsOf)
@@ -98,7 +109,8 @@ func init() {
 	/// TODO: Rename/merge these one day
 	mux.HandleFunc("/subscribe", federatedOnly(handlerSubscribe))
 	mux.HandleFunc("/subscriptions", adminOnly(federatedOnly(handlerSubscriptions)))
-	mux.HandleFunc("/follow", adminOnly(federatedOnly(handlerFollow)))
+	mux.HandleFunc("/follow", postOnly(adminOnly(federatedOnly(handlerFollow))))
+	mux.HandleFunc("/unfollow", postOnly(adminOnly(federatedOnly(handlerUnfollow))))
 
 	// ActivityPub
 	mux.HandleFunc("/inbox", federatedOnly(handlerInbox))
@@ -112,6 +124,39 @@ func init() {
 
 	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+// handlerUnfollow is similar to handlerFollow excepts it's unfollow
+func handlerUnfollow(w http.ResponseWriter, rq *http.Request) {
+	var (
+		account = rq.FormValue("account")
+		next    = rq.FormValue("next")
+	)
+
+	if account == "" || next == "" {
+		log.Println("/unfollow: required parameters were not passed")
+		handlerNotFound(w, rq)
+		return
+	}
+
+	actor, err := fediverse.RequestActorByNickname(account)
+	if err != nil {
+		log.Printf("/unfollow: %s\n", err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	activity, err := activities.NewUndoFollowFromUs(actor.ID)
+	if err != nil {
+		log.Printf("When creating Undo{Follow} activity: %s\n", err)
+		return
+	}
+	if err = jobs.SendActivityToInbox(activity, actor.Inbox); err != nil {
+		log.Printf("When sending activity: %s\n", err)
+		return
+	}
+	db.StopFollowing(actor.ID)
+	http.Redirect(w, rq, next, http.StatusSeeOther)
 }
 
 // handlerFollow follows the account specified and redirects next if successful, shows an error if not.
@@ -130,32 +175,9 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	var (
-		userAtHost     = strings.TrimPrefix(account, "@")
-		user, host, ok = strings.Cut(userAtHost, "@")
-	)
-
-	if !ok {
-		log.Printf("/follow: bad username: %s\n", userAtHost)
-		handlerNotFound(w, rq)
-		return
-	}
-
-	wa, found, err := fediverse.RequestWebFinger(user, host)
-	if !found {
-		log.Printf("@%s@%s was not found. 404.\n", user, host)
-		handlerNotFound(w, rq)
-		return
-	}
+	actor, err := fediverse.RequestActorByNickname(account)
 	if err != nil {
-		log.Printf("While fetching @%s@%s, got the error: %s. 404.\n", user, host, err)
-		handlerNotFound(w, rq)
-		return
-	}
-
-	actor, err := fediverse.RequestActor(wa.ActorURL)
-	if err != nil {
-		log.Printf("While fetching %s profile, got the error: %s\n", wa.ActorURL, err)
+		log.Printf("/follow: %s\n", err)
 		handlerNotFound(w, rq)
 		return
 	}

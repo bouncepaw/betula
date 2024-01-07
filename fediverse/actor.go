@@ -9,7 +9,32 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 )
+
+// RequestActorByNickname returns actor by string like @bouncepaw@links.bouncepaw.com or bouncepaw@links.bouncepaw.com.
+func RequestActorByNickname(nickname string) (*types.Actor, error) {
+	user, host, ok := strings.Cut(strings.TrimPrefix(nickname, "@"), "@")
+
+	if !ok {
+		return nil, fmt.Errorf("bad username: %s", nickname)
+	}
+
+	wa, found, err := RequestWebFinger(user, host)
+	if !found {
+		return nil, fmt.Errorf("user not found 404: %s", nickname)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	actor, err := RequestActor(wa.ActorURL)
+	if err != nil {
+		return nil, fmt.Errorf("while fetching actor %s: %w", wa.ActorURL, err)
+	}
+
+	return actor, nil
+}
 
 // RequestActor fetches the actor activity on the specified address.
 func RequestActor(actorID string) (*types.Actor, error) {

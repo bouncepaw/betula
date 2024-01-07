@@ -6,6 +6,22 @@ import (
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
+func NewUndoFollowFromUs(objectID string) ([]byte, error) {
+	activity := dict{
+		"@context": atContext,
+		"id":       fmt.Sprintf("%s/unfollow?account=%s", settings.SiteURL(), objectID),
+		"type":     "Undo",
+		"actor":    betulaActor,
+		"object": dict{
+			"id":     fmt.Sprintf("%s/follow?account=%s", settings.SiteURL(), objectID),
+			"type":   "Follow",
+			"actor":  betulaActor,
+			"object": objectID,
+		},
+	}
+	return json.Marshal(activity)
+}
+
 func NewFollowFromUs(objectID string) ([]byte, error) {
 	activity := dict{
 		"@context": atContext,
