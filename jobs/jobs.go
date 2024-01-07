@@ -81,7 +81,9 @@ func SendActivityToInbox(activity []byte, inbox string) error {
 		log.Println(err)
 		return err
 	}
-	log.Printf("Activity sent to %s returned %d status\n", inbox, resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Activity sent to %s returned %d status\n", inbox, resp.StatusCode)
+	}
 	return nil
 }
 

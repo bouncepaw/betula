@@ -159,17 +159,17 @@ func handlerFollow(w http.ResponseWriter, rq *http.Request) {
 		handlerNotFound(w, rq)
 		return
 	}
-	inbox := actor.Inbox
 
 	activity, err := activities.NewFollowFromUs(actor.ID)
 	if err != nil {
 		log.Printf("When creating Follow activity: %s\n", err)
 		return
 	}
-	if err = jobs.SendActivityToInbox(activity, inbox); err != nil {
+	if err = jobs.SendActivityToInbox(activity, actor.Inbox); err != nil {
 		log.Printf("When sending activity: %s\n", err)
 		return
 	}
+	db.AddPendingFollowing(actor.ID)
 	http.Redirect(w, rq, next, http.StatusSeeOther)
 }
 
