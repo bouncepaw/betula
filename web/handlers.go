@@ -835,9 +835,9 @@ func handlerStyle(w http.ResponseWriter, rq *http.Request) {
 
 type dataSearch struct {
 	*dataCommon
-	Query       string
-	TotalPosts  uint
-	PostsInPage []types.Post
+	Query            string
+	TotalPosts       uint
+	PostGroupsInPage []types.PostGroup
 }
 
 var tagOnly = regexp.MustCompile(`^#([^?!:#@<>*|'"&%{}\\\s]+)\s*$`)
@@ -865,10 +865,10 @@ func handlerSearch(w http.ResponseWriter, rq *http.Request) {
 	common.searchQuery = query
 	log.Printf("Searching ‘%s’. Authorized: %v\n", query, authed)
 	templateExec(w, rq, templateSearch, dataSearch{
-		dataCommon:  common,
-		Query:       query,
-		PostsInPage: posts,
-		TotalPosts:  totalPosts,
+		dataCommon:       common,
+		Query:            query,
+		PostGroupsInPage: types.GroupPostsByDate(posts),
+		TotalPosts:       totalPosts,
 	})
 }
 
@@ -1163,8 +1163,8 @@ func handlerTags(w http.ResponseWriter, rq *http.Request) {
 type dataTag struct {
 	*dataCommon
 	types.Tag
-	TotalPosts  uint
-	PostsInPage []types.Post
+	TotalPosts       uint
+	PostGroupsInPage []types.PostGroup
 }
 
 func handlerTag(w http.ResponseWriter, rq *http.Request) {
@@ -1189,9 +1189,9 @@ func handlerTag(w http.ResponseWriter, rq *http.Request) {
 			Name:        tagName,
 			Description: db.DescriptionForTag(tagName),
 		},
-		PostsInPage: posts,
-		TotalPosts:  totalPosts,
-		dataCommon:  common,
+		PostGroupsInPage: types.GroupPostsByDate(posts),
+		TotalPosts:       totalPosts,
+		dataCommon:       common,
 	})
 }
 
@@ -1569,9 +1569,9 @@ func handlerPostLast(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataFeed struct {
-	TotalPosts      uint
-	PostsInPage     []types.Post
-	SiteDescription template.HTML
+	TotalPosts       uint
+	PostGroupsInPage []types.PostGroup
+	SiteDescription  template.HTML
 	*dataCommon
 }
 
@@ -1607,10 +1607,10 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
 
 	templateExec(w, rq, templateFeed, dataFeed{
-		TotalPosts:      totalPosts,
-		PostsInPage:     posts,
-		SiteDescription: settings.SiteDescriptionHTML(),
-		dataCommon:      common,
+		TotalPosts:       totalPosts,
+		PostGroupsInPage: types.GroupPostsByDate(posts),
+		SiteDescription:  settings.SiteDescriptionHTML(),
+		dataCommon:       common,
 	})
 }
 

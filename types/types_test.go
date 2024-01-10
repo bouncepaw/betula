@@ -1,6 +1,10 @@
 package types
 
-import "testing"
+import (
+	"fmt"
+	"reflect"
+	"testing"
+)
 
 func TestCleanerLinkParts(t *testing.T) {
 	check := func(url string, expectedLeft string, expectedRight string) {
@@ -20,4 +24,66 @@ func TestCleanerLinkParts(t *testing.T) {
 	check("http://example.com/?query=param#a/b", "example.com", "?query=param#a/b")
 	check("mailto:user@example.com", "mailto:user@example.com", "")
 	check("tel:+55551234567", "tel:+55551234567", "")
+}
+
+func TestGroupPostsByDate(t *testing.T) {
+	tests := []struct {
+		args             []Post
+		wantGroupedPosts []PostGroup
+	}{
+		{
+			[]Post{
+				{
+					CreationTime: "2024-01-10 15:35",
+					Title:        "I spilled energy drink on my MacBook keyboard.",
+				},
+				{
+					CreationTime: "2024-01-10 15:37",
+					Title:        "Why did I even buy it? I don't drink energy drinks!",
+				},
+				{
+					CreationTime: "2024-01-11 10:00",
+					Title:        "I ordered some compressed air.",
+				},
+				{
+					CreationTime: "2024-01-12 12:45",
+					Title:        "I hope it will help me.",
+				},
+			},
+			[]PostGroup{
+				{"2024-01-10", []Post{
+					{
+						CreationTime: "2024-01-10 15:35",
+						Title:        "I spilled energy drink on my MacBook keyboard.",
+					},
+					{
+						CreationTime: "2024-01-10 15:37",
+						Title:        "Why did I even buy it? I don't drink energy drinks!",
+					},
+				}},
+				{"2024-01-11", []Post{
+					{
+						CreationTime: "2024-01-11 10:00",
+						Title:        "I ordered some compressed air.",
+					},
+				}},
+				{"2024-01-12", []Post{
+					{
+						CreationTime: "2024-01-12 12:45",
+						Title:        "I hope it will help me.",
+					},
+				}},
+			},
+		},
+		{
+			nil, nil,
+		},
+	}
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("%d", i+1), func(t *testing.T) {
+			if gotGroupedPosts := GroupPostsByDate(tt.args); !reflect.DeepEqual(gotGroupedPosts, tt.wantGroupedPosts) {
+				t.Errorf("GroupPostsByDate() = %v, want %v", gotGroupedPosts, tt.wantGroupedPosts)
+			}
+		})
+	}
 }

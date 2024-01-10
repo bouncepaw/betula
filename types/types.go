@@ -54,6 +54,49 @@ type Post struct {
 	RepostOf *string
 }
 
+type PostGroup struct {
+	Date  string
+	Posts []Post
+}
+
+// GroupPostsByDate groups the posts by date. The dates are strings like 2024-01-10. This function expects the input posts to be sorted by date.
+func GroupPostsByDate(ungroupedPosts []Post) (groupedPosts []PostGroup) {
+	if len(ungroupedPosts) == 0 {
+		return nil
+	}
+
+	ungroupedPosts = append(ungroupedPosts, Post{
+		CreationTime: "9999-99-99 99:99",
+		Title:        "cutoff",
+	})
+
+	// len(2006-01-02)
+	const datelen = 10
+
+	var (
+		currentDate  string
+		currentPosts []Post
+	)
+
+	for _, post := range ungroupedPosts {
+		date := post.CreationTime[:datelen]
+		if date != currentDate {
+			if currentPosts != nil {
+				groupedPosts = append(groupedPosts, PostGroup{
+					Date:  currentDate,
+					Posts: currentPosts,
+				})
+			}
+			currentDate = date
+			currentPosts = nil
+		}
+
+		currentPosts = append(currentPosts, post)
+	}
+
+	return
+}
+
 type Tag struct {
 	Name        string
 	Description string

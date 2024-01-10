@@ -9,14 +9,17 @@
             {{end}}
 			{{if .SiteDescription}}<p class="p-summary">{{.SiteDescription}}</p>{{end}}
 		</article>
-        {{range .PostsInPage}}
-			<article class="h-entry">
-                {{if $authed}}
-                    {{template "post buttons fragment" .}}
-                {{end}}
-				<h3 class="p-name"><a class="u-url" href="/{{.ID}}">{{.Title}}</a></h3>
-                {{template "post main fragment" .}}
-			</article>
+        {{range .PostGroupsInPage}}
+			<h3 class="date-header"><a href="/day/{{.Date}}">{{.Date}}</a></h3>
+			{{range .Posts}}
+				<article class="h-entry">
+					{{if $authed}}
+						{{template "post buttons fragment" .}}
+					{{end}}
+					<h3 class="p-name"><a class="u-url" href="/{{.ID}}">{{.Title}}</a></h3>
+					{{template "post main fragment" .}}
+				</article>
+			{{end}}
 		{{else}}
 			{{if ne .TotalPosts 0}}
 	        <article>
