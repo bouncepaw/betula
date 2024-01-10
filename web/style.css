@@ -25,6 +25,9 @@
     main > article {
         padding: 8px;
     }
+    main > h3 {
+        margin-left: .5rem;
+    }
     .horizontal-scroll-on-phone {
         overflow-x: scroll;
         white-space: nowrap;
@@ -62,6 +65,9 @@
     main > article {
         max-width: 40rem;
         padding: 8px 16px;
+    }
+    .date-heading {
+        margin-left: 1rem;
     }
     .submit-another {
         display: inline-block;
@@ -109,13 +115,19 @@ footer {
 }
 
 /* Design */
+.date-heading {
+    font-size: 1rem;
+    font-weight: normal;
+    padding-top: .25rem;
+}
 .submit-another input {
     margin-top: 1rem;
 }
-main > * {
+main > article {
     box-shadow: 0 4px 12px 0#0d234308;
     border-radius: .5rem;
 }
+
 .u-repost-of {
     font-size: small;
 }
@@ -330,7 +342,9 @@ nav a, nav a:hover, nav a:visited {
 .btn, .btn:active, .btn:hover, .btn:visited {
     color: black;
 }
-.about-post a {
+.about-post a,
+.date-heading a,
+.date-link {
     color: black;
 }
 

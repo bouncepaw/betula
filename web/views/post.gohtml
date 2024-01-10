@@ -8,6 +8,11 @@
 			<h2 class="p-name"><a class="u-url" href="/{{.Post.ID}}">{{.Post.Title}}</a></h2>
 			{{if .RepostCount}}<a class="link-to-reposts" href="/reposts-of/{{.Post.ID}}">{{.RepostCount}} repost{{if gt .RepostCount 1}}s{{end}}</a>{{end}}
 			{{template "post main fragment" .Post}}
+			<a href="/day/{{timestampToDayStamp .Post.CreationTime}}" class="date-link">
+				<time class="dt-published" datetime="{{timestampToHuman .Post.CreationTime}}">
+					{{timestampToHuman .Post.CreationTime}} UTC
+				</time>
+			</a>
 		</article>
 	</main>
 {{end}}

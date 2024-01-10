@@ -10,7 +10,7 @@
 			{{if .SiteDescription}}<p class="p-summary">{{.SiteDescription}}</p>{{end}}
 		</article>
         {{range .PostGroupsInPage}}
-			<h3 class="date-header"><a href="/day/{{.Date}}">{{.Date}}</a></h3>
+			<h3 class="date-heading"><a href="/day/{{.Date}}">{{.Date}}</a></h3>
 			{{range .Posts}}
 				<article class="h-entry">
 					{{if $authed}}
