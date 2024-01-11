@@ -13,7 +13,7 @@ func Search(text string, includedTags []string, excludedTags []string, authorize
 	sort.Strings(excludedTags)
 
 	const q = `
-select ID, URL, Title, Description, Visibility, CreationTime
+select ID, URL, Title, Description, Visibility, CreationTime, RepostOf
 from Posts
 where DeletionTime is null and (Visibility = 1 or ?)
 order by CreationTime desc
@@ -23,7 +23,7 @@ order by CreationTime desc
 	var unfilteredPosts []types.Post
 	for rows.Next() {
 		var post types.Post
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime)
+		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
 		unfilteredPosts = append(unfilteredPosts, post)
 	}
 
