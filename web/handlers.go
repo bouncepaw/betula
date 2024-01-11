@@ -40,53 +40,54 @@ var (
 )
 
 func init() {
-	mux.HandleFunc("/", handlerFeed)
-	mux.HandleFunc("/reposts-of/", handlerRepostsOf)
-	mux.HandleFunc("/help/en/", handlerEnglishHelp)
-	mux.HandleFunc("/help", handlerHelp)
-	mux.HandleFunc("/text/", handlerText)
-	mux.HandleFunc("/digest-rss", handlerDigestRss)
-	mux.HandleFunc("/posts-rss", handlerPostsRss)
-	mux.HandleFunc("/go/", handlerGo)
-	mux.HandleFunc("/about", handlerAbout)
-	mux.HandleFunc("/tag/", handlerTag)
-	mux.HandleFunc("/day/", handlerDay)
-	mux.HandleFunc("/search", handlerSearch)
-	mux.HandleFunc("/register", handlerRegister)
+	mux.HandleFunc("/", getIndex)
+	mux.HandleFunc("/reposts-of/", getRepostsOf)
+	mux.HandleFunc("/help/en/", getEnglishHelp)
+	mux.HandleFunc("/help", getHelp)
+	mux.HandleFunc("/text/", getText)
+	mux.HandleFunc("/digest-rss", getDigestRss)
+	mux.HandleFunc("/posts-rss", getPostsRss)
+	mux.HandleFunc("/go/", getGo)
+	mux.HandleFunc("/about", getAbout)
+	mux.HandleFunc("/tag/", getTag)
+	mux.HandleFunc("/day/", getDay)
+	mux.HandleFunc("/search", getSearch)
+	mux.HandleFunc("/static/style.css", getStyle)
+
+	mux.HandleFunc("/register", postOnly(postRegister))
 	mux.HandleFunc("/login", handlerLogin)
 	mux.HandleFunc("/logout", handlerLogout)
 	mux.HandleFunc("/settings", adminOnly(handlerSettings))
-	mux.HandleFunc("/bookmarklet", adminOnly(handlerBookmarklet))
-	mux.HandleFunc("/static/style.css", handlerStyle)
+	mux.HandleFunc("/bookmarklet", adminOnly(getBookmarklet))
 
 	// Create & Modify
 	mux.HandleFunc("/repost", adminOnly(handlerRepost))
-	mux.HandleFunc("/unrepost/", adminOnly(postOnly(handlerUnrepost)))
+	mux.HandleFunc("/unrepost/", adminOnly(postOnly(postUnrepost)))
 	mux.HandleFunc("/save-link", adminOnly(handlerSaveLink))
 	mux.HandleFunc("/edit-link/", adminOnly(handlerEditLink))
-	mux.HandleFunc("/edit-link-tags/", adminOnly(postOnly(handlerEditLinkTags)))
-	mux.HandleFunc("/delete-link/", adminOnly(postOnly(handlerDeleteLink)))
+	mux.HandleFunc("/edit-link-tags/", adminOnly(postOnly(postEditLinkTags)))
+	mux.HandleFunc("/delete-link/", adminOnly(postOnly(postDeleteLink)))
 	mux.HandleFunc("/edit-tag/", adminOnly(handlerEditTag))
-	mux.HandleFunc("/delete-tag/", adminOnly(postOnly(handlerDeleteTag)))
+	mux.HandleFunc("/delete-tag/", adminOnly(postOnly(postDeleteTag)))
 
 	// Federation interface
 	/// TODO: Rename/merge these one day
 	mux.HandleFunc("/subscribe", federatedOnly(handlerSubscribe))
 	mux.HandleFunc("/subscriptions", adminOnly(federatedOnly(handlerSubscriptions)))
-	mux.HandleFunc("/follow", postOnly(adminOnly(federatedOnly(handlerFollow))))
-	mux.HandleFunc("/unfollow", postOnly(adminOnly(federatedOnly(handlerUnfollow))))
-	mux.HandleFunc("/following", fediverseWebFork(nil, handlerFollowingWeb))
-	mux.HandleFunc("/followers", fediverseWebFork(nil, handlerFollowersWeb))
+	mux.HandleFunc("/follow", postOnly(adminOnly(federatedOnly(postFollow))))
+	mux.HandleFunc("/unfollow", postOnly(adminOnly(federatedOnly(postUnfollow))))
+	mux.HandleFunc("/following", fediverseWebFork(nil, getFollowingWeb))
+	mux.HandleFunc("/followers", fediverseWebFork(nil, getFollowersWeb))
 
 	// ActivityPub
-	mux.HandleFunc("/inbox", federatedOnly(postOnly(handlerInbox)))
+	mux.HandleFunc("/inbox", federatedOnly(postOnly(postInbox)))
 
 	// NodeInfo
-	mux.HandleFunc("/.well-known/nodeinfo", handlerWellKnownNodeInfo)
-	mux.HandleFunc("/nodeinfo/2.0", handlerNodeInfo)
+	mux.HandleFunc("/.well-known/nodeinfo", getWellKnownNodeInfo)
+	mux.HandleFunc("/nodeinfo/2.0", getNodeInfo)
 
 	// WebFinger
-	mux.HandleFunc("/.well-known/webfinger", federatedOnly(handlerWebFinger))
+	mux.HandleFunc("/.well-known/webfinger", federatedOnly(getWebFinger))
 
 	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
@@ -98,22 +99,22 @@ type dataActorList struct {
 	Actors []types.Actor
 }
 
-func handlerFollowersWeb(w http.ResponseWriter, rq *http.Request) {
+func getFollowersWeb(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateFollowers, dataActorList{
 		dataCommon: emptyCommon(),
 		Actors:     db.GetFollowers(),
 	})
 }
 
-func handlerFollowingWeb(w http.ResponseWriter, rq *http.Request) {
+func getFollowingWeb(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateFollowing, dataActorList{
 		dataCommon: emptyCommon(),
 		Actors:     db.GetFollowing(),
 	})
 }
 
-// handlerUnfollow is similar to handlerFollow excepts it's unfollow
-func handlerUnfollow(w http.ResponseWriter, rq *http.Request) {
+// postUnfollow is similar to postFollow excepts it's unfollow
+func postUnfollow(w http.ResponseWriter, rq *http.Request) {
 	var (
 		account = rq.FormValue("account")
 		next    = rq.FormValue("next")
@@ -145,11 +146,11 @@ func handlerUnfollow(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, next, http.StatusSeeOther)
 }
 
-// handlerFollow follows the account specified and redirects next if successful, shows an error if not.
+// postFollow follows the account specified and redirects next if successful, shows an error if not.
 // Both parameters are required.
 //
 //	/follow?account=@bouncepaw@links.bouncepaw.com&next=/@bouncepaw@links.bouncepaw.com
-func handlerFollow(w http.ResponseWriter, rq *http.Request) {
+func postFollow(w http.ResponseWriter, rq *http.Request) {
 	var (
 		account = rq.FormValue("account")
 		next    = rq.FormValue("next")
@@ -309,7 +310,7 @@ func handlerSubscribe(w http.ResponseWriter, rq *http.Request) {
 	})
 }
 
-func handlerWebFinger(w http.ResponseWriter, rq *http.Request) {
+func getWebFinger(w http.ResponseWriter, rq *http.Request) {
 	adminUsername := settings.AdminUsername()
 
 	resource := rq.FormValue("resource")
@@ -371,7 +372,7 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-func handlerNodeInfo(w http.ResponseWriter, rq *http.Request) {
+func getNodeInfo(w http.ResponseWriter, rq *http.Request) {
 	// See:
 	// => https://github.com/jhass/nodeinfo/blob/main/schemas/2.0/example.json
 	doc := fmt.Sprintf(`{
@@ -403,7 +404,7 @@ func handlerNodeInfo(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-func handlerWellKnownNodeInfo(w http.ResponseWriter, rq *http.Request) {
+func getWellKnownNodeInfo(w http.ResponseWriter, rq *http.Request) {
 	// See:
 	// => https://github.com/jhass/nodeinfo/blob/main/PROTOCOL.md
 	// => https://docs.joinmastodon.org/dev/routes/#nodeinfo
@@ -448,7 +449,7 @@ func handlerSubscriptions(w http.ResponseWriter, rq *http.Request) {
 	})
 }
 
-func handlerUnrepost(w http.ResponseWriter, rq *http.Request) {
+func postUnrepost(w http.ResponseWriter, rq *http.Request) {
 	id, ok := extractPostID(w, rq)
 	if !ok {
 		return
@@ -492,7 +493,7 @@ type dataRepostsOf struct {
 	Reposts []types.RepostInfo
 }
 
-func handlerRepostsOf(w http.ResponseWriter, rq *http.Request) {
+func getRepostsOf(w http.ResponseWriter, rq *http.Request) {
 	id, ok := extractPostID(w, rq)
 	if !ok {
 		return
@@ -603,7 +604,7 @@ good:
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 }
 
-func handlerInbox(w http.ResponseWriter, rq *http.Request) {
+func postInbox(w http.ResponseWriter, rq *http.Request) {
 	data, err := io.ReadAll(io.LimitReader(rq.Body, 32*1000*1000)) // Read no more than 32 KB.
 	if err != nil {
 		log.Fatalln(err)
@@ -710,14 +711,14 @@ type dataBookmarklet struct {
 	Script string
 }
 
-func handlerBookmarklet(w http.ResponseWriter, rq *http.Request) {
+func getBookmarklet(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateBookmarklet, dataBookmarklet{
 		dataCommon: emptyCommon(),
 		Script:     fmt.Sprintf(bookmarkletScript, settings.SiteURL()),
 	})
 }
 
-func handlerHelp(w http.ResponseWriter, rq *http.Request) {
+func getHelp(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, "/help/en/index", http.StatusSeeOther)
 }
 
@@ -727,7 +728,7 @@ type dataHelp struct {
 	Topics []help.Topic
 }
 
-func handlerEnglishHelp(w http.ResponseWriter, rq *http.Request) {
+func getEnglishHelp(w http.ResponseWriter, rq *http.Request) {
 	topicName := strings.TrimPrefix(rq.URL.Path, "/help/en/")
 	if topicName == "/help/en" || topicName == "/" {
 		topicName = "index"
@@ -745,7 +746,7 @@ func handlerEnglishHelp(w http.ResponseWriter, rq *http.Request) {
 	})
 }
 
-func handlerStyle(w http.ResponseWriter, rq *http.Request) {
+func getStyle(w http.ResponseWriter, rq *http.Request) {
 	w.Header().Set("Content-Type", "text/css; charset=utf-8")
 	file, err := fs.Open("style.css")
 	if err != nil {
@@ -776,7 +777,7 @@ type dataSearch struct {
 
 var tagOnly = regexp.MustCompile(`^#([^?!:#@<>*|'"&%{}\\\s]+)\s*$`)
 
-func handlerSearch(w http.ResponseWriter, rq *http.Request) {
+func getSearch(w http.ResponseWriter, rq *http.Request) {
 	query := rq.FormValue("q")
 	if query == "" {
 		http.Redirect(w, rq, "/", http.StatusSeeOther)
@@ -806,7 +807,7 @@ func handlerSearch(w http.ResponseWriter, rq *http.Request) {
 	})
 }
 
-func handlerText(w http.ResponseWriter, rq *http.Request) {
+func getText(w http.ResponseWriter, rq *http.Request) {
 	id, ok := extractPostID(w, rq)
 	if !ok {
 		return
@@ -833,7 +834,7 @@ func handlerText(w http.ResponseWriter, rq *http.Request) {
 	_, _ = io.WriteString(w, post.Description)
 }
 
-func handlerPostsRss(w http.ResponseWriter, _ *http.Request) {
+func getPostsRss(w http.ResponseWriter, _ *http.Request) {
 	feed := feeds.Posts()
 	rss, err := feed.ToRss()
 	if err != nil {
@@ -846,7 +847,7 @@ func handlerPostsRss(w http.ResponseWriter, _ *http.Request) {
 	_, _ = io.WriteString(w, rss)
 }
 
-func handlerDigestRss(w http.ResponseWriter, _ *http.Request) {
+func getDigestRss(w http.ResponseWriter, _ *http.Request) {
 	feed := feeds.Digest()
 	rss, err := feed.ToRss()
 	if err != nil {
@@ -867,7 +868,7 @@ type dataDay struct {
 	Posts    []types.Post
 }
 
-func handlerDay(w http.ResponseWriter, rq *http.Request) {
+func getDay(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	dayStamp := strings.TrimPrefix(rq.URL.Path, "/day/")
 	// If no day given, default to today.
@@ -951,7 +952,7 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
+func postDeleteLink(w http.ResponseWriter, rq *http.Request) {
 	id, ok := extractPostID(w, rq)
 	if !ok {
 		return
@@ -1050,7 +1051,7 @@ func handlerLogin(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
 
-func handlerRegister(w http.ResponseWriter, rq *http.Request) {
+func postRegister(w http.ResponseWriter, rq *http.Request) {
 	log.Println("/register")
 	if auth.Ready() {
 		// TODO: Let admin change credentials.
@@ -1086,7 +1087,7 @@ type dataTag struct {
 	PostGroupsInPage []types.PostGroup
 }
 
-func handlerTag(w http.ResponseWriter, rq *http.Request) {
+func getTag(w http.ResponseWriter, rq *http.Request) {
 	tagName := strings.TrimPrefix(rq.URL.Path, "/tag/")
 	if tagName == "" {
 		handlerTags(w, rq)
@@ -1123,7 +1124,7 @@ type dataAbout struct {
 	SiteDescription template.HTML
 }
 
-func handlerAbout(w http.ResponseWriter, rq *http.Request) {
+func getAbout(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(w, rq, templateAbout, dataAbout{
 		dataCommon:      emptyCommon(),
@@ -1148,7 +1149,7 @@ func mixUpTitleLink(title *string, addr *string) {
 	}
 }
 
-func handlerEditLinkTags(w http.ResponseWriter, rq *http.Request) {
+func postEditLinkTags(w http.ResponseWriter, rq *http.Request) {
 	id, ok := extractPostID(w, rq)
 	if !ok {
 		return
@@ -1307,7 +1308,7 @@ func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-func handlerDeleteTag(w http.ResponseWriter, rq *http.Request) {
+func postDeleteTag(w http.ResponseWriter, rq *http.Request) {
 	catName := strings.TrimPrefix(rq.URL.Path, "/delete-tag/")
 	if catName == "" {
 		handlerNotFound(w, rq)
@@ -1466,7 +1467,7 @@ type dataFeed struct {
 
 var regexpPost = regexp.MustCompile("^/[0-9]+")
 
-func handlerFeed(w http.ResponseWriter, rq *http.Request) {
+func getIndex(w http.ResponseWriter, rq *http.Request) {
 	if regexpPost.MatchString(rq.URL.Path) {
 		handlerPost(w, rq)
 		return
@@ -1503,7 +1504,7 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 	})
 }
 
-func handlerGo(w http.ResponseWriter, rq *http.Request) {
+func getGo(w http.ResponseWriter, rq *http.Request) {
 	id, ok := extractPostID(w, rq)
 	if !ok {
 		return
