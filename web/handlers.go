@@ -248,8 +248,8 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 
 		This endpoint is available in both HTML and Activity form.
 
-			* The HTML form shows what you expect. Some posts maybe.
-			* The Activity form shows the Actor object.
+			* The HTML form shows what you expect. Some posts in the future, maybe. Available for both local profile and remote profiles.
+			* The Activity form shows the Actor object. Available for the local profile only.
 	*/
 	var (
 		wantsActivity        = rq.Header.Get("Accept") == types.ActivityType
@@ -261,12 +261,13 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 
 	switch {
 	case isRemote && !authed:
-		log.Printf("Somebody requests remote profile @%s, rejecting\n", userAtHost)
+		log.Printf("Unauthorized request of remote profile @%s, rejecting\n", userAtHost)
 		handlerUnauthorized(w, rq)
+
 	case isRemote && wantsActivity:
 		w.Header().Set("Content-Type", types.ActivityType)
-		log.Printf("Request remote user %s@%s as an activity\n", user, host)
-		// TODO: write the activity
+		log.Printf("Request remote user %s@%s as an activity, rejecting (HTML only)\n", user, host)
+		handlerNotFound(w, rq)
 
 	case isRemote && !wantsActivity:
 		log.Printf("Request remote user @%s@%s as a page\n", user, host)
