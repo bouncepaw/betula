@@ -321,6 +321,9 @@ pre {
     padding: 0 1rem;
     font-size: small;
 }
+.post-page .card-line {
+    font-size: 1rem;
+}
 .edit-post-link {
     float: right;
 }
@@ -430,7 +433,7 @@ a.btn_destructive:visited,
     display: inline;
     text-align: left;
     cursor: copy;
-    font-size: small;
+    font-size: inherit;
 }
 .dashed-btn::-moz-focus-inner {
     border: 0;

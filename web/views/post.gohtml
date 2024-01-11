@@ -2,12 +2,28 @@
 {{define "body"}}
 	<main>
 		<article class="post-page h-entry">
-            {{if .Authorized}}
-                {{template "post buttons fragment" .Post}}
-            {{end}}
-			<h2 class="p-name"><a class="u-url" href="/{{.Post.ID}}">{{.Post.Title}}</a></h2>
-			{{if .RepostCount}}<a class="link-to-reposts" href="/reposts-of/{{.Post.ID}}">{{.RepostCount}} repost{{if gt .RepostCount 1}}s{{end}}</a>{{end}}
-			{{template "post main fragment" .Post}}
+			<div class="card-line">
+				{{if .Post.RepostOf}}<a href="{{.Post.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
+				{{if .RepostCount}}<a class="link-to-reposts" href="/reposts-of/{{.Post.ID}}">{{.RepostCount}} repost{{if gt .RepostCount 1}}s{{end}}</a>{{end}}
+				<a class="u-url" href="/{{.Post.ID}}">{{.Post.ID}}.</a>
+				<a class="edit-post-link float-right" href="/edit-link/{{.Post.ID}}">Edit</a>
+				{{if .Authorized}}
+					<span class="post-visibility float-right">{{if .Post.Visibility}}Public{{else}}Private{{end}}</span>
+				{{end}}
+				<button class="dashed-btn float-right" onclick="copyTextElem({{.Post.URL}}, this)">Copy link</button>
+			</div>
+			
+			<h4 class="p-name"><a class="u-url" href="{{.Post.URL}}">{{.Post.Title}}</a></h4>
+			<a class="u-bookmark-of h-cite" href="{{.Post.URL}}">{{shortenLink .Post.URL}}</a>
+
+			{{if .Post.Description}}
+				<div class="myco e-content">
+					{{mycomarkup .Post.Description}}
+				</div>
+			{{end}}
+			<div class="post-tags">
+				{{range $i, $cat := .Post.Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
+			</div>
 			<a href="/day/{{timestampToDayStamp .Post.CreationTime}}" class="date-link">
 				<time class="dt-published" datetime="{{timestampToHuman .Post.CreationTime}}">
 					{{timestampToHuman .Post.CreationTime}} UTC

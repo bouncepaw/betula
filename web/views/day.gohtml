@@ -5,14 +5,12 @@
 		<h2 class="p-name">Bookmarks for {{.DayStamp}}</h2>{{$cnt := len .Posts}}
 		<p><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s{{end}} were saved this day.</p>
 	</article>
-    {{range .Posts}}
-		<article class="h-entry">
-            {{if $authed}}
-                {{template "post buttons fragment" .}}
-            {{end}}
-			<h3 class="p-name"><a class="u-url" href="/{{.ID}}">{{.Title}}</a></h3>
-            {{template "post main fragment" .}}
-		</article>
-    {{end}}
+	{{range .Posts}}
+		{{if $authed}}
+			{{template "authorized post card" .}}
+		{{else}}
+			{{template "unauthorized post card" .}}
+		{{end}}
+	{{end}}
 </main>
 {{end}}
