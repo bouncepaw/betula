@@ -39,76 +39,17 @@ var (
 	mux               = http.NewServeMux()
 )
 
-// Wrap handlers that only make sense for the admin with this thingy in init().
-func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, rq *http.Request) {
-		authed := auth.AuthorizedFromRequest(rq)
-		if !authed {
-			log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-			handlerUnauthorized(w, rq)
-			return
-		}
-		next(w, rq)
-	}
-}
-
-func federatedOnly(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, rq *http.Request) {
-		federated := settings.FederationEnabled()
-		if !federated {
-			log.Printf("Attempt to access %s failed because Betula is not federated. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-			handlerNotFederated(w, rq)
-			return
-		}
-		next(w, rq)
-	}
-}
-
-func postOnly(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, rq *http.Request) {
-		if rq.Method != http.MethodPost {
-			log.Printf("Accessing %s with method %s, which is not POST. 404.\n", rq.URL.Path, rq.Method)
-			handlerNotFound(w, rq)
-			return
-		}
-		next(w, rq)
-	}
-}
-
-func fediverseWebFork(
-	nextFedi func(http.ResponseWriter, *http.Request),
-	nextWeb func(http.ResponseWriter, *http.Request),
-) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, rq *http.Request) {
-		if rq.Header.Get("Accept") == types.ActivityType && nextFedi != nil {
-			federatedOnly(nextFedi)(w, rq)
-		} else if nextWeb != nil {
-			nextWeb(w, rq)
-		} else {
-			handlerNotFound(w, rq)
-		}
-	}
-}
-
 func init() {
 	mux.HandleFunc("/", handlerFeed)
 	mux.HandleFunc("/reposts-of/", handlerRepostsOf)
-	mux.HandleFunc("/repost", adminOnly(handlerRepost))
-	mux.HandleFunc("/unrepost/", adminOnly(handlerUnrepost))
 	mux.HandleFunc("/help/en/", handlerEnglishHelp)
 	mux.HandleFunc("/help", handlerHelp)
 	mux.HandleFunc("/text/", handlerText)
 	mux.HandleFunc("/digest-rss", handlerDigestRss)
 	mux.HandleFunc("/posts-rss", handlerPostsRss)
-	mux.HandleFunc("/save-link", adminOnly(handlerSaveLink))
-	mux.HandleFunc("/edit-link/", adminOnly(handlerEditLink))
-	mux.HandleFunc("/edit-link-tags/", adminOnly(handlerEditLinkTags))
-	mux.HandleFunc("/delete-link/", adminOnly(handlerDeleteLink))
 	mux.HandleFunc("/go/", handlerGo)
 	mux.HandleFunc("/about", handlerAbout)
 	mux.HandleFunc("/tag/", handlerTag)
-	mux.HandleFunc("/edit-tag/", adminOnly(handlerEditTag))
-	mux.HandleFunc("/delete-tag/", adminOnly(handlerDeleteTag))
 	mux.HandleFunc("/day/", handlerDay)
 	mux.HandleFunc("/search", handlerSearch)
 	mux.HandleFunc("/register", handlerRegister)
@@ -117,6 +58,16 @@ func init() {
 	mux.HandleFunc("/settings", adminOnly(handlerSettings))
 	mux.HandleFunc("/bookmarklet", adminOnly(handlerBookmarklet))
 	mux.HandleFunc("/static/style.css", handlerStyle)
+
+	// Create & Modify
+	mux.HandleFunc("/repost", adminOnly(handlerRepost))
+	mux.HandleFunc("/unrepost/", adminOnly(postOnly(handlerUnrepost)))
+	mux.HandleFunc("/save-link", adminOnly(handlerSaveLink))
+	mux.HandleFunc("/edit-link/", adminOnly(handlerEditLink))
+	mux.HandleFunc("/edit-link-tags/", adminOnly(postOnly(handlerEditLinkTags)))
+	mux.HandleFunc("/delete-link/", adminOnly(postOnly(handlerDeleteLink)))
+	mux.HandleFunc("/edit-tag/", adminOnly(handlerEditTag))
+	mux.HandleFunc("/delete-tag/", adminOnly(postOnly(handlerDeleteTag)))
 
 	// Federation interface
 	/// TODO: Rename/merge these one day
@@ -128,7 +79,7 @@ func init() {
 	mux.HandleFunc("/followers", fediverseWebFork(nil, handlerFollowersWeb))
 
 	// ActivityPub
-	mux.HandleFunc("/inbox", federatedOnly(handlerInbox))
+	mux.HandleFunc("/inbox", federatedOnly(postOnly(handlerInbox)))
 
 	// NodeInfo
 	mux.HandleFunc("/.well-known/nodeinfo", handlerWellKnownNodeInfo)
@@ -498,21 +449,8 @@ func handlerSubscriptions(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerUnrepost(w http.ResponseWriter, rq *http.Request) {
-	if rq.Method == http.MethodGet {
-		handlerNotFound(w, rq)
-		return
-	}
-
-	s := strings.TrimPrefix(rq.URL.Path, "/unrepost/")
-	if s == "" {
-		handlerNotFound(w, rq)
-		return
-	}
-
-	id, err := strconv.Atoi(s)
-	if err != nil {
-		log.Println(err)
-		handlerNotFound(w, rq)
+	id, ok := extractPostID(w, rq)
+	if !ok {
 		return
 	}
 
@@ -555,16 +493,14 @@ type dataRepostsOf struct {
 }
 
 func handlerRepostsOf(w http.ResponseWriter, rq *http.Request) {
-	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/reposts-of/"))
-	if err != nil {
-		log.Println(err)
-		handlerNotFound(w, rq)
+	id, ok := extractPostID(w, rq)
+	if !ok {
 		return
 	}
 
 	post, found := db.PostForID(id)
 	if !found {
-		log.Println(err)
+		log.Printf("Did not find post no. %d\n", id)
 		handlerNotFound(w, rq)
 		return
 	}
@@ -577,7 +513,11 @@ func handlerRepostsOf(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	reposts, err := db.RepostsOf(post.ID)
-	_ = err // TODO: handle the error
+	if err != nil {
+		// time parsing issues! whatever
+		handlerNotFound(w, rq)
+		return
+	}
 	templateExec(w, rq, templateRepostsFor, dataRepostsOf{
 		dataCommon: emptyCommon(),
 		Post:       post,
@@ -664,11 +604,6 @@ good:
 }
 
 func handlerInbox(w http.ResponseWriter, rq *http.Request) {
-	if rq.Method != http.MethodPost {
-		handlerNotFound(w, rq)
-		return
-	}
-
 	data, err := io.ReadAll(io.LimitReader(rq.Body, 32*1000*1000)) // Read no more than 32 KB.
 	if err != nil {
 		log.Fatalln(err)
@@ -872,16 +807,14 @@ func handlerSearch(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerText(w http.ResponseWriter, rq *http.Request) {
-	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/text/"))
-	if err != nil {
-		log.Println(err)
-		handlerNotFound(w, rq)
+	id, ok := extractPostID(w, rq)
+	if !ok {
 		return
 	}
 
 	post, found := db.PostForID(id)
 	if !found {
-		log.Println(err)
+		log.Printf("Did not find post no. %d\n", id)
 		handlerNotFound(w, rq)
 		return
 	}
@@ -1019,21 +952,8 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerDeleteLink(w http.ResponseWriter, rq *http.Request) {
-	if rq.Method == http.MethodGet {
-		handlerNotFound(w, rq)
-		return
-	}
-
-	s := strings.TrimPrefix(rq.URL.Path, "/delete-link/")
-	if s == "" {
-		handlerNotFound(w, rq)
-		return
-	}
-
-	id, err := strconv.Atoi(s)
-	if err != nil {
-		log.Println(err)
-		handlerNotFound(w, rq)
+	id, ok := extractPostID(w, rq)
+	if !ok {
 		return
 	}
 
@@ -1229,15 +1149,8 @@ func mixUpTitleLink(title *string, addr *string) {
 }
 
 func handlerEditLinkTags(w http.ResponseWriter, rq *http.Request) {
-	if rq.Method != "POST" {
-		handlerNotFound(w, rq)
-		return
-	}
-
-	s := strings.TrimPrefix(rq.URL.Path, "/edit-link-tags/")
-	id, err := strconv.Atoi(s)
-	if err != nil {
-		handlerNotFound(w, rq)
+	id, ok := extractPostID(w, rq)
+	if !ok {
 		return
 	}
 
@@ -1267,10 +1180,8 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	id, err := strconv.Atoi(s)
-	if err != nil {
-		log.Println(err)
-		handlerNotFound(w, rq)
+	id, ok := extractPostID(w, rq)
+	if !ok {
 		return
 	}
 
@@ -1397,11 +1308,6 @@ func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerDeleteTag(w http.ResponseWriter, rq *http.Request) {
-	if rq.Method == http.MethodGet {
-		handlerNotFound(w, rq)
-		return
-	}
-
 	catName := strings.TrimPrefix(rq.URL.Path, "/delete-tag/")
 	if catName == "" {
 		handlerNotFound(w, rq)
@@ -1598,10 +1504,8 @@ func handlerFeed(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerGo(w http.ResponseWriter, rq *http.Request) {
-	id, err := strconv.Atoi(strings.TrimPrefix(rq.URL.Path, "/go/"))
-	if err != nil {
-		log.Printf("%d: %s\n", http.StatusNotFound, rq.URL.Path)
-		handlerNotFound(w, rq)
+	id, ok := extractPostID(w, rq)
+	if !ok {
 		return
 	}
 
