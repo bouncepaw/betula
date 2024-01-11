@@ -104,8 +104,6 @@ func init() {
 	mux.HandleFunc("/edit-link/", adminOnly(handlerEditLink))
 	mux.HandleFunc("/edit-link-tags/", adminOnly(handlerEditLinkTags))
 	mux.HandleFunc("/delete-link/", adminOnly(handlerDeleteLink))
-	mux.HandleFunc("/post/", handlerPost)
-	mux.HandleFunc("/last/", handlerPostLast)
 	mux.HandleFunc("/go/", handlerGo)
 	mux.HandleFunc("/about", handlerAbout)
 	mux.HandleFunc("/tag/", handlerTag)
@@ -1550,22 +1548,6 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 		Post:        post,
 		RepostCount: db.CountRepostsOf(id),
 		dataCommon:  common,
-	})
-}
-
-func handlerPostLast(w http.ResponseWriter, rq *http.Request) {
-	authed := auth.AuthorizedFromRequest(rq)
-	post, found := db.LastPost(authed)
-	if !found {
-		log.Println("Can't reach the latest post")
-		handlerNotFound(w, rq)
-		return
-	}
-	log.Printf("Viewing the latest post %d\n", post.ID)
-	post.Tags = db.TagsForPost(post.ID)
-	templateExec(w, rq, templatePost, dataPost{
-		Post:       post,
-		dataCommon: emptyCommon(),
 	})
 }
 
