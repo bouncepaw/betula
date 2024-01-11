@@ -95,7 +95,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-body {
+body, button {
     display: grid;
     font-family: sans-serif;
     word-break: break-word;
@@ -178,11 +178,6 @@ a.edit-post-btn {
     float: right;
     font-size: small;
     margin: 2px;
-}
-.post-visibility {
-    float: right;
-    margin-right: 4px;
-    font-size: small;
 }
 .post-tags {
     font-size: small;
@@ -415,6 +410,31 @@ a.btn_destructive:visited,
 .bookmarklet a {
     text-decoration: none;
     font-weight: bold;
+}
+.card-line .float-right + .float-right {
+    margin-right: .25rem;
+}
+.float-right {
+    float: right;
+}
+.dashed-btn {
+    text-decoration: underline;
+    text-decoration-style: dashed;
+    color: inherit;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    line-height: inherit;
+    text-indent: 0;
+    display: inline;
+    text-align: left;
+    cursor: copy;
+    font-size: small;
+}
+.dashed-btn::-moz-focus-inner {
+    border: 0;
+    padding: 0;
 }
 
 /* Autocompletion */
