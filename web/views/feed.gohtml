@@ -12,13 +12,11 @@
         {{range .PostGroupsInPage}}
 			<h3 class="date-heading"><a href="/day/{{.Date}}">{{.Date}}</a></h3>
 			{{range .Posts}}
-				<article class="h-entry">
-					{{if $authed}}
-						{{template "post buttons fragment" .}}
-					{{end}}
-					<h3 class="p-name"><a class="u-url" href="/{{.ID}}">{{.Title}}</a></h3>
-					{{template "post main fragment" .}}
-				</article>
+				{{if $authed}}
+					{{template "authorized post card" .}}
+				{{else}}
+					{{template "unauthorized post card" .}}
+				{{end}}
 			{{end}}
 		{{else}}
 			{{if ne .TotalPosts 0}}

@@ -1,21 +1,46 @@
-{{define "post main fragment"}}
-	{{if .RepostOf}}<a href="{{.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
-	<a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
-	{{if .Description}}
-		<div class="myco e-content">
-			{{mycomarkup .Description}}
+{{define "authorized post card"}}
+	<article class="h-entry">
+		<div class="card-line">
+			{{if .RepostOf}}<a href="{{.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
+			<a class="u-url" href="/{{.ID}}">{{.ID}}.</a>
+			<a class="edit-post-link" href="/edit-link/{{.ID}}">Edit</a>
+			<span class="post-visibility">
+				{{if .Visibility}}Public{{else}}Private{{end}}
+			</span>
 		</div>
-	{{end}}
-	<div class="about-post">
-		{{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
-	</div>
+
+		<h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
+		<a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
+
+		{{if .Description}}
+			<div class="myco e-content">
+				{{mycomarkup .Description}}
+			</div>
+		{{end}}
+		<div class="post-tags">
+			{{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
+		</div>
+	</article>
 {{end}}
 
-{{define "post buttons fragment"}}
-	<a class="edit-post-btn" href="/edit-link/{{.ID}}">Edit</a>
-	<div class="globe"
-	     title="{{if .Visibility}}Public post{{else}}Private post{{end}}"
-	     aria-label="{{if .Visibility}}Public post{{else}}Private post{{end}}">
-        {{if .Visibility}}{{randomGlobe}}{{else}}🔒{{end}}
-	</div>
+	{{/* Same as above, but no edit link and visibility marker */}}
+{{define "unauthorized post card"}}
+	<article class="h-entry">
+		<div class="card-line">
+			{{if .RepostOf}}<a href="{{.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
+			<a class="u-url" href="/{{.ID}}">{{.ID}}.</a>
+		</div>
+
+		<h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
+		<a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
+
+		{{if .Description}}
+			<div class="myco e-content">
+				{{mycomarkup .Description}}
+			</div>
+		{{end}}
+		<div class="post-tags">
+			{{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
+		</div>
+	</article>
 {{end}}

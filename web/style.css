@@ -179,25 +179,21 @@ a.edit-post-btn {
     font-size: small;
     margin: 2px;
 }
-.globe {
+.post-visibility {
     float: right;
     margin-right: 4px;
     font-size: small;
 }
-.about-post {
+.post-tags {
     font-size: small;
     overflow: hidden;
     clear: both;
 }
-.post-page .about-post {
+.post-page .post-tags {
     font-size: medium;
 }
-.about-post > * {
+.post-tags > * {
     display: inline;
-}
-.about-post time {
-    float: right;
-    word-break: keep-all;
 }
 .u-bookmark-of {
     display: inline-block;
@@ -296,12 +292,12 @@ h2 {
     margin: 0;
     font-size: 1.5rem;
 }
-h3 {
+h3, h4 {
     margin-top: 8px;
     margin-bottom: 4px;
     font-size: 1.2rem;
 }
-.h-entry h3 {
+.h-entry h4 {
     margin: 0;
     font-size: medium;
 }
@@ -315,7 +311,7 @@ h3 + *:not(p, .u-bookmark-of) {
 article + article {
     margin-top: .5rem;
 }
-.about-post .p-category + .p-category {
+.post-tags .p-category + .p-category {
     margin-left: .25rem;
 }
 pre {
@@ -323,6 +319,15 @@ pre {
 }
 .date-link .dt-published {
     text-decoration: underline;
+}
+.card-line {
+    border-radius: .25rem .25rem 0 0;
+    margin: -.5rem -1rem .25rem;
+    padding: 0 1rem;
+    font-size: small;
+}
+.edit-post-link {
+    float: right;
 }
 
 /* Colors */
@@ -342,10 +347,15 @@ nav a, nav a:hover, nav a:visited {
 .btn, .btn:active, .btn:hover, .btn:visited {
     color: black;
 }
-.about-post a,
+.post-tags a,
 .date-heading a,
-.date-link {
+.date-link,
+.card-line a {
     color: black;
+    text-decoration: underline;
+}
+.card-line {
+    background: #efefef;
 }
 
 
