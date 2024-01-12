@@ -4,6 +4,7 @@ package settings
 import (
 	"database/sql"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/stricks"
 	"html"
 	"html/template"
 	"log"
@@ -126,6 +127,10 @@ func SiteDescriptionHTML() template.HTML { return cacheSiteDescription }
 func SiteDescriptionMycomarkup() string  { return cache.SiteDescriptionMycomarkup }
 func CustomCSS() string                  { return cache.CustomCSS }
 func FederationEnabled() bool            { return cache.FederationEnabled }
+
+func SiteDomain() string {
+	return stricks.ParseValidURL(SiteURL()).Host
+}
 
 func SetSettings(settings types.Settings) {
 	if settings.SiteName == "" {

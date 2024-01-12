@@ -22,6 +22,13 @@ func StopFollowing(id string) {
 	mustExec(`delete from Following where ActorID = ?`, id)
 }
 
+func CountFollowing() uint {
+	return querySingleValue[uint](`select count(*) from Following;`)
+}
+func CountFollowers() uint {
+	return querySingleValue[uint](`select count(*) from Followers;`)
+}
+
 // Only ID and Acct are set in the actors
 func GetFollowing() (actors []types.Actor) {
 	rows := mustQuery(`select ActorID, Acct from Following, WebFingerAccts where ActorID = ActorURL`)

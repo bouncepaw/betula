@@ -173,7 +173,7 @@ limit 1;
 	return post, found
 }
 
-func PostCount(authorized bool) int {
+func PostCount(authorized bool) uint {
 	const q = `
 with
 	IgnoredPosts as (
@@ -190,7 +190,7 @@ from
 where 
 	ID not in IgnoredPosts;
 `
-	return querySingleValue[int](q, authorized)
+	return querySingleValue[uint](q, authorized)
 }
 
 func LastPost(authorized bool) (post types.Post, found bool) {

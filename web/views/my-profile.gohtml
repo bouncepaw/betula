@@ -1,0 +1,47 @@
+{{define "title"}}Profile{{end}}
+{{define "body"}}
+    <main>
+        <article class="profile-card">
+            <h2>{{.SiteName}}</h2>
+            {{if and .FederationEnabled}}
+                <div>
+                    <p>{{.Nickname}} <button class="dashed-btn" onclick="copyTextElem({{.Nickname}}, this)">Copy nickname</button></p>
+                    {{if not .Authorized}}
+                        <p class="input-caption">Copy the nickname to subscribe from your Betula or other compatible software.</p>
+                    {{end}}
+                </div>
+            {{end}}
+            <div>{{.Summary}}</div>
+        </article>
+        <article>
+            <h3>Stats</h3>
+            <dl>
+                <dt>Saved links</dt>
+                <dd><a href="/">{{.LinkCount}}</a></dd>
+                <dt>Tags</dt>
+                <dd><a href="/tag/">{{.TagCount}}</a></dd>
+                {{if and .FederationEnabled .Authorized}}
+                    <dt>Following</dt>
+                    <dd><a href="/following">{{.FollowingCount}}</a></dd>
+                    <dt>Followers</dt>
+                    <dd><a href="/followers">{{.FollowersCount}}</a></dd>
+                {{else if .FederationEnabled}}
+                    <dt>Following</dt>
+                    <dd>{{.FollowingCount}}</dd>
+                    <dt>Followers</dt>
+                    <dd>{{.FollowersCount}}</dd>
+                {{end}}
+                {{if .OldestTime}}
+                    <dt>Newest link save time</dt>
+                    <dd>{{.NewestTime | timeToHuman}}</dd>
+                    <dt>Oldest link save time</dt>
+                    <dd>{{.OldestTime | timeToHuman}}</dd>
+                {{end}}
+            </dl>
+        </article>
+        <article>
+            See bookmarks on the <a href="/">Bookmarks page</a>.
+        </article>
+    </main>
+    <script src="/static/copytext.js"></script>
+{{end}}

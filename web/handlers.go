@@ -257,8 +257,34 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		handlerActor(w, rq)
 	case !isRemote && !wantsActivity:
 		log.Println("Viewing your profile")
-		// TODO: show the profile
+		getMyProfile(w, rq)
 	}
+}
+
+type dataMyProfile struct {
+	*dataCommon
+
+	Nickname                       string
+	Summary                        template.HTML
+	LinkCount, TagCount            uint
+	FollowingCount, FollowersCount uint
+	OldestTime, NewestTime         *time.Time
+}
+
+func getMyProfile(w http.ResponseWriter, rq *http.Request) {
+	authed := auth.AuthorizedFromRequest(rq)
+	templateExec(w, rq, templateMyProfile, dataMyProfile{
+		dataCommon: emptyCommon(),
+
+		Nickname:       fmt.Sprintf("@%s@%s", settings.AdminUsername(), settings.SiteDomain()),
+		Summary:        settings.SiteDescriptionHTML(),
+		LinkCount:      db.PostCount(authed),
+		TagCount:       db.TagCount(authed),
+		FollowingCount: db.CountFollowing(),
+		FollowersCount: db.CountFollowers(),
+		OldestTime:     db.OldestTime(authed),
+		NewestTime:     db.NewestTime(authed),
+	})
 }
 
 type dataSubscribe struct {
@@ -1117,7 +1143,7 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 
 type dataAbout struct {
 	*dataCommon
-	LinkCount       int
+	LinkCount       uint
 	TagCount        uint
 	OldestTime      *time.Time
 	NewestTime      *time.Time
