@@ -13,7 +13,6 @@
 		<h1>{{.SiteTitleHTML}}</h1>
 		<ul>
 			<li><a href="/">Bookmarks</a></li>
-			{{if and .Authorized .FederationEnabled}}<li><a href="/subscriptions">Subscriptions</a></li>{{end}}
 			<li><a href="/tag">Tags</a></li>
 			<li><a href="/@{{.AdminUsername}}">{{if .Authorized}}Your profile{{else}}About author{{end}}</a></li>
 			{{if .Authorized}}<li><a href="/help">Help</a></li>{{end}}

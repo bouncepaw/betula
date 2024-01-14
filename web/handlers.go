@@ -71,9 +71,6 @@ func init() {
 	mux.HandleFunc("/delete-tag/", adminOnly(postOnly(postDeleteTag)))
 
 	// Federation interface
-	/// TODO: Rename/merge these one day
-	mux.HandleFunc("/subscribe", federatedOnly(handlerSubscribe))
-	mux.HandleFunc("/subscriptions", adminOnly(federatedOnly(handlerSubscriptions)))
 	mux.HandleFunc("/follow", postOnly(adminOnly(federatedOnly(postFollow))))
 	mux.HandleFunc("/unfollow", postOnly(adminOnly(federatedOnly(postUnfollow))))
 	mux.HandleFunc("/following", fediverseWebFork(nil, getFollowingWeb))
@@ -299,43 +296,6 @@ type dataSubscribe struct {
 	RequestWasSent     bool
 }
 
-func handlerSubscribe(w http.ResponseWriter, rq *http.Request) {
-	if rq.Method == http.MethodGet {
-		templateExec(w, rq, templateSubscribe, dataSubscribe{
-			dataCommon: emptyCommon(),
-			SiteURL:    settings.SiteURL(),
-		})
-		return
-	}
-
-	authed := auth.AuthorizedFromRequest(rq)
-	if !authed {
-		log.Println("Unauthorized POST to /subscribe")
-		handlerUnauthorized(w, rq)
-		return
-	}
-
-	// If cannot subscribe: show an error
-	can := false
-	err := errors.New("unimplemented")
-	if !can {
-		templateExec(w, rq, templateSubscribe, dataSubscribe{
-			dataCommon:         emptyCommon(),
-			ErrCannotSubscribe: true,
-			ErrMessage:         err.Error(),
-		})
-		return
-	}
-
-	// TODO: Send a request
-
-	// Follow request was sent
-	templateExec(w, rq, templateSubscribe, dataSubscribe{
-		dataCommon:     emptyCommon(),
-		RequestWasSent: true,
-	})
-}
-
 func getWebFinger(w http.ResponseWriter, rq *http.Request) {
 	adminUsername := settings.AdminUsername()
 
@@ -446,33 +406,6 @@ func getWellKnownNodeInfo(w http.ResponseWriter, rq *http.Request) {
 	if _, err := fmt.Fprintf(w, fmt.Sprintf(doc, settings.SiteURL())); err != nil {
 		log.Printf("Error when serving /.well-known/nodeinfo: %s\n", err)
 	}
-}
-
-type dataSubscriptions struct {
-	*dataCommon
-
-	PostsInPage []types.Post
-}
-
-func handlerSubscriptions(w http.ResponseWriter, rq *http.Request) {
-	// Mockup
-
-	var currentPage uint
-	if page, err := strconv.Atoi(rq.FormValue("page")); err != nil || page == 0 {
-		currentPage = 1
-	} else {
-		currentPage = uint(page)
-	}
-
-	common := emptyCommon()
-
-	posts, totalPosts := db.Posts(true, currentPage)
-	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
-
-	templateExec(w, rq, templateSubscriptions, dataSubscriptions{
-		PostsInPage: posts,
-		dataCommon:  common,
-	})
 }
 
 func postUnrepost(w http.ResponseWriter, rq *http.Request) {
