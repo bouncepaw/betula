@@ -5,7 +5,7 @@
             "misc"
             "main"
             "footer";
-        grid-row-gap: 0px;
+        grid-row-gap: 0;
         margin: 0;
     }
     nav {
@@ -44,6 +44,10 @@
     }
     .misc * {
         display: inline-block;
+    }
+    div.card-line {
+        margin: -.5rem -.5rem .25rem -.5rem;
+        padding: 0 .5rem;
     }
 }
 

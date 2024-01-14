@@ -7,10 +7,10 @@
 				{{if .RepostCount}}<a class="link-to-reposts" href="/reposts-of/{{.Post.ID}}">{{.RepostCount}} repost{{if gt .RepostCount 1}}s{{end}}</a>{{end}}
 				<a class="u-url" href="/{{.Post.ID}}">{{.Post.ID}}.</a>
 				<a class="edit-post-link float-right" href="/edit-link/{{.Post.ID}}">Edit</a>
+				<button class="dashed-btn float-right" onclick="copyTextElem({{.Post.URL}}, this)">Copy link</button>
 				{{if .Authorized}}
 					<span class="post-visibility float-right">{{if .Post.Visibility}}Public{{else}}Private{{end}}</span>
 				{{end}}
-				<button class="dashed-btn float-right" onclick="copyTextElem({{.Post.URL}}, this)">Copy link</button>
 			</div>
 			
 			<h4 class="p-name"><a class="u-url" href="{{.Post.URL}}">{{.Post.Title}}</a></h4>

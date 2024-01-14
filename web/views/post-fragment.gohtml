@@ -4,10 +4,10 @@
 			{{if .RepostOf}}<a href="{{.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
 			<a class="u-url" href="/{{.ID}}">{{.ID}}.</a>
 			<a class="edit-post-link float-right" href="/edit-link/{{.ID}}">Edit</a>
+			<button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
 			<span class="post-visibility float-right">
 				{{if .Visibility}}Public{{else}}Private{{end}}
 			</span>
-			<button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
 		</div>
 
 		<h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
