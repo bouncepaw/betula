@@ -9,7 +9,11 @@
 				<a class="edit-post-link float-right" href="/edit-link/{{.Post.ID}}">Edit</a>
 				<button class="dashed-btn float-right" onclick="copyTextElem({{.Post.URL}}, this)">Copy link</button>
 				{{if .Authorized}}
-					<span class="post-visibility float-right">{{if .Post.Visibility}}Public{{else}}Private{{end}}</span>
+					{{if .Post.Visibility}}
+						<span class="post-visibility post-visibility-public float-right">Public</span>
+					{{else}}
+						<span class="post-visibility post-visibility-private float-right">Private</span>
+					{{end}}
 				{{end}}
 			</div>
 			

@@ -119,6 +119,9 @@ footer {
 }
 
 /* Design */
+.post-visibility-private {
+    font-weight: bold;
+}
 .date-heading {
     font-size: 1rem;
     font-weight: normal;
