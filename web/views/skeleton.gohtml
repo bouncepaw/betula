@@ -15,7 +15,7 @@
 			<li><a href="/">Bookmarks</a></li>
 			{{if and .Authorized .FederationEnabled}}<li><a href="/subscriptions">Subscriptions</a></li>{{end}}
 			<li><a href="/tag">Tags</a></li>
-			<li><a href="/about">About</a></li>
+			<li><a href="/@{{.AdminUsername}}">{{if .Authorized}}Your profile{{else}}About author{{end}}</a></li>
 			{{if .Authorized}}<li><a href="/help">Help</a></li>{{end}}
 		</ul>
 	</nav>
@@ -27,15 +27,9 @@
 	<ul>
         {{if .Authorized}}<li><a href="/save-link">Save link</a></li>
         <li><a href="/repost">Repost</a></li>{{end}}
-		<li>
-            {{if .Authorized}}<a href="/settings">Settings</a>
-            {{else}}<a href="/login">Log in</a>{{end}}
-		</li>
-		<li>
-			<a href="/digest-rss">Site RSS</a>
-		</li>
-		{{if .Authorized}}
-			<li><a href="/bookmarklet">Bookmarklet</a></li>
+		{{if not .Authorized}}
+			<li><a href="/login">Log in</a></li>
+			<li>Site RSS</li>
 		{{end}}
 	</ul>
 </nav>

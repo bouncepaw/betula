@@ -171,6 +171,10 @@ func (c *dataCommon) FederationEnabled() bool {
 	return settings.FederationEnabled()
 }
 
+func (c *dataCommon) AdminUsername() string {
+	return settings.AdminUsername()
+}
+
 func (c *dataCommon) Fill(C dataCommon) {
 	if c == nil {
 		panic("common data is nil! Initialize it at templateExec invocation.")

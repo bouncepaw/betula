@@ -12,6 +12,14 @@
                 </div>
             {{end}}
             <div>{{.Summary}}</div>
+            <div>
+                <a href="/about" class="btn">About instance</a>
+                <a href="/digest-rss" class="btn">RSS</a>
+
+                {{if .Authorized}}<a href="/settings" class="btn">Settings</a>
+                <a href="/bookmarklet" class="btn">Bookmarklet</a>
+                <a href="/logout" class="btn">Log out</a>{{end}}
+            </div>
         </article>
         <article>
             <h3>Stats</h3>
@@ -32,15 +40,12 @@
                     <dd>{{.FollowersCount}}</dd>
                 {{end}}
                 {{if .OldestTime}}
-                    <dt>Newest link save time</dt>
-                    <dd>{{.NewestTime | timeToHuman}}</dd>
-                    <dt>Oldest link save time</dt>
-                    <dd>{{.OldestTime | timeToHuman}}</dd>
+                    <dt>Newest bookmark save time</dt>
+                    <dd>{{.NewestTime | timeToHuman}} UTC</dd>
+                    <dt>Oldest bookmark save time</dt>
+                    <dd>{{.OldestTime | timeToHuman}} UTC</dd>
                 {{end}}
             </dl>
-        </article>
-        <article>
-            See bookmarks on the <a href="/">Bookmarks page</a>.
         </article>
     </main>
     <script src="/static/copytext.js"></script>
