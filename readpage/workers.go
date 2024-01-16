@@ -109,7 +109,7 @@ func listenForPostName(nodes chan *html.Node, data *FoundData) {
 		switch {
 		case state == stateFoundText:
 			continue
-		case state == stateFound && n.Type == html.TextNode:
+		case state == stateFound && nodeIsNotEmptyText(n):
 			data.PostName = n.Data
 			state = stateFoundText
 		case state == stateLooking && nodeHasClass(n, "p-name"):
