@@ -240,8 +240,10 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		actor.SubscriptionStatus = db.SubscriptionStatus(actor.ID)
 		actor.Acct = fmt.Sprintf("@%s@%s", user, host)
 
+		common := emptyCommon()
+		common.searchQuery = actor.Acct
 		templateExec(w, rq, templateRemoteProfile, dataRemoteProfile{
-			dataCommon: emptyCommon(),
+			dataCommon: common,
 			Account:    *actor,
 		})
 
@@ -735,6 +737,7 @@ type dataSearch struct {
 }
 
 var tagOnly = regexp.MustCompile(`^#([^?!:#@<>*|'"&%{}\\\s]+)\s*$`)
+var usernameOnly = regexp.MustCompile(`^@.*@.*$`)
 
 func getSearch(w http.ResponseWriter, rq *http.Request) {
 	query := rq.FormValue("q")
@@ -742,11 +745,18 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 		http.Redirect(w, rq, "/", http.StatusSeeOther)
 		return
 	}
+
 	if tagOnly.MatchString(query) {
 		tag := tagOnly.FindAllStringSubmatch(query, 1)[0][1]
 		http.Redirect(w, rq, "/tag/"+tag, http.StatusSeeOther)
 		return
 	}
+
+	if usernameOnly.MatchString(query) {
+		http.Redirect(w, rq, query, http.StatusSeeOther)
+		return
+	}
+
 	authed := auth.AuthorizedFromRequest(rq)
 	currentPage, err := strconv.Atoi(rq.FormValue("page"))
 	if err != nil || currentPage <= 0 {
