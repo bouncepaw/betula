@@ -199,7 +199,8 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 			* The Activity form shows the Actor object. Available for the local profile only.
 	*/
 	var (
-		wantsActivity        = rq.Header.Get("Accept") == types.ActivityType
+		accept               = rq.Header.Get("Accept")
+		wantsActivity        = accept == types.ActivityType || accept == types.OtherActivityType
 		userAtHost           = strings.TrimPrefix(rq.URL.Path, "/@")
 		user, host, isRemote = strings.Cut(userAtHost, "@")
 		authed               = auth.AuthorizedFromRequest(rq)

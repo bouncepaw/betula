@@ -1,6 +1,7 @@
 package types
 
 const ActivityType = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""
+const OtherActivityType = "application/activity+json"
 
 type ServerSoftwareKind string
 
