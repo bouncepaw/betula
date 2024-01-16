@@ -30,6 +30,8 @@ func getIDSomehow(activity dict, field string) string {
 }
 
 const atContext = "https://www.w3.org/ns/activitystreams"
+const atContextMycomarkupExtension = "https://ns.mycorrhiza.wiki/mycomarkup" // to be defined
+const publicAudience = "https://www.w3.org/ns/activitystreams#Public"
 
 type dict = map[string]any
 

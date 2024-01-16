@@ -1382,7 +1382,14 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
-
+	if settings.FederationEnabled() {
+		data, err := activities.CreateNote(post)
+		if err != nil {
+			log.Printf("When creating Create{Note} activity for post no. %d: %s\n", id, err)
+			return
+		}
+		jobs.ScheduleJSON(jobtype.SendCreateNote, data)
+	}
 }
 
 type dataPost struct {
