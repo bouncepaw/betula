@@ -12,6 +12,22 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
+func DeleteNote(postId int) ([]byte, error) {
+	id := fmt.Sprintf("%s/%d", settings.SiteURL(), postId)
+	activity := dict{
+		"@context": atContext,
+		"type":     "Delete",
+		"actor":    betulaActor,
+		"to": []string{
+			publicAudience,
+			fmt.Sprintf("%s/followers", settings.SiteURL()),
+		},
+		"id":     id + "?delete",
+		"object": id,
+	}
+	return json.Marshal(activity)
+}
+
 func CreateNote(post types.Post) ([]byte, error) {
 	// Generating the timestamp
 	t, err := time.Parse(types.TimeLayout, post.CreationTime)
