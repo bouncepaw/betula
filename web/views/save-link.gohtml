@@ -17,7 +17,10 @@
             <form method="post" action="/save-link">
                 {{template "form fragment" .}}
                 <input type="submit" class="btn" value="Save">
-                {{template "submit another" .}}
+                <div class="submit-another">
+                    <input type="checkbox" name="another" id="another-confirmed" {{if .Another}} checked {{end}} value="true">
+                    <label for="another-confirmed">Submit another?</label>
+                </div>
             </form>
         </article>
     </main>

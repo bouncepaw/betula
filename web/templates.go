@@ -58,7 +58,7 @@ var templateSettings = templateFrom(nil, "settings")
 var templateStatus = templateFrom(nil, "status")
 
 // Meaningful views:
-var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment", "save-link", "submit-another")
+var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment", "save-link")
 var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment", "edit-link")
 var templateRepost = templateFrom(funcMapForForm, "repost")
 var templatePost = templateFrom(funcMapForPosts, "post-fragment", "post")

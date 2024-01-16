@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/url"
+	"strings"
 )
 
 const (
@@ -17,6 +18,18 @@ const (
 	stateNotSure = iota
 	stateSure
 )
+
+func nodeIsNotEmptyText(node *html.Node) bool {
+	if node.Type != html.TextNode {
+		return false
+	}
+	for _, c := range node.Data {
+		if !strings.ContainsRune(" \t\n\r", c) {
+			return true
+		}
+	}
+	return false
+}
 
 func listenForTitle(nodes chan *html.Node, data *FoundData) {
 	state := stateLooking
@@ -106,10 +119,15 @@ func listenForPostName(nodes chan *html.Node, data *FoundData) {
 }
 
 func listenForTags(nodes chan *html.Node, data *FoundData) {
+	state := stateLooking // or stateFound
 	for n := range nodes {
-		if n.Type == html.ElementNode && nodeHasClass(n, "p-category") {
-			tag := n.FirstChild.Data
-			data.Tags = append(data.Tags, tag)
+		switch {
+		case state == stateFound && nodeIsNotEmptyText(n):
+			tagName := strings.TrimSpace(n.Data)
+			data.Tags = append(data.Tags, tagName)
+			state = stateLooking
+		case state == stateLooking && nodeHasClass(n, "p-category"):
+			state = stateFound
 		}
 	}
 }
