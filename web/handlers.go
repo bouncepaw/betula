@@ -355,7 +355,7 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", types.ActivityType)
+	w.Header().Set("Content-Type", types.OtherActivityType)
 	if _, err := w.Write(doc); err != nil {
 		log.Printf("Error when serving Actor: %s\n", err)
 	}
