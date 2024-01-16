@@ -200,7 +200,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 	*/
 	var (
 		accept               = rq.Header.Get("Accept")
-		wantsActivity        = accept == types.ActivityType || accept == types.OtherActivityType
+		wantsActivity        = strings.Contains(accept, types.ActivityType) || strings.Contains(accept, types.OtherActivityType)
 		userAtHost           = strings.TrimPrefix(rq.URL.Path, "/@")
 		user, host, isRemote = strings.Cut(userAtHost, "@")
 		authed               = auth.AuthorizedFromRequest(rq)

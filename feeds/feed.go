@@ -100,7 +100,6 @@ func Digest() *feeds.Feed {
 			Created:     days[i],
 		}
 		feed.Items = append(feed.Items, entry)
-		log.Println("iter")
 	}
 
 	return feed
