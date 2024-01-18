@@ -1370,7 +1370,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
-	if settings.FederationEnabled() {
+	if settings.FederationEnabled() && post.Visibility == types.Public {
 		post.CreationTime = time.Now().Format(types.TimeLayout) // It shall match the one generated in DB
 		data, err := activities.CreateNote(post)
 		if err != nil {
