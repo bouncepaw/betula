@@ -9,6 +9,7 @@ create table Artifacts
     LastCheckedAt text -- null = never checked
 );
 
+-- DROPPED IN 11: the table was created anew
 -- Actors is a storage for all known actors.
 create table Actors
 (
@@ -21,6 +22,7 @@ create table Actors
     ServerSoftware    text,             -- "betula", "mastodon", whatever.
     foreign key (IconID) references Artifacts (ID)
 );
+-- END DROPPED
 
 -- DROPPED IN 9: the table was split into two and simplified
 -- Subscriptions lists all known subscriptionship relations between you and others.

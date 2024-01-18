@@ -220,29 +220,16 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 	case isRemote && !wantsActivity:
 		log.Printf("Request remote user @%s@%s as a page\n", user, host)
 
-		wa, found, err := fediverse.RequestWebFinger(user, host)
-		if !found {
-			log.Printf("@%s@%s was not found. 404.\n", user, host)
-			handlerNotFound(w, rq)
-			return
-		}
+		actor, err := fediverse.RequestActorByNickname(fmt.Sprintf("%s@%s", user, host))
 		if err != nil {
-			log.Printf("While fetching @%s@%s, got the error: %s. 404.\n", user, host, err)
-			handlerNotFound(w, rq)
-			return
-		}
-
-		actor, err := fediverse.RequestActor(wa.ActorURL)
-		if err != nil {
-			log.Printf("While fetching %s profile, got the error: %s\n", wa.ActorURL, err)
+			log.Printf("While fetching %s@%s profile, got the error: %s\n", user, host, err)
 			handlerNotFound(w, rq)
 			return
 		}
 		actor.SubscriptionStatus = db.SubscriptionStatus(actor.ID)
-		actor.Acct = fmt.Sprintf("@%s@%s", user, host)
 
 		common := emptyCommon()
-		common.searchQuery = actor.Acct
+		common.searchQuery = actor.Acct()
 		templateExec(w, rq, templateRemoteProfile, dataRemoteProfile{
 			dataCommon: common,
 			Account:    *actor,
@@ -602,7 +589,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		db.RemoveFollower(report.ActorID)
 
 	case activities.FollowReport:
-		_, err := fediverse.RequestActor(report.ActorID)
+		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
 			log.Printf("Couldn't fetch actor: %s\n", err)
 			return
@@ -621,7 +608,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 	case activities.AcceptReport:
-		_, err := fediverse.RequestActor(report.ActorID)
+		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
 			log.Printf("Couldn't fetch actor: %s\n", err)
 			return
@@ -642,7 +629,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 	case activities.RejectReport:
-		_, err := fediverse.RequestActor(report.ActorID)
+		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
 			log.Printf("Couldn't fetch actor: %s\n", err)
 			return

@@ -2,65 +2,46 @@ package fediverse
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/stricks"
-	"git.sr.ht/~bouncepaw/betula/types"
 	"io"
-	"time"
 )
 
 // https://docs.joinmastodon.org/spec/webfinger/
 
-func RequestWebFinger(user, host string) (wa types.WebfingerAcct, found bool, err error) {
+type webfingerDocument struct {
+	Links []struct {
+		Rel  string `json:"rel"`
+		Type string `json:"type"`
+		Href string `json:"href"`
+	} `json:"links"`
+}
+
+func requestIdByWebFingerAcct(user, host string) (id string, err error) {
 	requestURL := fmt.Sprintf("https://%s/.well-known/webfinger?resource=acct:%s@%s", host, user, host)
 
 	resp, err := client.Get(requestURL)
 	if err != nil {
-		return wa, false, err
+		return "", err
 	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return wa, false, err
+		return "", err
 	}
 
-	// TODO: unmarshal into struct
-	obj := map[string]any{}
+	obj := webfingerDocument{}
 	if err = json.Unmarshal(data, &obj); err != nil {
-		return wa, false, err
+		return "", err
 	}
 
-	links, ok := obj["links"].([]any)
-	if !ok {
-		return wa, false, errors.New("links field not an array")
-	}
-
-	for _, linkUntyped := range links {
-		linkUntyped, ok := linkUntyped.(map[string]any)
-		if !ok {
-			return wa, false, errors.New("link is not an object")
-		}
-		rel, ok1 := linkUntyped["rel"].(string)
-		typ, ok2 := linkUntyped["type"].(string)
-		href, ok3 := linkUntyped["href"].(string)
-		if !ok1 || !ok2 || !ok3 {
-			return wa, false, errors.New("a field in link is not a string")
-		}
-		if rel == "self" && typ == "application/activity+json" && stricks.ValidURL(href) {
+	for _, link := range obj.Links {
+		if link.Rel == "self" && link.Type == "application/activity+json" && stricks.ValidURL(link.Href) {
 			// Found what we were looking for
-			wa = types.WebfingerAcct{
-				Acct:          user + "@" + host,
-				ActorURL:      href,
-				Document:      data,
-				LastCheckedAt: time.Now().Format(types.TimeLayout),
-			}
-			db.InsertWebfingerAcct(wa)
-			return wa, true, nil
+			return link.Href, nil
 		}
 	}
 
 	// Mistakes happen
-	return wa, false, nil
+	return "", nil
 }

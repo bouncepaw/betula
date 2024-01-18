@@ -3,7 +3,9 @@ package fediverse
 import (
 	"encoding/json"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
+	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"io"
 	"log"
@@ -11,51 +13,65 @@ import (
 	"strings"
 )
 
-// RequestActorByNickname returns actor by string like @bouncepaw@links.bouncepaw.com or bouncepaw@links.bouncepaw.com.
+// RequestActorByNickname returns actor by string like @bouncepaw@links.bouncepaw.com or bouncepaw@links.bouncepaw.com. The returned value might be from the cache and perhaps stale.
 func RequestActorByNickname(nickname string) (*types.Actor, error) {
 	user, host, ok := strings.Cut(strings.TrimPrefix(nickname, "@"), "@")
-
 	if !ok {
 		return nil, fmt.Errorf("bad username: %s", nickname)
 	}
 
-	wa, found, err := RequestWebFinger(user, host)
-	if !found {
+	// get cached if possible
+	a, found := db.ActorByAcct(user, host)
+	if found {
+		return a, nil
+	}
+
+	// find id
+	id, err := requestIdByWebFingerAcct(user, host)
+	if err == nil && id == "" {
 		return nil, fmt.Errorf("user not found 404: %s", nickname)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	actor, err := RequestActor(wa.ActorURL)
+	// make network request
+	actor, err := dereferenceActorID(id)
 	if err != nil {
-		return nil, fmt.Errorf("while fetching actor %s: %w", wa.ActorURL, err)
+		return nil, fmt.Errorf("while fetching actor %s: %w", id, err)
 	}
 
 	return actor, nil
 }
 
-// RequestActor fetches the actor activity on the specified address.
-func RequestActor(actorID string) (*types.Actor, error) {
-	if cachedActor, ok := ActorStorage[actorID]; ok {
-		log.Printf("Returning cached author %s\n", actorID)
-		return cachedActor, nil
+// RequestActorByID fetches the actor activity on the specified address. The returned value might be from the cache and perhaps stale.
+func RequestActorByID(actorID string) (*types.Actor, error) {
+	// get cached if possible
+	a, found := db.ActorByID(actorID)
+	if found {
+		return a, nil
 	}
 
-	cope := func(err error) error {
-		return fmt.Errorf("requesting actor: %w", err)
+	// make network request
+	actor, err := dereferenceActorID(actorID)
+	if err != nil {
+		return nil, fmt.Errorf("while fetching actor %s: %w", actorID, err)
 	}
 
+	return actor, nil
+}
+
+func dereferenceActorID(actorID string) (*types.Actor, error) {
 	req, err := http.NewRequest("GET", actorID, nil)
 	if err != nil {
-		return nil, cope(err)
+		return nil, fmt.Errorf("requesting actor: %w", err)
 	}
 	req.Header.Set("Accept", types.ActivityType)
 	signing.SignRequest(req, nil)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, cope(err)
+		return nil, fmt.Errorf("requesting actor: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -64,22 +80,24 @@ func RequestActor(actorID string) (*types.Actor, error) {
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, cope(err)
+		return nil, fmt.Errorf("requesting actor: %w", err)
 	}
 
 	var a types.Actor
 	if err = json.Unmarshal(data, &a); err != nil {
-		return nil, cope(err)
+		return nil, fmt.Errorf("requesting actor: %w", err)
 	}
 
-	ActorStorage[a.ID] = &a
-	KeyPEMStorage[a.PublicKey.ID] = a.PublicKey.PublicKeyPEM
-
+	a.Domain = stricks.ParseValidURL(actorID).Host
+	if !a.Valid() {
+		panic("actor invalid") // should not happen actually
+	}
+	db.StoreValidActor(a)
 	return &a, nil
 }
 
-func RequestActorInbox(actorID string) string {
-	actor, err := RequestActor(actorID)
+func RequestActorInboxByID(actorID string) string {
+	actor, err := RequestActorByID(actorID)
 	if err != nil {
 		log.Printf("When requesting actor %s inbox: %s\n", actorID, err)
 		return ""

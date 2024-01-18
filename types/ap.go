@@ -1,18 +1,15 @@
 package types
 
+import (
+	"fmt"
+	"git.sr.ht/~bouncepaw/betula/stricks"
+)
+
 const ActivityType = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""
 const OtherActivityType = "application/activity+json"
 
-type ServerSoftwareKind string
-
-const (
-	SoftwareBetula  ServerSoftwareKind = "betula"
-	SoftwareGeneral ServerSoftwareKind = "general"
-)
-
 type Actor struct {
 	ID                string `json:"id"`
-	Type              string `json:"type"`
 	Inbox             string `json:"inbox"`
 	PreferredUsername string `json:"preferredUsername"`
 	DisplayedName     string `json:"name"`
@@ -22,11 +19,19 @@ type Actor struct {
 		Owner        string `json:"owner"`
 		PublicKeyPEM string `json:"publicKeyPem"`
 	} `json:"publicKey,omitempty"`
-	//IconID            string             `json:"icon,omitempty"`
-	ServerSoftware ServerSoftwareKind `json:"-"`
 
 	SubscriptionStatus SubscriptionRelation `json:"-"` // Set manually
-	Acct               string               `json:"-"` // Set manually
+	Domain             string               `json:"-"` // Set manually
+}
+
+func (a *Actor) Valid() bool {
+	urlsOK := stricks.ValidURL(a.ID) && stricks.ValidURL(a.Inbox) && stricks.ValidURL(a.PublicKey.ID) && stricks.ValidURL(a.PublicKey.Owner)
+	nonEmpty := a.PreferredUsername != "" && a.DisplayedName != "" && a.PublicKey.PublicKeyPEM != "" && a.Domain != ""
+	return urlsOK && nonEmpty
+}
+
+func (a Actor) Acct() string {
+	return fmt.Sprintf("@%s@%s", a.PreferredUsername, a.Domain)
 }
 
 type SubscriptionRelation string

@@ -2,6 +2,7 @@
 package fediverse
 
 import (
+	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing/httpsig"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"log"
@@ -16,7 +17,7 @@ var client = http.Client{
 // VerifyRequest returns true if the request is alright. This function makes HTTP requests on your behalf to retrieve the public key.
 func VerifyRequest(rq *http.Request, content []byte) bool {
 	_, err := httpsig.VerifyRequest(rq, content, func(keyId string) (httpsig.PublicKey, error) {
-		pem := KeyPEMStorage[keyId]
+		pem := db.KeyPemByID(keyId)
 		if pem == "" {
 			// The zero PublicKey has a None key type, which the underlying VerifyRequest handles well.
 			return httpsig.PublicKey{}, nil

@@ -76,7 +76,7 @@ func sendRejectFollow(report activities.FollowReport) {
 	}
 
 	activity, err := activities.NewReject(report.OriginalActivity)
-	if err = SendActivityToInbox(activity, fediverse.RequestActorInbox(report.ActorID)); err != nil {
+	if err = SendActivityToInbox(activity, fediverse.RequestActorInboxByID(report.ActorID)); err != nil {
 		log.Println(err)
 	}
 }
@@ -87,7 +87,7 @@ func sendAcceptFollow(report activities.FollowReport) {
 	}
 
 	activity, err := activities.NewAccept(report.OriginalActivity)
-	if err = SendActivityToInbox(activity, fediverse.RequestActorInbox(report.ActorID)); err != nil {
+	if err = SendActivityToInbox(activity, fediverse.RequestActorInboxByID(report.ActorID)); err != nil {
 		log.Println(err)
 	} else {
 		db.AddFollower(report.ActorID)
@@ -108,7 +108,7 @@ func sendCreateNote(job jobtype.Job) {
 	// This loop might take some time (n = len(followers)) because we don't parallelize it.
 	// I don't we should parallelize it.
 	for _, follower := range followers {
-		inbox := fediverse.RequestActorInbox(follower.ID)
+		inbox := fediverse.RequestActorInboxByID(follower.ID)
 		err := SendActivityToInbox(payload, inbox)
 		if err != nil {
 			log.Printf("While sending to %s: %s\n", inbox, err)
