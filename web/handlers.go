@@ -1390,7 +1390,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 			log.Printf("When creating Create{Note} activity for post no. %d: %s\n", id, err)
 			return
 		}
-		jobs.ScheduleJSON(jobtype.SendCreateNote, data)
+		jobs.ScheduleDatum(jobtype.SendCreateNote, data)
 	}
 }
 

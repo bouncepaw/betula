@@ -75,7 +75,7 @@ func SendActivityToInbox(activity []byte, inbox string) error {
 	rq.Header.Set("Content-Type", types.ActivityType)
 	signing.SignRequest(rq, activity)
 
-	log.Printf("Sending activity %s\n", string(activity))
+	log.Printf("Sending activity %s to %s\n", string(activity), inbox)
 	resp, err := client.Do(rq)
 	if err != nil {
 		log.Println(err)
