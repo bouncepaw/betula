@@ -1,5 +1,7 @@
 drop table Subscriptions;
 
+-- DROPPED IN 12: they were migrated to similar tables that have primary keys
+
 -- Accounts I am following.
 create table Following (
     -- ActivityPub URL ID.

@@ -8,11 +8,10 @@ func KeyPemByID(keyID string) string {
 
 func GetFollowing() (actors []types.Actor) {
 	rows := mustQuery(`
-select ActorID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, LastCheckedAt, PublicKeyPEM
+select ActorID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
 from Following
 join Actors on ActorID = Actors.ID
-join PublicKeys on Owner = ActorID;
-`)
+join PublicKeys on Owner = ActorID;`)
 	for rows.Next() {
 		var a types.Actor
 		mustScan(rows, &a.ID, &a.PreferredUsername, &a.Inbox, &a.DisplayedName, &a.Summary, &a.Domain, &a.PublicKey.PublicKeyPEM)
@@ -23,7 +22,7 @@ join PublicKeys on Owner = ActorID;
 
 func GetFollowers() (actors []types.Actor) {
 	rows := mustQuery(`
-select ActorID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, LastCheckedAt, PublicKeyPEM
+select ActorID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
 from Followers
 join Actors on ActorID = Actors.ID
 join PublicKeys on Owner = ActorID;
@@ -76,6 +75,11 @@ replace into Actors
 values
 	(?, ?, ?, ?, ?, ?, current_timestamp)`,
 		a.ID, a.PreferredUsername, a.Inbox, a.DisplayedName, a.Summary, a.Domain)
+	mustExec(`
+replace into PublicKeys
+	(ID, Owner, PublicKeyPEM)
+values
+	(?, ?, ?)`, a.PublicKey.ID, a.PublicKey.Owner, a.PublicKey.PublicKeyPEM)
 }
 
 func AddFollower(id string) {

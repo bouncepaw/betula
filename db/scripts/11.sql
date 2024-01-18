@@ -1,6 +1,8 @@
 drop table Actors;
 drop table WebFingerAccts;
 
+-- DROPPED IN 12: forgot the primary key
+
 create table Actors (
     ID text not null,
     PreferredUsername text not null,
