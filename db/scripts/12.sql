@@ -1,7 +1,12 @@
--- Adding primary keys from 9.sql.
+-- Sorry for losing data here, my dear adventurous beta user:
+drop table if exists Actors;
+drop table if exists Following;
+drop table if exists Followers;
+
+-- Adding primary keys to the tables from 9.sql.
 
 -- Accounts I am following.
-create table NewFollowing (
+create table Following (
     -- ActivityPub URL ID.
     ActorID text not null primary key,
     -- When I asked to subscribe.
@@ -11,14 +16,15 @@ create table NewFollowing (
 );
 
 -- Accounts that follow me. Rejected accounts don't make it here.
-create table NewFollowers (
+create table Followers (
     -- ActivityPub URL ID.
     ActorID text not null primary key,
     -- When the request was accepted.
     SubscribedAt text not null default current_timestamp
 );
 
-create table NewActors (
+-- See 7 for the prev ver.
+create table Actors (
     ID text not null primary key,
     PreferredUsername text not null,
     Inbox text not null,
@@ -29,14 +35,3 @@ create table NewActors (
     LastCheckedAt text not null default current_timestamp
 );
 
-insert or ignore into NewFollowing select * from Following;
-insert or ignore into NewFollowers select * from Followers;
-insert or ignore into NewActors select * from Actors;
-
-drop table Following;
-drop table Followers;
-drop table Actors;
-
-alter table NewFollowing rename to Following;
-alter table NewFollowers rename to Followers;
-alter table NewActors rename to Actors;
