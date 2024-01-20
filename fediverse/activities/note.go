@@ -102,6 +102,7 @@ func CreateNote(post types.Post) ([]byte, error) {
 		return nil, err
 	}
 	activity["type"] = "Create"
+	activity["id"] = fmt.Sprintf("%s/%d?create", settings.SiteURL(), post.ID)
 	return json.Marshal(activity)
 }
 
@@ -111,5 +112,6 @@ func UpdateNote(post types.Post) ([]byte, error) {
 		return nil, err
 	}
 	activity["type"] = "Update"
+	activity["id"] = fmt.Sprintf("%s/%d?update", settings.SiteURL(), post.ID)
 	return json.Marshal(activity)
 }
