@@ -9,7 +9,7 @@
 
 			<h3>Basic</h3>
 
-			<form method="post" action="/settings">
+			<form method="post" action="/settings{{if .FirstRun}}?first-run=true{{end}}">
 				<div>
 					<label for="site-name">Site name</label>
 					<input id="site-name" name="site-name" type="text" value="{{.SiteName}}" placeholder="Betula">

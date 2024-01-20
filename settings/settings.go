@@ -60,7 +60,7 @@ func ValidatePortFromWeb[N ~int | uint](port N) uint {
 
 // Index reads all settings from the db.
 func Index() {
-	adminUsername = db.MetaEntry[string](db.BetulaMetaAdminUsername) // not a setting per se
+	adminUsername = db.MetaEntry[sql.NullString](db.BetulaMetaAdminUsername).String
 
 	unvalidatedNetworkHost := db.MetaEntry[sql.NullString](db.BetulaMetaNetworkHost)
 	cache.NetworkHost = validateHostFromDB(unvalidatedNetworkHost)
@@ -149,4 +149,5 @@ func SetSettings(settings types.Settings) {
 
 func WritePort(port uint) { // port must != 0
 	db.SetMetaEntry(db.BetulaMetaNetworkPort, port)
+	Index()
 }

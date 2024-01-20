@@ -4,6 +4,7 @@ package signing
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"database/sql"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing/httpsig"
 	"git.sr.ht/~bouncepaw/betula/settings"
@@ -42,23 +43,23 @@ func setKeys(privateKeyPEM string) {
 
 // EnsureKeysFromDatabase reads the keys from the database and remembers them. If they are not found, it comes up with new ones and saves them. This function might crash the application.
 func EnsureKeysFromDatabase() {
-	privKeyPEM := db.MetaEntry[string](db.BetulaMetaPrivateKey)
-
-	// No key found? Make a new one and write it to DB.
-	if privKeyPEM == "" {
+	var pem string
+	privKeyPEMMaybe := db.MetaEntry[sql.NullString](db.BetulaMetaPrivateKey)
+	if !privKeyPEMMaybe.Valid || privKeyPEMMaybe.String == "" {
 		log.Println("Generating a new pair of RSA keys")
 		priv, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
 			log.Fatalf("When generating new keys: %s\n", err)
 		}
 
-		privKeyPEM, err = httpsig.EncodeKey(priv)
+		pem, err = httpsig.EncodeKey(priv)
 		if err != nil {
 			log.Fatalf("When generating private key PEM: %s\n", err)
 		}
 
-		db.SetMetaEntry(db.BetulaMetaPrivateKey, privKeyPEM)
+		db.SetMetaEntry(db.BetulaMetaPrivateKey, pem)
+		setKeys(pem)
+	} else {
+		setKeys(privKeyPEMMaybe.String)
 	}
-
-	setKeys(privKeyPEM)
 }

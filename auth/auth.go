@@ -18,10 +18,10 @@ var (
 func Initialize() {
 	ready.Store(false)
 	var (
-		name = settings.AdminUsername()
+		name = db.MetaEntry[sql.NullString](db.BetulaMetaAdminUsername)
 		pass = db.MetaEntry[sql.NullString](db.BetulaMetaAdminPasswordHash)
 	)
-	ready.Store(name != "" && pass.Valid)
+	ready.Store(name.Valid && pass.Valid)
 }
 
 // Ready returns if the admin account is set up. If it is not, Betula should demand it and refuse to work until then.
@@ -60,4 +60,5 @@ func SetCredentials(name, pass string) {
 
 	db.SetCredentials(name, string(hash))
 	Initialize()
+	settings.Index()
 }
