@@ -58,13 +58,15 @@ func broadcastToFollowers(job jobtype.Job) {
 		return
 	}
 
+	log.Printf("Broadcasting to followers: %s\n", job.Payload)
+
 	followers := db.GetFollowers()
 	succSends := len(followers)
 
 	// This loop might take some time (n = len(followers)) because we don't parallelize it.
 	// I don't we should parallelize it.
 	for _, follower := range followers {
-		err := SendActivityToInbox(payload, follower.Inbox)
+		err := SendQuietActivityToInbox(payload, follower.Inbox)
 		if err != nil {
 			log.Printf("While sending to %s: %s\n", follower.Inbox, err)
 			succSends--

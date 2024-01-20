@@ -87,6 +87,28 @@ func SendActivityToInbox(activity []byte, inbox string) error {
 	return nil
 }
 
+func SendQuietActivityToInbox(activity []byte, inbox string) error {
+	rq, err := http.NewRequest(http.MethodPost, inbox, bytes.NewReader(activity))
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	rq.Header.Set("Content-Type", types.ActivityType)
+	signing.SignRequest(rq, activity)
+
+	log.Printf("Sending activity to %s\n", inbox)
+	resp, err := client.Do(rq)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Activity sent to %s returned %d status\n", inbox, resp.StatusCode)
+	}
+	return nil
+}
+
 func sendActivity(uri string, activity []byte) error {
 	url := stricks.ParseValidURL(uri)
 	inbox := fmt.Sprintf("%s://%s/inbox", url.Scheme, url.Host)
