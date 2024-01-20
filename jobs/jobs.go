@@ -20,7 +20,7 @@ import (
 var jobch = make(chan jobtype.Job)
 
 var client = http.Client{
-	Timeout: time.Second,
+	Timeout: time.Second * 5,
 }
 
 // ScheduleDatum schedules a job with the given category and data of any type, which will be saved as is.
