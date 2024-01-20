@@ -20,6 +20,8 @@ const (
 	ReceiveAcceptFollow JobCategory = "Receive Accept{Follow}"
 	ReceiveRejectFollow JobCategory = "Receive Reject{Follow}"
 	SendCreateNote      JobCategory = "Send Create{Note}"
+	SendUpdateNote      JobCategory = "Send Update{Note}"
+	SendDeleteNote      JobCategory = "Send Delete{Note}"
 )
 
 // Job is a task for Betula to do later.

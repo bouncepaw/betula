@@ -45,7 +45,33 @@ var catmap = map[jobtype.JobCategory]func(job jobtype.Job){
 	jobtype.SendRejectFollow:    callForJSON[activities.FollowReport](jobtype.SendRejectFollow, sendRejectFollow),
 	jobtype.ReceiveAcceptFollow: callForJSON[activities.FollowReport](jobtype.ReceiveAcceptFollow, receiveAcceptFollow),
 	jobtype.ReceiveRejectFollow: callForJSON[activities.FollowReport](jobtype.ReceiveRejectFollow, receiveRejectFollow),
-	jobtype.SendCreateNote:      sendCreateNote,
+	jobtype.SendCreateNote:      broadcastToFollowers,
+	jobtype.SendDeleteNote:      broadcastToFollowers,
+	jobtype.SendUpdateNote:      broadcastToFollowers,
+}
+
+func broadcastToFollowers(job jobtype.Job) {
+	// The payload is a []byte we have to send to every follower.
+	payload, ok := job.Payload.([]byte)
+	if !ok {
+		log.Printf("Unexpected payload of type %T for %s: %v\n", payload, job.Category, payload)
+		return
+	}
+
+	followers := db.GetFollowers()
+	succSends := len(followers)
+
+	// This loop might take some time (n = len(followers)) because we don't parallelize it.
+	// I don't we should parallelize it.
+	for _, follower := range followers {
+		err := SendActivityToInbox(payload, follower.Inbox)
+		if err != nil {
+			log.Printf("While sending to %s: %s\n", follower.Inbox, err)
+			succSends--
+		}
+	}
+
+	log.Printf("Sent %s to %d out of %d followers.\n", job.Category, succSends, len(followers))
 }
 
 func receiveAcceptFollow(report activities.FollowReport) {
@@ -92,31 +118,6 @@ func sendAcceptFollow(report activities.FollowReport) {
 	} else {
 		db.AddFollower(report.ActorID)
 	}
-}
-
-func sendCreateNote(job jobtype.Job) {
-	// The payload is a []byte we have to send to every follower.
-	payload, ok := job.Payload.([]byte)
-	if !ok {
-		log.Printf("Unexpected payload of type %T for %s: %v\n", payload, jobtype.SendCreateNote, payload)
-		return
-	}
-
-	followers := db.GetFollowers()
-	succSends := len(followers)
-
-	// This loop might take some time (n = len(followers)) because we don't parallelize it.
-	// I don't we should parallelize it.
-	for _, follower := range followers {
-		inbox := fediverse.RequestActorInboxByID(follower.ID)
-		err := SendActivityToInbox(payload, inbox)
-		if err != nil {
-			log.Printf("While sending to %s: %s\n", inbox, err)
-			succSends--
-		}
-	}
-
-	log.Printf("Sent Create{Note} to %d out of %d followers.\n", succSends, len(followers))
 }
 
 func notifyJob(job jobtype.Job) {

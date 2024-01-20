@@ -920,7 +920,9 @@ func postDeleteLink(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if !db.HasPost(id) {
+	post, found := db.PostForID(id)
+
+	if !found {
 		log.Println("Trying to delete a non-existent post.")
 		handlerNotFound(w, rq)
 		return
@@ -928,6 +930,20 @@ func postDeleteLink(w http.ResponseWriter, rq *http.Request) {
 
 	db.DeletePost(id)
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
+
+	if settings.FederationEnabled() {
+		go func(post types.Post) {
+			if post.Visibility != types.Public {
+				return
+			}
+			data, err := activities.DeleteNote(post.ID)
+			if err != nil {
+				log.Printf("When creating Delete{Note} activity for post no. %d: %s\n", id, err)
+				return
+			}
+			jobs.ScheduleDatum(jobtype.SendDeleteNote, data)
+		}(post)
+	}
 }
 
 func handlerNotFound(w http.ResponseWriter, rq *http.Request) {
@@ -1117,6 +1133,28 @@ func postEditLinkTags(w http.ResponseWriter, rq *http.Request) {
 
 	next := rq.FormValue("next")
 	http.Redirect(w, rq, next, http.StatusSeeOther)
+
+	if settings.FederationEnabled() {
+		go func(id int) {
+			// the handler never modifies the post visibility, so we don't care about the past, so we only look at the current value
+			post, found := db.PostForID(id)
+			if !found {
+				log.Printf("When federating bookmark no. %d: bookmark not found\n", post.ID)
+				return
+			}
+			if post.Visibility != types.Public {
+				return
+			}
+
+			// The post remains public
+			data, err := activities.UpdateNote(post)
+			if err != nil {
+				log.Printf("When creating Update{Note} activity for post no. %d: %s\n", post.ID, err)
+				return
+			}
+			jobs.ScheduleDatum(jobtype.SendUpdateNote, data)
+		}(id)
+	}
 }
 
 type dataEditLink struct {
@@ -1149,6 +1187,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		handlerNotFound(w, rq)
 		return
 	}
+	oldVisibility := post.Visibility
 
 	if rq.Method == http.MethodGet {
 		post.Tags = db.TagsForPost(id)
@@ -1202,6 +1241,50 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 	db.EditPost(post)
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 	log.Printf("Edited post no. %d\n", id)
+
+	if settings.FederationEnabled() {
+		go func(post types.Post, oldVisibility types.Visibility) {
+			wasPublic := oldVisibility == types.Public
+			isPublic := post.Visibility == types.Public
+
+			// The post remains private.
+			if !wasPublic && !isPublic {
+				return
+			}
+
+			// The post was hidden by the author. Let's broadcast Delete.
+			if wasPublic && !isPublic {
+				data, err := activities.DeleteNote(post.ID)
+				if err != nil {
+					log.Printf("When creating Delete{Note} activity for post no. %d: %s\n", post.ID, err)
+					return
+				}
+				jobs.ScheduleDatum(jobtype.SendDeleteNote, data)
+				return
+			}
+
+			post.CreationTime = time.Now().Format(types.TimeLayout) // It shall match the one generated in DB
+
+			// The post was unpublic, but became public. Let's broadcast Create.
+			if !wasPublic && isPublic {
+				data, err := activities.CreateNote(post)
+				if err != nil {
+					log.Printf("When creating Create{Note} activity for post no. %d: %s\n", post.ID, err)
+					return
+				}
+				jobs.ScheduleDatum(jobtype.SendCreateNote, data)
+				return
+			}
+
+			// The post remains public
+			data, err := activities.UpdateNote(post)
+			if err != nil {
+				log.Printf("When creating Update{Note} activity for post no. %d: %s\n", post.ID, err)
+				return
+			}
+			jobs.ScheduleDatum(jobtype.SendUpdateNote, data)
+		}(post, oldVisibility)
+	}
 }
 
 type dataEditTag struct {
@@ -1370,14 +1453,20 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
-	if settings.FederationEnabled() && post.Visibility == types.Public {
-		post.CreationTime = time.Now().Format(types.TimeLayout) // It shall match the one generated in DB
-		data, err := activities.CreateNote(post)
-		if err != nil {
-			log.Printf("When creating Create{Note} activity for post no. %d: %s\n", id, err)
-			return
-		}
-		jobs.ScheduleDatum(jobtype.SendCreateNote, data)
+
+	if settings.FederationEnabled() {
+		go func(post types.Post) {
+			if post.Visibility != types.Public {
+				return
+			}
+			post.CreationTime = time.Now().Format(types.TimeLayout) // It shall match the one generated in DB
+			data, err := activities.CreateNote(post)
+			if err != nil {
+				log.Printf("When creating Create{Note} activity for post no. %d: %s\n", id, err)
+				return
+			}
+			jobs.ScheduleDatum(jobtype.SendCreateNote, data)
+		}(post)
 	}
 }
 

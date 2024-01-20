@@ -28,7 +28,7 @@ func DeleteNote(postId int) ([]byte, error) {
 	return json.Marshal(activity)
 }
 
-func CreateNote(post types.Post) ([]byte, error) {
+func makeNote(post types.Post) (dict, error) {
 	// Generating the timestamp
 	t, err := time.Parse(types.TimeLayout, post.CreationTime)
 	if err != nil {
@@ -68,7 +68,6 @@ func CreateNote(post types.Post) ([]byte, error) {
 			},
 			atContextMycomarkupExtension,
 		},
-		"type":  "Create",
 		"actor": betulaActor,
 		"object": dict{
 			"type":         "Note",
@@ -90,5 +89,23 @@ func CreateNote(post types.Post) ([]byte, error) {
 	if len(tags) > 0 {
 		activity["tag"] = tags
 	}
+	return activity, nil
+}
+
+func CreateNote(post types.Post) ([]byte, error) {
+	activity, err := makeNote(post)
+	if err != nil {
+		return nil, err
+	}
+	activity["type"] = "Create"
+	return json.Marshal(activity)
+}
+
+func UpdateNote(post types.Post) ([]byte, error) {
+	activity, err := makeNote(post)
+	if err != nil {
+		return nil, err
+	}
+	activity["type"] = "Update"
 	return json.Marshal(activity)
 }
