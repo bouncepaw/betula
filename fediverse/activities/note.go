@@ -91,7 +91,7 @@ func makeNote(post types.Post) (dict, error) {
 		},
 	}
 	if len(tags) > 0 {
-		activity["tag"] = tags
+		activity["object"].(dict)["tag"] = tags
 	}
 	return activity, nil
 }
