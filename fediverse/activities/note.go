@@ -82,7 +82,7 @@ func makeNote(post types.Post) (dict, error) {
 				publicAudience,
 				fmt.Sprintf("%s/followers", settings.SiteURL()),
 			},
-			"content": content.String(),
+			"content": strings.ReplaceAll(content.String(), "\t", ""),
 			"name":    post.Title,
 			"mycomarkup": dict{
 				"sourceText": post.Description,
