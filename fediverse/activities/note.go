@@ -52,7 +52,19 @@ func makeNote(post types.Post) (dict, error) {
 			if i > 0 {
 				content.WriteString(", ")
 			}
-			content.WriteString("#" + tag.Name)
+			/*
+				Here's an example of a real tag markup from a real Mastodon activity:
+
+				<a href="https://merveilles.town/tags/FediDev" class="mention hashtag" rel="tag">#<span>FediDev</span></a>
+
+				Copying the markup so the tags look nice in Mastodon.
+			*/
+			content.WriteString(
+				fmt.Sprintf(`<a href="%s/tag/%s" class="mention hashtag" rel="tag">#<span>%s</span></a>`,
+					settings.SiteURL(),
+					tag.Name,
+					tag.Name,
+				))
 
 			// https://docs.joinmastodon.org/spec/activitypub/#Hashtag
 			tags = append(tags, dict{
@@ -115,5 +127,6 @@ func UpdateNote(post types.Post) ([]byte, error) {
 	}
 	activity["type"] = "Update"
 	activity["id"] = fmt.Sprintf("%s/%d?update", settings.SiteURL(), post.ID)
+	activity["object"].(dict)["updated"] = time.Now().Format(time.RFC3339)
 	return json.Marshal(activity)
 }
