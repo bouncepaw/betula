@@ -53,10 +53,10 @@ limit 1`, user, host)
 
 func ActorByID(actorID string) (a *types.Actor, found bool) {
 	rows := mustQuery(`
-select ID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
+select Actors.ID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
 from Actors
 join PublicKeys on Owner = Actors.ID
-where ID = ?
+where Actors.ID = ?
 limit 1`, actorID)
 	for rows.Next() {
 		var actor types.Actor
