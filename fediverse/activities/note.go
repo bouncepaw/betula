@@ -2,6 +2,7 @@ package activities
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"golang.org/x/net/html"
 	"strings"
@@ -29,6 +30,9 @@ func DeleteNote(postId int) ([]byte, error) {
 }
 
 func makeNote(post types.Post) (dict, error) {
+	if post.ID == 0 {
+		return nil, errors.New("an empty ID was passed")
+	}
 	// Generating the timestamp
 	t, err := time.Parse(types.TimeLayout, post.CreationTime)
 	if err != nil {

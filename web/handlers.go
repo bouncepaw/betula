@@ -1439,6 +1439,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	id := db.AddPost(post)
+	post.ID = int(id)
 
 	another := rq.FormValue("another")
 	if another == "true" {
