@@ -558,11 +558,14 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Printf("Incoming activity: %s\n", string(data))
 
 	report, err := activities.Guess(data)
 	if err != nil {
 		log.Printf("Error while parsing incoming activity: %v\n", err)
+		return
+	}
+	if report == nil {
+		// Ignored
 		return
 	}
 
