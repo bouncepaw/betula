@@ -28,7 +28,7 @@ func Guess(raw []byte) (report any, err error) {
 	}
 	switch v := val.(type) {
 	case string:
-		if f, ok := guesserMap[v]; !ok {
+		if f, ok := guesserMap[v]; !ok && v != "Delete" {
 			log.Printf("Ignoring unknown kind of activity: %s\n", raw)
 			return nil, ErrUnknownType
 		} else if v == "Delete" && activity["actor"] == activity["object"] {
