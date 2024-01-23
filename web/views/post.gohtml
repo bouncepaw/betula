@@ -6,7 +6,7 @@
 				{{if .Post.RepostOf}}<a href="{{.Post.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
 				{{if .RepostCount}}<a class="link-to-reposts" href="/reposts-of/{{.Post.ID}}">{{.RepostCount}} repost{{if gt .RepostCount 1}}s{{end}}</a>{{end}}
 				<a class="u-url" href="/{{.Post.ID}}">{{.Post.ID}}.</a>
-				<a class="edit-post-link float-right" href="/edit-link/{{.Post.ID}}">Edit</a>
+				{{if .Authorized}}<a class="edit-post-link float-right" href="/edit-link/{{.Post.ID}}">Edit</a>{{end}}
 				<button class="dashed-btn float-right" onclick="copyTextElem({{.Post.URL}}, this)">Copy link</button>
 				{{if .Authorized}}
 					{{if .Post.Visibility}}
