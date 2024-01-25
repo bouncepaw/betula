@@ -1,4 +1,4 @@
-{{define "title"}}About Betula{{end}}
+{{define "title"}}About {{.SiteName}}{{end}}
 {{define "body"}}
 	<main>
 		<article>
@@ -6,20 +6,12 @@
 			{{.SiteDescription}}
 			<p>This website runs <b>Betula</b>, a self-hosted bookmarking software.</p>
 			<p>Host your own instance of Betula! See <a href="https://betula.mycorrhiza.wiki">Betula's website</a> and the <a href="/help">the built-in documentation</a>.</p>
-		</article>
-		<article>
-			<h3>Stats</h3>
+
 			<dl>
-				<dt>Number of saved links</dt>
-				<dd>{{.LinkCount}}</dd>
-				<dt>Number of tags</dt>
-				<dd>{{.TagCount}}</dd>
-				{{if .OldestTime}}
-				<dt>Newest link save time</dt>
-				<dd>{{.NewestTime | timeToHuman}}</dd>
-				<dt>Oldest link save time</dt>
-				<dd>{{.OldestTime | timeToHuman}}</dd>
-				{{end}}
+				<dt>Webmaster</dt>
+				<dd><a href="/@{{.AdminUsername}}">@{{.AdminUsername}}</a></dd>
+				<dt>Federation</dt>
+				<dd>{{if .FederationEnabled}}Enabled{{else}}Disabled{{end}}</dd>
 				<dt>Betula version</dt>
 				<dd>1.2.0</dd>
 			</dl>
@@ -34,7 +26,7 @@
 				<li><p><a href="https://git.sr.ht/~bouncepaw/betula/tree">Source code</a></p></li>
 			</ul>
 			<p>If this instance is running a modified version,
-				you are free to demand a copy of the software from the administrator.</p>
+				you are free to demand a copy of the software from the webmaster.</p>
 		</article>
 	</main>
 {{end}}
