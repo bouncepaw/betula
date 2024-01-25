@@ -1,7 +1,7 @@
-# 🌳 Betula, a personal link collection manager
+# 🌳 Betula, a federated personal link collection manager
 ![A screenshot of Betula, featuring several links](https://betula.mycorrhiza.wiki/betula-v1.1.0.png)
 
-**Betula** is a single-user self-hosted bookmarking software.
+**Betula** is a single-user self-hosted bookmarking software with optional Fediverse support.
 
 * [Website](https://betula.mycorrhiza.wiki)
 * [Source code](https://git.sr.ht/~bouncepaw/betula)
@@ -19,5 +19,7 @@
 * Simple installation: the program is one binary, the collection is one file, all configuration is done through the web interface.
 * Bookmarklet.
 * Built-in documentation.
-* Searching.
-* ActivityPub-backed federation (experimental).
+* Search.
+* Fediverse (optional):
+  * You can repost posts from other Betula instances, and other software, sometimes.
+  * Other Fediverse software such as Mastodon can follow Betula instances.

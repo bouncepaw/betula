@@ -351,31 +351,40 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 func getNodeInfo(w http.ResponseWriter, rq *http.Request) {
 	// See:
 	// => https://github.com/jhass/nodeinfo/blob/main/schemas/2.0/example.json
-	doc := fmt.Sprintf(`{
+	// => https://mastodon.social/nodeinfo/2.0
+	doc, err := json.Marshal(map[string]any{
 		"version": "2.0",
-		"software": {
-			"name": "betula",
-			"version": "%s"
+		"software": map[string]string{
+			"name":    "betula",
+			"version": "1.2.0",
 		},
-		"protocols": ["activitypub"],
-		"services": {
-			"inbound": [],
-			"outbound": ["rss2.0"]
+		"protocols": []string{"activitypub"},
+		"services": map[string][]string{
+			"inbound":  {},
+			"outbound": {"rss2.0"},
 		},
 		"openRegistrations": false,
-		"usage": {
-			"users": {
-			  "total": 1,
-			  "activeHalfyear": 1,
-			  "activeMonth": 1
+		"usage": map[string]any{
+			"users": map[string]int{
+				"total":          1,
+				"activeHalfyear": 1,
+				"activeMonth":    1,
 			},
-			"localPosts": %d,
-			"localComments": 0
-		  },
-		  "metadata": {}
-	}`, "1.2.0", db.PostCount(false))
+			"localPosts":    db.PostCount(false),
+			"localComments": 0,
+		},
+		"metadata": map[string]string{
+			"nodeName":        settings.SiteName(),
+			"nodeDescription": settings.SiteDescriptionMycomarkup(),
+		},
+	})
+	if err != nil {
+		log.Printf("When marshaling /nodeinfo/2.0: %s\n", err)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json; profile=\"http://nodeinfo.diaspora.software/ns/schema/2.0#\"")
-	if _, err := fmt.Fprintf(w, doc); err != nil {
+
+	if _, err = w.Write(doc); err != nil {
 		log.Printf("Error when serving /nodeinfo/2.0: %s\n", err)
 	}
 }
