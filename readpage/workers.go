@@ -1,10 +1,10 @@
 package readpage
 
 import (
+	"git.sr.ht/~bouncepaw/betula/stricks"
 	"golang.org/x/net/html"
 	"io"
 	"log"
-	"net/url"
 	"strings"
 )
 
@@ -57,17 +57,17 @@ func listenForBookmarkOf(nodes chan *html.Node, data *FoundData) {
 				return
 			}
 
-			uri, err := url.ParseRequestURI(href)
-			if err != nil {
+			if !stricks.ValidURL(href) {
 				// Huh? Can't you produce a worthy document once in a while? OK.
 				//
 				// Maybe we could overcome it sometimes later. However, Betula
 				// provides valid absolute URL:s here, so whatever. Other
 				// implementations strive for better!
-				return
+				state = stateFound
+				continue
 			}
 
-			data.BookmarkOf = uri
+			data.BookmarkOf = href
 			state = stateFound
 		}
 	}
@@ -87,17 +87,12 @@ func listenForRepostOf(nodes chan *html.Node, data *FoundData) {
 				return
 			}
 
-			uri, err := url.ParseRequestURI(href)
-			if err != nil {
-				// Huh? Can't you produce a worthy document once in a while? OK.
-				//
-				// Maybe we could overcome it sometimes later. However, Betula
-				// provides valid absolute URL:s here, so whatever. Other
-				// implementations strive for better!
-				return
+			if !stricks.ValidURL(href) {
+				state = stateFound
+				continue
 			}
 
-			data.RepostOf = uri
+			data.RepostOf = href
 			state = stateFound
 		}
 	}

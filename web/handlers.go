@@ -539,13 +539,13 @@ good:
 	} else if err != nil {
 		repost.Err = err
 		goto catchTheFire
-	} else if foundData.IsHFeed || foundData.BookmarkOf == nil || foundData.PostName == "" {
+	} else if foundData.IsHFeed || foundData.BookmarkOf == "" || foundData.PostName == "" {
 		repost.ErrorImpossible = true
 		goto catchTheFire
 	}
 
 	post := types.Post{
-		URL:         foundData.BookmarkOf.String(),
+		URL:         foundData.BookmarkOf,
 		Title:       foundData.PostName,
 		Description: foundData.Mycomarkup,
 		Visibility:  repost.Visibility,

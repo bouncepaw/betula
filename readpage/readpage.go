@@ -53,7 +53,7 @@ func FindDataForMyRepost(link string) (FoundData, error) {
 
 func IsThisValidRepost(report activities.AnnounceReport) (validRepost bool, err error) {
 	data, err := findDataByLink(report.RepostPage, checkRepostWorkers)
-	valid := data.RepostOf != nil && data.RepostOf.String() == report.OriginalPage
+	valid := data.RepostOf != "" && data.RepostOf == report.OriginalPage
 	return valid, err
 }
 
@@ -76,8 +76,11 @@ type FoundData struct {
 	// PostName is the first p-name found.
 	PostName string
 
-	// BookmarkOf is the first u-bookmark-of found.
-	BookmarkOf *url.URL
+	// BookmarkOf is the first u-bookmark-of found. Must be a valid URL.
+	BookmarkOf string
+
+	// RepostOf is the first u-repost-of found. Must be a valid URL.
+	RepostOf string
 
 	// Tags are all p-category found.
 	Tags []string
@@ -87,8 +90,6 @@ type FoundData struct {
 
 	// IsHFeed is true if the document has an h-feed somewhere in the beginning. You don't repost h-feed:s.
 	IsHFeed bool
-
-	RepostOf *url.URL
 }
 
 func findData(link string, workers []worker, doc *html.Node) (data FoundData, err error) {

@@ -2,14 +2,46 @@ package readpage
 
 import (
 	"embed"
-	"git.sr.ht/~bouncepaw/betula/stricks"
 	"golang.org/x/net/html"
+	"io"
 	"reflect"
+	"strings"
 	"testing"
 )
 
 //go:embed testdata/*
 var testdata embed.FS
+
+func TestTrickyURL(t *testing.T) {
+	f, err := testdata.Open("testdata/h-entry with substituted url.html")
+	if err != nil {
+		panic(err)
+	}
+	docb, err := io.ReadAll(f)
+	if err != nil {
+		panic(err)
+	}
+	doc := string(docb)
+	tricks := []string{
+		`https://willcrichton.net/notes/portable-epubs#epub-content%2FEPUB%2Findex.xhtml$`,
+		`https://garden.bouncepaw.com/#Fresh_свежак_freŝa`,
+	}
+	for _, trick := range tricks {
+		txt := strings.ReplaceAll(doc, "BETULA", trick)
+		ht, err := html.Parse(strings.NewReader(txt))
+		if err != nil {
+			panic(err)
+		}
+
+		data, err := findData("https://bouncepaw.com", []worker{listenForBookmarkOf}, ht)
+		if err != nil {
+			panic(err)
+		}
+		if data.BookmarkOf != trick {
+			t.Errorf("Got %q want %q", data.BookmarkOf, trick)
+		}
+	}
+}
 
 func TestTitles(t *testing.T) {
 	table := map[string]string{
@@ -28,13 +60,13 @@ func TestTitles(t *testing.T) {
 }
 
 func TestHEntries(t *testing.T) {
-	gutenberg := stricks.ParseValidURL("https://www.gutenberg.org/files/2701/2701-h/2701-h.htm#link2HCH0001")
-	mushatlas := stricks.ParseValidURL("https://mushroomcoloratlas.com/")
+	gutenberg := "https://www.gutenberg.org/files/2701/2701-h/2701-h.htm#link2HCH0001"
+	mushatlas := "https://mushroomcoloratlas.com/"
 
 	table := map[string]FoundData{
 		"h-entry with p-name": {
 			PostName:   "CHAPTER 1. Loomings.",
-			BookmarkOf: nil,
+			BookmarkOf: "",
 			Tags:       nil,
 			Mycomarkup: "",
 			IsHFeed:    false,
@@ -50,7 +82,7 @@ func TestHEntries(t *testing.T) {
 
 		"h-feed with h-entries": {
 			PostName:   "CHAPTER 1. Loomings.",
-			BookmarkOf: nil,
+			BookmarkOf: "",
 			Tags:       nil,
 			Mycomarkup: "",
 			IsHFeed:    true,
