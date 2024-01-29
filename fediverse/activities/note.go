@@ -49,6 +49,9 @@ func makeNote(post types.Post) (dict, error) {
 	if len(post.Tags) > 0 {
 		content.WriteString("<p>")
 		for i, tag := range post.Tags {
+			if tag.Name == "" {
+				continue
+			}
 			if i > 0 {
 				content.WriteString(", ")
 			}

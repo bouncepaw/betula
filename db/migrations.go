@@ -110,7 +110,9 @@ func handleMigrations() {
 
 past6:
 	for curver < expectedVersion {
-		log.Printf("Migrating from DB schema version %d to %d...\n", curver, curver+1)
+		if found {
+			log.Printf("Migrating from DB schema version %d to %d...\n", curver, curver+1)
+		}
 		mustExec(getScript(fmt.Sprintf("%d", curver+1)))
 		mustExec(fmt.Sprintf(`replace into BetulaMeta (Key, Value) values ('DB version', %d);`, curver+1))
 		curver++

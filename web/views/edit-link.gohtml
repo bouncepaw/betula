@@ -40,7 +40,7 @@
 		<article>
 			<h2>Unrepost</h2>
 			<p>You can make this post yours and edit it fully afterwards.
-				The original post owner will be notified of the repost being removed. TODO: actually notify them.</p>
+				The original post owner will be notified of the repost being removed.</p>
 			<form method="post" action="/unrepost/{{.ID}}">
 				<div>
 					<input type="checkbox" name="confirmed" id="unrepost-confirmed" value="true" required class="confirmation-tick">
@@ -53,7 +53,7 @@
 		{{end}}
 		<article>
 			<h2>Delete link</h2>
-			{{if .RepostOf}}<p>The original post owner will be notified of the repost being removed. TODO: actually notify them.</p>{{end}}
+			{{if .RepostOf}}<p>The original post owner will be notified of the repost being removed.</p>{{end}}
 			<form method="post" action="/delete-link/{{.ID}}">
 				<div>
 					<input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required class="confirmation-tick">
