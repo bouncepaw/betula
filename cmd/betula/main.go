@@ -13,19 +13,33 @@ import (
 	"git.sr.ht/~bouncepaw/betula/web"
 	_ "git.sr.ht/~bouncepaw/betula/web" // For init()
 	"log"
+	"os"
 	"path/filepath"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	fmt.Println("Hello Betula!")
-
 	var port uint
+	var versionFlag bool
 
-	flag.UintVar(&port, "port", 0, "port number. "+
-		"The value gets written to a database file.")
+	flag.BoolVar(&versionFlag, "version", false, "Print version and exit.")
+	flag.UintVar(&port, "port", 0, "Port number. "+
+		"The value gets written to a database file and is used immediately.")
+	flag.Usage = func() {
+		_, _ = fmt.Fprintf(
+			flag.CommandLine.Output(),
+			"Usage: %s DB_PATH.betula\n",
+			os.Args[0],
+		)
+		flag.PrintDefaults()
+	}
 	flag.Parse()
+
+	if versionFlag {
+		fmt.Printf("Betula %s\n", "v1.3.0")
+		return
+	}
 
 	if len(flag.Args()) < 1 {
 		log.Fatalln("Pass a database file name!")
@@ -35,6 +49,8 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	fmt.Println("Hello Betula!")
 
 	db.Initialize(filename)
 	defer db.Finalize()
