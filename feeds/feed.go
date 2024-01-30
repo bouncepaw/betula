@@ -13,10 +13,10 @@ import (
 	"time"
 )
 
-func fiveLastDays(now time.Time) (days []time.Time, dayStamps []string, dayPosts [][]types.Post) {
+func fiveLastDays(now time.Time) (days []time.Time, dayStamps []string, dayPosts [][]types.Bookmark) {
 	days = make([]time.Time, 5)
 	dayStamps = make([]string, 5)
-	dayPosts = make([][]types.Post, 5)
+	dayPosts = make([][]types.Bookmark, 5)
 	for i := 0; i < 5; i++ {
 		day := now.AddDate(0, 0, -i-1)
 		day = time.Date(day.Year(), day.Month(), day.Day(), 23, 59, 59, 0, time.UTC)
@@ -112,7 +112,7 @@ const descriptionTemplate = `
 %s
 `
 
-func descriptionForOnePost(post types.Post) string {
+func descriptionForOnePost(post types.Bookmark) string {
 	var tagBuf strings.Builder
 	for i, tag := range post.Tags {
 		if i > 0 {
@@ -137,7 +137,7 @@ func descriptionForOnePost(post types.Post) string {
 	)
 }
 
-func descriptionFromPosts(posts []types.Post, dayStamp string) string {
+func descriptionFromPosts(posts []types.Bookmark, dayStamp string) string {
 	var buf strings.Builder
 
 	for _, post := range posts {

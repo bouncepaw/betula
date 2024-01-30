@@ -29,7 +29,7 @@ func DeleteNote(postId int) ([]byte, error) {
 	return json.Marshal(activity)
 }
 
-func makeNote(post types.Post) (dict, error) {
+func makeNote(post types.Bookmark) (dict, error) {
 	if post.ID == 0 {
 		return nil, errors.New("an empty ID was passed")
 	}
@@ -113,7 +113,7 @@ func makeNote(post types.Post) (dict, error) {
 	return activity, nil
 }
 
-func CreateNote(post types.Post) ([]byte, error) {
+func CreateNote(post types.Bookmark) ([]byte, error) {
 	activity, err := makeNote(post)
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func CreateNote(post types.Post) ([]byte, error) {
 	return json.Marshal(activity)
 }
 
-func UpdateNote(post types.Post) ([]byte, error) {
+func UpdateNote(post types.Bookmark) ([]byte, error) {
 	activity, err := makeNote(post)
 	if err != nil {
 		return nil, err

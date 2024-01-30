@@ -14,12 +14,15 @@ import (
 )
 
 // Visibility determines where the post is seen.
+//
+// Perhaps in the future Unlisted visibility will also be introduced,
+// see https://todo.sr.ht/~bouncepaw/betula/65
 type Visibility int
 
 const (
-	// Private posts are only seen by the author.
+	// Private bookmarks are only seen by the author.
 	Private Visibility = iota
-	// Public posts are seen by everyone, and are federated.
+	// Public bookmarks are seen by everyone, and are federated.
 	Public
 )
 
@@ -33,9 +36,9 @@ func VisibilityFromString(s string) Visibility {
 	}
 }
 
-// Post is a link, along with some data.
-type Post struct {
-	// ID is a unique identifier of the post. Do not set this field by yourself.
+// Bookmark is a link, along with some data.
+type Bookmark struct {
+	// ID is a unique identifier of the bookmark. Do not set this field by yourself.
 	ID int
 	// CreationTime is like 2006-01-02 15:04:05.
 	CreationTime string
@@ -44,9 +47,9 @@ type Post struct {
 
 	// URL is a URL with any protocol.
 	URL string
-	// Title is a name for the link.
+	// Title is a name for the bookmark.
 	Title string
-	// Description is a Mycomarkup-formatted document. Currently, just unescaped plain text.
+	// Description is a Mycomarkup-formatted document.
 	Description string
 	// Visibility sets who can see the post.
 	Visibility Visibility
@@ -54,18 +57,18 @@ type Post struct {
 	RepostOf *string
 }
 
-type PostGroup struct {
+type BookmarkGroup struct {
 	Date  string
-	Posts []Post
+	Posts []Bookmark
 }
 
-// GroupPostsByDate groups the posts by date. The dates are strings like 2024-01-10. This function expects the input posts to be sorted by date.
-func GroupPostsByDate(ungroupedPosts []Post) (groupedPosts []PostGroup) {
-	if len(ungroupedPosts) == 0 {
+// GroupBookmarksByDate groups the bookmarks by date. The dates are strings like 2024-01-10. This function expects the input bookmarks to be sorted by date.
+func GroupBookmarksByDate(ungroupedBookmarks []Bookmark) (groupedBookmarks []BookmarkGroup) {
+	if len(ungroupedBookmarks) == 0 {
 		return nil
 	}
 
-	ungroupedPosts = append(ungroupedPosts, Post{
+	ungroupedBookmarks = append(ungroupedBookmarks, Bookmark{
 		CreationTime: "9999-99-99 99:99",
 		Title:        "cutoff",
 	})
@@ -74,33 +77,33 @@ func GroupPostsByDate(ungroupedPosts []Post) (groupedPosts []PostGroup) {
 	const datelen = 10
 
 	var (
-		currentDate  string
-		currentPosts []Post
+		currentDate      string
+		currentBookmarks []Bookmark
 	)
 
-	for _, post := range ungroupedPosts {
-		date := post.CreationTime[:datelen]
+	for _, bookmark := range ungroupedBookmarks {
+		date := bookmark.CreationTime[:datelen]
 		if date != currentDate {
-			if currentPosts != nil {
-				groupedPosts = append(groupedPosts, PostGroup{
+			if currentBookmarks != nil {
+				groupedBookmarks = append(groupedBookmarks, BookmarkGroup{
 					Date:  currentDate,
-					Posts: currentPosts,
+					Posts: currentBookmarks,
 				})
 			}
 			currentDate = date
-			currentPosts = nil
+			currentBookmarks = nil
 		}
 
-		currentPosts = append(currentPosts, post)
+		currentBookmarks = append(currentBookmarks, bookmark)
 	}
 
 	return
 }
 
 type Tag struct {
-	Name        string
-	Description string
-	PostCount   uint
+	Name          string
+	Description   string
+	BookmarkCount uint
 }
 
 func CanonicalTagName(rawName string) string {

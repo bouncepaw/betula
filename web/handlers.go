@@ -63,10 +63,10 @@ func init() {
 	// Create & Modify
 	mux.HandleFunc("/repost", adminOnly(handlerRepost))
 	mux.HandleFunc("/unrepost/", adminOnly(postOnly(postUnrepost)))
-	mux.HandleFunc("/save-link", adminOnly(handlerSaveLink))
-	mux.HandleFunc("/edit-link/", adminOnly(handlerEditLink))
-	mux.HandleFunc("/edit-link-tags/", adminOnly(postOnly(postEditLinkTags)))
-	mux.HandleFunc("/delete-link/", adminOnly(postOnly(postDeleteLink)))
+	mux.HandleFunc("/save-link", adminOnly(handlerSaveBookmark))
+	mux.HandleFunc("/edit-link/", adminOnly(handlerEditBookmark))
+	mux.HandleFunc("/edit-link-tags/", adminOnly(postOnly(postEditBookmarkTags)))
+	mux.HandleFunc("/delete-link/", adminOnly(postOnly(postDeleteBookmark)))
 	mux.HandleFunc("/edit-tag/", adminOnly(handlerEditTag))
 	mux.HandleFunc("/delete-tag/", adminOnly(postOnly(postDeleteTag)))
 
@@ -265,7 +265,7 @@ func getMyProfile(w http.ResponseWriter, rq *http.Request) {
 
 		Nickname:       fmt.Sprintf("@%s@%s", settings.AdminUsername(), settings.SiteDomain()),
 		Summary:        settings.SiteDescriptionHTML(),
-		LinkCount:      db.PostCount(authed),
+		LinkCount:      db.BookmarkCount(authed),
 		TagCount:       db.TagCount(authed),
 		FollowingCount: db.CountFollowing(),
 		FollowersCount: db.CountFollowers(),
@@ -370,7 +370,7 @@ func getNodeInfo(w http.ResponseWriter, rq *http.Request) {
 				"activeHalfyear": 1,
 				"activeMonth":    1,
 			},
-			"localPosts":    db.PostCount(false),
+			"localPosts":    db.BookmarkCount(false),
 			"localComments": 0,
 		},
 		"metadata": map[string]string{
@@ -408,7 +408,7 @@ func getWellKnownNodeInfo(w http.ResponseWriter, rq *http.Request) {
 }
 
 func postUnrepost(w http.ResponseWriter, rq *http.Request) {
-	id, ok := extractPostID(w, rq)
+	id, ok := extractBookmarkID(w, rq)
 	if !ok {
 		return
 	}
@@ -447,12 +447,12 @@ func postUnrepost(w http.ResponseWriter, rq *http.Request) {
 type dataRepostsOf struct {
 	*dataCommon
 
-	types.Post
+	types.Bookmark
 	Reposts []types.RepostInfo
 }
 
 func getRepostsOf(w http.ResponseWriter, rq *http.Request) {
-	id, ok := extractPostID(w, rq)
+	id, ok := extractBookmarkID(w, rq)
 	if !ok {
 		return
 	}
@@ -479,7 +479,7 @@ func getRepostsOf(w http.ResponseWriter, rq *http.Request) {
 	}
 	templateExec(w, rq, templateRepostsFor, dataRepostsOf{
 		dataCommon: emptyCommon(),
-		Post:       post,
+		Bookmark:   post,
 		Reposts:    reposts,
 	})
 
@@ -544,7 +544,7 @@ good:
 		goto catchTheFire
 	}
 
-	post := types.Post{
+	post := types.Bookmark{
 		URL:         foundData.BookmarkOf,
 		Title:       foundData.PostName,
 		Description: foundData.Mycomarkup,
@@ -733,7 +733,7 @@ type dataSearch struct {
 	*dataCommon
 	Query            string
 	TotalPosts       uint
-	PostGroupsInPage []types.PostGroup
+	PostGroupsInPage []types.BookmarkGroup
 }
 
 var tagOnly = regexp.MustCompile(`^#([^?!:#@<>*|'"&%{}\\\s]+)\s*$`)
@@ -771,13 +771,13 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateSearch, dataSearch{
 		dataCommon:       common,
 		Query:            query,
-		PostGroupsInPage: types.GroupPostsByDate(posts),
+		PostGroupsInPage: types.GroupBookmarksByDate(posts),
 		TotalPosts:       totalPosts,
 	})
 }
 
 func getText(w http.ResponseWriter, rq *http.Request) {
-	id, ok := extractPostID(w, rq)
+	id, ok := extractBookmarkID(w, rq)
 	if !ok {
 		return
 	}
@@ -834,7 +834,7 @@ var dayStampRegex = regexp.MustCompile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 type dataDay struct {
 	*dataCommon
 	DayStamp string
-	Posts    []types.Post
+	Posts    []types.Bookmark
 }
 
 func getDay(w http.ResponseWriter, rq *http.Request) {
@@ -921,8 +921,8 @@ func handlerSettings(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-func postDeleteLink(w http.ResponseWriter, rq *http.Request) {
-	id, ok := extractPostID(w, rq)
+func postDeleteBookmark(w http.ResponseWriter, rq *http.Request) {
+	id, ok := extractBookmarkID(w, rq)
 	if !ok {
 		return
 	}
@@ -944,7 +944,7 @@ func postDeleteLink(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
 
 	if settings.FederationEnabled() {
-		go func(post types.Post) {
+		go func(post types.Bookmark) {
 			if post.Visibility != types.Public {
 				return
 			}
@@ -1069,7 +1069,7 @@ type dataTag struct {
 	*dataCommon
 	types.Tag
 	TotalPosts       uint
-	PostGroupsInPage []types.PostGroup
+	PostGroupsInPage []types.BookmarkGroup
 }
 
 func getTag(w http.ResponseWriter, rq *http.Request) {
@@ -1094,7 +1094,7 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 			Name:        tagName,
 			Description: db.DescriptionForTag(tagName),
 		},
-		PostGroupsInPage: types.GroupPostsByDate(posts),
+		PostGroupsInPage: types.GroupBookmarksByDate(posts),
 		TotalPosts:       totalPosts,
 		dataCommon:       common,
 	})
@@ -1102,21 +1102,12 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 
 type dataAbout struct {
 	*dataCommon
-	LinkCount       uint
-	TagCount        uint
-	OldestTime      *time.Time
-	NewestTime      *time.Time
 	SiteDescription template.HTML
 }
 
 func getAbout(w http.ResponseWriter, rq *http.Request) {
-	authed := auth.AuthorizedFromRequest(rq)
 	templateExec(w, rq, templateAbout, dataAbout{
 		dataCommon:      emptyCommon(),
-		LinkCount:       db.PostCount(authed),
-		TagCount:        db.TagCount(authed),
-		OldestTime:      db.OldestTime(authed),
-		NewestTime:      db.NewestTime(authed),
 		SiteDescription: settings.SiteDescriptionHTML(),
 	})
 }
@@ -1134,8 +1125,8 @@ func mixUpTitleLink(title *string, addr *string) {
 	}
 }
 
-func postEditLinkTags(w http.ResponseWriter, rq *http.Request) {
-	id, ok := extractPostID(w, rq)
+func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
+	id, ok := extractBookmarkID(w, rq)
 	if !ok {
 		return
 	}
@@ -1172,13 +1163,13 @@ func postEditLinkTags(w http.ResponseWriter, rq *http.Request) {
 type dataEditLink struct {
 	errorTemplate
 	*dataCommon
-	types.Post
+	types.Bookmark
 	ErrorEmptyURL      bool
 	ErrorInvalidURL    bool
 	ErrorTitleNotFound bool
 }
 
-func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
+func handlerEditBookmark(w http.ResponseWriter, rq *http.Request) {
 	common := emptyCommon()
 	common.head = `<script defer src="/static/autocompletion.js"></script>`
 
@@ -1188,7 +1179,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	id, ok := extractPostID(w, rq)
+	id, ok := extractBookmarkID(w, rq)
 	if !ok {
 		return
 	}
@@ -1204,7 +1195,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 	if rq.Method == http.MethodGet {
 		post.Tags = db.TagsForPost(id)
 		templateExec(w, rq, templateEditLink, dataEditLink{
-			Post:       post,
+			Bookmark:   post,
 			dataCommon: common,
 		})
 		return
@@ -1255,7 +1246,7 @@ func handlerEditLink(w http.ResponseWriter, rq *http.Request) {
 	log.Printf("Edited post no. %d\n", id)
 
 	if settings.FederationEnabled() {
-		go func(post types.Post, oldVisibility types.Visibility) {
+		go func(post types.Bookmark, oldVisibility types.Visibility) {
 			wasPublic := oldVisibility == types.Public
 			isPublic := post.Visibility == types.Public
 
@@ -1384,7 +1375,7 @@ func postDeleteTag(w http.ResponseWriter, rq *http.Request) {
 type dataSaveLink struct {
 	errorTemplate
 	*dataCommon
-	types.Post
+	types.Bookmark
 	Another bool
 
 	// The following three fields can be non-empty, when set through URL parameters or when an erroneous request was made.
@@ -1393,9 +1384,9 @@ type dataSaveLink struct {
 	ErrorTitleNotFound bool
 }
 
-func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
+func handlerSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 	var viewData dataSaveLink
-	var post types.Post
+	var post types.Bookmark
 
 	common := emptyCommon()
 	common.head = `<script defer src="/static/autocompletion.js"></script>`
@@ -1408,7 +1399,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 		post.Tags = types.SplitTags(rq.FormValue("tags"))
 		// TODO: Document the param behaviour
 		templateExec(w, rq, templateSaveLink, dataSaveLink{
-			Post:       post,
+			Bookmark:   post,
 			dataCommon: common,
 		})
 		return
@@ -1455,11 +1446,11 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 
 	another := rq.FormValue("another")
 	if another == "true" {
-		var anotherPost types.Post
+		var anotherPost types.Bookmark
 		anotherPost.Visibility = types.Public
 		templateExec(w, rq, templateSaveLink, dataSaveLink{
 			dataCommon: common,
-			Post:       anotherPost,
+			Bookmark:   anotherPost,
 			Another:    true,
 		})
 		return
@@ -1468,7 +1459,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 
 	if settings.FederationEnabled() {
-		go func(post types.Post) {
+		go func(post types.Bookmark) {
 			if post.Visibility != types.Public {
 				return
 			}
@@ -1484,7 +1475,7 @@ func handlerSaveLink(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataPost struct {
-	Post        types.Post
+	Post        types.Bookmark
 	RepostCount int
 	*dataCommon
 }
@@ -1527,7 +1518,7 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 
 type dataFeed struct {
 	TotalPosts       uint
-	PostGroupsInPage []types.PostGroup
+	PostGroupsInPage []types.BookmarkGroup
 	SiteDescription  template.HTML
 	*dataCommon
 }
@@ -1565,14 +1556,14 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 
 	templateExec(w, rq, templateFeed, dataFeed{
 		TotalPosts:       totalPosts,
-		PostGroupsInPage: types.GroupPostsByDate(posts),
+		PostGroupsInPage: types.GroupBookmarksByDate(posts),
 		SiteDescription:  settings.SiteDescriptionHTML(),
 		dataCommon:       common,
 	})
 }
 
 func getGo(w http.ResponseWriter, rq *http.Request) {
-	id, ok := extractPostID(w, rq)
+	id, ok := extractBookmarkID(w, rq)
 	if !ok {
 		return
 	}

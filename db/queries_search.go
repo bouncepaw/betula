@@ -7,7 +7,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-func Search(text string, includedTags []string, excludedTags []string, authorized bool, page uint) (posts []types.Post, totalPosts uint) {
+func Search(text string, includedTags []string, excludedTags []string, authorized bool, page uint) (posts []types.Bookmark, totalPosts uint) {
 	text = strings.ToLower(text)
 	sort.Strings(includedTags)
 	sort.Strings(excludedTags)
@@ -20,9 +20,9 @@ order by CreationTime desc
 `
 	rows := mustQuery(q, authorized)
 
-	var unfilteredPosts []types.Post
+	var unfilteredPosts []types.Bookmark
 	for rows.Next() {
-		var post types.Post
+		var post types.Bookmark
 		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
 		unfilteredPosts = append(unfilteredPosts, post)
 	}
@@ -62,7 +62,7 @@ order by CreationTime desc
 }
 
 // true if keep, false if discard
-func textOK(post types.Post, text string) bool {
+func textOK(post types.Bookmark, text string) bool {
 	return strings.Contains(strings.ToLower(post.Title), text) ||
 		strings.Contains(strings.ToLower(post.Description), text) ||
 		strings.Contains(strings.ToLower(post.URL), text)

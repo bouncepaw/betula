@@ -6,7 +6,7 @@ import (
 )
 
 // PostsForDay returns posts for the given dayStamp, which looks like this: 2023-03-14. The result might as well be nil, that means there are no posts for the day.
-func PostsForDay(authorized bool, dayStamp string) (posts []types.Post) {
+func PostsForDay(authorized bool, dayStamp string) (posts []types.Bookmark) {
 	const q = `
 select
 	ID, URL, Title, Description, Visibility, CreationTime, RepostOf
@@ -19,7 +19,7 @@ order by
 `
 	rows := mustQuery(q, authorized, dayStamp+"%")
 	for rows.Next() {
-		var post types.Post
+		var post types.Bookmark
 		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
 		posts = append(posts, post)
 	}
@@ -30,7 +30,7 @@ order by
 	return posts
 }
 
-func PostsWithTag(authorized bool, tagName string, page uint) (posts []types.Post, totalPosts uint) {
+func PostsWithTag(authorized bool, tagName string, page uint) (posts []types.Bookmark, totalPosts uint) {
 	totalPosts = querySingleValue[uint](`
 select
 	count(ID)
@@ -57,7 +57,7 @@ limit ? offset ?;
 `
 	rows := mustQuery(q, tagName, authorized, types.PostsPerPage, types.PostsPerPage*(page-1))
 	for rows.Next() {
-		var post types.Post
+		var post types.Bookmark
 		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
 		posts = append(posts, post)
 	}
@@ -69,7 +69,7 @@ limit ? offset ?;
 }
 
 // Posts returns all posts stored in the database, along with their tags, but only if the viewer is authorized! Otherwise, only public posts will be given.
-func Posts(authorized bool, page uint) (posts []types.Post, totalPosts uint) {
+func Posts(authorized bool, page uint) (posts []types.Bookmark, totalPosts uint) {
 	if page == 0 {
 		panic("page 0 makes no sense")
 	}
@@ -91,7 +91,7 @@ offset (? * (? - 1));
 	rows := mustQuery(q, types.PostsPerPage, types.PostsPerPage, page)
 
 	for rows.Next() {
-		var post types.Post
+		var post types.Bookmark
 		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
 		if !authorized && post.Visibility == types.Private {
 			continue
@@ -124,7 +124,7 @@ where ID = ?;
 }
 
 // AddPost adds a new original post to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
-func AddPost(post types.Post) int64 {
+func AddPost(post types.Bookmark) int64 {
 	const q = `
 insert into Posts (URL, Title, Description, Visibility, RepostOf)
 values (?, ?, ?, ?, ?);
@@ -142,7 +142,7 @@ values (?, ?, ?, ?, ?);
 	return id
 }
 
-func EditPost(post types.Post) {
+func EditPost(post types.Bookmark) {
 	const q = `
 update Posts
 set
@@ -159,7 +159,7 @@ where
 }
 
 // PostForID returns the post corresponding to the given id, if there is any.
-func PostForID(id int) (post types.Post, found bool) {
+func PostForID(id int) (post types.Bookmark, found bool) {
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime, RepostOf from Posts
 where ID = ? and DeletionTime is null
@@ -173,7 +173,7 @@ limit 1;
 	return post, found
 }
 
-func PostCount(authorized bool) uint {
+func BookmarkCount(authorized bool) uint {
 	const q = `
 with
 	IgnoredPosts as (
@@ -193,7 +193,7 @@ where
 	return querySingleValue[uint](q, authorized)
 }
 
-func LastPost(authorized bool) (post types.Post, found bool) {
+func LastPost(authorized bool) (post types.Bookmark, found bool) {
 	const q = `
 with
 	IgnoredPosts as (

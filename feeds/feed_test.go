@@ -21,10 +21,10 @@ func TestFiveLastDays(t *testing.T) {
 		}
 	}
 
-	correctPostCounts := []int{2, 1, 0, 1, 0}
+	correctBookmarkCounts := []int{2, 1, 0, 1, 0}
 	for i, posts := range dayPosts {
-		if correctPostCounts[i] != len(posts) {
-			t.Errorf("Incorrect post count for %s. Got %d, expected %d. Data: %v.", dayStamps[i], len(posts), correctPostCounts[i], posts)
+		if correctBookmarkCounts[i] != len(posts) {
+			t.Errorf("Incorrect post count for %s. Got %d, expected %d. Data: %v.", dayStamps[i], len(posts), correctBookmarkCounts[i], posts)
 		}
 	}
 }

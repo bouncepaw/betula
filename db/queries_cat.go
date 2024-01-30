@@ -66,7 +66,7 @@ on
 	return count
 }
 
-// Tags returns all tags found on posts one has access to. They all have PostCount set to a non-zero value.
+// Tags returns all tags found on posts one has access to. They all have BookmarkCount set to a non-zero value.
 func Tags(authorized bool) (tags []types.Tag) {
 	q := `
 select
@@ -86,7 +86,7 @@ group by
 	rows := mustQuery(q, authorized)
 	for rows.Next() {
 		var tag types.Tag
-		mustScan(rows, &tag.Name, &tag.PostCount)
+		mustScan(rows, &tag.Name, &tag.BookmarkCount)
 		tags = append(tags, tag)
 	}
 	return tags

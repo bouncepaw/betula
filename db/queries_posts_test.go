@@ -5,13 +5,13 @@ import (
 	"testing"
 )
 
-func TestPostCount(t *testing.T) {
+func TestBookmarkCount(t *testing.T) {
 	InitInMemoryDB()
-	resAuthed := PostCount(true)
+	resAuthed := BookmarkCount(true)
 	if resAuthed != 2 {
 		t.Errorf("Wrong authorized LinkCount, got %d", resAuthed)
 	}
-	resAnon := PostCount(false)
+	resAnon := BookmarkCount(false)
 	if resAnon != 1 {
 		t.Errorf("Wrong unauthorized LinkCount, got %d", resAnon)
 	}
@@ -19,7 +19,7 @@ func TestPostCount(t *testing.T) {
 
 func TestAddPost(t *testing.T) {
 	InitInMemoryDB()
-	post := types.Post{
+	post := types.Bookmark{
 		CreationTime: "2023-03-18",
 		Tags: []types.Tag{
 			types.Tag{Name: "cat"},
@@ -31,7 +31,7 @@ func TestAddPost(t *testing.T) {
 		Visibility:  types.Public,
 	}
 	AddPost(post)
-	if PostCount(true) != 3 {
+	if BookmarkCount(true) != 3 {
 		t.Errorf("Faulty AddPost")
 	}
 }

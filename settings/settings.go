@@ -31,7 +31,7 @@ func validatePortFromDB(port sql.NullInt64) uint {
 		return uint(port.Int64)
 	}
 
-	if port.Valid && db.PostCount(true) > 0 {
+	if port.Valid && db.BookmarkCount(true) > 0 {
 		log.Printf("An invalid network port is provided: %d. Using %d instead.\n", port.Int64, defaultPort)
 	}
 
@@ -43,7 +43,7 @@ func validateHostFromDB(addr sql.NullString) string {
 		return addr.String
 	}
 
-	if addr.Valid && db.PostCount(true) > 0 {
+	if addr.Valid && db.BookmarkCount(true) > 0 {
 		log.Printf("An invalid network host is provided: %s. Using %s instead.\n", addr.String, defaultHost)
 	}
 

@@ -28,11 +28,11 @@ func TestCleanerLinkParts(t *testing.T) {
 
 func TestGroupPostsByDate(t *testing.T) {
 	tests := []struct {
-		args             []Post
-		wantGroupedPosts []PostGroup
+		args             []Bookmark
+		wantGroupedPosts []BookmarkGroup
 	}{
 		{
-			[]Post{
+			[]Bookmark{
 				{
 					CreationTime: "2024-01-10 15:35",
 					Title:        "I spilled energy drink on my MacBook keyboard.",
@@ -50,8 +50,8 @@ func TestGroupPostsByDate(t *testing.T) {
 					Title:        "I hope it will help me.",
 				},
 			},
-			[]PostGroup{
-				{"2024-01-10", []Post{
+			[]BookmarkGroup{
+				{"2024-01-10", []Bookmark{
 					{
 						CreationTime: "2024-01-10 15:35",
 						Title:        "I spilled energy drink on my MacBook keyboard.",
@@ -61,13 +61,13 @@ func TestGroupPostsByDate(t *testing.T) {
 						Title:        "Why did I even buy it? I don't drink energy drinks!",
 					},
 				}},
-				{"2024-01-11", []Post{
+				{"2024-01-11", []Bookmark{
 					{
 						CreationTime: "2024-01-11 10:00",
 						Title:        "I ordered some compressed air.",
 					},
 				}},
-				{"2024-01-12", []Post{
+				{"2024-01-12", []Bookmark{
 					{
 						CreationTime: "2024-01-12 12:45",
 						Title:        "I hope it will help me.",
@@ -81,7 +81,7 @@ func TestGroupPostsByDate(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%d", i+1), func(t *testing.T) {
-			if gotGroupedPosts := GroupPostsByDate(tt.args); !reflect.DeepEqual(gotGroupedPosts, tt.wantGroupedPosts) {
+			if gotGroupedPosts := GroupBookmarksByDate(tt.args); !reflect.DeepEqual(gotGroupedPosts, tt.wantGroupedPosts) {
 				t.Errorf("GroupPostsByDate() = %v, want %v", gotGroupedPosts, tt.wantGroupedPosts)
 			}
 		})

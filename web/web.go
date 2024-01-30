@@ -82,17 +82,17 @@ func (a *auther) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 }
 
 // returns id, found
-func extractPostID(w http.ResponseWriter, rq *http.Request) (int, bool) {
+func extractBookmarkID(w http.ResponseWriter, rq *http.Request) (int, bool) {
 	parts := strings.Split(rq.URL.Path, "/")
 	if len(parts) != 3 {
 		handlerNotFound(w, rq)
-		log.Printf("Extracting post no. from %s: wrong format\n", rq.URL.Path)
+		log.Printf("Extracting bookmark no. from %s: wrong format\n", rq.URL.Path)
 		return 0, false
 	}
 
 	id, err := strconv.Atoi(parts[2])
 	if err != nil {
-		log.Printf("Extracting post no. from %s: wrong format\n", rq.URL.Path)
+		log.Printf("Extracting bookmark no. from %s: wrong format\n", rq.URL.Path)
 		handlerNotFound(w, rq)
 		return 0, false
 	}
