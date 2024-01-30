@@ -9,6 +9,8 @@ create table Artifacts
     LastCheckedAt text -- null = never checked
 );
 
+-- THE REST OF THIS FILE WAS DROPPED LATER
+
 -- DROPPED IN 11: the table was created anew
 -- Actors is a storage for all known actors.
 create table Actors
@@ -38,6 +40,7 @@ create table Subscriptions
 );
 -- END DROPPED
 
+-- DROPPED IN 13: extended
 -- IncomingPosts lists all known posts that were sent from who we follow our way.
 -- These posts can and will be deleted at user's will.
 --
@@ -53,3 +56,4 @@ create table IncomingPosts
     Description text not null,
     CreatedAt   text not null
 );
+-- END DROPPED

@@ -148,7 +148,6 @@ func findData(link string, workers []worker, doc *html.Node) (data FoundData, er
 
 // findDataByLink finds the data you wished for in the document, considering the timeouts.
 func findDataByLink(link string, workers []worker) (data FoundData, err error) {
-	// TODO: Handle timeout
 	resp, err := client.Get(link)
 	if err != nil {
 		if err.(*url.Error).Timeout() {

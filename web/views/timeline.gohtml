@@ -1,0 +1,33 @@
+{{define "title"}}Timeline{{end}}
+{{define "body"}}
+    <main>
+        <article>
+            <h2>Timeline</h2>
+            <p>New bookmarks from people you follow. To follow somebody,
+                open their profile by inserting their username (looks like @username@example.org)
+                in the search bar.</p>
+            {{if .Following}}
+                <p>Following <a href="/following">{{.Following}} people</a>.</p>
+            {{else}}
+                <p>You are not following anybody now.</p>
+            {{end}}
+        </article>{{$authed := .Authorized}}
+        {{range .PostGroupsInPage}}
+            <h3 class="date-heading">{{.Date}}</h3>
+            {{range .Posts}}{{/* special kind of cards */}}
+                {{if $authed}}
+                    {{template "authorized post card" .}}
+                {{else}}
+                    {{template "unauthorized post card" .}}
+                {{end}}
+            {{end}}
+        {{else}}
+            {{if ne .TotalPosts 0}}
+                <article>
+                    Page not found. Choose a page from the paginator below.
+                </article>
+            {{end}}
+        {{end}}
+        {{template "paginator" .}}
+    </main>
+{{end}}
