@@ -85,7 +85,6 @@ func makeNote(post types.Bookmark) (dict, error) {
 			dict{
 				"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
 			},
-			atContextMycomarkupExtension,
 		},
 		"actor": betulaActor,
 		"object": dict{
@@ -101,8 +100,10 @@ func makeNote(post types.Bookmark) (dict, error) {
 				strings.ReplaceAll(content.String(), "\t", ""),
 				">\n", ">"),
 			"name": post.Title,
-			"mycomarkup": dict{
-				"sourceText": post.Description,
+			"source": map[string]string{
+				// Misskey-style. They put text/x.misskeymarkdown though.
+				"content":   post.Description,
+				"mediaType": "text/mycomarkup",
 			},
 			"published": published,
 		},
