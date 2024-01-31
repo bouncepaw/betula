@@ -5,6 +5,7 @@ package activities
 
 import (
 	"errors"
+	"git.sr.ht/~bouncepaw/betula/stricks"
 
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
@@ -13,7 +14,10 @@ func getIDSomehow(activity dict, field string) string {
 	m := activity[field]
 	switch v := m.(type) {
 	case string:
-		return v
+		if stricks.ValidURL(v) {
+			return v
+		}
+		return ""
 	}
 	for k, v := range m.(dict) {
 		if k != "id" {
@@ -25,6 +29,15 @@ func getIDSomehow(activity dict, field string) string {
 		default:
 			return ""
 		}
+	}
+	return ""
+}
+
+func getString(activity dict, field string) string {
+	m := activity[field]
+	switch v := m.(type) {
+	case string:
+		return v
 	}
 	return ""
 }
@@ -41,6 +54,7 @@ var (
 	ErrUnknownType     = errors.New("activities: unknown activity type")
 	ErrNoId            = errors.New("activities: id absent or invalid")
 	ErrNoObject        = errors.New("activities: object absent or invalid")
+	ErrEmptyField      = errors.New("activities: empty field")
 )
 
 var betulaActor string

@@ -1,0 +1,36 @@
+{
+	"@context": [
+		"https://www.w3.org/ns/activitystreams",
+		{
+			"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag"
+		}
+	],
+	"actor": "https://links.bouncepaw.com/@bouncepaw",
+	"id": "https://links.bouncepaw.com/1083?update",
+	"object": {
+		"actor": "https://links.bouncepaw.com/@bouncepaw",
+		"attributedTo": "https://links.bouncepaw.com/@bouncepaw",
+		"content": "\u003ch3\u003e\u003ca href=\"https://www.datagubbe.se/adosmyst/\"'\u003eWell-known Secrets of AmigaDOS\u003c/a\u003e\u003c/h3\u003e\u003carticle class=\"mycomarkup-doc\"\u003e\u003cp\u003eCute.\n\u003c/p\u003e\u003c/article\u003e\u003cp\u003e\u003ca href=\"https://links.bouncepaw.com/tag/retrocomputing\" class=\"mention hashtag\" rel=\"tag\"\u003e#\u003cspan\u003eretrocomputing\u003c/span\u003e\u003c/a\u003e\u003c/p\u003e",
+		"id": "https://links.bouncepaw.com/1083",
+		"source": {
+			"content": "Cute.",
+			"mediaType": "text/mycomarkup"
+		},
+		"name": "Well-known Secrets of AmigaDOS",
+		"published": "2024-01-31T19:47:13Z",
+		"tag": [
+			{
+				"href": "https://links.bouncepaw.com/tag/retrocomputing",
+				"name": "#retrocomputing",
+				"type": "Hashtag"
+			}
+		],
+		"to": [
+			"https://www.w3.org/ns/activitystreams#Public",
+			"https://links.bouncepaw.com/followers"
+		],
+		"type": "Note",
+		"updated": "2024-01-31T19:47:13Z"
+	},
+	"type": "Update"
+}

@@ -1,10 +1,12 @@
 package activities
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"golang.org/x/net/html"
+	"html/template"
 	"strings"
 	"time"
 
@@ -133,4 +135,68 @@ func UpdateNote(post types.Bookmark) ([]byte, error) {
 	activity["id"] = fmt.Sprintf("%s/%d?update", settings.SiteURL(), post.ID)
 	activity["object"].(dict)["updated"] = time.Now().Format(time.RFC3339)
 	return json.Marshal(activity)
+}
+
+type CreateNoteReport struct {
+	Bookmark types.RemoteBookmark
+}
+
+func guessCreate(activity dict) (report any, err error) {
+	object, ok := activity["object"].(dict)
+	if !ok {
+		return nil, ErrNoObject
+	}
+
+	bookmark := types.RemoteBookmark{
+		// Invariants
+		RepostOf:  sql.NullString{},
+		UpdatedAt: sql.NullString{},
+		Activity:  activity["original activity"].([]byte),
+
+		// Required fields
+		ID:              getIDSomehow(activity, "object"),
+		ActorID:         getIDSomehow(activity, "actor"),
+		Title:           getString(object, "name"),
+		DescriptionHTML: template.HTML(getString(object, "content")),
+		PublishedAt:     getString(object, "published"),
+
+		// Optional fields
+		DescriptionMycomarkup: sql.NullString{},
+		Tags:                  nil,
+	}
+
+	// Verify required fields.
+	mustBeNonEmpty := []string{bookmark.ID, bookmark.ActorID, bookmark.Title, bookmark.PublishedAt}
+	for _, field := range mustBeNonEmpty {
+		if field == "" {
+			return nil, ErrEmptyField
+		}
+	}
+
+	// Grabbing Mycomarkup
+	source, ok := object["source"].(dict)
+	if ok && getString(source, "mediaType") == "text/mycomarkup" {
+		mycomarkup := getString(source, "content")
+		bookmark.DescriptionMycomarkup = sql.NullString{
+			String: mycomarkup,
+			Valid:  mycomarkup == "",
+		}
+	}
+
+	// Collecting tags
+	tags, ok := object["tag"].([]dict)
+	for _, tag := range tags {
+		typ := getString(tag, "type")
+		if typ != "Hashtag" {
+			continue
+		}
+
+		name := strings.TrimPrefix(getString(tag, "name"), "#")
+		bookmark.Tags = append(bookmark.Tags, types.Tag{
+			Name: name,
+			// Rest of struct not needed
+		})
+	}
+
+	return CreateNoteReport{bookmark}, nil
 }

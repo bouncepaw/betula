@@ -1,8 +1,10 @@
 package types
 
 import (
+	"database/sql"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/stricks"
+	"html/template"
 )
 
 const ActivityType = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""
@@ -51,4 +53,19 @@ func (sr SubscriptionRelation) IsPending() bool {
 
 func (sr SubscriptionRelation) TheyFollowUs() bool {
 	return sr == SubscriptionTheyFollow || sr == SubscriptionMutual || sr == SubscriptionPendingMutual
+}
+
+type RemoteBookmark struct {
+	ID       string
+	RepostOf sql.NullString
+	ActorID  string
+
+	Title                 string
+	DescriptionHTML       template.HTML
+	DescriptionMycomarkup sql.NullString
+	PublishedAt           string
+	UpdatedAt             sql.NullString
+	Activity              []byte
+
+	Tags []Tag
 }

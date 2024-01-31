@@ -2,6 +2,10 @@ package db
 
 import "git.sr.ht/~bouncepaw/betula/types"
 
+func InsertRemoteBookmark(bookmark types.RemoteBookmark) {
+
+}
+
 func KeyPemByID(keyID string) string {
 	return querySingleValue[string](`select PublicKeyPEM from PublicKeys where ID = ?`, keyID)
 }

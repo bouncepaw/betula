@@ -11,13 +11,16 @@ var guesserMap = map[string]func(dict) (any, error){
 	"Follow":   guessFollow,
 	"Accept":   guessAccept,
 	"Reject":   guessReject,
+	"Create":   guessCreate,
 }
 
 func Guess(raw []byte) (report any, err error) {
 	var (
-		activity = dict{}
-		val      any
-		ok       bool
+		activity = dict{
+			"original activity": raw,
+		}
+		val any
+		ok  bool
 	)
 	if err = json.Unmarshal(raw, &activity); err != nil {
 		return nil, err
