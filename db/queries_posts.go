@@ -88,7 +88,7 @@ order by CreationTime desc
 limit ?
 offset (? * (? - 1));
 `
-	rows := mustQuery(q, types.PostsPerPage, types.PostsPerPage, page)
+	rows := mustQuery(q, types.PostsPerPage, types.PostsPerPage, page) // same paging for remote bookmarks
 
 	for rows.Next() {
 		var post types.Bookmark

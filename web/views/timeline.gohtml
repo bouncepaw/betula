@@ -11,21 +11,13 @@
             {{else}}
                 <p>You are not following anybody now.</p>
             {{end}}
-        </article>{{$authed := .Authorized}}
-        {{range .PostGroupsInPage}}
+        </article>
+        {{range .BookmarkGroupsInPage}}
             <h3 class="date-heading">{{.Date}}</h3>
-            {{range .Posts}}{{/* special kind of cards */}}
-                {{if $authed}}
-                    {{template "authorized post card" .}}
-                {{else}}
-                    {{template "unauthorized post card" .}}
-                {{end}}
-            {{end}}
+            {{range .Posts}}{{template "remote bookmark card" .}}{{end}}
         {{else}}
             {{if ne .TotalPosts 0}}
-                <article>
-                    Page not found. Choose a page from the paginator below.
-                </article>
+                <article>Page not found. Choose a page from the paginator below.</article>
             {{end}}
         {{end}}
         {{template "paginator" .}}

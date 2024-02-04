@@ -29,7 +29,7 @@ func TestCleanerLinkParts(t *testing.T) {
 func TestGroupPostsByDate(t *testing.T) {
 	tests := []struct {
 		args             []Bookmark
-		wantGroupedPosts []BookmarkGroup
+		wantGroupedPosts []LocalBookmarkGroup
 	}{
 		{
 			[]Bookmark{
@@ -50,7 +50,7 @@ func TestGroupPostsByDate(t *testing.T) {
 					Title:        "I hope it will help me.",
 				},
 			},
-			[]BookmarkGroup{
+			[]LocalBookmarkGroup{
 				{"2024-01-10", []Bookmark{
 					{
 						CreationTime: "2024-01-10 15:35",
@@ -81,7 +81,7 @@ func TestGroupPostsByDate(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%d", i+1), func(t *testing.T) {
-			if gotGroupedPosts := GroupBookmarksByDate(tt.args); !reflect.DeepEqual(gotGroupedPosts, tt.wantGroupedPosts) {
+			if gotGroupedPosts := GroupLocalBookmarksByDate(tt.args); !reflect.DeepEqual(gotGroupedPosts, tt.wantGroupedPosts) {
 				t.Errorf("GroupPostsByDate() = %v, want %v", gotGroupedPosts, tt.wantGroupedPosts)
 			}
 		})

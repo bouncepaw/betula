@@ -1,6 +1,28 @@
 package db
 
-import "git.sr.ht/~bouncepaw/betula/types"
+import (
+	"git.sr.ht/~bouncepaw/betula/types"
+)
+
+func GetRemoteBookmarks(page uint) (bookmarks []types.RemoteBookmark, total uint) {
+	total = querySingleValue[uint](`select count(ID) from RemoteBookmarks`)
+
+	rows := mustQuery(`
+select ID, RepostOf, ActorID, Title, DescriptionHTML, DescriptionMycomarkup, PublishedAt, UpdatedAt, URL
+from RemoteBookmarks
+order by PublishedAt desc
+limit ?
+offset (? * (? - 1))
+`, types.PostsPerPage, types.PostsPerPage, page) // same paging for local bookmarks
+
+	for rows.Next() {
+		var b types.RemoteBookmark
+		mustScan(rows, &b.ID, &b.RepostOf, &b.ActorID, &b.Title, &b.DescriptionHTML, &b.DescriptionMycomarkup, &b.PublishedAt, &b.UpdatedAt, &b.URL)
+		bookmarks = append(bookmarks, b)
+	}
+
+	return
+}
 
 func RemoteBookmarkIsStored(bid string) (isStored bool) {
 	rows := mustQuery(`select 1 from RemoteBookmarks where ID = ?`, bid)

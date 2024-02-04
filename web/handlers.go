@@ -75,6 +75,7 @@ func init() {
 	mux.HandleFunc("/unfollow", postOnly(adminOnly(federatedOnly(postUnfollow))))
 	mux.HandleFunc("/following", fediverseWebFork(nil, getFollowingWeb))
 	mux.HandleFunc("/followers", fediverseWebFork(nil, getFollowersWeb))
+	mux.HandleFunc("/timeline", adminOnly(federatedOnly(getTimeline)))
 
 	// ActivityPub
 	mux.HandleFunc("/inbox", federatedOnly(postOnly(postInbox)))
@@ -88,6 +89,33 @@ func init() {
 
 	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+type dataTimeline struct {
+	*dataCommon
+
+	TotalBookmarks       uint
+	BookmarkGroupsInPage []types.RemoteBookmarkGroup
+}
+
+func getTimeline(w http.ResponseWriter, rq *http.Request) {
+	var currentPage uint
+	if page, err := strconv.Atoi(rq.FormValue("page")); err != nil || page == 0 {
+		currentPage = 1
+	} else {
+		currentPage = uint(page)
+	}
+
+	bookmarks, total := db.GetRemoteBookmarks(currentPage)
+
+	common := emptyCommon()
+	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, total)
+
+	templateExec(w, rq, templateTimeline, dataTimeline{
+		dataCommon:           common,
+		TotalBookmarks:       total,
+		BookmarkGroupsInPage: types.GroupRemoteBookmarksByDate(fediverse.RenderRemoteBookmarks(bookmarks)),
+	})
 }
 
 type dataActorList struct {
@@ -760,7 +788,7 @@ type dataSearch struct {
 	*dataCommon
 	Query            string
 	TotalPosts       uint
-	PostGroupsInPage []types.BookmarkGroup
+	PostGroupsInPage []types.LocalBookmarkGroup
 }
 
 var tagOnly = regexp.MustCompile(`^#([^?!:#@<>*|'"&%{}\\\s]+)\s*$`)
@@ -798,7 +826,7 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateSearch, dataSearch{
 		dataCommon:       common,
 		Query:            query,
-		PostGroupsInPage: types.GroupBookmarksByDate(posts),
+		PostGroupsInPage: types.GroupLocalBookmarksByDate(posts),
 		TotalPosts:       totalPosts,
 	})
 }
@@ -1096,7 +1124,7 @@ type dataTag struct {
 	*dataCommon
 	types.Tag
 	TotalPosts       uint
-	PostGroupsInPage []types.BookmarkGroup
+	PostGroupsInPage []types.LocalBookmarkGroup
 }
 
 func getTag(w http.ResponseWriter, rq *http.Request) {
@@ -1121,7 +1149,7 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 			Name:        tagName,
 			Description: db.DescriptionForTag(tagName),
 		},
-		PostGroupsInPage: types.GroupBookmarksByDate(posts),
+		PostGroupsInPage: types.GroupLocalBookmarksByDate(posts),
 		TotalPosts:       totalPosts,
 		dataCommon:       common,
 	})
@@ -1545,7 +1573,7 @@ func handlerPost(w http.ResponseWriter, rq *http.Request) {
 
 type dataFeed struct {
 	TotalPosts       uint
-	PostGroupsInPage []types.BookmarkGroup
+	PostGroupsInPage []types.LocalBookmarkGroup
 	SiteDescription  template.HTML
 	*dataCommon
 }
@@ -1583,7 +1611,7 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 
 	templateExec(w, rq, templateFeed, dataFeed{
 		TotalPosts:       totalPosts,
-		PostGroupsInPage: types.GroupBookmarksByDate(posts),
+		PostGroupsInPage: types.GroupLocalBookmarksByDate(posts),
 		SiteDescription:  settings.SiteDescriptionHTML(),
 		dataCommon:       common,
 	})

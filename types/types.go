@@ -57,13 +57,13 @@ type Bookmark struct {
 	RepostOf *string
 }
 
-type BookmarkGroup struct {
+type LocalBookmarkGroup struct {
 	Date  string
 	Posts []Bookmark
 }
 
-// GroupBookmarksByDate groups the bookmarks by date. The dates are strings like 2024-01-10. This function expects the input bookmarks to be sorted by date.
-func GroupBookmarksByDate(ungroupedBookmarks []Bookmark) (groupedBookmarks []BookmarkGroup) {
+// GroupLocalBookmarksByDate groups the bookmarks by date. The dates are strings like 2024-01-10. This function expects the input bookmarks to be sorted by date.
+func GroupLocalBookmarksByDate(ungroupedBookmarks []Bookmark) (groupedBookmarks []LocalBookmarkGroup) {
 	if len(ungroupedBookmarks) == 0 {
 		return nil
 	}
@@ -85,7 +85,7 @@ func GroupBookmarksByDate(ungroupedBookmarks []Bookmark) (groupedBookmarks []Boo
 		date := bookmark.CreationTime[:datelen]
 		if date != currentDate {
 			if currentBookmarks != nil {
-				groupedBookmarks = append(groupedBookmarks, BookmarkGroup{
+				groupedBookmarks = append(groupedBookmarks, LocalBookmarkGroup{
 					Date:  currentDate,
 					Posts: currentBookmarks,
 				})
