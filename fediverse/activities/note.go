@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/stricks"
 	"golang.org/x/net/html"
 	"html/template"
 	"strings"
@@ -140,11 +141,21 @@ func UpdateNote(post types.Bookmark) ([]byte, error) {
 type CreateNoteReport struct {
 	Bookmark types.RemoteBookmark
 }
+type UpdateNoteReport struct {
+	Bookmark types.RemoteBookmark
+}
+type DeleteNoteReport struct {
+	ActorID    string
+	BookmarkID string
+}
 
-func guessCreate(activity dict) (report any, err error) {
+func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 	object, ok := activity["object"].(dict)
 	if !ok {
 		return nil, ErrNoObject
+	}
+	if getString(object, "type") != "Note" {
+		return nil, ErrNotNote
 	}
 
 	bookmark := types.RemoteBookmark{
@@ -163,6 +174,10 @@ func guessCreate(activity dict) (report any, err error) {
 		// Optional fields
 		DescriptionMycomarkup: sql.NullString{},
 		Tags:                  nil,
+	}
+
+	if !stricks.SameHost(bookmark.ActorID, bookmark.ID) {
+		return nil, ErrHostMismatch
 	}
 
 	// Verify required fields.
@@ -198,5 +213,36 @@ func guessCreate(activity dict) (report any, err error) {
 		})
 	}
 
-	return CreateNoteReport{bookmark}, nil
+	return &bookmark, nil
+}
+
+func guessCreateNote(activity dict) (report any, err error) {
+	bookmark, err := guessNote(activity)
+	if err != nil {
+		return nil, err
+	}
+	return CreateNoteReport{
+		Bookmark: *bookmark,
+	}, nil
+}
+
+func guessUpdateNote(activity dict) (report any, err error) {
+	bookmark, err := guessNote(activity)
+	if err != nil {
+		return nil, err
+	}
+	return UpdateNoteReport{
+		Bookmark: *bookmark,
+	}, nil
+}
+
+func guessDeleteNote(activity dict) (report any, err error) {
+	deletion := DeleteNoteReport{
+		ActorID:    getIDSomehow(activity, "actor"),
+		BookmarkID: getIDSomehow(activity, "object"),
+	}
+	if !stricks.SameHost(deletion.ActorID, deletion.BookmarkID) {
+		return nil, ErrHostMismatch
+	}
+	return deletion, nil
 }

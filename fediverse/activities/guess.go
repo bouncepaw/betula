@@ -11,7 +11,9 @@ var guesserMap = map[string]func(dict) (any, error){
 	"Follow":   guessFollow,
 	"Accept":   guessAccept,
 	"Reject":   guessReject,
-	"Create":   guessCreate,
+	"Create":   guessCreateNote,
+	"Update":   guessUpdateNote,
+	"Delete":   guessDeleteNote,
 }
 
 func Guess(raw []byte) (report any, err error) {
@@ -31,17 +33,21 @@ func Guess(raw []byte) (report any, err error) {
 	}
 	switch v := val.(type) {
 	case string:
-		if f, ok := guesserMap[v]; !ok && v != "Delete" {
-			log.Printf("Ignoring unknown kind of activity: %s\n", raw)
-			return nil, ErrUnknownType
-		} else if v == "Delete" && activity["actor"] == activity["object"] {
-			// Waiting for https://github.com/mastodon/mastodon/pull/22273
+		// Special case
+		if v == "Delete" && getString(activity, "actor") == getString(activity, "object") {
+			// Waiting for https://github.com/mastodon/mastodon/pull/22273 to get rid of this branch
 			log.Println("Somebody got deleted, scroll further.")
 			return nil, nil
-		} else {
-			log.Printf("Handling activity: %s\n", raw)
-			return f(activity)
 		}
+
+		f, ok := guesserMap[v]
+		if !ok {
+			log.Printf("Ignoring unknown kind of activity: %s\n", raw)
+			return nil, ErrUnknownType
+		}
+
+		log.Printf("Handling activity: %s\n", raw)
+		return f(activity)
 	default:
 		return nil, ErrNoType
 	}

@@ -2,8 +2,44 @@ package db
 
 import "git.sr.ht/~bouncepaw/betula/types"
 
-func InsertRemoteBookmark(bookmark types.RemoteBookmark) {
+func RemoteBookmarkIsStored(bid string) (isStored bool) {
+	rows := mustQuery(`select 1 from RemoteBookmarks where ID = ?`, bid)
+	isStored = rows.Next()
+	_ = rows.Close()
+	return
+}
 
+func DeleteRemoteBookmark(bid string) {
+	mustExec(`delete from RemoteBookmarks where ID = ?`, bid)
+}
+
+func InsertRemoteBookmark(b types.RemoteBookmark) {
+	mustExec(`
+insert into RemoteBookmarks
+    (ID,  RepostOf,   ActorID,   Title,   DescriptionHTML,   DescriptionMycomarkup, PublishedAt,  UpdatedAt, Activity)
+values
+	(?, ?, ?, ?, ?, ?, ?, null, ?)
+on conflict do nothing`,
+		b.ID, b.RepostOf, b.ActorID, b.Title, b.DescriptionHTML, b.DescriptionMycomarkup, b.PublishedAt, b.Activity)
+
+	for _, tag := range b.Tags {
+		mustExec(`insert or replace into RemoteTags (Name, BookmarkID) values (?, ?)`, tag, b.ID)
+	}
+}
+
+func UpdateRemoteBookmark(b types.RemoteBookmark) {
+	// Only own bookmarks can be updated. Ownership can't be changed this way. Publishing date too. The id remains.
+	mustExec(`
+update RemoteBookmarks
+set Title = ?, DescriptionHTML = ?, DescriptionMycomarkup = ?, UpdatedAt = ?, Activity = ?
+where ID = ?`,
+		b.Title, b.DescriptionHTML, b.DescriptionMycomarkup, b.UpdatedAt, b.Activity, b.ID)
+
+	mustExec(`delete from RemoteTags where BookmarkID = ?`, b.ID)
+
+	for _, tag := range b.Tags {
+		mustExec(`insert or replace into RemoteTags (Name, BookmarkID) values (?, ?)`, tag, b.ID)
+	}
 }
 
 func KeyPemByID(keyID string) string {

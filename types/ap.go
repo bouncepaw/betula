@@ -55,6 +55,11 @@ func (sr SubscriptionRelation) TheyFollowUs() bool {
 	return sr == SubscriptionTheyFollow || sr == SubscriptionMutual || sr == SubscriptionPendingMutual
 }
 
+func (sr SubscriptionRelation) WeFollowThem() bool {
+	// TODO: if our request is pending, but we receive a post from them, does it mean they accepted?
+	return sr == SubscriptionIFollow || sr == SubscriptionMutual || sr == SubscriptionPendingMutual || sr == SubscriptionPending
+}
+
 type RemoteBookmark struct {
 	ID       string
 	RepostOf sql.NullString

@@ -21,6 +21,12 @@ func ParseValidURL(s string) *url.URL {
 	return u
 }
 
+func SameHost(s1, s2 string) bool {
+	u1, err1 := url.ParseRequestURI(s1)
+	u2, err2 := url.ParseRequestURI(s2)
+	return err1 == nil && err2 == nil && u1.Host == u2.Host
+}
+
 func StringifyAnything(o any) string {
 	switch s := o.(type) {
 	case string:

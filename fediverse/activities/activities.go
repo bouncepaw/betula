@@ -55,6 +55,8 @@ var (
 	ErrNoId            = errors.New("activities: id absent or invalid")
 	ErrNoObject        = errors.New("activities: object absent or invalid")
 	ErrEmptyField      = errors.New("activities: empty field")
+	ErrNotNote         = errors.New("activities: not a Note")
+	ErrHostMismatch    = errors.New("activities: host mismatch")
 )
 
 var betulaActor string

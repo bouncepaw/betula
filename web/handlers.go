@@ -579,13 +579,40 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	switch report := report.(type) {
+	case activities.CreateNoteReport:
+		if !db.SubscriptionStatus(report.Bookmark.ActorID).WeFollowThem() {
+			log.Printf("%s sent us a bookmark %s, but we don't follow them. Contents: %q. Ignoring.\n",
+				report.Bookmark.ActorID, report.Bookmark.ID, report.Bookmark.DescriptionHTML)
+			return
+		}
+
+		log.Printf("%s sent us a bookmark %s. Contents: %q\n",
+			report.Bookmark.ActorID, report.Bookmark.ID, report.Bookmark.DescriptionMycomarkup.String)
+		db.InsertRemoteBookmark(report.Bookmark)
+
+	case activities.UpdateNoteReport:
+		if !db.RemoteBookmarkIsStored(report.Bookmark.ID) {
+			// TODO: maybe store them?
+			log.Printf("%s updated the bookmark %s, but we don't have it. Contents: %q. Ignoring.\n",
+				report.Bookmark.ActorID, report.Bookmark.ID, report.Bookmark.DescriptionHTML)
+			return
+		}
+
+		log.Printf("%s updated the bookmark %s. Contents: %q\n",
+			report.Bookmark.ActorID, report.Bookmark.ID, report.Bookmark.DescriptionMycomarkup.String)
+		db.UpdateRemoteBookmark(report.Bookmark)
+
+	case activities.DeleteNoteReport:
+		log.Printf("%s deleted the bookmark %s.\n", report.ActorID, report.BookmarkID)
+		db.DeleteRemoteBookmark(report.BookmarkID)
+
 	case activities.UndoAnnounceReport:
 		log.Printf("%s revoked their repost of %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
-		go jobs.ScheduleJSON(jobtype.ReceiveUndoAnnounce, report)
+		jobs.ScheduleJSON(jobtype.ReceiveUndoAnnounce, report)
 
 	case activities.AnnounceReport:
 		log.Printf("%s reposted %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
-		go jobs.ScheduleJSON(jobtype.ReceiveAnnounce, report)
+		jobs.ScheduleJSON(jobtype.ReceiveAnnounce, report)
 
 	case activities.UndoFollowReport:
 		// We'll schedule no job because we are making no network request to handle this.
@@ -613,10 +640,10 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 
 		if report.ObjectID == fediverse.OurID() {
 			log.Printf("%s asked to follow us\n", report.ActorID)
-			go jobs.ScheduleJSON(jobtype.SendAcceptFollow, report)
+			jobs.ScheduleJSON(jobtype.SendAcceptFollow, report)
 		} else {
 			log.Printf("%s asked to follow %s, which is not us\n", report.ActorID, report.ObjectID)
-			go jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
+			jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
 		}
 
 	case activities.AcceptReport:
@@ -637,7 +664,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 				ObjectID:         stricks.StringifyAnything(report.Object["object"]),
 				OriginalActivity: report.Object,
 			}
-			go jobs.ScheduleJSON(jobtype.ReceiveAcceptFollow, report)
+			jobs.ScheduleJSON(jobtype.ReceiveAcceptFollow, report)
 		}
 
 	case activities.RejectReport:
@@ -658,7 +685,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 				ObjectID:         stricks.StringifyAnything(report.Object["object"]),
 				OriginalActivity: report.Object,
 			}
-			go jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
+			jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
 		}
 
 	default:

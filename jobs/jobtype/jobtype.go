@@ -22,9 +22,6 @@ const (
 	SendCreateNote      JobCategory = "Send Create{Note}"
 	SendUpdateNote      JobCategory = "Send Update{Note}"
 	SendDeleteNote      JobCategory = "Send Delete{Note}"
-	ReceiveCreateNote   JobCategory = "Receive Create{Note}"
-	ReceiveUpdateNote   JobCategory = "Receive Update{Note}"
-	ReceiveDeleteNote   JobCategory = "Receive Delete{Note}"
 )
 
 // Job is a task for Betula to do later.
