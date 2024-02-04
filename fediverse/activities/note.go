@@ -87,6 +87,7 @@ func makeNote(post types.Bookmark) (dict, error) {
 			atContext,
 			dict{
 				"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
+				"citeOf":  citeOfExtension,
 			},
 		},
 		"actor": betulaActor,
@@ -102,7 +103,8 @@ func makeNote(post types.Bookmark) (dict, error) {
 			"content": strings.ReplaceAll(
 				strings.ReplaceAll(content.String(), "\t", ""),
 				">\n", ">"),
-			"name": post.Title,
+			"name":   post.Title,
+			"citeOf": post.URL,
 			"source": map[string]string{
 				// Misskey-style. They put text/x.misskeymarkdown though.
 				"content":   post.Description,
@@ -168,6 +170,7 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 		ID:              getIDSomehow(activity, "object"),
 		ActorID:         getIDSomehow(activity, "actor"),
 		Title:           getString(object, "name"),
+		URL:             getString(object, "citeOf"),
 		DescriptionHTML: template.HTML(getString(object, "content")),
 		PublishedAt:     getString(object, "published"),
 
@@ -181,7 +184,7 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 	}
 
 	// Verify required fields.
-	mustBeNonEmpty := []string{bookmark.ID, bookmark.ActorID, bookmark.Title, bookmark.PublishedAt}
+	mustBeNonEmpty := []string{bookmark.ID, bookmark.ActorID, bookmark.Title, bookmark.PublishedAt, bookmark.URL}
 	for _, field := range mustBeNonEmpty {
 		if field == "" {
 			return nil, ErrEmptyField

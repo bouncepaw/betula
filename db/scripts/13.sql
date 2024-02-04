@@ -7,6 +7,7 @@ drop table IncomingPosts;
 -- enough for our purposes. DeletedAt bears no value, we'll just drop deleted
 -- posts.
 create table RemoteBookmarks (
+    -- EXTENDED IN 14: field URL text not null was added.
     -- ActivityPub's ID, serves as post's URL.
     ID                    text primary key,
     -- Nullable. Distinguishes if this is an original post or not. If not null, it is ID of the original post.

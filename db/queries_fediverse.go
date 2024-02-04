@@ -16,11 +16,11 @@ func DeleteRemoteBookmark(bid string) {
 func InsertRemoteBookmark(b types.RemoteBookmark) {
 	mustExec(`
 insert into RemoteBookmarks
-    (ID,  RepostOf,   ActorID,   Title,   DescriptionHTML,   DescriptionMycomarkup, PublishedAt,  UpdatedAt, Activity)
+    (ID,  RepostOf,   ActorID,   Title,   URL, DescriptionHTML,   DescriptionMycomarkup, PublishedAt,  UpdatedAt, Activity)
 values
-	(?, ?, ?, ?, ?, ?, ?, null, ?)
+	(?, ?, ?, ?, ?, ?, ?, ?, null, ?)
 on conflict do nothing`,
-		b.ID, b.RepostOf, b.ActorID, b.Title, b.DescriptionHTML, b.DescriptionMycomarkup, b.PublishedAt, b.Activity)
+		b.ID, b.RepostOf, b.ActorID, b.Title, b.URL, b.DescriptionHTML, b.DescriptionMycomarkup, b.PublishedAt, b.Activity)
 
 	for _, tag := range b.Tags {
 		mustExec(`insert or replace into RemoteTags (Name, BookmarkID) values (?, ?)`, tag, b.ID)
@@ -31,9 +31,9 @@ func UpdateRemoteBookmark(b types.RemoteBookmark) {
 	// Only own bookmarks can be updated. Ownership can't be changed this way. Publishing date too. The id remains.
 	mustExec(`
 update RemoteBookmarks
-set Title = ?, DescriptionHTML = ?, DescriptionMycomarkup = ?, UpdatedAt = ?, Activity = ?
+set Title = ?, DescriptionHTML = ?, DescriptionMycomarkup = ?, UpdatedAt = ?, Activity = ?, URL = ?
 where ID = ?`,
-		b.Title, b.DescriptionHTML, b.DescriptionMycomarkup, b.UpdatedAt, b.Activity, b.ID)
+		b.Title, b.DescriptionHTML, b.DescriptionMycomarkup, b.UpdatedAt, b.Activity, b.ID, b.URL)
 
 	mustExec(`delete from RemoteTags where BookmarkID = ?`, b.ID)
 

@@ -2,7 +2,8 @@
 	"@context": [
 		"https://www.w3.org/ns/activitystreams",
 		{
-			"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag"
+			"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
+			"citeOf": "https://betula.mycorrhiza.wiki/ns#citeOf"
 		}
 	],
 	"actor": "https://links.bouncepaw.com/@bouncepaw",
@@ -17,6 +18,7 @@
 			"mediaType": "text/mycomarkup"
 		},
 		"name": "Well-known Secrets of AmigaDOS",
+		"citeOf": "https://www.datagubbe.se/adosmyst/",
 		"published": "2024-01-31T19:47:13Z",
 		"tag": [
 			{

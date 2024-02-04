@@ -66,6 +66,7 @@ type RemoteBookmark struct {
 	ActorID  string
 
 	Title                 string
+	URL                   string
 	DescriptionHTML       template.HTML
 	DescriptionMycomarkup sql.NullString
 	PublishedAt           string
