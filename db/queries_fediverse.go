@@ -55,7 +55,7 @@ on conflict do nothing`,
 		b.ID, b.RepostOf, b.ActorID, b.Title, b.URL, b.DescriptionHTML, b.DescriptionMycomarkup, b.PublishedAt, b.Activity)
 
 	for _, tag := range b.Tags {
-		mustExec(`insert or replace into RemoteTags (Name, BookmarkID) values (?, ?)`, tag, b.ID)
+		mustExec(`insert or replace into RemoteTags (Name, BookmarkID) values (?, ?)`, tag.Name, b.ID)
 	}
 }
 
