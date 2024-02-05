@@ -3,9 +3,10 @@ package types
 import (
 	"database/sql"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/stricks"
 	"html/template"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/stricks"
 )
 
 const ActivityType = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""
@@ -122,7 +123,7 @@ func GroupRemoteBookmarksByDate(ungroupedBookmarks []RenderedRemoteBookmark) (gr
 		if bookmark.PublishedAt != currentDate {
 			if currentBookmarks != nil {
 				groupedBookmarks = append(groupedBookmarks, RemoteBookmarkGroup{
-					Date:  currentDate.Format(time.DateOnly),
+					Date:  currentDate.Format(TimeLayout),
 					Posts: currentBookmarks,
 				})
 			}
