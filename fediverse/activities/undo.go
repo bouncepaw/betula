@@ -13,9 +13,9 @@ type UndoFollowReport struct {
 	FollowReport
 }
 
-func newUndo(objectId string, object dict) ([]byte, error) {
+func newUndo(objectId string, object Dict) ([]byte, error) {
 	object["id"] = objectId
-	return json.Marshal(dict{
+	return json.Marshal(Dict{
 		"@context": atContext,
 		"type":     "Undo",
 		"actor":    betulaActor,
@@ -27,17 +27,17 @@ func newUndo(objectId string, object dict) ([]byte, error) {
 func NewUndoAnnounce(repostURL string, originalPostURL string) ([]byte, error) {
 	return newUndo(
 		repostURL,
-		dict{
+		Dict{
 			"type":   "Announce",
 			"actor":  settings.SiteURL(),
 			"object": originalPostURL,
 		})
 }
 
-func guessUndo(activity dict) (reportMaybe any, err error) {
+func guessUndo(activity Dict) (reportMaybe any, err error) {
 	var (
 		report    UndoAnnounceReport
-		objectMap dict
+		objectMap Dict
 	)
 
 	if err := mustHaveSuchField(
@@ -60,7 +60,7 @@ func guessUndo(activity dict) (reportMaybe any, err error) {
 			report.OriginalPage = original
 		}
 		switch actor := objectMap["actor"].(type) {
-		case dict:
+		case Dict:
 			switch username := actor["preferredUsername"].(type) {
 			case string:
 				report.ReposterUsername = username

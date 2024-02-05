@@ -158,8 +158,8 @@ where
 	SetTagsFor(post.ID, post.Tags)
 }
 
-// PostForID returns the post corresponding to the given id, if there is any.
-func PostForID(id int) (post types.Bookmark, found bool) {
+// GetBookmarkByID returns the bookmark corresponding to the given id, if there is any.
+func GetBookmarkByID(id int) (b types.Bookmark, found bool) {
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime, RepostOf from Posts
 where ID = ? and DeletionTime is null
@@ -167,10 +167,10 @@ limit 1;
 `
 	rows := mustQuery(q, id)
 	for rows.Next() {
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
+		mustScan(rows, &b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RepostOf)
 		found = true
 	}
-	return post, found
+	return b, found
 }
 
 func BookmarkCount(authorized bool) uint {

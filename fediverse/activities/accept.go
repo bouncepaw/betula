@@ -9,9 +9,9 @@ import (
 
 // NewAccept wraps the acceptedActivity in an Accept activity.
 // The @context of the wrapped activity is deleted.
-func NewAccept(acceptedActivity dict) ([]byte, error) {
+func NewAccept(acceptedActivity Dict) ([]byte, error) {
 	delete(acceptedActivity, "@context")
-	return json.Marshal(dict{
+	return json.Marshal(Dict{
 		"@context": atContext,
 		"id":       fmt.Sprintf("%s/temp/%s", settings.SiteURL(), stricks.RandomWhatever()),
 		"type":     "Accept",
@@ -23,10 +23,10 @@ func NewAccept(acceptedActivity dict) ([]byte, error) {
 type AcceptReport struct {
 	ActorID  string
 	ObjectID string
-	Object   dict
+	Object   Dict
 }
 
-func guessAccept(activity dict) (any, error) {
+func guessAccept(activity Dict) (any, error) {
 	report := AcceptReport{
 		ActorID:  getIDSomehow(activity, "actor"),
 		ObjectID: getIDSomehow(activity, "object"),
@@ -39,7 +39,7 @@ func guessAccept(activity dict) (any, error) {
 	}
 	if obj, ok := activity["object"]; ok {
 		switch v := obj.(type) {
-		case dict:
+		case Dict:
 			report.Object = v
 		}
 	}

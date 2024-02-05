@@ -5,12 +5,11 @@ package activities
 
 import (
 	"errors"
-	"git.sr.ht/~bouncepaw/betula/stricks"
-
 	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/stricks"
 )
 
-func getIDSomehow(activity dict, field string) string {
+func getIDSomehow(activity Dict, field string) string {
 	m := activity[field]
 	switch v := m.(type) {
 	case string:
@@ -19,7 +18,7 @@ func getIDSomehow(activity dict, field string) string {
 		}
 		return ""
 	}
-	for k, v := range m.(dict) {
+	for k, v := range m.(Dict) {
 		if k != "id" {
 			continue
 		}
@@ -33,7 +32,7 @@ func getIDSomehow(activity dict, field string) string {
 	return ""
 }
 
-func getString(activity dict, field string) string {
+func getString(activity Dict, field string) string {
 	m := activity[field]
 	switch v := m.(type) {
 	case string:
@@ -45,7 +44,7 @@ func getString(activity dict, field string) string {
 const atContext = "https://www.w3.org/ns/activitystreams"
 const publicAudience = "https://www.w3.org/ns/activitystreams#Public"
 
-type dict = map[string]any
+type Dict = map[string]any
 
 var (
 	ErrNoType          = errors.New("activities: type absent or invalid")

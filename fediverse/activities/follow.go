@@ -7,12 +7,12 @@ import (
 )
 
 func NewUndoFollowFromUs(objectID string) ([]byte, error) {
-	activity := dict{
+	activity := Dict{
 		"@context": atContext,
 		"id":       fmt.Sprintf("%s/unfollow?account=%s", settings.SiteURL(), objectID),
 		"type":     "Undo",
 		"actor":    betulaActor,
-		"object": dict{
+		"object": Dict{
 			"id":     fmt.Sprintf("%s/follow?account=%s", settings.SiteURL(), objectID),
 			"type":   "Follow",
 			"actor":  betulaActor,
@@ -23,7 +23,7 @@ func NewUndoFollowFromUs(objectID string) ([]byte, error) {
 }
 
 func NewFollowFromUs(objectID string) ([]byte, error) {
-	activity := dict{
+	activity := Dict{
 		"@context": atContext,
 		"id":       fmt.Sprintf("%s/follow?account=%s", settings.SiteURL(), objectID),
 		"type":     "Follow",
@@ -36,10 +36,10 @@ func NewFollowFromUs(objectID string) ([]byte, error) {
 type FollowReport struct {
 	ActorID          string
 	ObjectID         string
-	OriginalActivity dict
+	OriginalActivity Dict
 }
 
-func guessFollow(activity dict) (any, error) {
+func guessFollow(activity Dict) (any, error) {
 	report := FollowReport{
 		ActorID:          getIDSomehow(activity, "actor"),
 		ObjectID:         getIDSomehow(activity, "object"),

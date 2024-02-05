@@ -7,9 +7,9 @@ import (
 	"git.sr.ht/~bouncepaw/betula/stricks"
 )
 
-func NewReject(rejectedActivity dict) ([]byte, error) {
+func NewReject(rejectedActivity Dict) ([]byte, error) {
 	delete(rejectedActivity, "@context")
-	activity := dict{
+	activity := Dict{
 		"@context": atContext,
 		"id":       fmt.Sprintf("%s/temp/%s", settings.SiteURL(), stricks.RandomWhatever()),
 		"type":     "Reject",
@@ -22,10 +22,10 @@ func NewReject(rejectedActivity dict) ([]byte, error) {
 type RejectReport struct {
 	ActorID  string
 	ObjectID string
-	Object   dict
+	Object   Dict
 }
 
-func guessReject(activity dict) (any, error) {
+func guessReject(activity Dict) (any, error) {
 	report := RejectReport{
 		ActorID:  getIDSomehow(activity, "actor"),
 		ObjectID: getIDSomehow(activity, "object"),
@@ -38,7 +38,7 @@ func guessReject(activity dict) (any, error) {
 	}
 	if obj, ok := activity["object"]; ok {
 		switch v := obj.(type) {
-		case dict:
+		case Dict:
 			report.Object = v
 		}
 	}

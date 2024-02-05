@@ -448,7 +448,7 @@ func postUnrepost(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	post, found := db.PostForID(id)
+	post, found := db.GetBookmarkByID(id)
 	if !found {
 		log.Printf("Trying to unrepost non-existent post no. %d\n", id)
 		handlerNotFound(w, rq)
@@ -487,7 +487,7 @@ func getRepostsOf(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	post, found := db.PostForID(id)
+	post, found := db.GetBookmarkByID(id)
 	if !found {
 		log.Printf("Did not find post no. %d\n", id)
 		handlerNotFound(w, rq)
@@ -839,7 +839,7 @@ func getText(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	post, found := db.PostForID(id)
+	post, found := db.GetBookmarkByID(id)
 	if !found {
 		log.Printf("Did not find post no. %d\n", id)
 		handlerNotFound(w, rq)
@@ -989,7 +989,7 @@ func postDeleteBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	post, found := db.PostForID(id)
+	post, found := db.GetBookmarkByID(id)
 
 	if !found {
 		log.Println("Trying to delete a non-existent post.")
@@ -1197,7 +1197,7 @@ func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 	if settings.FederationEnabled() {
 		go func(id int) {
 			// the handler never modifies the post visibility, so we don't care about the past, so we only look at the current value
-			post, found := db.PostForID(id)
+			post, found := db.GetBookmarkByID(id)
 			if !found {
 				log.Printf("When federating bookmark no. %d: bookmark not found\n", post.ID)
 				return
@@ -1241,7 +1241,7 @@ func handlerEditBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	post, found := db.PostForID(id)
+	post, found := db.GetBookmarkByID(id)
 	if !found {
 		log.Printf("Trying to edit post no. %d that does not exist. %d.\n", id, http.StatusNotFound)
 		handlerNotFound(w, rq)
@@ -1531,44 +1531,56 @@ func handlerSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
+func getBookmarkFedi(w http.ResponseWriter, rq *http.Request) {
+	bookmark, ok := extractBookmark(w, rq)
+	if !ok {
+		return
+	}
+	if bookmark.RepostOf != nil {
+		// TODO: decide
+		log.Printf("Trying to get bookmark object of repost no. %d. Not implemented.\n", bookmark.ID)
+		handlerNotFound(w, rq)
+		return
+	}
+	log.Printf("Get bookmark object no. %d\n", bookmark.ID)
+
+	obj, err := activities.NoteFromBookmark(*bookmark)
+	if err != nil {
+		log.Printf("When making Note object for bookmark: %s\n", err)
+		handlerNotFound(w, rq)
+	}
+
+	w.Header().Set("Content-Type", types.OtherActivityType)
+	if err = json.NewEncoder(w).Encode(obj); err != nil {
+		log.Printf("When writing JSON: %s\n", err)
+		handlerNotFound(w, rq)
+	}
+}
+
 type dataPost struct {
 	Post        types.Bookmark
 	RepostCount int
 	*dataCommon
 }
 
-func handlerPost(w http.ResponseWriter, rq *http.Request) {
-	id, err := strconv.Atoi(strings.TrimPrefix(strings.TrimPrefix(rq.URL.Path, "/"), "post/"))
-	if err != nil {
-		log.Println(err)
-		handlerNotFound(w, rq)
+func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
+	post, ok := extractBookmark(w, rq)
+	if !ok {
 		return
 	}
-
-	post, found := db.PostForID(id)
-	if !found {
-		log.Println(err)
-		handlerNotFound(w, rq)
-		return
-	}
-
-	visibility := post.Visibility
-	authed := auth.AuthorizedFromRequest(rq)
-	if visibility == types.Private && !authed {
-		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-		handlerUnauthorized(w, rq)
-		return
-	}
-
-	log.Printf("Viewing post %d\n", id)
+	log.Printf("Get bookmark page no. %d\n", post.ID)
 
 	common := emptyCommon()
-	common.head = template.HTML(fmt.Sprintf(`<link rel="alternate" type="text/mycomarkup" href="/text/%d">`, id))
+	common.head = template.HTML(fmt.Sprintf(`<link rel="alternate" type="text/mycomarkup" href="/text/%d">`, post.ID))
+	if post.RepostOf == nil {
+		common.head += template.HTML(fmt.Sprintf(`
+<link rel="alternate" type="%s" href="/%d"'>`, types.OtherActivityType, post.ID))
+	}
 
-	post.Tags = db.TagsForPost(id)
+	post.Tags = db.TagsForPost(post.ID)
 	templateExec(w, rq, templatePost, dataPost{
-		Post:        post,
-		RepostCount: db.CountRepostsOf(id),
+		Post:        *post,
+		RepostCount: db.CountRepostsOf(post.ID),
 		dataCommon:  common,
 	})
 }
@@ -1584,7 +1596,7 @@ var regexpPost = regexp.MustCompile("^/[0-9]+")
 
 func getIndex(w http.ResponseWriter, rq *http.Request) {
 	if regexpPost.MatchString(rq.URL.Path) {
-		handlerPost(w, rq)
+		fediverseWebFork(getBookmarkFedi, getBookmarkWeb)(w, rq)
 		return
 	}
 	if strings.HasPrefix(rq.URL.Path, "/@") {
@@ -1627,7 +1639,7 @@ func getGo(w http.ResponseWriter, rq *http.Request) {
 
 	var (
 		authed      = auth.AuthorizedFromRequest(rq)
-		post, found = db.PostForID(id)
+		post, found = db.GetBookmarkByID(id)
 	)
 	switch {
 	case !found:

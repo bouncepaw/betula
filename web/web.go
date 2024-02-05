@@ -4,6 +4,7 @@ package web
 import (
 	"errors"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
 	"net/http"
@@ -81,16 +82,45 @@ func (a *auther) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	a.Handler.ServeHTTP(w, rq)
 }
 
+func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, bool) {
+	id, ok := extractBookmarkID(w, rq)
+	if !ok {
+		return nil, false
+	}
+
+	bookmark, found := db.GetBookmarkByID(id)
+	if !found {
+		log.Printf("Bookmark no. %d not found\n", id)
+		handlerNotFound(w, rq)
+		return nil, false
+	}
+
+	authed := auth.AuthorizedFromRequest(rq)
+	if bookmark.Visibility == types.Private && !authed {
+		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		handlerUnauthorized(w, rq)
+		return nil, false
+	}
+
+	return &bookmark, true
+}
+
 // returns id, found
 func extractBookmarkID(w http.ResponseWriter, rq *http.Request) (int, bool) {
 	parts := strings.Split(rq.URL.Path, "/")
-	if len(parts) != 3 {
+
+	var id int
+	var err error
+	if len(parts) == 2 {
+		id, err = strconv.Atoi(parts[1])
+	} else if len(parts) == 3 {
+		id, err = strconv.Atoi(parts[2])
+	} else {
 		handlerNotFound(w, rq)
 		log.Printf("Extracting bookmark no. from %s: wrong format\n", rq.URL.Path)
 		return 0, false
 	}
 
-	id, err := strconv.Atoi(parts[2])
 	if err != nil {
 		log.Printf("Extracting bookmark no. from %s: wrong format\n", rq.URL.Path)
 		handlerNotFound(w, rq)
@@ -141,7 +171,8 @@ func fediverseWebFork(
 	nextWeb func(http.ResponseWriter, *http.Request),
 ) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, rq *http.Request) {
-		if rq.Header.Get("Accept") == types.ActivityType && nextFedi != nil {
+		wantsActivity := strings.Contains(rq.Header.Get("Accept"), types.ActivityType) || strings.Contains(rq.Header.Get("Accept"), types.OtherActivityType)
+		if wantsActivity && nextFedi != nil {
 			federatedOnly(nextFedi)(w, rq)
 		} else if nextWeb != nil {
 			nextWeb(w, rq)

@@ -132,7 +132,7 @@ func notifyJob(job jobtype.Job) {
 		return
 	}
 
-	post, found := db.PostForID(postId)
+	post, found := db.GetBookmarkByID(postId)
 	if !found {
 		log.Printf("Can't notify about non-existent repost no. %d\n", postId)
 		return

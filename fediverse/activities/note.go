@@ -18,7 +18,7 @@ import (
 
 func DeleteNote(postId int) ([]byte, error) {
 	id := fmt.Sprintf("%s/%d", settings.SiteURL(), postId)
-	activity := dict{
+	activity := Dict{
 		"@context": atContext,
 		"type":     "Delete",
 		"actor":    betulaActor,
@@ -32,7 +32,7 @@ func DeleteNote(postId int) ([]byte, error) {
 	return json.Marshal(activity)
 }
 
-func makeNote(bookmark types.Bookmark) (dict, error) {
+func NoteFromBookmark(bookmark types.Bookmark) (Dict, error) {
 	if bookmark.ID == 0 {
 		return nil, errors.New("an empty ID was passed")
 	}
@@ -73,7 +73,7 @@ func makeNote(bookmark types.Bookmark) (dict, error) {
 				))
 
 			// https://docs.joinmastodon.org/spec/activitypub/#Hashtag
-			tags = append(tags, dict{
+			tags = append(tags, Dict{
 				"type": "Hashtag",
 				"name": "#" + tag.Name, // The # is needed
 				"href": fmt.Sprintf("%s/tag/%s", settings.SiteURL(), tag.Name),
@@ -82,49 +82,68 @@ func makeNote(bookmark types.Bookmark) (dict, error) {
 		content.WriteString("</p>")
 	}
 
-	activity := dict{
+	object := Dict{
 		"@context": []any{
 			atContext,
-			dict{
+			Dict{
 				"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
 			},
 		},
-		"actor": betulaActor,
-		"object": dict{
-			"type":         "Note",
-			"id":           fmt.Sprintf("%s/%d", settings.SiteURL(), bookmark.ID),
-			"actor":        betulaActor,
-			"attributedTo": betulaActor,
-			"to": []string{
-				publicAudience,
-				fmt.Sprintf("%s/followers", settings.SiteURL()),
-			},
-			"content": strings.ReplaceAll(
-				strings.ReplaceAll(content.String(), "\t", ""),
-				">\n", ">"),
-			"name": bookmark.Title,
-			"attachment": []dict{
-				{ // Lemmy-style.
-					"href": bookmark.URL,
-					"type": "Link",
-				},
-			},
-			"source": map[string]string{
-				// Misskey-style. They put text/x.misskeymarkdown though.
-				"content":   bookmark.Description,
-				"mediaType": "text/mycomarkup",
-			},
-			"published": published,
+		"type":         "Note",
+		"id":           fmt.Sprintf("%s/%d", settings.SiteURL(), bookmark.ID),
+		"actor":        betulaActor,
+		"attributedTo": betulaActor,
+		"to": []string{
+			publicAudience,
+			fmt.Sprintf("%s/followers", settings.SiteURL()),
 		},
+		"content": strings.ReplaceAll(
+			strings.ReplaceAll(content.String(), "\t", ""),
+			">\n", ">"),
+		"name": bookmark.Title,
+		"attachment": []Dict{
+			{ // Lemmy-style.
+				"href": bookmark.URL,
+				"type": "Link",
+			},
+		},
+		"source": map[string]string{
+			// Misskey-style. They put text/x.misskeymarkdown though.
+			"content":   bookmark.Description,
+			"mediaType": "text/mycomarkup",
+		},
+		"published": published,
 	}
+
 	if len(tags) > 0 {
-		activity["object"].(dict)["tag"] = tags
+		object["tag"] = tags
+	}
+	return object, nil
+}
+
+func makeNoteAction(bookmark types.Bookmark) (Dict, error) {
+	object, err := NoteFromBookmark(bookmark)
+	if err != nil {
+		return nil, err
+	}
+
+	delete(object, "@context")
+
+	activity := Dict{
+		"@context": []any{
+			atContext,
+			Dict{
+				"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
+			},
+		},
+		"actor":  betulaActor,
+		"object": object,
 	}
 	return activity, nil
 }
 
 func CreateNote(post types.Bookmark) ([]byte, error) {
-	activity, err := makeNote(post)
+	activity, err := makeNoteAction(post)
 	if err != nil {
 		return nil, err
 	}
@@ -134,13 +153,13 @@ func CreateNote(post types.Bookmark) ([]byte, error) {
 }
 
 func UpdateNote(post types.Bookmark) ([]byte, error) {
-	activity, err := makeNote(post)
+	activity, err := makeNoteAction(post)
 	if err != nil {
 		return nil, err
 	}
 	activity["type"] = "Update"
 	activity["id"] = fmt.Sprintf("%s/%d?update", settings.SiteURL(), post.ID)
-	activity["object"].(dict)["updated"] = time.Now().Format(time.RFC3339)
+	activity["object"].(Dict)["updated"] = time.Now().Format(time.RFC3339)
 	return json.Marshal(activity)
 }
 
@@ -155,8 +174,8 @@ type DeleteNoteReport struct {
 	BookmarkID string
 }
 
-func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
-	object, ok := activity["object"].(dict)
+func guessNote(activity Dict) (note *types.RemoteBookmark, err error) {
+	object, ok := activity["object"].(Dict)
 	if !ok {
 		return nil, ErrNoObject
 	}
@@ -195,7 +214,7 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 		return nil, ErrEmptyField
 	}
 	for _, rawamnt := range attachments {
-		amnt, ok := rawamnt.(dict)
+		amnt, ok := rawamnt.(Dict)
 		if !ok {
 			continue
 		}
@@ -221,7 +240,7 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 	}
 
 	// Grabbing Mycomarkup
-	source, ok := object["source"].(dict)
+	source, ok := object["source"].(Dict)
 	if ok && getString(source, "mediaType") == "text/mycomarkup" {
 		mycomarkup := getString(source, "content")
 		bookmark.DescriptionMycomarkup = sql.NullString{
@@ -233,7 +252,7 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 	// Collecting tags
 	tags, ok := object["tag"].([]any)
 	for _, anytag := range tags {
-		tag, ok := anytag.(dict)
+		tag, ok := anytag.(Dict)
 		if !ok {
 			continue
 		}
@@ -252,7 +271,7 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 	return &bookmark, nil
 }
 
-func guessCreateNote(activity dict) (report any, err error) {
+func guessCreateNote(activity Dict) (report any, err error) {
 	bookmark, err := guessNote(activity)
 	if err != nil {
 		return nil, err
@@ -262,7 +281,7 @@ func guessCreateNote(activity dict) (report any, err error) {
 	}, nil
 }
 
-func guessUpdateNote(activity dict) (report any, err error) {
+func guessUpdateNote(activity Dict) (report any, err error) {
 	bookmark, err := guessNote(activity)
 	if err != nil {
 		return nil, err
@@ -272,7 +291,7 @@ func guessUpdateNote(activity dict) (report any, err error) {
 	}, nil
 }
 
-func guessDeleteNote(activity dict) (report any, err error) {
+func guessDeleteNote(activity Dict) (report any, err error) {
 	deletion := DeleteNoteReport{
 		ActorID:    getIDSomehow(activity, "actor"),
 		BookmarkID: getIDSomehow(activity, "object"),

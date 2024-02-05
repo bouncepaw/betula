@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-var guesserMap = map[string]func(dict) (any, error){
+var guesserMap = map[string]func(Dict) (any, error){
 	"Announce": guessAnnounce,
 	"Undo":     guessUndo,
 	"Follow":   guessFollow,
@@ -18,7 +18,7 @@ var guesserMap = map[string]func(dict) (any, error){
 
 func Guess(raw []byte) (report any, err error) {
 	var (
-		activity = dict{
+		activity = Dict{
 			"original activity": raw,
 		}
 		val any
