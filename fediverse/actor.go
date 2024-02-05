@@ -2,6 +2,7 @@ package fediverse
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
@@ -90,7 +91,8 @@ func dereferenceActorID(actorID string) (*types.Actor, error) {
 
 	a.Domain = stricks.ParseValidURL(actorID).Host
 	if !a.Valid() {
-		panic("actor invalid") // should not happen actually
+		fmt.Println(a)
+		return nil, errors.New("actor invalid")
 	}
 	if a.DisplayedName == "" {
 		a.DisplayedName = a.PreferredUsername
