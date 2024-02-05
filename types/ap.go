@@ -30,7 +30,7 @@ type Actor struct {
 
 func (a *Actor) Valid() bool {
 	urlsOK := stricks.ValidURL(a.ID) && stricks.ValidURL(a.Inbox) && stricks.ValidURL(a.PublicKey.ID) && stricks.ValidURL(a.PublicKey.Owner)
-	nonEmpty := a.PreferredUsername != "" && a.DisplayedName != "" && a.PublicKey.PublicKeyPEM != "" && a.Domain != ""
+	nonEmpty := a.PreferredUsername != "" && a.PublicKey.PublicKeyPEM != "" && a.Domain != ""
 	return urlsOK && nonEmpty
 }
 

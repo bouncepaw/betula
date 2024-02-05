@@ -92,6 +92,9 @@ func dereferenceActorID(actorID string) (*types.Actor, error) {
 	if !a.Valid() {
 		panic("actor invalid") // should not happen actually
 	}
+	if a.DisplayedName == "" {
+		a.DisplayedName = a.PreferredUsername
+	}
 	db.StoreValidActor(a)
 	return &a, nil
 }
