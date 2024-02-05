@@ -70,7 +70,7 @@ where ID = ?`,
 	mustExec(`delete from RemoteTags where BookmarkID = ?`, b.ID)
 
 	for _, tag := range b.Tags {
-		mustExec(`insert or replace into RemoteTags (Name, BookmarkID) values (?, ?)`, tag, b.ID)
+		mustExec(`insert or replace into RemoteTags (Name, BookmarkID) values (?, ?)`, tag.Name, b.ID)
 	}
 }
 
