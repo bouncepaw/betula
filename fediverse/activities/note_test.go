@@ -23,6 +23,7 @@ func TestGuessCreateNote(t *testing.T) {
 	report, err := Guess(raw)
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	report, ok := report.(CreateNoteReport)
 	if !ok {

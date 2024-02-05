@@ -166,9 +166,8 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 
 	bookmark := types.RemoteBookmark{
 		// Invariants
-		RepostOf:  sql.NullString{},
-		UpdatedAt: sql.NullString{},
-		Activity:  activity["original activity"].([]byte),
+		RepostOf: sql.NullString{},
+		Activity: activity["original activity"].([]byte),
 
 		// Required fields
 		ID:              getIDSomehow(activity, "object"),
@@ -178,16 +177,28 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 		PublishedAt:     getString(object, "published"),
 
 		// Optional fields
+		UpdatedAt:             sql.NullString{},
 		DescriptionMycomarkup: sql.NullString{},
 		Tags:                  nil,
 	}
 
+	if updated := getString(object, "updated"); updated != "" {
+		bookmark.UpdatedAt = sql.NullString{
+			String: updated,
+			Valid:  true,
+		}
+	}
+
 	// Grabbing URL
-	attachments, ok := object["attachment"].([]dict)
+	attachments, ok := object["attachment"].([]any)
 	if !ok {
 		return nil, ErrEmptyField
 	}
-	for _, amnt := range attachments {
+	for _, rawamnt := range attachments {
+		amnt, ok := rawamnt.(dict)
+		if !ok {
+			continue
+		}
 		if getString(amnt, "type") == "Link" {
 			if href := getString(amnt, "href"); stricks.ValidURL(href) {
 				bookmark.URL = href
