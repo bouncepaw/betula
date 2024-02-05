@@ -2,8 +2,7 @@
 	"@context": [
 		"https://www.w3.org/ns/activitystreams",
 		{
-			"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
-			"citeOf": "https://betula.mycorrhiza.wiki/ns#citeOf"
+			"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag"
 		}
 	],
 	"actor": "https://links.bouncepaw.com/@bouncepaw",
@@ -18,7 +17,7 @@
 			"mediaType": "text/mycomarkup"
 		},
 		"name": " 403 Forbidden\n",
-		"citeOf": "https://www.datagubbe.se/adosmyst/",
+		"url": "https://www.datagubbe.se/adosmyst/",
 		"published": "2024-01-31T19:47:02Z",
 		"tag": [
 			{
