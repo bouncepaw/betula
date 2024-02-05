@@ -21,6 +21,16 @@ offset (? * (? - 1))
 		bookmarks = append(bookmarks, b)
 	}
 
+	// huh up to 64 additional queries??
+	for i, _ := range bookmarks {
+		rows = mustQuery(`select Name from RemoteTags where BookmarkID = ?`, bookmarks[i].ID)
+		for rows.Next() {
+			var tag types.Tag
+			mustScan(rows, &tag.Name)
+			bookmarks[i].Tags = append(bookmarks[i].Tags, tag)
+		}
+	}
+
 	return
 }
 

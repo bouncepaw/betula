@@ -1,24 +1,3 @@
-{{define "remote bookmark card"}}
-    <article class="h-entry">
-        <div class="card-line">
-            <a href="/{{.AuthorAcct}}">{{.AuthorDisplayedName}}</a> {{if .RepostOf}}<a href="{{.ID}}" class="u-repost-of">reposted</a>{{else}}<a href="{{.ID}}">posted</a>{{end}}
-            <button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
-        </div>
-
-        <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
-        <a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
-
-        {{if .Description}}
-            <div class="myco e-content">
-                {{.Description}}
-            </div>
-        {{end}}
-        <div class="post-tags">
-            {{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
-        </div>
-    </article>
-{{end}}
-
 {{define "title"}}Timeline{{end}}
 {{define "body"}}
     <main>
@@ -35,7 +14,26 @@
         </article>
         {{range .BookmarkGroupsInPage}}
             <h3 class="date-heading">{{.Date}}</h3>
-            {{range .Posts}}{{template "remote bookmark card" .}}{{end}}
+            {{range .Posts}}
+                <article class="h-entry">
+                    <div class="card-line">
+                        <a href="/{{.AuthorAcct}}">{{.AuthorDisplayedName}}</a> {{if .RepostOf.Valid}}<a href="{{.ID}}" class="u-repost-of">reposted</a>{{else}}<a href="{{.ID}}">posted</a>{{end}}
+                        <button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
+                    </div>
+
+                    <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
+                    <a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
+
+                    {{if .Description}}
+                        <div class="myco e-content">
+                            {{.Description}}
+                        </div>
+                    {{end}}
+                    <div class="post-tags">
+                        {{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
+                    </div>
+                </article>
+            {{end}}
         {{else}}
             {{if ne .TotalBookmarks 0}}
                 <article>Page not found. Choose a page from the paginator below.</article>

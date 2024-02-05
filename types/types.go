@@ -199,6 +199,7 @@ type RepostInfo struct {
 
 // TimeLayout is the time layout used across Betula.
 const TimeLayout = "2006-01-02 15:04:05"
+const DateLayout = "2006-01-02"
 
 // CleanerLinkParts returns the link a with https:// or http:// prefix and the / suffix,
 // percent-encoding reversed and Punycode decoded.

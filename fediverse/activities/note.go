@@ -197,7 +197,7 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 		mycomarkup := getString(source, "content")
 		bookmark.DescriptionMycomarkup = sql.NullString{
 			String: mycomarkup,
-			Valid:  mycomarkup == "",
+			Valid:  true,
 		}
 	}
 
