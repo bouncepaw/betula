@@ -65,7 +65,7 @@ func UpdateRemoteBookmark(b types.RemoteBookmark) {
 update RemoteBookmarks
 set Title = ?, DescriptionHTML = ?, DescriptionMycomarkup = ?, UpdatedAt = ?, Activity = ?, URL = ?
 where ID = ?`,
-		b.Title, b.DescriptionHTML, b.DescriptionMycomarkup, b.UpdatedAt, b.Activity, b.ID, b.URL)
+		b.Title, b.DescriptionHTML, b.DescriptionMycomarkup, b.UpdatedAt, b.Activity, b.URL, b.ID)
 
 	mustExec(`delete from RemoteTags where BookmarkID = ?`, b.ID)
 
