@@ -32,12 +32,12 @@ func DeleteNote(postId int) ([]byte, error) {
 	return json.Marshal(activity)
 }
 
-func makeNote(post types.Bookmark) (dict, error) {
-	if post.ID == 0 {
+func makeNote(bookmark types.Bookmark) (dict, error) {
+	if bookmark.ID == 0 {
 		return nil, errors.New("an empty ID was passed")
 	}
 	// Generating the timestamp
-	t, err := time.Parse(types.TimeLayout, post.CreationTime)
+	t, err := time.Parse(types.TimeLayout, bookmark.CreationTime)
 	if err != nil {
 		return nil, err
 	}
@@ -47,11 +47,11 @@ func makeNote(post types.Bookmark) (dict, error) {
 	var content strings.Builder
 	var tags []any
 
-	content.WriteString(fmt.Sprintf(`<h3><a href="%s"'>%s</a></h3>`, html.EscapeString(post.URL), html.EscapeString(post.Title)))
-	content.WriteString(string(myco.MarkupToHTML(post.Description)))
-	if len(post.Tags) > 0 {
+	content.WriteString(fmt.Sprintf(`<h3><a href="%s"'>%s</a></h3>`, html.EscapeString(bookmark.URL), html.EscapeString(bookmark.Title)))
+	content.WriteString(string(myco.MarkupToHTML(bookmark.Description)))
+	if len(bookmark.Tags) > 0 {
 		content.WriteString("<p>")
-		for i, tag := range post.Tags {
+		for i, tag := range bookmark.Tags {
 			if tag.Name == "" {
 				continue
 			}
@@ -87,13 +87,12 @@ func makeNote(post types.Bookmark) (dict, error) {
 			atContext,
 			dict{
 				"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
-				"citeOf":  citeOfExtension,
 			},
 		},
 		"actor": betulaActor,
 		"object": dict{
 			"type":         "Note",
-			"id":           fmt.Sprintf("%s/%d", settings.SiteURL(), post.ID),
+			"id":           fmt.Sprintf("%s/%d", settings.SiteURL(), bookmark.ID),
 			"actor":        betulaActor,
 			"attributedTo": betulaActor,
 			"to": []string{
@@ -103,11 +102,16 @@ func makeNote(post types.Bookmark) (dict, error) {
 			"content": strings.ReplaceAll(
 				strings.ReplaceAll(content.String(), "\t", ""),
 				">\n", ">"),
-			"name":   post.Title,
-			"citeOf": post.URL,
+			"name": bookmark.Title,
+			"attachment": []dict{
+				{ // Lemmy-style.
+					"href": bookmark.URL,
+					"type": "Link",
+				},
+			},
 			"source": map[string]string{
 				// Misskey-style. They put text/x.misskeymarkdown though.
-				"content":   post.Description,
+				"content":   bookmark.Description,
 				"mediaType": "text/mycomarkup",
 			},
 			"published": published,
@@ -170,7 +174,6 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 		ID:              getIDSomehow(activity, "object"),
 		ActorID:         getIDSomehow(activity, "actor"),
 		Title:           getString(object, "name"),
-		URL:             getString(object, "citeOf"),
 		DescriptionHTML: template.HTML(getString(object, "content")),
 		PublishedAt:     getString(object, "published"),
 
@@ -179,6 +182,21 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 		Tags:                  nil,
 	}
 
+	// Grabbing URL
+	attachments, ok := object["attachment"].([]dict)
+	if !ok {
+		return nil, ErrEmptyField
+	}
+	for _, amnt := range attachments {
+		if getString(amnt, "type") == "Link" {
+			if href := getString(amnt, "href"); stricks.ValidURL(href) {
+				bookmark.URL = href
+				break
+			}
+		}
+	}
+
+	// Lie detector
 	if !stricks.SameHost(bookmark.ActorID, bookmark.ID) {
 		return nil, ErrHostMismatch
 	}

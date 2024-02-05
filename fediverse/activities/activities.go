@@ -43,7 +43,6 @@ func getString(activity dict, field string) string {
 }
 
 const atContext = "https://www.w3.org/ns/activitystreams"
-const citeOfExtension = "https://betula.mycorrhiza.wiki/ns#citeOf"
 const publicAudience = "https://www.w3.org/ns/activitystreams#Public"
 
 type dict = map[string]any
