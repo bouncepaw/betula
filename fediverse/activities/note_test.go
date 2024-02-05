@@ -25,8 +25,12 @@ func TestGuessCreateNote(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	report, ok := report.(CreateNoteReport)
+	r, ok := report.(CreateNoteReport)
 	if !ok {
 		t.Error("wrong type")
+	}
+
+	if len(r.Bookmark.Tags) != 1 {
+		t.Error("tag len mismatch")
 	}
 }

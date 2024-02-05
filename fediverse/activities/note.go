@@ -231,8 +231,12 @@ func guessNote(activity dict) (note *types.RemoteBookmark, err error) {
 	}
 
 	// Collecting tags
-	tags, ok := object["tag"].([]dict)
-	for _, tag := range tags {
+	tags, ok := object["tag"].([]any)
+	for _, anytag := range tags {
+		tag, ok := anytag.(dict)
+		if !ok {
+			continue
+		}
 		typ := getString(tag, "type")
 		if typ != "Hashtag" {
 			continue
