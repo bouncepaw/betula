@@ -37,6 +37,8 @@
         {{else}}
             {{if ne .TotalBookmarks 0}}
                 <article>Page not found. Choose a page from the paginator below.</article>
+            {{else}}
+                <article>Nothing yet.</article>
             {{end}}
         {{end}}
         {{template "paginator" .}}
