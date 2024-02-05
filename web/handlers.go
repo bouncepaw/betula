@@ -94,6 +94,7 @@ func init() {
 type dataTimeline struct {
 	*dataCommon
 
+	Following            uint
 	TotalBookmarks       uint
 	BookmarkGroupsInPage []types.RemoteBookmarkGroup
 }
@@ -114,6 +115,7 @@ func getTimeline(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateTimeline, dataTimeline{
 		dataCommon:           common,
 		TotalBookmarks:       total,
+		Following:            db.CountFollowing(),
 		BookmarkGroupsInPage: types.GroupRemoteBookmarksByDate(fediverse.RenderRemoteBookmarks(bookmarks)),
 	})
 }

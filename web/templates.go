@@ -78,7 +78,7 @@ var templateMyProfile = templateFrom(funcMapForTime, "my-profile")
 var templateRemoteProfile = templateFrom(nil, "remote-profile")
 var templateFollowing = templateFrom(nil, "following")
 var templateFollowers = templateFrom(nil, "followers")
-var templateTimeline = templateFrom(funcMapForPosts, "timeline")
+var templateTimeline = templateFrom(funcMapForPosts, "paginator-fragment", "timeline")
 
 var funcMapForPosts = template.FuncMap{
 	"randomGlobe": func() string {
