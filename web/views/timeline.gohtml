@@ -19,7 +19,7 @@
                     <div class="card-line">
                         <a href="/{{.AuthorAcct}}">{{.AuthorDisplayedName}}</a> {{if .RepostOf.Valid}}<a href="{{.ID}}" class="u-repost-of">reposted</a>{{else}}<a href="{{.ID}}">posted</a>{{end}}
                         <button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
-                        <a href="/repost?url={{.ID}}" class="float-right">Repost</a>
+                        <a href="/repost?url={{.ID}}" class="float-right" target="_blank">Repost</a>
                     </div>
 
                     <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
