@@ -7,6 +7,8 @@ import (
 	"errors"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/stricks"
+	"git.sr.ht/~bouncepaw/betula/types"
+	"time"
 )
 
 func getIDSomehow(activity Dict, field string) string {
@@ -30,6 +32,15 @@ func getIDSomehow(activity Dict, field string) string {
 		}
 	}
 	return ""
+}
+
+func getTime(object Dict, field string) string {
+	rfc3339 := getString(object, field)
+	t, err := time.Parse(time.RFC3339, rfc3339)
+	if err != nil {
+		return ""
+	}
+	return t.Format(types.TimeLayout)
 }
 
 func getString(activity Dict, field string) string {
