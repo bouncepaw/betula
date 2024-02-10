@@ -193,7 +193,14 @@ func guessNote(activity Dict) (note *types.RemoteBookmark, err error) {
 		ActorID:         getIDSomehow(activity, "actor"),
 		Title:           getString(object, "name"),
 		DescriptionHTML: template.HTML(getString(object, "content")),
-		PublishedAt:     getString(object, "published"),
+		PublishedAt: (func() string {
+			rfc3339 := getString(object, "published")
+			t, err := time.Parse(time.RFC3339, rfc3339)
+			if err != nil {
+				return ""
+			}
+			return t.Format(types.TimeLayout)
+		})(),
 
 		// Optional fields
 		UpdatedAt:             sql.NullString{},

@@ -68,7 +68,7 @@ func RenderRemoteBookmarks(raws []types.RemoteBookmark) (renders []types.Rendere
 			Tags:                raw.Tags,
 		}
 
-		t, err := time.Parse(time.RFC3339, raw.PublishedAt)
+		t, err := time.Parse(types.TimeLayout, raw.PublishedAt)
 		if err != nil {
 			log.Printf("When rendering remote bookmarks: %s\n", err)
 			continue // whatever
