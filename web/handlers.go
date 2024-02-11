@@ -532,7 +532,7 @@ type dataRepost struct {
 }
 
 func handlerRepost(w http.ResponseWriter, rq *http.Request) {
-	repost := dataRepost{
+	formData := dataRepost{
 		dataCommon: emptyCommon(),
 		URL:        rq.FormValue("url"),
 		Visibility: types.VisibilityFromString(rq.FormValue("visibility")),
@@ -540,56 +540,58 @@ func handlerRepost(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if rq.Method == http.MethodGet {
-		templateExec(w, rq, templateRepost, repost)
+		templateExec(w, rq, templateRepost, formData)
 		return
 	}
 
-	goto good
-
-catchTheFire:
-	// All errors end up here.
+	// Input validation
+	if formData.URL == "" {
+		formData.ErrorEmptyURL = true
+	} else if !stricks.ValidURL(formData.URL) {
+		formData.ErrorInvalidURL = true
+	} else {
+		goto fetchRemoteBookmark
+	}
 	w.WriteHeader(http.StatusBadRequest)
-	templateExec(w, rq, templateRepost, repost)
+	templateExec(w, rq, templateRepost, formData)
 	return
 
-good:
-	if repost.URL == "" {
-		repost.ErrorEmptyURL = true
-		goto catchTheFire
-	} else if !stricks.ValidURL(repost.URL) {
-		repost.ErrorInvalidURL = true
-		goto catchTheFire
-	}
-
-	foundData, err := readpage.FindDataForMyRepost(repost.URL)
+fetchRemoteBookmark:
+	foundData, err := readpage.FindDataForMyRepost(formData.URL)
 
 	if errors.Is(err, readpage.ErrTimeout) {
-		repost.ErrorTimeout = true
-		goto catchTheFire
+		formData.ErrorTimeout = true
 	} else if err != nil {
-		repost.Err = err
-		goto catchTheFire
+		formData.Err = err
 	} else if foundData.IsHFeed || foundData.BookmarkOf == "" || foundData.PostName == "" {
-		repost.ErrorImpossible = true
-		goto catchTheFire
+		formData.ErrorImpossible = true
+	} else {
+		goto proceed
 	}
+	w.WriteHeader(http.StatusBadRequest)
+	templateExec(w, rq, templateRepost, formData)
+	return
 
-	post := types.Bookmark{
+proceed:
+
+	bookmark := types.Bookmark{
 		URL:         foundData.BookmarkOf,
 		Title:       foundData.PostName,
 		Description: foundData.Mycomarkup,
-		Visibility:  repost.Visibility,
-		RepostOf:    &repost.URL,
+		Visibility:  formData.Visibility,
+		RepostOf:    &formData.URL,
 	}
 
-	if repost.CopyTags {
-		post.Tags = types.TagsFromStringSlice(foundData.Tags)
+	if formData.CopyTags {
+		bookmark.Tags = types.TagsFromStringSlice(foundData.Tags)
 	}
 
-	id := db.AddPost(post)
+	id := db.InsertBookmark(bookmark)
 
-	go jobs.ScheduleDatum(jobtype.SendAnnounce, id)
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
+	if settings.FederationEnabled() {
+		jobs.ScheduleDatum(jobtype.SendAnnounce, id)
+	}
 }
 
 func postInbox(w http.ResponseWriter, rq *http.Request) {
@@ -1498,7 +1500,7 @@ func handlerSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	id := db.AddPost(post)
+	id := db.InsertBookmark(post)
 	post.ID = int(id)
 
 	another := rq.FormValue("another")

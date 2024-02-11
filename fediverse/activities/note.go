@@ -174,26 +174,20 @@ type DeleteNoteReport struct {
 	BookmarkID string
 }
 
-func guessNote(activity Dict) (note *types.RemoteBookmark, err error) {
-	object, ok := activity["object"].(Dict)
-	if !ok {
-		return nil, ErrNoObject
-	}
+func NoteFromDict(object Dict) (note *types.RemoteBookmark, err error) {
 	if getString(object, "type") != "Note" {
 		return nil, ErrNotNote
 	}
-
 	bookmark := types.RemoteBookmark{
 		// Invariants
 		RepostOf: sql.NullString{},
-		Activity: activity["original activity"].([]byte),
 
 		// Required fields
-		ID:              getIDSomehow(activity, "object"),
-		ActorID:         getIDSomehow(activity, "actor"),
+		ID:              getString(object, "id"),
+		ActorID:         getString(object, "attributedTo"),
 		Title:           getString(object, "name"),
 		DescriptionHTML: template.HTML(getString(object, "content")),
-		PublishedAt:     getTime(activity, "published"),
+		PublishedAt:     getTime(object, "published"),
 
 		// Optional fields
 		UpdatedAt:             sql.NullString{},
@@ -271,8 +265,23 @@ func guessNote(activity Dict) (note *types.RemoteBookmark, err error) {
 	return &bookmark, nil
 }
 
+func guessNoteObject(activity Dict) (note *types.RemoteBookmark, err error) {
+	object, ok := activity["object"].(Dict)
+	if !ok {
+		return nil, ErrNoObject
+	}
+
+	bookmark, err := NoteFromDict(object)
+	if err != nil {
+		return nil, err
+	}
+	bookmark.Activity = activity["original activity"].([]byte)
+
+	return bookmark, nil
+}
+
 func guessCreateNote(activity Dict) (report any, err error) {
-	bookmark, err := guessNote(activity)
+	bookmark, err := guessNoteObject(activity)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +291,7 @@ func guessCreateNote(activity Dict) (report any, err error) {
 }
 
 func guessUpdateNote(activity Dict) (report any, err error) {
-	bookmark, err := guessNote(activity)
+	bookmark, err := guessNoteObject(activity)
 	if err != nil {
 		return nil, err
 	}

@@ -30,7 +30,7 @@ func TestAddPost(t *testing.T) {
 		Description: "",
 		Visibility:  types.Public,
 	}
-	AddPost(post)
+	InsertBookmark(post)
 	if BookmarkCount(true) != 3 {
 		t.Errorf("Faulty AddPost")
 	}

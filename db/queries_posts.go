@@ -123,8 +123,8 @@ where ID = ?;
 	mustExec(q, id)
 }
 
-// AddPost adds a new original post to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
-func AddPost(post types.Bookmark) int64 {
+// InsertBookmark adds a new local bookmark to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
+func InsertBookmark(post types.Bookmark) int64 {
 	const q = `
 insert into Posts (URL, Title, Description, Visibility, RepostOf)
 values (?, ?, ?, ?, ?);
