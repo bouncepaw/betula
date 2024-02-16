@@ -557,36 +557,25 @@ func handlerRepost(w http.ResponseWriter, rq *http.Request) {
 	return
 
 fetchRemoteBookmark:
-	foundData, err := readpage.FindDataForMyRepost(formData.URL)
-
-	if errors.Is(err, readpage.ErrTimeout) {
+	bookmark, err := fediverse.FetchBookmark(formData.URL)
+	if errors.Is(err, fediverse.ErrNotBookmark) {
+		formData.ErrorImpossible = true
+	} else if errors.Is(err, readpage.ErrTimeout) {
 		formData.ErrorTimeout = true
 	} else if err != nil {
 		formData.Err = err
-	} else if foundData.IsHFeed || foundData.BookmarkOf == "" || foundData.PostName == "" {
-		formData.ErrorImpossible = true
 	} else {
-		goto proceed
+		goto reposting
 	}
 	w.WriteHeader(http.StatusBadRequest)
 	templateExec(w, rq, templateRepost, formData)
-	return
 
-proceed:
-
-	bookmark := types.Bookmark{
-		URL:         foundData.BookmarkOf,
-		Title:       foundData.PostName,
-		Description: foundData.Mycomarkup,
-		Visibility:  formData.Visibility,
-		RepostOf:    &formData.URL,
+reposting:
+	if !formData.CopyTags {
+		bookmark.Tags = nil // 🐸
 	}
 
-	if formData.CopyTags {
-		bookmark.Tags = types.TagsFromStringSlice(foundData.Tags)
-	}
-
-	id := db.InsertBookmark(bookmark)
+	id := db.InsertBookmark(*bookmark)
 
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 	if settings.FederationEnabled() {

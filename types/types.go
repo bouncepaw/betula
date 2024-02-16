@@ -2,6 +2,7 @@
 package types
 
 import (
+	"database/sql"
 	"fmt"
 	"golang.org/x/net/idna"
 	"html/template"
@@ -55,6 +56,8 @@ type Bookmark struct {
 	Visibility Visibility
 	// RepostOf is URL of the post reposted. Nil if this is an original post.
 	RepostOf *string
+	// OriginalAuthor is ID of the author of the original bookmark. Might be invalid even if RepostOf is not nil
+	OriginalAuthor sql.NullString
 }
 
 type LocalBookmarkGroup struct {

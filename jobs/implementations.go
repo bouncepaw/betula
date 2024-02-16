@@ -157,6 +157,7 @@ func notifyJob(job jobtype.Job) {
 		return
 	}
 
+	// TODO: this will have to change
 	err = sendActivity(*post.RepostOf, activity)
 	if err != nil {
 		log.Println(err)

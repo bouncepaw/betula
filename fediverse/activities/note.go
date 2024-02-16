@@ -174,7 +174,7 @@ type DeleteNoteReport struct {
 	BookmarkID string
 }
 
-func NoteFromDict(object Dict) (note *types.RemoteBookmark, err error) {
+func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error) {
 	if getString(object, "type") != "Note" {
 		return nil, ErrNotNote
 	}
@@ -271,7 +271,7 @@ func guessNoteObject(activity Dict) (note *types.RemoteBookmark, err error) {
 		return nil, ErrNoObject
 	}
 
-	bookmark, err := NoteFromDict(object)
+	bookmark, err := RemoteBookmarkFromDict(object)
 	if err != nil {
 		return nil, err
 	}

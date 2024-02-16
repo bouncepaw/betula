@@ -17,7 +17,7 @@ var (
 	ErrNotBookmark = errors.New("fediverse: not a bookmark")
 )
 
-func fetchFedi(uri string) (*types.RemoteBookmark, error) {
+func fetchFedi(uri string) (*types.Bookmark, error) {
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
 		return nil, err
@@ -33,11 +33,32 @@ func fetchFedi(uri string) (*types.RemoteBookmark, error) {
 		return nil, err
 	}
 
-	return activities.NoteFromDict(object)
+	bookmark, err := activities.RemoteBookmarkFromDict(object)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.Bookmark{
+		Tags:        bookmark.Tags,
+		URL:         bookmark.URL,
+		Title:       bookmark.Title,
+		Description: bookmark.DescriptionMycomarkup.String,
+		Visibility:  types.Public,
+		RepostOf: (func() *string {
+			if !bookmark.RepostOf.Valid {
+				return nil
+			}
+			return &bookmark.RepostOf.String
+		})(),
+		OriginalAuthor: sql.NullString{
+			String: bookmark.ActorID,
+			Valid:  true,
+		},
+	}, nil
 }
 
 // FetchBookmark fetches a bookmark on the given address somehow. First, it tries to get a Note ActivityPub object formatted with Betula rules. If it fails to do so, it resorts to the readpage method.
-func FetchBookmark(uri string) (*types.RemoteBookmark, error) {
+func FetchBookmark(uri string) (*types.Bookmark, error) {
 	log.Printf("Fetching remote bookmark from %s\n", uri)
 	bookmark, err := fetchFedi(uri)
 	if err != nil {
@@ -55,20 +76,19 @@ func FetchBookmark(uri string) (*types.RemoteBookmark, error) {
 		return nil, ErrNotBookmark
 	}
 
-	return &types.RemoteBookmark{
-		ID:              uri,
-		RepostOf:        sql.NullString{},
-		ActorID:         "", // How to find...
-		Title:           foundData.PostName,
-		URL:             foundData.BookmarkOf,
-		DescriptionHTML: "", // We don't fetch that...
-		DescriptionMycomarkup: sql.NullString{
-			String: foundData.Mycomarkup,
-			Valid:  foundData.Mycomarkup != "",
-		},
-		PublishedAt: "",               // We don't fetch that!?
-		UpdatedAt:   sql.NullString{}, // And that too...
-		Activity:    nil,              // of course it's nil
+	log.Printf("Fetched a remote bookmark from %s with readpage\n", uri)
+	return &types.Bookmark{
 		Tags:        types.TagsFromStringSlice(foundData.Tags),
+		URL:         foundData.BookmarkOf,
+		Title:       foundData.PostName,
+		Description: foundData.Mycomarkup,
+		Visibility:  types.Public,
+		RepostOf: (func() *string {
+			if foundData.RepostOf == "" {
+				return nil
+			}
+			return &foundData.RepostOf
+		})(),
+		OriginalAuthor: sql.NullString{}, // actors are found only in activities
 	}, nil
 }
