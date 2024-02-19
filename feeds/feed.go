@@ -7,11 +7,13 @@ import (
 	"git.sr.ht/~bouncepaw/betula/myco"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
-	"github.com/gorilla/feeds"
+	"humungus.tedunangst.com/r/webs/rss"
 	"log"
 	"strings"
 	"time"
 )
+
+const rssTimeFormat = time.RFC822
 
 func fiveLastDays(now time.Time) (days []time.Time, dayStamps []string, dayPosts [][]types.Bookmark) {
 	days = make([]time.Time, 5)
@@ -29,20 +31,18 @@ func fiveLastDays(now time.Time) (days []time.Time, dayStamps []string, dayPosts
 	return days, dayStamps, dayPosts
 }
 
-func Posts() *feeds.Feed {
-	author := &feeds.Author{
-		Name: settings.AdminUsername(),
-	}
+func Posts() *rss.Feed {
+	author := settings.AdminUsername()
+
 	now := time.Now().AddDate(0, 0, 1)
 	_, _, dayPosts := fiveLastDays(now)
 
-	feed := &feeds.Feed{
+	feed := rss.Feed{
 		Title:       fmt.Sprintf("%s posts", settings.SiteName()),
-		Link:        &feeds.Link{Href: settings.SiteURL()},
+		Link:        settings.SiteURL(),
 		Description: fmt.Sprintf("All public posts are sent to this feed."),
-		Author:      author,
-		Created:     now,
-		Items:       []*feeds.Item{},
+		PubDate:     now.Format(rssTimeFormat),
+		Items:       []*rss.Item{},
 	}
 
 	for _, posts := range dayPosts {
@@ -54,55 +54,53 @@ func Posts() *feeds.Feed {
 				continue
 			}
 
-			var entry = &feeds.Item{
-				Title: post.Title,
-				Link: &feeds.Link{
-					Href: post.URL,
+			var entry = &rss.Item{
+				Title:  post.Title,
+				Link:   post.URL,
+				Author: author,
+				Description: rss.CData{
+					descriptionForOnePost(post),
 				},
-				Author:      author,
-				Description: descriptionForOnePost(post),
-				Created:     creationTime,
+				PubDate: creationTime.Format(rssTimeFormat),
 			}
 			feed.Items = append(feed.Items, entry)
 		}
 	}
 
-	return feed
+	return &feed
 }
 
-func Digest() *feeds.Feed {
-	author := &feeds.Author{
-		Name: settings.AdminUsername(),
-	}
+func Digest() *rss.Feed {
+	author := settings.AdminUsername()
+
 	now := time.Now()
 	days, dayStamps, dayPosts := fiveLastDays(now)
 
-	feed := &feeds.Feed{
+	feed := rss.Feed{
 		Title:       fmt.Sprintf("%s daily digest", settings.SiteName()),
-		Link:        &feeds.Link{Href: settings.SiteURL()},
+		Link:        settings.SiteURL(),
 		Description: fmt.Sprintf("Every day, a list of all links posted that day is sent."),
-		Author:      author,
-		Created:     now,
-		Items:       []*feeds.Item{},
+		PubDate:     now.Format(rssTimeFormat),
+		Items:       []*rss.Item{},
 	}
 
 	for i, posts := range dayPosts {
 		if posts == nil {
 			continue
 		}
-		var entry = &feeds.Item{
-			Title: fmt.Sprintf("%s %s", settings.SiteName(), dayStamps[i]),
-			Link: &feeds.Link{
-				Href: fmt.Sprintf("%s/day/%s", settings.SiteURL(), dayStamps[i]),
+		var entry = &rss.Item{
+			Title:  fmt.Sprintf("%s %s", settings.SiteName(), dayStamps[i]),
+			Link:   fmt.Sprintf("%s/day/%s", settings.SiteURL(), dayStamps[i]),
+			Author: author,
+			Description: rss.CData{
+				descriptionFromPosts(posts, dayStamps[i]),
 			},
-			Author:      author,
-			Description: descriptionFromPosts(posts, dayStamps[i]),
-			Created:     days[i],
+			PubDate: days[i].Format(rssTimeFormat),
 		}
 		feed.Items = append(feed.Items, entry)
 	}
 
-	return feed
+	return &feed
 }
 
 const descriptionTemplate = `

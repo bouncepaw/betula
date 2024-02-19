@@ -13,6 +13,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/readpage"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"html/template"
+	"humungus.tedunangst.com/r/webs/rss"
 	"io"
 	"log"
 	"net/http"
@@ -852,30 +853,20 @@ func getText(w http.ResponseWriter, rq *http.Request) {
 	_, _ = io.WriteString(w, post.Description)
 }
 
-func getPostsRss(w http.ResponseWriter, _ *http.Request) {
-	feed := feeds.Posts()
-	rss, err := feed.ToRss()
+func writeFeed(fd *rss.Feed, w http.ResponseWriter) {
+	err := fd.Write(w)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = io.WriteString(w, err.Error())
-		return
 	}
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/rss+xml")
-	_, _ = io.WriteString(w, rss)
+}
+
+func getPostsRss(w http.ResponseWriter, _ *http.Request) {
+	writeFeed(feeds.Posts(), w)
 }
 
 func getDigestRss(w http.ResponseWriter, _ *http.Request) {
-	feed := feeds.Digest()
-	rss, err := feed.ToRss()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = io.WriteString(w, err.Error()) // Ain't that failing on my watch.
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/rss+xml")
-	_, _ = io.WriteString(w, rss)
+	writeFeed(feeds.Digest(), w)
 }
 
 var dayStampRegex = regexp.MustCompile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
