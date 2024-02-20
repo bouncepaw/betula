@@ -175,7 +175,7 @@ type DeleteNoteReport struct {
 }
 
 func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error) {
-	if getString(object, "type") != "Note" {
+	if typ := getString(object, "type"); typ != "Note" && typ != "Page" && typ != "Article" {
 		return nil, ErrNotNote
 	}
 	bookmark := types.RemoteBookmark{
