@@ -18,6 +18,6 @@ test: clean betula
 	go test ./types
 	go test ./feeds
 	go test ./readpage
-	go test ./activities
+	go test ./fediverse/activities
 	sh test-web.sh
 	killall betula

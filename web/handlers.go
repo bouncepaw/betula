@@ -569,6 +569,7 @@ fetchRemoteBookmark:
 	}
 	w.WriteHeader(http.StatusBadRequest)
 	templateExec(w, rq, templateRepost, formData)
+	return
 
 reposting:
 	if !formData.CopyTags {

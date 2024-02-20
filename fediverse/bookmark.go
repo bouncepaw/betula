@@ -37,6 +37,7 @@ func fetchFedi(uri string) (*types.Bookmark, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("tags %q\n%q\n", bookmark.Tags, object)
 
 	return &types.Bookmark{
 		Tags:        bookmark.Tags,
@@ -44,12 +45,7 @@ func fetchFedi(uri string) (*types.Bookmark, error) {
 		Title:       bookmark.Title,
 		Description: bookmark.DescriptionMycomarkup.String,
 		Visibility:  types.Public,
-		RepostOf: (func() *string {
-			if !bookmark.RepostOf.Valid {
-				return nil
-			}
-			return &bookmark.RepostOf.String
-		})(),
+		RepostOf:    &uri,
 		OriginalAuthor: sql.NullString{
 			String: bookmark.ActorID,
 			Valid:  true,
@@ -78,17 +74,12 @@ func FetchBookmark(uri string) (*types.Bookmark, error) {
 
 	log.Printf("Fetched a remote bookmark from %s with readpage\n", uri)
 	return &types.Bookmark{
-		Tags:        types.TagsFromStringSlice(foundData.Tags),
-		URL:         foundData.BookmarkOf,
-		Title:       foundData.PostName,
-		Description: foundData.Mycomarkup,
-		Visibility:  types.Public,
-		RepostOf: (func() *string {
-			if foundData.RepostOf == "" {
-				return nil
-			}
-			return &foundData.RepostOf
-		})(),
+		Tags:           types.TagsFromStringSlice(foundData.Tags),
+		URL:            foundData.BookmarkOf,
+		Title:          foundData.PostName,
+		Description:    foundData.Mycomarkup,
+		Visibility:     types.Public,
+		RepostOf:       &uri,             // TODO: transitive reposts are a thing...
 		OriginalAuthor: sql.NullString{}, // actors are found only in activities
 	}, nil
 }

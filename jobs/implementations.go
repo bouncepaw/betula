@@ -58,9 +58,14 @@ func broadcastToFollowers(job jobtype.Job) {
 		return
 	}
 
+	followers := db.GetFollowers()
+	if len(followers) == 0 {
+		log.Println("Nobody to broadcast to :-(")
+		return
+	}
+
 	log.Printf("Broadcasting to followers: %s\n", job.Payload)
 
-	followers := db.GetFollowers()
 	succSends := len(followers)
 
 	// This loop might take some time (n = len(followers)) because we don't parallelize it.
