@@ -1,15 +1,16 @@
-// Package sign manages HTTP signatures and storing a pair of private and public keys. This package is a wrapper around Ted of the Honk's httpsig package, which is vendored in Betula.
+// Package signing manages HTTP signatures and managing a pair of private and public keys. This package is a wrapper around Ted of the Honk's httpsig package.
 package signing
 
 import (
 	"crypto/rand"
 	"crypto/rsa"
 	"database/sql"
-	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/fediverse/signing/httpsig"
-	"git.sr.ht/~bouncepaw/betula/settings"
 	"log"
 	"net/http"
+
+	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/settings"
+	"humungus.tedunangst.com/r/webs/httpsig"
 )
 
 // SignRequest signs the request.

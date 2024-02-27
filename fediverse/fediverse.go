@@ -2,14 +2,15 @@
 package fediverse
 
 import (
-	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/fediverse/signing/httpsig"
-	"git.sr.ht/~bouncepaw/betula/myco"
-	"git.sr.ht/~bouncepaw/betula/settings"
-	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
 	"net/http"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/myco"
+	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/types"
+	"humungus.tedunangst.com/r/webs/httpsig"
 )
 
 var client = http.Client{
