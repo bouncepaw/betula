@@ -7,7 +7,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-func Search(text string, includedTags []string, excludedTags []string, authorized bool, page uint) (posts []types.Bookmark, totalPosts uint) {
+func Search(text string, includedTags []string, excludedTags []string, repostsOnly, authorized bool, page uint) (posts []types.Bookmark, totalPosts uint) {
 	text = strings.ToLower(text)
 	sort.Strings(includedTags)
 	sort.Strings(excludedTags)
@@ -47,6 +47,11 @@ order by CreationTime desc
 
 		post.Tags = TagsForPost(post.ID)
 		if !tagsOK(post.Tags, includedTags, excludedTags) {
+			continue
+		}
+
+		isRepost := post.RepostOf != nil
+		if !isRepost && repostsOnly {
 			continue
 		}
 

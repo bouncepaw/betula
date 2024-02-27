@@ -6,17 +6,23 @@ import (
 	"regexp"
 )
 
-// TODO: Exclude more characters
-var excludeTagRe = regexp.MustCompile(`-#([^?!:#@<>*|'"&%{}\\\s]+)\s*`)
-var includeTagRe = regexp.MustCompile(`#([^?!:#@<>*|'"&%{}\\\s]+)\s*`)
+var (
+	// TODO: Exclude more characters
+	excludeTagRe = regexp.MustCompile(`-#([^?!:#@<>*|'"&%{}\\\s]+)\s*`)
+	includeTagRe = regexp.MustCompile(`#([^?!:#@<>*|'"&%{}\\\s]+)\s*`)
 
-// For searches For the given query.
+	// TODO: argument will be added in a future version
+	includeRepostRe = regexp.MustCompile(`\brepost:()\s*`)
+)
+
+// For searches for the given query.
 func For(query string, authorized bool, page uint) (postsInPage []types.Bookmark, totalPosts uint) {
 	// We extract excluded tags first.
 	query, excludedTags := extractWithRegex(query, excludeTagRe)
 	query, includedTags := extractWithRegex(query, includeTagRe)
+	query, includedRepostMarkers := extractWithRegex(query, includeRepostRe)
 
-	return db.Search(query, includedTags, excludedTags, authorized, page)
+	return db.Search(query, includedTags, excludedTags, len(includedRepostMarkers) != 0, authorized, page)
 }
 
 func extractWithRegex(query string, regex *regexp.Regexp) (string, []string) {

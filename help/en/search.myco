@@ -30,6 +30,14 @@ Notes:
 * The tag names are case-insensitive.
 * If you require and exclude the same tag, you get no results.
 
+== Look for reposts only
+Query: `repost:`
+
+Results: only reposts will be found.
+
+Notes:
+* You can not filter by original author yet, but it is planned later. That's what the colon is there for.
+
 == Combining
 You can combine all the syntaxes in one query.
 
