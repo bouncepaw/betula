@@ -82,6 +82,15 @@ func (a *auther) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	a.Handler.ServeHTTP(w, rq)
 }
 
+func extractPage(rq *http.Request) (currentPage uint) {
+	if page, err := strconv.Atoi(rq.FormValue("page")); err != nil || page == 0 {
+		currentPage = 1
+	} else {
+		currentPage = uint(page)
+	}
+	return
+}
+
 func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, bool) {
 	id, ok := extractBookmarkID(w, rq)
 	if !ok {

@@ -102,16 +102,11 @@ type dataTimeline struct {
 
 func getTimeline(w http.ResponseWriter, rq *http.Request) {
 	log.Println("You viewed the Timeline")
-	var currentPage uint
-	if page, err := strconv.Atoi(rq.FormValue("page")); err != nil || page == 0 {
-		currentPage = 1
-	} else {
-		currentPage = uint(page)
-	}
-
-	bookmarks, total := db.GetRemoteBookmarks(currentPage)
 
 	common := emptyCommon()
+
+	currentPage := extractPage(rq)
+	bookmarks, total := db.GetRemoteBookmarks(currentPage)
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, total)
 
 	templateExec(w, rq, templateTimeline, dataTimeline{
@@ -262,13 +257,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		}
 		actor.SubscriptionStatus = db.SubscriptionStatus(actor.ID)
 
-		var currentPage uint
-		if page, err := strconv.Atoi(rq.FormValue("page")); err != nil || page == 0 {
-			currentPage = 1
-		} else {
-			currentPage = uint(page)
-		}
-
+		currentPage := extractPage(rq)
 		bookmarks, total := db.GetRemoteBookmarksBy(actor.ID, currentPage)
 
 		common := emptyCommon()
@@ -823,14 +812,11 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	authed := auth.AuthorizedFromRequest(rq)
-	currentPage, err := strconv.Atoi(rq.FormValue("page"))
-	if err != nil || currentPage <= 0 {
-		currentPage = 1
-	}
-	posts, totalPosts := search.For(query, authed, uint(currentPage))
+	currentPage := extractPage(rq)
+	posts, totalPosts := search.For(query, authed, currentPage)
 
 	common := emptyCommon()
-	common.paginator = types.PaginatorFromURL(rq.URL, uint(currentPage), totalPosts)
+	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
 	common.searchQuery = query
 	log.Printf("Searching ‘%s’. Authorized: %v\n", query, authed)
 	templateExec(w, rq, templateSearch, dataSearch{
@@ -1133,17 +1119,14 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 		handlerTags(w, rq)
 		return
 	}
-	currentPage, err := strconv.Atoi(rq.FormValue("page"))
-	if err != nil || currentPage <= 0 {
-		currentPage = 1
-	}
+	currentPage := extractPage(rq)
 	authed := auth.AuthorizedFromRequest(rq)
 
-	posts, totalPosts := db.PostsWithTag(authed, tagName, uint(currentPage))
+	posts, totalPosts := db.PostsWithTag(authed, tagName, currentPage)
 
 	common := emptyCommon()
 	common.searchQuery = "#" + tagName
-	common.paginator = types.PaginatorFromURL(rq.URL, uint(currentPage), totalPosts)
+	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
 	templateExec(w, rq, templateTag, dataTag{
 		Tag: types.Tag{
 			Name:        tagName,
@@ -1611,13 +1594,8 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 	<link rel="alternate" type="application/rss+xml" title="Daily digest (recommended)" href="/digest-rss">
 	<link rel="alternate" type="application/rss+xml" title="Individual posts" href="/posts-rss">
 `
-	var currentPage uint
-	if page, err := strconv.Atoi(rq.FormValue("page")); err != nil || page == 0 {
-		currentPage = 1
-	} else {
-		currentPage = uint(page)
-	}
 
+	currentPage := extractPage(rq)
 	posts, totalPosts := db.Posts(authed, currentPage)
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
 
