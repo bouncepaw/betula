@@ -33,7 +33,8 @@ func CountRepostsOf(id int) int {
 func SaveRepost(postId int, repost types.RepostInfo) {
 	const q = `
 insert into KnownReposts (RepostURL, PostID, ReposterName)
-values (?, ?, ?)`
+values (?, ?, ?)
+on conflict do nothing`
 	mustExec(q, repost.URL, postId, repost.Name)
 }
 
