@@ -101,6 +101,7 @@ type dataTimeline struct {
 }
 
 func getTimeline(w http.ResponseWriter, rq *http.Request) {
+	log.Println("You viewed the Timeline")
 	var currentPage uint
 	if page, err := strconv.Atoi(rq.FormValue("page")); err != nil || page == 0 {
 		currentPage = 1
@@ -210,10 +211,12 @@ func postFollow(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, next, http.StatusSeeOther)
 }
 
-type dataRemoteProfile struct {
+type dataAt struct {
 	*dataCommon
 
-	Account types.Actor
+	Account              types.Actor
+	BookmarkGroupsInPage []types.RemoteBookmarkGroup
+	TotalBookmarks       uint
 }
 
 func handlerAt(w http.ResponseWriter, rq *http.Request) {
@@ -259,11 +262,23 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		}
 		actor.SubscriptionStatus = db.SubscriptionStatus(actor.ID)
 
+		var currentPage uint
+		if page, err := strconv.Atoi(rq.FormValue("page")); err != nil || page == 0 {
+			currentPage = 1
+		} else {
+			currentPage = uint(page)
+		}
+
+		bookmarks, total := db.GetRemoteBookmarksBy(actor.ID, currentPage)
+
 		common := emptyCommon()
 		common.searchQuery = actor.Acct()
-		templateExec(w, rq, templateRemoteProfile, dataRemoteProfile{
-			dataCommon: common,
-			Account:    *actor,
+		common.paginator = types.PaginatorFromURL(rq.URL, currentPage, total)
+		templateExec(w, rq, templateRemoteProfile, dataAt{
+			dataCommon:           common,
+			Account:              *actor,
+			BookmarkGroupsInPage: types.GroupRemoteBookmarksByDate(fediverse.RenderRemoteBookmarks(bookmarks)),
+			TotalBookmarks:       total,
 		})
 
 	case !isRemote && userAtHost != ourUsername:
@@ -558,7 +573,7 @@ func handlerRepost(w http.ResponseWriter, rq *http.Request) {
 	return
 
 fetchRemoteBookmark:
-	bookmark, err := fediverse.FetchBookmark(formData.URL)
+	bookmark, err := fediverse.FetchBookmarkAsRepost(formData.URL)
 	if errors.Is(err, fediverse.ErrNotBookmark) {
 		formData.ErrorImpossible = true
 	} else if errors.Is(err, readpage.ErrTimeout) {

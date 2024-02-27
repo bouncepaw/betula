@@ -5,10 +5,6 @@
             <h2>{{.Account.DisplayedName}}</h2>
             <div><a href="{{.Account.ID}}">{{.Account.Acct}}</a></div>
             <div>{{.Account.Summary}}</div>
-            <ul class="profile-bookmark-stats">
-                {{/*}}<li>{{.Account.BookmarkCount}} bookmark{{if ne 1 .Account.BookmarkCount}}s{{end}}</li>
-                <li>{{.Account.TagCount}} tag{{if ne 1 .Account.TagCount}}s{{end}}</li>{{*/}}
-            </ul>
             {{$status := .Account.SubscriptionStatus}}
             {{if eq $status "mutual"}}
                 <form action="/unfollow?account={{.Account.Acct}}&next=/{{.Account.Acct}}" method="post">
@@ -47,11 +43,10 @@
                 </form>
             {{end}}
         </article>
-        <article class="no-feed-notice">
-            Bookmarks from remote profiles do not yet arrive.
-            If you subscribe to this account,
-            their bookmarks will flow in a later version,
-            hopefully.
-        </article>
+        {{if eq .TotalBookmarks 0}}
+            <article>No bookmarks were sent to us from them yet.</article>
+        {{else}}
+            {{template "remote bookmarks paginated" .}}
+        {{end}}
     </main>
 {{end}}

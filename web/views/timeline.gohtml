@@ -1,3 +1,37 @@
+{{define "remote bookmarks paginated"}}
+    {{range .BookmarkGroupsInPage}}
+        <h3 class="date-heading">{{.Date}}</h3>
+        {{range .Posts}}
+            <article class="h-entry">
+                <div class="card-line">
+                    <a href="/{{.AuthorAcct}}">{{.AuthorDisplayedName}}</a> {{if .RepostOf.Valid}}<a href="{{.ID}}" class="u-repost-of">reposted</a>{{else}}<a href="{{.ID}}">posted</a>{{end}}
+                    <button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
+                    <a href="/repost?url={{.ID}}" class="float-right" target="_blank">Repost</a>
+                </div>
+
+                <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
+                <a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
+
+                {{if .Description}}
+                    <div class="myco e-content">
+                        {{.Description}}
+                    </div>
+                {{end}}
+                <div class="post-tags">
+                    {{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
+                </div>
+            </article>
+        {{end}}
+    {{else}}
+        {{if ne .TotalBookmarks 0}}
+            <article>Page not found. Choose a page from the paginator below.</article>
+        {{else}}
+            <article>Nothing yet.</article>
+        {{end}}
+    {{end}}
+    {{template "paginator" .}}
+{{end}}
+
 {{define "title"}}Timeline{{end}}
 {{define "body"}}
     <main>
@@ -12,36 +46,6 @@
                 <p>You are not following anybody now.</p>
             {{end}}
         </article>
-        {{range .BookmarkGroupsInPage}}
-            <h3 class="date-heading">{{.Date}}</h3>
-            {{range .Posts}}
-                <article class="h-entry">
-                    <div class="card-line">
-                        <a href="/{{.AuthorAcct}}">{{.AuthorDisplayedName}}</a> {{if .RepostOf.Valid}}<a href="{{.ID}}" class="u-repost-of">reposted</a>{{else}}<a href="{{.ID}}">posted</a>{{end}}
-                        <button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
-                        <a href="/repost?url={{.ID}}" class="float-right" target="_blank">Repost</a>
-                    </div>
-
-                    <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
-                    <a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
-
-                    {{if .Description}}
-                        <div class="myco e-content">
-                            {{.Description}}
-                        </div>
-                    {{end}}
-                    <div class="post-tags">
-                        {{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
-                    </div>
-                </article>
-            {{end}}
-        {{else}}
-            {{if ne .TotalBookmarks 0}}
-                <article>Page not found. Choose a page from the paginator below.</article>
-            {{else}}
-                <article>Nothing yet.</article>
-            {{end}}
-        {{end}}
-        {{template "paginator" .}}
+        {{template "remote bookmarks paginated" .}}
     </main>
 {{end}}

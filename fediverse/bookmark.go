@@ -53,8 +53,8 @@ func fetchFedi(uri string) (*types.Bookmark, error) {
 	}, nil
 }
 
-// FetchBookmark fetches a bookmark on the given address somehow. First, it tries to get a Note ActivityPub object formatted with Betula rules. If it fails to do so, it resorts to the readpage method.
-func FetchBookmark(uri string) (*types.Bookmark, error) {
+// FetchBookmarkAsRepost fetches a bookmark on the given address somehow. First, it tries to get a Note ActivityPub object formatted with Betula rules. If it fails to do so, it resorts to the readpage method.
+func FetchBookmarkAsRepost(uri string) (*types.Bookmark, error) {
 	log.Printf("Fetching remote bookmark from %s\n", uri)
 	bookmark, err := fetchFedi(uri)
 	if err != nil {

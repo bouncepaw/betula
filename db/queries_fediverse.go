@@ -4,6 +4,37 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
+func GetRemoteBookmarksBy(authorID string, page uint) (bookmarks []types.RemoteBookmark, total uint) {
+	total = querySingleValue[uint](`select count(ID) from RemoteBookmarks where ActorID = ?`, authorID)
+
+	rows := mustQuery(`
+select ID, RepostOf, ActorID, Title, DescriptionHTML, DescriptionMycomarkup, PublishedAt, UpdatedAt, URL
+from RemoteBookmarks
+where ActorID = ?
+order by PublishedAt desc
+limit ?
+offset (? * (? - 1))
+`, authorID, types.PostsPerPage, types.PostsPerPage, page) // same paging for local bookmarks
+
+	for rows.Next() {
+		var b types.RemoteBookmark
+		mustScan(rows, &b.ID, &b.RepostOf, &b.ActorID, &b.Title, &b.DescriptionHTML, &b.DescriptionMycomarkup, &b.PublishedAt, &b.UpdatedAt, &b.URL)
+		bookmarks = append(bookmarks, b)
+	}
+
+	// huh up to 64 additional queries??
+	for i, _ := range bookmarks {
+		rows = mustQuery(`select Name from RemoteTags where BookmarkID = ?`, bookmarks[i].ID)
+		for rows.Next() {
+			var tag types.Tag
+			mustScan(rows, &tag.Name)
+			bookmarks[i].Tags = append(bookmarks[i].Tags, tag)
+		}
+	}
+
+	return
+}
+
 func GetRemoteBookmarks(page uint) (bookmarks []types.RemoteBookmark, total uint) {
 	total = querySingleValue[uint](`select count(ID) from RemoteBookmarks`)
 

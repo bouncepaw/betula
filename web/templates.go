@@ -61,13 +61,13 @@ var templateStatus = templateFrom(nil, "status")
 var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment", "save-link")
 var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment", "edit-link")
 var templateRepost = templateFrom(funcMapForForm, "repost")
-var templatePost = templateFrom(funcMapForPosts, "post-fragment", "post")
+var templatePost = templateFrom(funcMapForBookmarks, "post-fragment", "post")
 var templateRepostsFor = templateFrom(funcMapForTime, "reposts-of")
-var templateFeed = templateFrom(funcMapForPosts, "paginator-fragment", "post-fragment", "feed")
-var templateSearch = templateFrom(funcMapForPosts, "paginator-fragment", "post-fragment", "search")
-var templateTag = templateFrom(funcMapForPosts, "paginator-fragment", "post-fragment", "tag")
+var templateFeed = templateFrom(funcMapForBookmarks, "paginator-fragment", "post-fragment", "feed")
+var templateSearch = templateFrom(funcMapForBookmarks, "paginator-fragment", "post-fragment", "search")
+var templateTag = templateFrom(funcMapForBookmarks, "paginator-fragment", "post-fragment", "tag")
 var templateTags = templateFrom(nil, "tags")
-var templateDay = templateFrom(funcMapForPosts, "post-fragment", "day")
+var templateDay = templateFrom(funcMapForBookmarks, "post-fragment", "day")
 var templateEditTag = templateFrom(funcMapForForm, "edit-tag")
 var templateHelp = templateFrom(nil, "help")
 var templateAbout = templateFrom(funcMapForTime, "about")
@@ -75,12 +75,12 @@ var templateBookmarklet = templateFrom(nil, "bookmarklet")
 var templateMyProfile = templateFrom(funcMapForTime, "my-profile")
 
 // Fedded verse views:
-var templateRemoteProfile = templateFrom(nil, "remote-profile")
+var templateRemoteProfile = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline", "remote-profile")
 var templateFollowing = templateFrom(nil, "following")
 var templateFollowers = templateFrom(nil, "followers")
-var templateTimeline = templateFrom(funcMapForPosts, "paginator-fragment", "timeline")
+var templateTimeline = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline")
 
-var funcMapForPosts = template.FuncMap{
+var funcMapForBookmarks = template.FuncMap{
 	"randomGlobe": func() string {
 		return string([]rune{[]rune("🌍🌎🌏")[rand.Intn(3)]})
 	},
