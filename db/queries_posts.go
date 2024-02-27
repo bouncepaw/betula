@@ -142,7 +142,7 @@ values (?, ?, ?, ?, ?);
 	return id
 }
 
-func EditPost(post types.Bookmark) {
+func EditBookmark(bookmark types.Bookmark) {
 	const q = `
 update Posts
 set
@@ -154,8 +154,8 @@ set
 where
     ID = ? and DeletionTime is null;
 `
-	mustExec(q, post.URL, post.Title, post.Description, post.Visibility, post.RepostOf, post.ID)
-	SetTagsFor(post.ID, post.Tags)
+	mustExec(q, bookmark.URL, bookmark.Title, bookmark.Description, bookmark.Visibility, bookmark.RepostOf, bookmark.ID)
+	SetTagsFor(bookmark.ID, bookmark.Tags)
 }
 
 // GetBookmarkByID returns the bookmark corresponding to the given id, if there is any.

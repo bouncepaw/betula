@@ -3,10 +3,6 @@ package jobs
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"strconv"
-	"strings"
-
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
@@ -15,6 +11,9 @@ import (
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
+	"log"
+	"strconv"
+	"strings"
 )
 
 func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.Job) {
@@ -37,7 +36,7 @@ func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.J
 }
 
 var catmap = map[jobtype.JobCategory]func(job jobtype.Job){
-	jobtype.SendAnnounce:        notifyJob,
+	jobtype.SendAnnounce:        notifyAboutMyRepost,
 	jobtype.ReceiveAnnounce:     verifyJob,
 	jobtype.ReceiveUndoAnnounce: receiveUnrepostJob,
 	jobtype.SendUndoAnnounce:    notifyAboutMyUnrepost,
@@ -127,7 +126,7 @@ func sendAcceptFollow(report activities.FollowReport) {
 	}
 }
 
-func notifyJob(job jobtype.Job) {
+func notifyAboutMyRepost(job jobtype.Job) {
 	var postId int
 	switch v := job.Payload.(type) {
 	case int64:
@@ -162,12 +161,17 @@ func notifyJob(job jobtype.Job) {
 		return
 	}
 
-	// TODO: this will have to change
+	// TODO: this will have to change. Avoid sending twice if reposting a follower
 	err = sendActivity(*post.RepostOf, activity)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+
+	broadcastToFollowers(jobtype.Job{
+		Category: jobtype.SendAnnounce,
+		Payload:  activity,
+	})
 }
 
 func verifyJob(job jobtype.Job) {
@@ -259,10 +263,16 @@ func notifyAboutMyUnrepost(job jobtype.Job) {
 			log.Printf("While unmarshaling UndoAnnounceReport %v: %v\n", v, err)
 			return
 		}
+
+		// TODO: avoid sending twice if unreposted from follower
 		err := sendActivity(report.OriginalPage, v)
 		if err != nil {
 			log.Printf("While sending unrepost notification: %s\n", err)
 		}
+		broadcastToFollowers(jobtype.Job{
+			Category: jobtype.SendUndoAnnounce,
+			Payload:  v,
+		})
 	default:
 		log.Printf("Bad payload for ReceiveUnrepost job: %v\n", v)
 		return

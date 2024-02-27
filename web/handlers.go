@@ -453,30 +453,32 @@ func postUnrepost(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	post, found := db.GetBookmarkByID(id)
+	bookmark, found := db.GetBookmarkByID(id)
 	if !found {
 		log.Printf("Trying to unrepost non-existent post no. %d\n", id)
 		handlerNotFound(w, rq)
 		return
 	}
-	if post.RepostOf == nil {
+	if bookmark.RepostOf == nil {
 		log.Printf("Trying to unrepost a non-repost post no. %d\n", id)
 		handlerNotFound(w, rq)
 		return
 	}
 
-	originalPage := *post.RepostOf
-	post.RepostOf = nil
-	db.EditPost(post)
+	originalPage := *bookmark.RepostOf
+	bookmark.RepostOf = nil
+	db.EditBookmark(bookmark)
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
-	report := activities.UndoAnnounceReport{
-		AnnounceReport: activities.AnnounceReport{
-			ReposterUsername: settings.AdminUsername(),
-			RepostPage:       fmt.Sprintf("%s/%d", settings.SiteURL(), post.ID),
-			OriginalPage:     originalPage,
-		},
+
+	if settings.FederationEnabled() {
+		jobs.ScheduleJSON(jobtype.SendUndoAnnounce, activities.UndoAnnounceReport{
+			AnnounceReport: activities.AnnounceReport{
+				ReposterUsername: settings.AdminUsername(),
+				RepostPage:       fmt.Sprintf("%s/%d", settings.SiteURL(), bookmark.ID),
+				OriginalPage:     originalPage,
+			},
+		})
 	}
-	go jobs.ScheduleJSON(jobtype.SendUndoAnnounce, report)
 }
 
 type dataRepostsOf struct {
@@ -1279,7 +1281,7 @@ func handlerEditBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	db.EditPost(post)
+	db.EditBookmark(post)
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 	log.Printf("Edited post no. %d\n", id)
 
