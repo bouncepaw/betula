@@ -5,10 +5,7 @@ import (
 )
 
 func deleteTagDescription(tagName string) {
-	const q = `
-delete from TagDescriptions where TagName = ?;
-`
-	mustExec(q, tagName)
+	mustExec(`delete from TagDescriptions where TagName = ?`, tagName)
 }
 
 func SetTagDescription(tagName string, description string) {
@@ -24,18 +21,12 @@ values (?, ?);
 }
 
 func DeleteTag(tagName string) {
-	const q = `
-delete from TagsToPosts where TagName = ?
-`
 	deleteTagDescription(tagName)
-	mustExec(q, tagName)
+	mustExec(`delete from TagsToPosts where TagName = ?`, tagName)
 }
 
 func DescriptionForTag(tagName string) (myco string) {
-	const q = `
-select Description from TagDescriptions where TagName = ?;
-`
-	rows := mustQuery(q, tagName)
+	rows := mustQuery(`select Description from TagDescriptions where TagName = ?`, tagName)
 	for rows.Next() { // 0 or 1
 		mustScan(rows, &myco)
 		break
@@ -123,7 +114,7 @@ func SetTagsFor(postID int, tags []types.Tag) {
 	}
 }
 
-func TagsForPost(id int) (tags []types.Tag) {
+func TagsForBookmarkByID(id int) (tags []types.Tag) {
 	q := `
 select distinct TagName
 from TagsToPosts
@@ -137,4 +128,12 @@ order by TagName;
 		tags = append(tags, tag)
 	}
 	return tags
+}
+
+func setTagsForManyBookmarks(bookmarks []types.Bookmark) []types.Bookmark {
+	for i, post := range bookmarks {
+		post.Tags = TagsForBookmarkByID(post.ID)
+		bookmarks[i] = post
+	}
+	return bookmarks
 }

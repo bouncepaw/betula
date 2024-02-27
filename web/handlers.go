@@ -876,8 +876,8 @@ var dayStampRegex = regexp.MustCompile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 
 type dataDay struct {
 	*dataCommon
-	DayStamp string
-	Posts    []types.Bookmark
+	DayStamp  string
+	Bookmarks []types.Bookmark
 }
 
 func getDay(w http.ResponseWriter, rq *http.Request) {
@@ -894,7 +894,7 @@ func getDay(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateDay, dataDay{
 		dataCommon: emptyCommon(),
 		DayStamp:   dayStamp,
-		Posts:      db.PostsForDay(authed, dayStamp),
+		Bookmarks:  db.BookmarksForDay(authed, dayStamp),
 	})
 }
 
@@ -983,7 +983,7 @@ func postDeleteBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	db.DeletePost(id)
+	db.DeleteBookmark(id)
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
 
 	if settings.FederationEnabled() {
@@ -1124,7 +1124,7 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 	currentPage := extractPage(rq)
 	authed := auth.AuthorizedFromRequest(rq)
 
-	posts, totalPosts := db.PostsWithTag(authed, tagName, currentPage)
+	posts, totalPosts := db.BookmarksWithTag(authed, tagName, currentPage)
 
 	common := emptyCommon()
 	common.searchQuery = "#" + tagName
@@ -1233,7 +1233,7 @@ func handlerEditBookmark(w http.ResponseWriter, rq *http.Request) {
 	oldVisibility := post.Visibility
 
 	if rq.Method == http.MethodGet {
-		post.Tags = db.TagsForPost(id)
+		post.Tags = db.TagsForBookmarkByID(id)
 		templateExec(w, rq, templateEditLink, dataEditLink{
 			Bookmark:   post,
 			dataCommon: common,
@@ -1560,7 +1560,7 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 <link rel="alternate" type="%s" href="/%d"'>`, types.OtherActivityType, post.ID))
 	}
 
-	post.Tags = db.TagsForPost(post.ID)
+	post.Tags = db.TagsForBookmarkByID(post.ID)
 	templateExec(w, rq, templatePost, dataPost{
 		Post:        *post,
 		RepostCount: db.CountRepostsOf(post.ID),
@@ -1598,7 +1598,7 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 `
 
 	currentPage := extractPage(rq)
-	posts, totalPosts := db.Posts(authed, currentPage)
+	posts, totalPosts := db.Bookmarks(authed, currentPage)
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
 
 	templateExec(w, rq, templateFeed, dataFeed{

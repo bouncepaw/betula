@@ -26,7 +26,7 @@ func fiveLastDays(now time.Time) (days []time.Time, dayStamps []string, dayPosts
 
 		dayStamps[i] = day.Format("2006-01-02")
 
-		dayPosts[i] = db.PostsForDay(false, dayStamps[i])
+		dayPosts[i] = db.BookmarksForDay(false, dayStamps[i])
 	}
 	return days, dayStamps, dayPosts
 }

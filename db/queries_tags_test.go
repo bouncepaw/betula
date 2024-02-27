@@ -96,7 +96,7 @@ func TestRenameTag(t *testing.T) {
 	}
 }
 
-// tests SetTagsFor and TagsForPost
+// tests SetTagsFor and TagsForBookmarkByID
 func TestPostTags(t *testing.T) {
 	initInMemoryTags()
 	tags := []types.Tag{
@@ -105,7 +105,7 @@ func TestPostTags(t *testing.T) {
 	}
 	SetTagsFor(2, tags)
 
-	tags = TagsForPost(2)
+	tags = TagsForBookmarkByID(2)
 	if len(tags) != 2 {
 		t.Errorf("Faulty tag saving")
 	}

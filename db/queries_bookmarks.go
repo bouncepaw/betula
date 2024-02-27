@@ -5,8 +5,8 @@ import (
 	"log"
 )
 
-// PostsForDay returns posts for the given dayStamp, which looks like this: 2023-03-14. The result might as well be nil, that means there are no posts for the day.
-func PostsForDay(authorized bool, dayStamp string) (posts []types.Bookmark) {
+// BookmarksForDay returns bookmarks for the given dayStamp, which looks like this: 2023-03-14. The result might as well be nil, that means there are no posts for the day.
+func BookmarksForDay(authorized bool, dayStamp string) (bookmarks []types.Bookmark) {
 	const q = `
 select
 	ID, URL, Title, Description, Visibility, CreationTime, RepostOf
@@ -19,19 +19,16 @@ order by
 `
 	rows := mustQuery(q, authorized, dayStamp+"%")
 	for rows.Next() {
-		var post types.Bookmark
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
-		posts = append(posts, post)
+		var bm types.Bookmark
+		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf)
+		bookmarks = append(bookmarks, bm)
 	}
-	for i, post := range posts {
-		post.Tags = TagsForPost(post.ID)
-		posts[i] = post
-	}
-	return posts
+
+	return setTagsForManyBookmarks(bookmarks)
 }
 
-func PostsWithTag(authorized bool, tagName string, page uint) (posts []types.Bookmark, totalPosts uint) {
-	totalPosts = querySingleValue[uint](`
+func BookmarksWithTag(authorized bool, tagName string, page uint) (bookmarks []types.Bookmark, total uint) {
+	total = querySingleValue[uint](`
 select
 	count(ID)
 from
@@ -57,24 +54,21 @@ limit ? offset ?;
 `
 	rows := mustQuery(q, tagName, authorized, types.PostsPerPage, types.PostsPerPage*(page-1))
 	for rows.Next() {
-		var post types.Bookmark
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
-		posts = append(posts, post)
+		var bm types.Bookmark
+		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf)
+		bookmarks = append(bookmarks, bm)
 	}
-	for i, post := range posts {
-		post.Tags = TagsForPost(post.ID)
-		posts[i] = post
-	}
-	return posts, totalPosts
+
+	return setTagsForManyBookmarks(bookmarks), total
 }
 
-// Posts returns all posts stored in the database, along with their tags, but only if the viewer is authorized! Otherwise, only public posts will be given.
-func Posts(authorized bool, page uint) (posts []types.Bookmark, totalPosts uint) {
+// Bookmarks returns all posts stored in the database on the given page, along with their tags, but only if the viewer is authorized! Otherwise, only public posts will be given.
+func Bookmarks(authorized bool, page uint) (bookmarks []types.Bookmark, total uint) {
 	if page == 0 {
-		panic("page 0 makes no sense")
+		panic("page 0 makes 0 sense")
 	}
 
-	totalPosts = querySingleValue[uint](`
+	total = querySingleValue[uint](`
 select count(ID)
 from Posts
 where DeletionTime is null and (Visibility = 1 or ?);
@@ -89,38 +83,20 @@ limit ?
 offset (? * (? - 1));
 `
 	rows := mustQuery(q, types.PostsPerPage, types.PostsPerPage, page) // same paging for remote bookmarks
-
 	for rows.Next() {
-		var post types.Bookmark
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
-		if !authorized && post.Visibility == types.Private {
+		var bm types.Bookmark
+		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf)
+		if !authorized && bm.Visibility == types.Private {
 			continue
 		}
-		posts = append(posts, post)
+		bookmarks = append(bookmarks, bm)
 	}
-	for i, post := range posts {
-		post.Tags = TagsForPost(post.ID)
-		posts[i] = post
-	}
-	return posts, totalPosts
+
+	return setTagsForManyBookmarks(bookmarks), total
 }
 
-func HasPost(id int) (has bool) {
-	const q = `select exists(select 1 from Posts where ID = ? and DeletionTime is null);`
-	rows := mustQuery(q, id)
-	rows.Next()
-	mustScan(rows, &has)
-	_ = rows.Close()
-	return has
-}
-
-func DeletePost(id int) {
-	const q = `
-update Posts
-set DeletionTime = current_timestamp
-where ID = ?;
-`
-	mustExec(q, id)
+func DeleteBookmark(id int) {
+	mustExec(`update Posts set DeletionTime = current_timestamp where ID = ?`, id)
 }
 
 // InsertBookmark adds a new local bookmark to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
@@ -191,32 +167,4 @@ where
 	ID not in IgnoredPosts;
 `
 	return querySingleValue[uint](q, authorized)
-}
-
-func LastPost(authorized bool) (post types.Bookmark, found bool) {
-	const q = `
-with
-	IgnoredPosts as (
-	   -- Ignore deleted posts always
-		select ID from Posts where DeletionTime is not null
-	   union
-		-- Ignore private posts if so desired
-	   select ID from Posts where Visibility = 0 and not ?
-	)
-select 
-    ID, URL, Title, Description, Visibility, CreationTime, RepostOf 
-from 
-    Posts 
-where 
-    ID not in IgnoredPosts
-order by 
-    CreationTime desc 
-limit 1;
-`
-	rows := mustQuery(q, authorized)
-	for rows.Next() {
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
-		found = true
-	}
-	return post, found
 }

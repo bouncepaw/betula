@@ -2,13 +2,12 @@
 {{define "body"}}
 	<main class="h-feed">
 		<article>
-			<h2 class="p-name">Bookmarks</h2>{{$authed := .Authorized}}
-			<p><span class="mv-count">{{.TotalPosts}}</span> bookmark{{if ne .TotalPosts 1}}s{{end}} saved.</p>
+			<h2 class="p-name"><span class="mv-count">{{.TotalPosts}}</span> bookmark{{if ne .TotalPosts 1}}s{{end}}</h2>
             {{if eq .TotalPosts 0 | and .Authorized}}
 				<div style="margin-top:.5rem"><a class="btn btn-accent" href="/save-link">Save link</a></div>
             {{end}}
 			{{if .SiteDescription}}<p class="p-summary">{{.SiteDescription}}</p>{{end}}
-		</article>
+		</article>{{$authed := .Authorized}}
         {{range .PostGroupsInPage}}
 			<h3 class="date-heading"><a href="/day/{{.Date}}">{{.Date}}</a></h3>
 			{{range .Posts}}
@@ -20,9 +19,7 @@
 			{{end}}
 		{{else}}
 			{{if ne .TotalPosts 0}}
-	        <article>
-		        Page not found. Choose a page from the paginator below.
-	        </article>
+	        <article>Page not found. Choose a page from the paginator below.</article>
 			{{end}}
         {{end}}
 		{{template "paginator" .}}

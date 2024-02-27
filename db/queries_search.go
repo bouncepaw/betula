@@ -45,7 +45,7 @@ order by CreationTime desc
 			continue
 		}
 
-		post.Tags = TagsForPost(post.ID)
+		post.Tags = TagsForBookmarkByID(post.ID)
 		if !tagsOK(post.Tags, includedTags, excludedTags) {
 			continue
 		}

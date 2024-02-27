@@ -111,7 +111,7 @@ func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, 
 		return nil, false
 	}
 
-	bookmark.Tags = db.TagsForPost(bookmark.ID)
+	bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
 
 	return &bookmark, true
 }
