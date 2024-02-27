@@ -1,0 +1,15 @@
+Last checked: 2024-02-28
+
+| **Version** | **Actuality**                                                                        |
+|-------------|--------------------------------------------------------------------------------------|
+| 6           | tables Posts, TagsToPosts, BetulaMeta, Sessions, TagDescriptions, Jobs, KnownReposts |
+| 7           | table Artifacts, rest dropped                                                        |
+| 8           | dropped                                                                              |
+| 9           | dropped                                                                              |
+| 10          | table PublicKeys                                                                     |
+| 11          | dropped                                                                              |
+| 12          | tables Following, Followers, Actors                                                  |
+| 13          | tables RemoteBookmarks, RemoteTags                                                   |
+| 14          | changes RemoteBookmarks                                                              |
+
+The code for DB versions 1 to 5 never gets executed.
