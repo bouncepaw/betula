@@ -24,7 +24,7 @@ order by
 		bookmarks = append(bookmarks, bm)
 	}
 
-	return setTagsForManyBookmarks(bookmarks)
+	return getTagsForManyBookmarks(bookmarks)
 }
 
 func BookmarksWithTag(authorized bool, tagName string, page uint) (bookmarks []types.Bookmark, total uint) {
@@ -52,14 +52,14 @@ order by
 	CreationTime desc
 limit ? offset ?;
 `
-	rows := mustQuery(q, tagName, authorized, types.PostsPerPage, types.PostsPerPage*(page-1))
+	rows := mustQuery(q, tagName, authorized, types.BookmarksPerPage, types.BookmarksPerPage*(page-1))
 	for rows.Next() {
 		var bm types.Bookmark
 		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf)
 		bookmarks = append(bookmarks, bm)
 	}
 
-	return setTagsForManyBookmarks(bookmarks), total
+	return getTagsForManyBookmarks(bookmarks), total
 }
 
 // Bookmarks returns all bookmarks stored in the database on the given page, along with their tags, but only if the viewer is authorized! Otherwise, only public bookmarks will be given.
@@ -82,7 +82,7 @@ order by CreationTime desc
 limit ?
 offset (? * (? - 1));
 `
-	rows := mustQuery(q, types.PostsPerPage, types.PostsPerPage, page) // same paging for remote bookmarks
+	rows := mustQuery(q, types.BookmarksPerPage, types.BookmarksPerPage, page) // same paging for remote bookmarks
 	for rows.Next() {
 		var bm types.Bookmark
 		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf)
@@ -92,7 +92,7 @@ offset (? * (? - 1));
 		bookmarks = append(bookmarks, bm)
 	}
 
-	return setTagsForManyBookmarks(bookmarks), total
+	return getTagsForManyBookmarks(bookmarks), total
 }
 
 func DeleteBookmark(id int) {
@@ -152,19 +152,19 @@ limit 1;
 func BookmarkCount(authorized bool) uint {
 	const q = `
 with
-	IgnoredPosts as (
-	   -- Ignore deleted bookmarks always
+	IgnoredBookmarks as (
+		-- Ignore deleted bookmarks always
 		select ID from Bookmarks where DeletionTime is not null
-	   union
+		union
 		-- Ignore private bookmarks if so desired
-	   select ID from Bookmarks where Visibility = 0 and not ?
+		select ID from Bookmarks where Visibility = 0 and not ?
 	)
 select 
 	count(ID)
 from 
 	Bookmarks 
 where 
-	ID not in IgnoredPosts;
+	ID not in IgnoredBookmarks;
 `
 	return querySingleValue[uint](q, authorized)
 }

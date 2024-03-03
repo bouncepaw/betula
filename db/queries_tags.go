@@ -57,7 +57,7 @@ on
 	return count
 }
 
-// Tags returns all tags found on posts one has access to. They all have BookmarkCount set to a non-zero value.
+// Tags returns all tags found on bookmarks one has access to. They all have BookmarkCount set to a non-zero value.
 func Tags(authorized bool) (tags []types.Tag) {
 	q := `
 select
@@ -102,26 +102,23 @@ where TagName = ?;
 }
 
 func SetTagsFor(postID int, tags []types.Tag) {
-	const q = `delete from TagsToPosts where PostID = ?;`
-	mustExec(q, postID)
+	mustExec(`delete from TagsToPosts where PostID = ?;`, postID)
 
-	var qAdd = `insert into TagsToPosts (TagName, PostID) values (?, ?);`
 	for _, tag := range tags {
 		if tag.Name == "" {
 			continue
 		}
-		mustExec(qAdd, tag.Name, postID)
+		mustExec(`insert into TagsToPosts (TagName, PostID) values (?, ?);`, tag.Name, postID)
 	}
 }
 
 func TagsForBookmarkByID(id int) (tags []types.Tag) {
-	q := `
+	rows := mustQuery(`
 select distinct TagName
 from TagsToPosts
 where PostID = ?
 order by TagName;
-`
-	rows := mustQuery(q, id)
+`, id)
 	for rows.Next() {
 		var tag types.Tag
 		mustScan(rows, &tag.Name)
@@ -130,7 +127,7 @@ order by TagName;
 	return tags
 }
 
-func setTagsForManyBookmarks(bookmarks []types.Bookmark) []types.Bookmark {
+func getTagsForManyBookmarks(bookmarks []types.Bookmark) []types.Bookmark {
 	for i, post := range bookmarks {
 		post.Tags = TagsForBookmarkByID(post.ID)
 		bookmarks[i] = post

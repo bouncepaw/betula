@@ -167,8 +167,8 @@ type Page struct {
 	IsNext    bool
 }
 
-func countPages(totalPosts uint) uint {
-	return uint(math.Ceil(float64(totalPosts) / float64(PostsPerPage)))
+func countPages(totalBookmarks uint) uint {
+	return uint(math.Ceil(float64(totalBookmarks) / float64(BookmarksPerPage)))
 }
 
 func PaginatorFromURL(url *url.URL, currentPage uint, totalPosts uint) (pages []Page) {
@@ -269,12 +269,15 @@ func CleanerLinkParts(a string) (string, string) {
 	return hostPart, pathPart
 }
 
-// Same as CleanerLinkParts, but merges the parts back into one url.
+// CleanerLink is the same as CleanerLinkParts, but merges the parts back into one url.
 func CleanerLink(a string) string {
 	left, right := CleanerLinkParts(a)
 	return left + right
 }
 
-const (
-	PostsPerPage uint = 64
-)
+// BookmarksPerPage is the maximum number of bookmarks that fits on one page.
+// It is hardcoded and not configurable by design.
+// 64 was chosen because it is a nice round number.
+// Small enough to keep the web pages reasonable sized.
+// Big enough to rarely use the paginator.
+const BookmarksPerPage uint = 64

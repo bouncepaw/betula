@@ -7,7 +7,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-func Search(text string, includedTags []string, excludedTags []string, repostsOnly, authorized bool, page uint) (posts []types.Bookmark, totalPosts uint) {
+func Search(text string, includedTags []string, excludedTags []string, repostsOnly, authorized bool, page uint) (results []types.Bookmark, totalResults uint) {
 	text = strings.ToLower(text)
 	sort.Strings(includedTags)
 	sort.Strings(excludedTags)
@@ -20,16 +20,16 @@ order by CreationTime desc
 `
 	rows := mustQuery(q, authorized)
 
-	var unfilteredPosts []types.Bookmark
+	var unfilteredBookmarks []types.Bookmark
 	for rows.Next() {
-		var post types.Bookmark
-		mustScan(rows, &post.ID, &post.URL, &post.Title, &post.Description, &post.Visibility, &post.CreationTime, &post.RepostOf)
-		unfilteredPosts = append(unfilteredPosts, post)
+		var b types.Bookmark
+		mustScan(rows, &b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RepostOf)
+		unfilteredBookmarks = append(unfilteredBookmarks, b)
 	}
 
 	var i uint = 0
-	var ignoredPosts uint = 0
-	postsToBeIgnored := (page - 1) * types.PostsPerPage
+	var ignoredBookmarks uint = 0
+	bookmarksToIgnore := (page - 1) * types.BookmarksPerPage
 
 	// ‘Say, Bouncepaw, why did not you implement tag inclusion/exclusion
 	//  part in SQL directly?’, some may ask.
@@ -40,7 +40,7 @@ order by CreationTime desc
 	// astra.
 	//
 	// We can't even parallelize it.
-	for _, post := range unfilteredPosts {
+	for _, post := range unfilteredBookmarks {
 		if !textOK(post, text) {
 			continue
 		}
@@ -55,15 +55,15 @@ order by CreationTime desc
 			continue
 		}
 
-		totalPosts++
-		if ignoredPosts >= postsToBeIgnored && i < types.PostsPerPage {
-			posts = append(posts, post)
+		totalResults++
+		if ignoredBookmarks >= bookmarksToIgnore && i < types.BookmarksPerPage {
+			results = append(results, post)
 			i++
 		} else {
-			ignoredPosts++
+			ignoredBookmarks++
 		}
 	}
-	return posts, totalPosts
+	return results, totalResults
 }
 
 // true if keep, false if discard

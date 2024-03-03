@@ -8,7 +8,7 @@ import (
 
 func TestFiveLastDays(t *testing.T) {
 	db.InitInMemoryDB()
-	db.MoreTestingPosts()
+	db.MoreTestingBookmarks()
 	days, dayStamps, dayPosts := fiveLastDays(
 		time.Date(2023, 3, 21, 0, 0, 0, 0, time.UTC))
 

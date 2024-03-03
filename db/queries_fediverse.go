@@ -14,7 +14,7 @@ where ActorID = ?
 order by PublishedAt desc
 limit ?
 offset (? * (? - 1))
-`, authorID, types.PostsPerPage, types.PostsPerPage, page) // same paging for local bookmarks
+`, authorID, types.BookmarksPerPage, types.BookmarksPerPage, page) // same paging for local bookmarks
 
 	for rows.Next() {
 		var b types.RemoteBookmark
@@ -44,7 +44,7 @@ from RemoteBookmarks
 order by PublishedAt desc
 limit ?
 offset (? * (? - 1))
-`, types.PostsPerPage, types.PostsPerPage, page) // same paging for local bookmarks
+`, types.BookmarksPerPage, types.BookmarksPerPage, page) // same paging for local bookmarks
 
 	for rows.Next() {
 		var b types.RemoteBookmark

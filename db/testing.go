@@ -17,7 +17,7 @@ const tropicfish = "🐠"
 func InitInMemoryDB() {
 	Initialize(":memory:")
 	const q = `
-insert into Posts
+insert into Bookmarks
    (URL, Title, Description, Visibility, CreationTime, DeletionTime)
 values
 	(
@@ -42,9 +42,9 @@ values
 	mustExec(q)
 }
 
-func MoreTestingPosts() {
+func MoreTestingBookmarks() {
 	mustExec(`
-insert into Posts (URL, Title, Description, Visibility, CreationTime, DeletionTime)
+insert into Bookmarks (URL, Title, Description, Visibility, CreationTime, DeletionTime)
 values 
 ('https://1.bouncepaw', 'Uno', '', 1, '2023-03-19 12:00:00', null),
 ('https://2.bouncepaw', 'Dos', '', 1, '2023-03-19 14:14:14', '2023-03-19 14:14:15'),

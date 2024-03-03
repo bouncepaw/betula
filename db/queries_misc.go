@@ -25,7 +25,7 @@ where DeletionTime is null and (Visibility = 1 or ?);
 `
 	stamp := querySingleValue[sql.NullString](q, authorized)
 	if stamp.Valid {
-		val, err := time.Parse("2006-01-02 15:04:05", stamp.String)
+		val, err := time.Parse(types.TimeLayout, stamp.String)
 		if err != nil {
 			log.Fatalln(err)
 		}

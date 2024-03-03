@@ -8,8 +8,7 @@ func AddSession(token string) {
 }
 
 func SessionExists(token string) (has bool) {
-	const q = `select exists(select 1 from Sessions where Token = ?);`
-	rows := mustQuery(q, token)
+	rows := mustQuery(`select exists(select 1 from Sessions where Token = ?);`, token)
 	rows.Next()
 	mustScan(rows, &has)
 	_ = rows.Close()
@@ -21,10 +20,9 @@ func StopSession(token string) {
 }
 
 func SetCredentials(name, hash string) {
-	const q = `
+	mustExec(`
 insert or replace into BetulaMeta values
 	('Admin username', ?),
 	('Admin password hash', ?);
-`
-	mustExec(q, name, hash)
+`, name, hash)
 }
