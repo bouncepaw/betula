@@ -20,7 +20,7 @@ func SetMetaEntry[T any](key BetulaMetaKey, val T) {
 func OldestTime(authorized bool) *time.Time {
 	const q = `
 select min(CreationTime)
-from Posts
+from Bookmarks
 where DeletionTime is null and (Visibility = 1 or ?);
 `
 	stamp := querySingleValue[sql.NullString](q, authorized)
@@ -37,7 +37,7 @@ where DeletionTime is null and (Visibility = 1 or ?);
 func NewestTime(authorized bool) *time.Time {
 	const q = `
 select max(CreationTime)
-from Posts
+from Bookmarks
 where DeletionTime is null and (Visibility = 1 or ?);
 `
 	stamp := querySingleValue[sql.NullString](q, authorized)

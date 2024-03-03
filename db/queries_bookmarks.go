@@ -5,13 +5,13 @@ import (
 	"log"
 )
 
-// BookmarksForDay returns bookmarks for the given dayStamp, which looks like this: 2023-03-14. The result might as well be nil, that means there are no posts for the day.
+// BookmarksForDay returns bookmarks for the given dayStamp, which looks like this: 2023-03-14. The result might as well be nil, that means there are no bookmarks for the day.
 func BookmarksForDay(authorized bool, dayStamp string) (bookmarks []types.Bookmark) {
 	const q = `
 select
 	ID, URL, Title, Description, Visibility, CreationTime, RepostOf
 from
-	Posts
+	Bookmarks
 where
 	DeletionTime is null and (Visibility = 1 or ?) and CreationTime like ?
 order by
@@ -32,7 +32,7 @@ func BookmarksWithTag(authorized bool, tagName string, page uint) (bookmarks []t
 select
 	count(ID)
 from
-	Posts
+	Bookmarks
 inner join
 	TagsToPosts
 where
@@ -43,7 +43,7 @@ where
 select
 	ID, URL, Title, Description, Visibility, CreationTime, RepostOf
 from
-	Posts
+	Bookmarks
 inner join
 	TagsToPosts
 where
@@ -62,7 +62,7 @@ limit ? offset ?;
 	return setTagsForManyBookmarks(bookmarks), total
 }
 
-// Bookmarks returns all posts stored in the database on the given page, along with their tags, but only if the viewer is authorized! Otherwise, only public posts will be given.
+// Bookmarks returns all bookmarks stored in the database on the given page, along with their tags, but only if the viewer is authorized! Otherwise, only public bookmarks will be given.
 func Bookmarks(authorized bool, page uint) (bookmarks []types.Bookmark, total uint) {
 	if page == 0 {
 		panic("page 0 makes 0 sense")
@@ -70,13 +70,13 @@ func Bookmarks(authorized bool, page uint) (bookmarks []types.Bookmark, total ui
 
 	total = querySingleValue[uint](`
 select count(ID)
-from Posts
+from Bookmarks
 where DeletionTime is null and (Visibility = 1 or ?);
 `, authorized)
 
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime, RepostOf
-from Posts
+from Bookmarks
 where DeletionTime is null
 order by CreationTime desc
 limit ?
@@ -96,13 +96,13 @@ offset (? * (? - 1));
 }
 
 func DeleteBookmark(id int) {
-	mustExec(`update Posts set DeletionTime = current_timestamp where ID = ?`, id)
+	mustExec(`update Bookmarks set DeletionTime = current_timestamp where ID = ?`, id)
 }
 
 // InsertBookmark adds a new local bookmark to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
 func InsertBookmark(post types.Bookmark) int64 {
 	const q = `
-insert into Posts (URL, Title, Description, Visibility, RepostOf)
+insert into Bookmarks (URL, Title, Description, Visibility, RepostOf)
 values (?, ?, ?, ?, ?);
 `
 	res, err := db.Exec(q, post.URL, post.Title, post.Description, post.Visibility, post.RepostOf)
@@ -120,7 +120,7 @@ values (?, ?, ?, ?, ?);
 
 func EditBookmark(bookmark types.Bookmark) {
 	const q = `
-update Posts
+update Bookmarks
 set
     URL = ?,
     Title = ?,
@@ -137,7 +137,7 @@ where
 // GetBookmarkByID returns the bookmark corresponding to the given id, if there is any.
 func GetBookmarkByID(id int) (b types.Bookmark, found bool) {
 	const q = `
-select ID, URL, Title, Description, Visibility, CreationTime, RepostOf from Posts
+select ID, URL, Title, Description, Visibility, CreationTime, RepostOf from Bookmarks
 where ID = ? and DeletionTime is null
 limit 1;
 `
@@ -153,16 +153,16 @@ func BookmarkCount(authorized bool) uint {
 	const q = `
 with
 	IgnoredPosts as (
-	   -- Ignore deleted posts always
-		select ID from Posts where DeletionTime is not null
+	   -- Ignore deleted bookmarks always
+		select ID from Bookmarks where DeletionTime is not null
 	   union
-		-- Ignore private posts if so desired
-	   select ID from Posts where Visibility = 0 and not ?
+		-- Ignore private bookmarks if so desired
+	   select ID from Bookmarks where Visibility = 0 and not ?
 	)
 select 
 	count(ID)
 from 
-	Posts 
+	Bookmarks 
 where 
 	ID not in IgnoredPosts;
 `

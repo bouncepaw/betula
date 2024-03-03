@@ -44,7 +44,7 @@ select
 from
 	TagsToPosts
 inner join 
-	(select ID from main.Posts where DeletionTime is null and (Visibility = 1 or ?)) 
+	(select ID from Bookmarks where DeletionTime is null and (Visibility = 1 or ?)) 
 as 
 	Filtered
 on 
@@ -66,7 +66,7 @@ select
 from
    TagsToPosts
 inner join 
-    (select ID from main.Posts where DeletionTime is null and (Visibility = 1 or ?)) 
+    (select ID from Bookmarks where DeletionTime is null and (Visibility = 1 or ?)) 
 as 
 	Filtered
 on 

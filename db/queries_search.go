@@ -14,7 +14,7 @@ func Search(text string, includedTags []string, excludedTags []string, repostsOn
 
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime, RepostOf
-from Posts
+from Bookmarks
 where DeletionTime is null and (Visibility = 1 or ?)
 order by CreationTime desc
 `
