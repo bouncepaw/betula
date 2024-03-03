@@ -101,14 +101,14 @@ where TagName = ?;
 	mustExec(q, newTagName, oldTagName)
 }
 
-func SetTagsFor(postID int, tags []types.Tag) {
-	mustExec(`delete from TagsToPosts where PostID = ?;`, postID)
+func SetTagsFor(bookmarkID int, tags []types.Tag) {
+	mustExec(`delete from TagsToPosts where PostID = ?;`, bookmarkID)
 
 	for _, tag := range tags {
 		if tag.Name == "" {
 			continue
 		}
-		mustExec(`insert into TagsToPosts (TagName, PostID) values (?, ?);`, tag.Name, postID)
+		mustExec(`insert into TagsToPosts (TagName, PostID) values (?, ?);`, tag.Name, bookmarkID)
 	}
 }
 

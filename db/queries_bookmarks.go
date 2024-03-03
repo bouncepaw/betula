@@ -9,7 +9,7 @@ import (
 func BookmarksForDay(authorized bool, dayStamp string) (bookmarks []types.Bookmark) {
 	const q = `
 select
-	ID, URL, Title, Description, Visibility, CreationTime, RepostOf
+	ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
 from
 	Bookmarks
 where
@@ -20,7 +20,7 @@ order by
 	rows := mustQuery(q, authorized, dayStamp+"%")
 	for rows.Next() {
 		var bm types.Bookmark
-		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf)
+		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf, &bm.OriginalAuthor)
 		bookmarks = append(bookmarks, bm)
 	}
 
@@ -41,7 +41,7 @@ where
 
 	const q = `
 select
-	ID, URL, Title, Description, Visibility, CreationTime, RepostOf
+	ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
 from
 	Bookmarks
 inner join
@@ -55,7 +55,7 @@ limit ? offset ?;
 	rows := mustQuery(q, tagName, authorized, types.BookmarksPerPage, types.BookmarksPerPage*(page-1))
 	for rows.Next() {
 		var bm types.Bookmark
-		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf)
+		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf, &bm.OriginalAuthor)
 		bookmarks = append(bookmarks, bm)
 	}
 
@@ -75,7 +75,7 @@ where DeletionTime is null and (Visibility = 1 or ?);
 `, authorized)
 
 	const q = `
-select ID, URL, Title, Description, Visibility, CreationTime, RepostOf
+select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
 from Bookmarks
 where DeletionTime is null
 order by CreationTime desc
@@ -85,7 +85,7 @@ offset (? * (? - 1));
 	rows := mustQuery(q, types.BookmarksPerPage, types.BookmarksPerPage, page) // same paging for remote bookmarks
 	for rows.Next() {
 		var bm types.Bookmark
-		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf)
+		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf, &bm.OriginalAuthor)
 		if !authorized && bm.Visibility == types.Private {
 			continue
 		}
@@ -100,12 +100,12 @@ func DeleteBookmark(id int) {
 }
 
 // InsertBookmark adds a new local bookmark to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
-func InsertBookmark(post types.Bookmark) int64 {
+func InsertBookmark(bookmark types.Bookmark) int64 {
 	const q = `
-insert into Bookmarks (URL, Title, Description, Visibility, RepostOf)
-values (?, ?, ?, ?, ?);
+insert into Bookmarks (URL, Title, Description, Visibility, RepostOf, OriginalAuthorID)
+values (?, ?, ?, ?, ?, ?);
 `
-	res, err := db.Exec(q, post.URL, post.Title, post.Description, post.Visibility, post.RepostOf)
+	res, err := db.Exec(q, bookmark.URL, bookmark.Title, bookmark.Description, bookmark.Visibility, bookmark.RepostOf, bookmark.OriginalAuthor)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -113,8 +113,8 @@ values (?, ?, ?, ?, ?);
 	if err != nil {
 		log.Fatalln(err)
 	}
-	post.ID = int(id)
-	SetTagsFor(post.ID, post.Tags)
+	bookmark.ID = int(id)
+	SetTagsFor(bookmark.ID, bookmark.Tags)
 	return id
 }
 
@@ -126,24 +126,25 @@ set
     Title = ?,
     Description = ?,
     Visibility = ?,
-	RepostOf = ?
+	RepostOf = ?,
+    OriginalAuthorID = ?
 where
     ID = ? and DeletionTime is null;
 `
-	mustExec(q, bookmark.URL, bookmark.Title, bookmark.Description, bookmark.Visibility, bookmark.RepostOf, bookmark.ID)
+	mustExec(q, bookmark.URL, bookmark.Title, bookmark.Description, bookmark.Visibility, bookmark.RepostOf, bookmark.OriginalAuthor, bookmark.ID)
 	SetTagsFor(bookmark.ID, bookmark.Tags)
 }
 
 // GetBookmarkByID returns the bookmark corresponding to the given id, if there is any.
 func GetBookmarkByID(id int) (b types.Bookmark, found bool) {
 	const q = `
-select ID, URL, Title, Description, Visibility, CreationTime, RepostOf from Bookmarks
+select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID from Bookmarks
 where ID = ? and DeletionTime is null
 limit 1;
 `
 	rows := mustQuery(q, id)
 	for rows.Next() {
-		mustScan(rows, &b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RepostOf)
+		mustScan(rows, &b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RepostOf, &b.OriginalAuthor)
 		found = true
 	}
 	return b, found
