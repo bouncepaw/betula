@@ -93,8 +93,8 @@ type RenderedRemoteBookmark struct {
 }
 
 type RemoteBookmarkGroup struct {
-	Date  string
-	Posts []RenderedRemoteBookmark
+	Date      string
+	Bookmarks []RenderedRemoteBookmark
 }
 
 var remoteCutoff RenderedRemoteBookmark = (func() RenderedRemoteBookmark {
@@ -123,8 +123,8 @@ func GroupRemoteBookmarksByDate(ungroupedBookmarks []RenderedRemoteBookmark) (gr
 		if bookmark.PublishedAt.Format(time.DateOnly) != currentDate {
 			if currentBookmarks != nil {
 				groupedBookmarks = append(groupedBookmarks, RemoteBookmarkGroup{
-					Date:  currentDate,
-					Posts: currentBookmarks,
+					Date:      currentDate,
+					Bookmarks: currentBookmarks,
 				})
 			}
 			currentDate = bookmark.PublishedAt.Format(time.DateOnly)
