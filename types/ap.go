@@ -115,19 +115,19 @@ func GroupRemoteBookmarksByDate(ungroupedBookmarks []RenderedRemoteBookmark) (gr
 	ungroupedBookmarks = append(ungroupedBookmarks, remoteCutoff)
 
 	var (
-		currentDate      time.Time
+		currentDate      string
 		currentBookmarks []RenderedRemoteBookmark
 	)
 
 	for _, bookmark := range ungroupedBookmarks {
-		if bookmark.PublishedAt != currentDate {
+		if bookmark.PublishedAt.Format(time.DateOnly) != currentDate {
 			if currentBookmarks != nil {
 				groupedBookmarks = append(groupedBookmarks, RemoteBookmarkGroup{
-					Date:  currentDate.Format(DateLayout),
+					Date:  currentDate,
 					Posts: currentBookmarks,
 				})
 			}
-			currentDate = bookmark.PublishedAt
+			currentDate = bookmark.PublishedAt.Format(time.DateOnly)
 			currentBookmarks = nil
 		}
 

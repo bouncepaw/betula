@@ -512,22 +512,8 @@ type dataRepostsOf struct {
 }
 
 func getRepostsOf(w http.ResponseWriter, rq *http.Request) {
-	id, ok := extractBookmarkID(w, rq)
+	bookmark, ok := extractBookmark(w, rq)
 	if !ok {
-		return
-	}
-
-	bookmark, found := db.GetBookmarkByID(id)
-	if !found {
-		log.Printf("Did not find bookmark no. %d\n", id)
-		handlerNotFound(w, rq)
-		return
-	}
-
-	authed := auth.AuthorizedFromRequest(rq)
-	if bookmark.Visibility == types.Private && !authed {
-		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-		handlerUnauthorized(w, rq)
 		return
 	}
 
@@ -539,11 +525,11 @@ func getRepostsOf(w http.ResponseWriter, rq *http.Request) {
 	}
 	templateExec(w, rq, templateRepostsFor, dataRepostsOf{
 		dataCommon: emptyCommon(),
-		Bookmark:   bookmark,
+		Bookmark:   *bookmark,
 		Reposts:    reposts,
 	})
 
-	log.Printf("Show %d reposts for bookmark no. %d\n", len(reposts), id)
+	log.Printf("Show %d reposts for bookmark no. %d\n", len(reposts), bookmark.ID)
 }
 
 type dataRepost struct {
@@ -855,28 +841,12 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 }
 
 func getText(w http.ResponseWriter, rq *http.Request) {
-	// TODO: shorten
-	id, ok := extractBookmarkID(w, rq)
+	bookmark, ok := extractBookmark(w, rq)
 	if !ok {
 		return
 	}
 
-	bookmark, found := db.GetBookmarkByID(id)
-	if !found {
-		log.Printf("Did not find bookmark no. %d\n", id)
-		handlerNotFound(w, rq)
-		return
-	}
-
-	visibility := bookmark.Visibility
-	authed := auth.AuthorizedFromRequest(rq)
-	if visibility == types.Private && !authed {
-		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-		handlerUnauthorized(w, rq)
-		return
-	}
-
-	log.Printf("Fetching text for bookmark no. %d\n", id)
+	log.Printf("Fetching text for bookmark no. %d\n", bookmark.ID)
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = io.WriteString(w, bookmark.Description)
@@ -1233,6 +1203,7 @@ type dataEditLink struct {
 }
 
 func redirectEdit(w http.ResponseWriter, rq *http.Request) bool {
+	//  TODO: get rid of that
 	s := strings.TrimPrefix(rq.URL.Path, "/edit-link/")
 	if s == "" {
 		http.Redirect(w, rq, "/save-link", http.StatusSeeOther)
@@ -1246,21 +1217,14 @@ func getEditBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	id, ok := extractBookmarkID(w, rq)
+	bookmark, ok := extractBookmark(w, rq)
 	if !ok {
 		return
 	}
 
-	post, found := db.GetBookmarkByID(id)
-	if !found {
-		log.Printf("Trying to edit post no. %d that does not exist. %d.\n", id, http.StatusNotFound)
-		handlerNotFound(w, rq)
-		return
-	}
-
-	post.Tags = db.TagsForBookmarkByID(id)
+	bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
 	templateExec(w, rq, templateEditLink, dataEditLink{
-		Bookmark:   post,
+		Bookmark:   *bookmark,
 		dataCommon: commonWithAutoCompletion(),
 	})
 	return
@@ -1271,74 +1235,67 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	id, ok := extractBookmarkID(w, rq)
+	bookmark, ok := extractBookmark(w, rq)
 	if !ok {
-		return
-	}
-
-	post, found := db.GetBookmarkByID(id)
-	if !found {
-		log.Printf("Trying to edit post no. %d that does not exist. %d.\n", id, http.StatusNotFound)
-		handlerNotFound(w, rq)
 		return
 	}
 
 	common := commonWithAutoCompletion()
 
-	oldVisibility := post.Visibility
+	oldVisibility := bookmark.Visibility
 
 	if rq.Method == http.MethodGet {
-		post.Tags = db.TagsForBookmarkByID(id)
+		bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
 		templateExec(w, rq, templateEditLink, dataEditLink{
-			Bookmark:   post,
+			Bookmark:   *bookmark,
 			dataCommon: common,
 		})
 		return
 	}
 
-	post.URL = rq.FormValue("url")
-	post.Title = rq.FormValue("title")
-	post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
-	post.Description = rq.FormValue("description")
-	post.Tags = types.SplitTags(rq.FormValue("tags"))
+	bookmark.URL = rq.FormValue("url")
+	bookmark.Title = rq.FormValue("title")
+	bookmark.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
+	bookmark.Description = rq.FormValue("description")
+	bookmark.Tags = types.SplitTags(rq.FormValue("tags"))
 
 	var viewData dataEditLink
 
-	if post.URL == "" && post.Title == "" {
-		viewData.emptyUrl(post, common, w, rq)
+	if bookmark.URL == "" && bookmark.Title == "" {
+		viewData.emptyUrl(*bookmark, common, w, rq)
 		return
 	}
 
-	mixUpTitleLink(&post.Title, &post.URL)
+	mixUpTitleLink(&bookmark.Title, &bookmark.URL)
 
-	if post.URL == "" {
-		viewData.emptyUrl(post, common, w, rq)
+	if bookmark.URL == "" {
+		viewData.emptyUrl(*bookmark, common, w, rq)
 		return
 	}
 
-	if post.Title == "" {
-		if _, err := url.ParseRequestURI(post.URL); err != nil {
-			viewData.invalidUrl(post, common, w, rq)
+	if bookmark.Title == "" {
+		if _, err := url.ParseRequestURI(bookmark.URL); err != nil {
+			viewData.invalidUrl(*bookmark, common, w, rq)
 			return
 		}
-		newTitle, err := readpage.FindTitle(post.URL)
+		newTitle, err := readpage.FindTitle(bookmark.URL)
 		if err != nil {
-			log.Printf("Can't get HTML title from URL: %s\n", post.URL)
-			viewData.titleNotFound(post, common, w, rq)
+			log.Printf("Can't get HTML title from URL: %s\n", bookmark.URL)
+			viewData.titleNotFound(*bookmark, common, w, rq)
 			return
 		}
-		post.Title = newTitle
+		bookmark.Title = newTitle
 	}
 
-	if _, err := url.ParseRequestURI(post.URL); err != nil {
-		log.Printf("Invalid URL was passed, asking again: %s\n", post.URL)
-		viewData.invalidUrl(post, common, w, rq)
+	if _, err := url.ParseRequestURI(bookmark.URL); err != nil {
+		log.Printf("Invalid URL was passed, asking again: %s\n", bookmark.URL)
+		viewData.invalidUrl(*bookmark, common, w, rq)
 		return
 	}
 
-	db.EditBookmark(post)
-	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
-	log.Printf("Edited post no. %d\n", id)
+	db.EditBookmark(*bookmark)
+	http.Redirect(w, rq, fmt.Sprintf("/%d", bookmark.ID), http.StatusSeeOther)
+	log.Printf("Edited bookmark no. %d\n", bookmark.ID)
 
 	if settings.FederationEnabled() {
 		go func(post types.Bookmark, oldVisibility types.Visibility) {
@@ -1381,7 +1338,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 				return
 			}
 			jobs.ScheduleDatum(jobtype.SendUpdateNote, data)
-		}(post, oldVisibility)
+		}(*bookmark, oldVisibility)
 	}
 }
 
@@ -1655,23 +1612,9 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 }
 
 func getGo(w http.ResponseWriter, rq *http.Request) {
-	id, ok := extractBookmarkID(w, rq)
+	bookmark, ok := extractBookmark(w, rq)
 	if !ok {
 		return
 	}
-
-	var (
-		authed      = auth.AuthorizedFromRequest(rq)
-		post, found = db.GetBookmarkByID(id)
-	)
-	switch {
-	case !found:
-		log.Printf("%d: %s\n", http.StatusNotFound, rq.URL.Path)
-		handlerNotFound(w, rq)
-	case !authed && post.Visibility == types.Private:
-		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
-		handlerUnauthorized(w, rq)
-	default:
-		http.Redirect(w, rq, post.URL, http.StatusSeeOther)
-	}
+	http.Redirect(w, rq, bookmark.URL, http.StatusSeeOther)
 }

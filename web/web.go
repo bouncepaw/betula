@@ -99,7 +99,7 @@ func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, 
 
 	bookmark, found := db.GetBookmarkByID(id)
 	if !found {
-		log.Printf("Bookmark no. %d not found\n", id)
+		log.Printf("%s: bookmark no. %d not found\n", rq.URL.Path, id)
 		handlerNotFound(w, rq)
 		return nil, false
 	}
