@@ -1,4 +1,4 @@
-{{define "authorized post card"}}
+{{define "authorized bookmark card"}}
 	<article class="h-entry">
 		<div class="card-line">
 			{{if .RepostOf}}<a href="{{.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
@@ -27,7 +27,7 @@
 {{end}}
 
 	{{/* Same as above, but no edit link and visibility marker */}}
-{{define "unauthorized post card"}}
+{{define "unauthorized bookmark card"}}
 	<article class="h-entry">
 		<div class="card-line">
 			{{if .RepostOf}}<a href="{{.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}

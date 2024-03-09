@@ -1,10 +1,10 @@
 {{define "remote bookmarks paginated"}}
     {{range .BookmarkGroupsInPage}}
         <h3 class="date-heading">{{.Date}}</h3>
-        {{range .Posts}}
+        {{range .Bookmarks}}
             <article class="h-entry">
                 <div class="card-line">
-                    <a href="/{{.AuthorAcct}}">{{.AuthorDisplayedName}}</a> {{if .RepostOf.Valid}}<a href="{{.ID}}" class="u-repost-of">reposted</a>{{else}}<a href="{{.ID}}">posted</a>{{end}}
+                    <a href="/{{.AuthorAcct}}">{{.AuthorDisplayedName}}</a> {{if .RepostOf.Valid}}<a href="{{.ID}}" class="u-repost-of">reposted</a>{{else}}<a href="{{.ID}}">bookmarked</a>{{end}}
                     <button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
                     <a href="/repost?url={{.ID}}" class="float-right" target="_blank">Repost</a>
                 </div>

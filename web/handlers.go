@@ -247,7 +247,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 
 		This endpoint is available in both HTML and Activity form.
 
-			* The HTML form shows what you expect. Some posts in the future, maybe. Available for both local profile and remote profiles.
+			* The HTML form shows what you expect. Some bookmarks in the future, maybe. Available for both local profile and remote profiles.
 			* The Activity form shows the Actor object. Available for the local profile only.
 	*/
 	var (
@@ -517,21 +517,21 @@ func getRepostsOf(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	post, found := db.GetBookmarkByID(id)
+	bookmark, found := db.GetBookmarkByID(id)
 	if !found {
-		log.Printf("Did not find post no. %d\n", id)
+		log.Printf("Did not find bookmark no. %d\n", id)
 		handlerNotFound(w, rq)
 		return
 	}
 
 	authed := auth.AuthorizedFromRequest(rq)
-	if post.Visibility == types.Private && !authed {
+	if bookmark.Visibility == types.Private && !authed {
 		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
 		handlerUnauthorized(w, rq)
 		return
 	}
 
-	reposts, err := db.RepostsOf(post.ID)
+	reposts, err := db.RepostsOf(bookmark.ID)
 	if err != nil {
 		// time parsing issues! whatever
 		handlerNotFound(w, rq)
@@ -539,11 +539,11 @@ func getRepostsOf(w http.ResponseWriter, rq *http.Request) {
 	}
 	templateExec(w, rq, templateRepostsFor, dataRepostsOf{
 		dataCommon: emptyCommon(),
-		Bookmark:   post,
+		Bookmark:   bookmark,
 		Reposts:    reposts,
 	})
 
-	log.Printf("Show %d reposts for post no. %d\n", len(reposts), id)
+	log.Printf("Show %d reposts for bookmark no. %d\n", len(reposts), id)
 }
 
 type dataRepost struct {
@@ -812,9 +812,9 @@ func getStyle(w http.ResponseWriter, rq *http.Request) {
 
 type dataSearch struct {
 	*dataCommon
-	Query            string
-	TotalPosts       uint
-	PostGroupsInPage []types.LocalBookmarkGroup
+	Query                string
+	TotalBookmarks       uint
+	BookmarkGroupsInPage []types.LocalBookmarkGroup
 }
 
 var tagOnly = regexp.MustCompile(`^#([^?!:#@<>*|'"&%{}\\\s]+)\s*$`)
@@ -840,34 +840,35 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 
 	authed := auth.AuthorizedFromRequest(rq)
 	currentPage := extractPage(rq)
-	posts, totalPosts := search.For(query, authed, currentPage)
+	bookmarks, totalBookmarks := search.For(query, authed, currentPage)
 
 	common := emptyCommon()
-	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
+	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalBookmarks)
 	common.searchQuery = query
 	log.Printf("Searching ‘%s’. Authorized: %v\n", query, authed)
 	templateExec(w, rq, templateSearch, dataSearch{
-		dataCommon:       common,
-		Query:            query,
-		PostGroupsInPage: types.GroupLocalBookmarksByDate(posts),
-		TotalPosts:       totalPosts,
+		dataCommon:           common,
+		Query:                query,
+		BookmarkGroupsInPage: types.GroupLocalBookmarksByDate(bookmarks),
+		TotalBookmarks:       totalBookmarks,
 	})
 }
 
 func getText(w http.ResponseWriter, rq *http.Request) {
+	// TODO: shorten
 	id, ok := extractBookmarkID(w, rq)
 	if !ok {
 		return
 	}
 
-	post, found := db.GetBookmarkByID(id)
+	bookmark, found := db.GetBookmarkByID(id)
 	if !found {
-		log.Printf("Did not find post no. %d\n", id)
+		log.Printf("Did not find bookmark no. %d\n", id)
 		handlerNotFound(w, rq)
 		return
 	}
 
-	visibility := post.Visibility
+	visibility := bookmark.Visibility
 	authed := auth.AuthorizedFromRequest(rq)
 	if visibility == types.Private && !authed {
 		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
@@ -875,10 +876,10 @@ func getText(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	log.Printf("Fetching text for post no. %d\n", id)
+	log.Printf("Fetching text for bookmark no. %d\n", id)
 
 	w.WriteHeader(http.StatusOK)
-	_, _ = io.WriteString(w, post.Description)
+	_, _ = io.WriteString(w, bookmark.Description)
 }
 
 func writeFeed(fd *rss.Feed, w http.ResponseWriter) {
@@ -950,6 +951,7 @@ func getSettings(w http.ResponseWriter, rq *http.Request) {
 	})
 	return
 }
+
 func postSettings(w http.ResponseWriter, rq *http.Request) {
 	isFirstRun := rq.FormValue("first-run") == "true"
 	var newSettings = types.Settings{
@@ -1000,10 +1002,10 @@ func postDeleteBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	post, found := db.GetBookmarkByID(id)
+	bookmark, found := db.GetBookmarkByID(id)
 
 	if !found {
-		log.Println("Trying to delete a non-existent post.")
+		log.Println("Trying to delete a non-existent bookmark.")
 		handlerNotFound(w, rq)
 		return
 	}
@@ -1012,17 +1014,17 @@ func postDeleteBookmark(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
 
 	if settings.FederationEnabled() {
-		go func(post types.Bookmark) {
-			if post.Visibility != types.Public {
+		go func(bookmark types.Bookmark) {
+			if bookmark.Visibility != types.Public {
 				return
 			}
-			data, err := activities.DeleteNote(post.ID)
+			data, err := activities.DeleteNote(bookmark.ID)
 			if err != nil {
-				log.Printf("When creating Delete{Note} activity for post no. %d: %s\n", id, err)
+				log.Printf("When creating Delete{Note} activity for bookmark no. %d: %s\n", id, err)
 				return
 			}
 			jobs.ScheduleDatum(jobtype.SendDeleteNote, data)
-		}(post)
+		}(bookmark)
 	}
 }
 
@@ -1136,8 +1138,8 @@ func handlerTags(w http.ResponseWriter, rq *http.Request) {
 type dataTag struct {
 	*dataCommon
 	types.Tag
-	TotalPosts       uint
-	PostGroupsInPage []types.LocalBookmarkGroup
+	TotalBookmarks       uint
+	BookmarkGroupsInPage []types.LocalBookmarkGroup
 }
 
 func getTag(w http.ResponseWriter, rq *http.Request) {
@@ -1145,19 +1147,19 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 	currentPage := extractPage(rq)
 	authed := auth.AuthorizedFromRequest(rq)
 
-	posts, totalPosts := db.BookmarksWithTag(authed, tagName, currentPage)
+	bookmarks, totalBookmarks := db.BookmarksWithTag(authed, tagName, currentPage)
 
 	common := emptyCommon()
 	common.searchQuery = "#" + tagName
-	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
+	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalBookmarks)
 	templateExec(w, rq, templateTag, dataTag{
 		Tag: types.Tag{
 			Name:        tagName,
 			Description: db.DescriptionForTag(tagName),
 		},
-		PostGroupsInPage: types.GroupLocalBookmarksByDate(posts),
-		TotalPosts:       totalPosts,
-		dataCommon:       common,
+		BookmarkGroupsInPage: types.GroupLocalBookmarksByDate(bookmarks),
+		TotalBookmarks:       totalBookmarks,
+		dataCommon:           common,
 	})
 }
 
@@ -1200,20 +1202,20 @@ func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 
 	if settings.FederationEnabled() {
 		go func(id int) {
-			// the handler never modifies the post visibility, so we don't care about the past, so we only look at the current value
-			post, found := db.GetBookmarkByID(id)
+			// the handler never modifies the bookmark visibility, so we don't care about the past, so we only look at the current value
+			bookmark, found := db.GetBookmarkByID(id)
 			if !found {
-				log.Printf("When federating bookmark no. %d: bookmark not found\n", post.ID)
+				log.Printf("When federating bookmark no. %d: bookmark not found\n", bookmark.ID)
 				return
 			}
-			if post.Visibility != types.Public {
+			if bookmark.Visibility != types.Public {
 				return
 			}
 
-			// The post remains public
-			data, err := activities.UpdateNote(post)
+			// The bookmark remains public
+			data, err := activities.UpdateNote(bookmark)
 			if err != nil {
-				log.Printf("When creating Update{Note} activity for post no. %d: %s\n", post.ID, err)
+				log.Printf("When creating Update{Note} activity for bookmark no. %d: %s\n", bookmark.ID, err)
 				return
 			}
 			jobs.ScheduleDatum(jobtype.SendUpdateNote, data)
@@ -1474,29 +1476,23 @@ type dataSaveLink struct {
 	types.Bookmark
 	Another bool
 
-	// The following three fields can be non-empty, when set through URL parameters or when an erroneous request was made.
+	// The following three fields can be non-empty, when an erroneous request was made.
 	ErrorEmptyURL      bool
 	ErrorInvalidURL    bool
 	ErrorTitleNotFound bool
 }
 
-func commonWithAutoCompletion() *dataCommon {
-	common := emptyCommon()
-	common.head = `<script defer src="/static/autocompletion.js"></script>`
-	return common
-}
-
 func getSaveBookmark(w http.ResponseWriter, rq *http.Request) {
-	var post types.Bookmark
+	var bookmark types.Bookmark
 
-	post.URL = rq.FormValue("url")
-	post.Title = rq.FormValue("title")
-	post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
-	post.Description = rq.FormValue("description")
-	post.Tags = types.SplitTags(rq.FormValue("tags"))
+	bookmark.URL = rq.FormValue("url")
+	bookmark.Title = rq.FormValue("title")
+	bookmark.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
+	bookmark.Description = rq.FormValue("description")
+	bookmark.Tags = types.SplitTags(rq.FormValue("tags"))
 	// TODO: Document the param behaviour
 	templateExec(w, rq, templateSaveLink, dataSaveLink{
-		Bookmark:   post,
+		Bookmark:   bookmark,
 		dataCommon: commonWithAutoCompletion(),
 	})
 	return
@@ -1504,48 +1500,48 @@ func getSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 
 func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 	var viewData dataSaveLink
-	var post types.Bookmark
+	var bookmark types.Bookmark
 
 	common := commonWithAutoCompletion()
 
-	post.URL = rq.FormValue("url")
-	post.Title = rq.FormValue("title")
-	post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
-	post.Description = rq.FormValue("description")
-	post.Tags = types.SplitTags(rq.FormValue("tags"))
+	bookmark.URL = rq.FormValue("url")
+	bookmark.Title = rq.FormValue("title")
+	bookmark.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
+	bookmark.Description = rq.FormValue("description")
+	bookmark.Tags = types.SplitTags(rq.FormValue("tags"))
 
-	if post.URL == "" && post.Title == "" {
-		viewData.emptyUrl(post, common, w, rq)
+	if bookmark.URL == "" && bookmark.Title == "" {
+		viewData.emptyUrl(bookmark, common, w, rq)
 		return
 	}
 
-	mixUpTitleLink(&post.Title, &post.URL)
+	mixUpTitleLink(&bookmark.Title, &bookmark.URL)
 
-	if post.URL == "" {
-		viewData.emptyUrl(post, common, w, rq)
+	if bookmark.URL == "" {
+		viewData.emptyUrl(bookmark, common, w, rq)
 		return
 	}
 
-	if post.Title == "" {
-		if _, err := url.ParseRequestURI(post.URL); err != nil {
-			viewData.invalidUrl(post, common, w, rq)
+	if bookmark.Title == "" {
+		if _, err := url.ParseRequestURI(bookmark.URL); err != nil {
+			viewData.invalidUrl(bookmark, common, w, rq)
 			return
 		}
-		newTitle, err := readpage.FindTitle(post.URL)
+		newTitle, err := readpage.FindTitle(bookmark.URL)
 		if err != nil {
-			viewData.titleNotFound(post, common, w, rq)
+			viewData.titleNotFound(bookmark, common, w, rq)
 			return
 		}
-		post.Title = newTitle
+		bookmark.Title = newTitle
 	}
 
-	if _, err := url.ParseRequestURI(post.URL); err != nil {
-		viewData.invalidUrl(post, common, w, rq)
+	if _, err := url.ParseRequestURI(bookmark.URL); err != nil {
+		viewData.invalidUrl(bookmark, common, w, rq)
 		return
 	}
 
-	id := db.InsertBookmark(post)
-	post.ID = int(id)
+	id := db.InsertBookmark(bookmark)
+	bookmark.ID = int(id)
 
 	another := rq.FormValue("another")
 	if another == "true" {
@@ -1562,18 +1558,18 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 
 	if settings.FederationEnabled() {
-		go func(post types.Bookmark) {
-			if post.Visibility != types.Public {
+		go func(bookmark types.Bookmark) {
+			if bookmark.Visibility != types.Public {
 				return
 			}
-			post.CreationTime = time.Now().Format(types.TimeLayout) // It shall match the one generated in DB
-			data, err := activities.CreateNote(post)
+			bookmark.CreationTime = time.Now().Format(types.TimeLayout) // It shall match the one generated in DB
+			data, err := activities.CreateNote(bookmark)
 			if err != nil {
 				log.Printf("When creating Create{Note} activity for post no. %d: %s\n", id, err)
 				return
 			}
 			jobs.ScheduleDatum(jobtype.SendCreateNote, data)
-		}(post)
+		}(bookmark)
 	}
 }
 
@@ -1603,38 +1599,38 @@ func getBookmarkFedi(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-type dataPost struct {
-	Post        types.Bookmark
+type dataBookmark struct {
+	Bookmark    types.Bookmark
 	RepostCount int
 	*dataCommon
 }
 
 func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
-	post, ok := extractBookmark(w, rq)
+	bookmark, ok := extractBookmark(w, rq)
 	if !ok {
 		return
 	}
-	log.Printf("Get bookmark page no. %d\n", post.ID)
+	log.Printf("Get bookmark page no. %d\n", bookmark.ID)
 
 	common := emptyCommon()
-	common.head = template.HTML(fmt.Sprintf(`<link rel="alternate" type="text/mycomarkup" href="/text/%d">`, post.ID))
-	if post.RepostOf == nil {
+	common.head = template.HTML(fmt.Sprintf(`<link rel="alternate" type="text/mycomarkup" href="/text/%d">`, bookmark.ID))
+	if bookmark.RepostOf == nil {
 		common.head += template.HTML(fmt.Sprintf(`
-<link rel="alternate" type="%s" href="/%d"'>`, types.OtherActivityType, post.ID))
+<link rel="alternate" type="%s" href="/%d"'>`, types.OtherActivityType, bookmark.ID))
 	}
 
-	post.Tags = db.TagsForBookmarkByID(post.ID)
-	templateExec(w, rq, templatePost, dataPost{
-		Post:        *post,
-		RepostCount: db.CountRepostsOf(post.ID),
+	bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
+	templateExec(w, rq, templatePost, dataBookmark{
+		Bookmark:    *bookmark,
+		RepostCount: db.CountRepostsOf(bookmark.ID),
 		dataCommon:  common,
 	})
 }
 
 type dataFeed struct {
-	TotalPosts       uint
-	PostGroupsInPage []types.LocalBookmarkGroup
-	SiteDescription  template.HTML
+	TotalBookmarks       uint
+	BookmarkGroupsInPage []types.LocalBookmarkGroup
+	SiteDescription      template.HTML
 	*dataCommon
 }
 
@@ -1647,14 +1643,14 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 `
 
 	currentPage := extractPage(rq)
-	posts, totalPosts := db.Bookmarks(authed, currentPage)
-	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalPosts)
+	bookmarks, totalBookmarks := db.Bookmarks(authed, currentPage)
+	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalBookmarks)
 
 	templateExec(w, rq, templateFeed, dataFeed{
-		TotalPosts:       totalPosts,
-		PostGroupsInPage: types.GroupLocalBookmarksByDate(posts),
-		SiteDescription:  settings.SiteDescriptionHTML(),
-		dataCommon:       common,
+		TotalBookmarks:       totalBookmarks,
+		BookmarkGroupsInPage: types.GroupLocalBookmarksByDate(bookmarks),
+		SiteDescription:      settings.SiteDescriptionHTML(),
+		dataCommon:           common,
 	})
 }
 

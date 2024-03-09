@@ -61,8 +61,8 @@ type Bookmark struct {
 }
 
 type LocalBookmarkGroup struct {
-	Date  string
-	Posts []Bookmark
+	Date      string
+	Bookmarks []Bookmark
 }
 
 // GroupLocalBookmarksByDate groups the bookmarks by date. The dates are strings like 2024-01-10. This function expects the input bookmarks to be sorted by date.
@@ -89,8 +89,8 @@ func GroupLocalBookmarksByDate(ungroupedBookmarks []Bookmark) (groupedBookmarks 
 		if date != currentDate {
 			if currentBookmarks != nil {
 				groupedBookmarks = append(groupedBookmarks, LocalBookmarkGroup{
-					Date:  currentDate,
-					Posts: currentBookmarks,
+					Date:      currentDate,
+					Bookmarks: currentBookmarks,
 				})
 			}
 			currentDate = date

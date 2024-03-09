@@ -8,20 +8,20 @@
 				</a>
 			{{end}}
 			<h2 class="p-name">Tag {{.Name}}</h2>
-			<p><span class="mv-count">{{.TotalPosts}}</span> bookmark{{if ne .TotalPosts 1}}s have{{else}} has{{end}} this tag.</p>
+			<p><span class="mv-count">{{.TotalBookmarks}}</span> bookmark{{if ne .TotalBookmarks 1}}s have{{else}} has{{end}} this tag.</p>
 			<div class="p-summary">{{.Description | mycomarkup}}</div>
 		</article>
-		{{range .PostGroupsInPage}}
+		{{range .BookmarkGroupsInPage}}
 			<h3 class="date-heading"><a href="/day/{{.Date}}">{{.Date}}</a></h3>
-			{{range .Posts}}
+			{{range .Bookmarks}}
 				{{if $authed}}
-					{{template "authorized post card" .}}
+					{{template "authorized bookmark card" .}}
 				{{else}}
-					{{template "unauthorized post card" .}}
+					{{template "unauthorized bookmark card" .}}
 				{{end}}
 			{{end}}
 		{{else}}
-			{{if ne .TotalPosts 0}}
+			{{if ne .TotalBookmarks 0}}
 				<article>
 					Page not found. Choose a page from the paginator below.
 				</article>

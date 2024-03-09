@@ -186,3 +186,9 @@ func (c *dataCommon) Fill(C dataCommon) {
 func emptyCommon() *dataCommon {
 	return &dataCommon{}
 }
+
+func commonWithAutoCompletion() *dataCommon {
+	common := emptyCommon()
+	common.head = `<script defer src="/static/autocompletion.js"></script>`
+	return common
+}

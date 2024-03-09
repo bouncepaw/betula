@@ -1,15 +1,15 @@
-{{define "title"}}Link: {{.Post.Title}}{{end}}
+{{define "title"}}Link: {{.Bookmark.Title}}{{end}}
 {{define "body"}}
 	<main>
 		<article class="post-page h-entry">
 			<div class="card-line">
-				{{if .Post.RepostOf}}<a href="{{.Post.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
-				{{if .RepostCount}}<a class="link-to-reposts" href="/reposts-of/{{.Post.ID}}">{{.RepostCount}} repost{{if gt .RepostCount 1}}s{{end}}</a>{{end}}
-				<a class="u-url" href="/{{.Post.ID}}">{{.Post.ID}}.</a>
-				{{if .Authorized}}<a class="edit-post-link float-right" href="/edit-link/{{.Post.ID}}">Edit</a>{{end}}
-				<button class="dashed-btn float-right" onclick="copyTextElem({{.Post.URL}}, this)">Copy link</button>
+				{{if .Bookmark.RepostOf}}<a href="{{.Bookmark.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
+				{{if .RepostCount}}<a class="link-to-reposts" href="/reposts-of/{{.Bookmark.ID}}">{{.RepostCount}} repost{{if gt .RepostCount 1}}s{{end}}</a>{{end}}
+				<a class="u-url" href="/{{.Bookmark.ID}}">{{.Bookmark.ID}}.</a>
+				{{if .Authorized}}<a class="edit-post-link float-right" href="/edit-link/{{.Bookmark.ID}}">Edit</a>{{end}}
+				<button class="dashed-btn float-right" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy link</button>
 				{{if .Authorized}}
-					{{if .Post.Visibility}}
+					{{if .Bookmark.Visibility}}
 						<span class="post-visibility post-visibility-public float-right">Public</span>
 					{{else}}
 						<span class="post-visibility post-visibility-private float-right">Private</span>
@@ -17,20 +17,20 @@
 				{{end}}
 			</div>
 			
-			<h4 class="p-name"><a class="u-url" href="{{.Post.URL}}">{{.Post.Title}}</a></h4>
-			<a class="u-bookmark-of h-cite" href="{{.Post.URL}}">{{shortenLink .Post.URL}}</a>
+			<h4 class="p-name"><a class="u-url" href="{{.Bookmark.URL}}">{{.Bookmark.Title}}</a></h4>
+			<a class="u-bookmark-of h-cite" href="{{.Bookmark.URL}}">{{shortenLink .Bookmark.URL}}</a>
 
-			{{if .Post.Description}}
+			{{if .Bookmark.Description}}
 				<div class="myco e-content">
-					{{mycomarkup .Post.Description}}
+					{{mycomarkup .Bookmark.Description}}
 				</div>
 			{{end}}
 			<div class="post-tags">
-				{{range $i, $cat := .Post.Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
+				{{range $i, $cat := .Bookmark.Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
 			</div>
-			<a href="/day/{{timestampToDayStamp .Post.CreationTime}}" class="date-link">
-				<time class="dt-published" datetime="{{timestampToHuman .Post.CreationTime}}">
-					{{timestampToHuman .Post.CreationTime}} UTC
+			<a href="/day/{{timestampToDayStamp .Bookmark.CreationTime}}" class="date-link">
+				<time class="dt-published" datetime="{{timestampToHuman .Bookmark.CreationTime}}">
+					{{timestampToHuman .Bookmark.CreationTime}} UTC
 				</time>
 			</a>
 		</article>

@@ -5,9 +5,9 @@
 		<h2 class="p-name"><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s{{end}} for {{.DayStamp}}</h2>
 	</article>
 	{{if .Authorized}}
-		{{range .Bookmarks}}{{template "authorized post card" .}}{{end}}
+		{{range .Bookmarks}}{{template "authorized bookmark card" .}}{{end}}
 	{{else}}
-		{{range .Bookmarks}}{{template "unauthorized post card" .}}{{end}}
+		{{range .Bookmarks}}{{template "unauthorized bookmark card" .}}{{end}}
 	{{end}}
 </main>
 {{end}}

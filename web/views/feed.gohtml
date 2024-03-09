@@ -2,23 +2,23 @@
 {{define "body"}}
 	<main class="h-feed">
 		<article>
-			<h2 class="p-name"><span class="mv-count">{{.TotalPosts}}</span> bookmark{{if ne .TotalPosts 1}}s{{end}}</h2>
-            {{if eq .TotalPosts 0 | and .Authorized}}
+			<h2 class="p-name"><span class="mv-count">{{.TotalBookmarks}}</span> bookmark{{if ne .TotalBookmarks 1}}s{{end}}</h2>
+            {{if eq .TotalBookmarks 0 | and .Authorized}}
 				<div style="margin-top:.5rem"><a class="btn btn-accent" href="/save-link">Save link</a></div>
             {{end}}
 			{{if .SiteDescription}}<p class="p-summary">{{.SiteDescription}}</p>{{end}}
 		</article>{{$authed := .Authorized}}
-        {{range .PostGroupsInPage}}
+        {{range .BookmarkGroupsInPage}}
 			<h3 class="date-heading"><a href="/day/{{.Date}}">{{.Date}}</a></h3>
-			{{range .Posts}}
+			{{range .Bookmarks}}
 				{{if $authed}}
-					{{template "authorized post card" .}}
+					{{template "authorized bookmark card" .}}
 				{{else}}
-					{{template "unauthorized post card" .}}
+					{{template "unauthorized bookmark card" .}}
 				{{end}}
 			{{end}}
 		{{else}}
-			{{if ne .TotalPosts 0}}
+			{{if ne .TotalBookmarks 0}}
 	        <article>Page not found. Choose a page from the paginator below.</article>
 			{{end}}
         {{end}}
