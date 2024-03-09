@@ -332,18 +332,6 @@ func getMyProfile(w http.ResponseWriter, rq *http.Request) {
 	})
 }
 
-type dataSubscribe struct {
-	*dataCommon
-
-	// GET
-	SiteURL string
-
-	// POST results
-	ErrCannotSubscribe bool
-	ErrMessage         string
-	RequestWasSent     bool
-}
-
 func getWebFinger(w http.ResponseWriter, rq *http.Request) {
 	adminUsername := settings.AdminUsername()
 
@@ -1202,21 +1190,7 @@ type dataEditLink struct {
 	ErrorTitleNotFound bool
 }
 
-func redirectEdit(w http.ResponseWriter, rq *http.Request) bool {
-	//  TODO: get rid of that
-	s := strings.TrimPrefix(rq.URL.Path, "/edit-link/")
-	if s == "" {
-		http.Redirect(w, rq, "/save-link", http.StatusSeeOther)
-		return true
-	}
-	return false
-}
-
 func getEditBookmark(w http.ResponseWriter, rq *http.Request) {
-	if redirectEdit(w, rq) {
-		return
-	}
-
 	bookmark, ok := extractBookmark(w, rq)
 	if !ok {
 		return
@@ -1231,10 +1205,6 @@ func getEditBookmark(w http.ResponseWriter, rq *http.Request) {
 }
 
 func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
-	if redirectEdit(w, rq) {
-		return
-	}
-
 	bookmark, ok := extractBookmark(w, rq)
 	if !ok {
 		return
