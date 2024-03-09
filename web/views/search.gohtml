@@ -5,23 +5,7 @@
 		<h2 class="p-name">Search: {{.Query}}</h2>
 		<p><span class="mv-count">{{.TotalBookmarks}}</span> bookmark{{if ne .TotalBookmarks 1}}s{{end}} match the query.</p>
 	</article>
-	{{range .BookmarkGroupsInPage}}
-		<h3 class="date-heading"><a href="/day/{{.Date}}">{{.Date}}</a></h3>
-		{{range .Bookmarks}}
-			{{if $authed}}
-				{{template "authorized post card" .}}
-			{{else}}
-				{{template "unauthorized post card" .}}
-			{{end}}
-		{{end}}
-	{{else}}
-		{{if ne .TotalBookmarks 0}}
-			<article>
-				Page not found. Choose a page from the paginator below.
-			</article>
-		{{end}}
-	{{end}}
-	{{template "paginator" .}}
+	{{template "range bookmark groups + paginator" .}}
 </main>
 <script src="/static/copytext.js"></script>
 {{end}}

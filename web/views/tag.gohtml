@@ -11,23 +11,7 @@
 			<p><span class="mv-count">{{.TotalBookmarks}}</span> bookmark{{if ne .TotalBookmarks 1}}s have{{else}} has{{end}} this tag.</p>
 			<div class="p-summary">{{.Description | mycomarkup}}</div>
 		</article>
-		{{range .BookmarkGroupsInPage}}
-			<h3 class="date-heading"><a href="/day/{{.Date}}">{{.Date}}</a></h3>
-			{{range .Bookmarks}}
-				{{if $authed}}
-					{{template "authorized bookmark card" .}}
-				{{else}}
-					{{template "unauthorized bookmark card" .}}
-				{{end}}
-			{{end}}
-		{{else}}
-			{{if ne .TotalBookmarks 0}}
-				<article>
-					Page not found. Choose a page from the paginator below.
-				</article>
-			{{end}}
-		{{end}}
-		{{template "paginator" .}}
+		{{template "range bookmark groups + paginator" .}}
 	</main>
 	<script src="/static/copytext.js"></script>
 {{end}}

@@ -7,22 +7,8 @@
 				<div style="margin-top:.5rem"><a class="btn btn-accent" href="/save-link">Save link</a></div>
             {{end}}
 			{{if .SiteDescription}}<p class="p-summary">{{.SiteDescription}}</p>{{end}}
-		</article>{{$authed := .Authorized}}
-        {{range .BookmarkGroupsInPage}}
-			<h3 class="date-heading"><a href="/day/{{.Date}}">{{.Date}}</a></h3>
-			{{range .Bookmarks}}
-				{{if $authed}}
-					{{template "authorized bookmark card" .}}
-				{{else}}
-					{{template "unauthorized bookmark card" .}}
-				{{end}}
-			{{end}}
-		{{else}}
-			{{if ne .TotalBookmarks 0}}
-	        <article>Page not found. Choose a page from the paginator below.</article>
-			{{end}}
-        {{end}}
-		{{template "paginator" .}}
+		</article>
+		{{template "range bookmark groups + paginator" .}}
 	</main>
 	<script src="/static/copytext.js"></script>
 {{end}}

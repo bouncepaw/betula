@@ -48,3 +48,19 @@
 		</div>
 	</article>
 {{end}}
+
+{{define "range bookmark groups + paginator"}}{{$authed := .Authorized}}
+	{{- range .BookmarkGroupsInPage -}}
+		<h3 class="date-heading"><a href="/day/{{.Date}}">{{.Date}}</a></h3>
+		{{- if $authed -}}
+			{{range .Bookmarks}}{{template "authorized bookmark card" .}}{{end}}
+		{{- else -}}
+			{{range .Bookmarks}}{{template "unauthorized bookmark card" .}}{{end}}
+		{{- end -}}
+	{{- else -}}
+		{{if ne .TotalBookmarks 0}}
+			<article>Page not found. Choose a page from the paginator below.</article>
+		{{end}}
+	{{- end -}}
+	{{template "paginator" .}}
+{{end}}
