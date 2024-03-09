@@ -118,26 +118,12 @@ func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, 
 
 // returns id, found
 func extractBookmarkID(w http.ResponseWriter, rq *http.Request) (int, bool) {
-	parts := strings.Split(rq.URL.Path, "/")
-
-	var id int
-	var err error
-	if len(parts) == 2 {
-		id, err = strconv.Atoi(parts[1])
-	} else if len(parts) == 3 {
-		id, err = strconv.Atoi(parts[2])
-	} else {
-		handlerNotFound(w, rq)
-		log.Printf("Extracting bookmark no. from %s: wrong format\n", rq.URL.Path)
-		return 0, false
-	}
-
+	id, err := strconv.Atoi(rq.PathValue("id"))
 	if err != nil {
 		log.Printf("Extracting bookmark no. from %s: wrong format\n", rq.URL.Path)
 		handlerNotFound(w, rq)
 		return 0, false
 	}
-
 	return id, true
 }
 
@@ -166,22 +152,15 @@ func federatedOnly(next func(http.ResponseWriter, *http.Request)) func(http.Resp
 	}
 }
 
-func postOnly(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, rq *http.Request) {
-		if rq.Method != http.MethodPost {
-			log.Printf("Accessing %s with method %s, which is not POST. 404.\n", rq.URL.Path, rq.Method)
-			handlerNotFound(w, rq)
-			return
-		}
-		next(w, rq)
-	}
-}
-
 func fediverseWebFork(
 	nextFedi func(http.ResponseWriter, *http.Request),
 	nextWeb func(http.ResponseWriter, *http.Request),
 ) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, rq *http.Request) {
+		if strings.HasPrefix(rq.URL.Path, "/@") {
+			handlerAt(w, rq)
+			return
+		}
 		wantsActivity := strings.Contains(rq.Header.Get("Accept"), types.ActivityType) || strings.Contains(rq.Header.Get("Accept"), types.OtherActivityType)
 		if wantsActivity && nextFedi != nil {
 			federatedOnly(nextFedi)(w, rq)

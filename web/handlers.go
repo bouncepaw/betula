@@ -41,55 +41,78 @@ var (
 )
 
 func init() {
-	mux.HandleFunc("/", getIndex)
-	mux.HandleFunc("/reposts-of/", getRepostsOf)
-	mux.HandleFunc("/help/en/", getEnglishHelp)
-	mux.HandleFunc("/help", getHelp)
-	mux.HandleFunc("/text/", getText)
-	mux.HandleFunc("/digest-rss", getDigestRss)
-	mux.HandleFunc("/posts-rss", getPostsRss)
-	mux.HandleFunc("/go/", getGo)
-	mux.HandleFunc("/about", getAbout)
-	mux.HandleFunc("/tag/", getTag)
-	mux.HandleFunc("/day/", getDay)
-	mux.HandleFunc("/search", getSearch)
-	mux.HandleFunc("/static/style.css", getStyle)
+	mux.HandleFunc("/", handlerNotFound)
 
-	mux.HandleFunc("/register", postOnly(postRegister))
-	mux.HandleFunc("/login", handlerLogin)
-	mux.HandleFunc("/logout", handlerLogout)
-	mux.HandleFunc("/settings", adminOnly(handlerSettings))
-	mux.HandleFunc("/bookmarklet", adminOnly(getBookmarklet))
+	mux.HandleFunc("GET /{$}", getIndex)
+	mux.HandleFunc("GET /{id}", fediverseWebFork(getBookmarkFedi, getBookmarkWeb))
+
+	mux.HandleFunc("GET /reposts-of/{id}", getRepostsOf)
+	mux.HandleFunc("GET /help/en/", getEnglishHelp)
+	mux.HandleFunc("GET /help", getHelp)
+	mux.HandleFunc("GET /text/{id}", getText)
+	mux.HandleFunc("GET /digest-rss", getDigestRss)
+	mux.HandleFunc("GET /posts-rss", getPostsRss)
+	mux.HandleFunc("GET /go/{id}", getGo)
+	mux.HandleFunc("GET /about", getAbout)
+
+	mux.HandleFunc("GET /tag", handlerTags)
+	mux.HandleFunc("GET /tag/{name}", getTag)
+
+	mux.HandleFunc("GET /day/{dayStamp}", getDay)
+	mux.HandleFunc("GET /search", getSearch)
+	mux.HandleFunc("GET /static/style.css", getStyle)
+
+	mux.HandleFunc("POST /register", postRegister)
+
+	mux.HandleFunc("GET /login", getLogin)
+	mux.HandleFunc("POST /login", postLogin)
+
+	mux.HandleFunc("GET /logout", getLogout)
+	mux.HandleFunc("POST /logout", postLogout)
+
+	mux.HandleFunc("GET /settings", adminOnly(getSettings))
+	mux.HandleFunc("POST /settings", adminOnly(postSettings))
+
+	mux.HandleFunc("GET /bookmarklet", adminOnly(getBookmarklet))
 
 	// Create & Modify
-	mux.HandleFunc("/repost", adminOnly(handlerRepost))
-	mux.HandleFunc("/unrepost/", adminOnly(postOnly(postUnrepost)))
-	mux.HandleFunc("/save-link", adminOnly(handlerSaveBookmark))
-	mux.HandleFunc("/edit-link/", adminOnly(handlerEditBookmark))
-	mux.HandleFunc("/edit-link-tags/", adminOnly(postOnly(postEditBookmarkTags)))
-	mux.HandleFunc("/delete-link/", adminOnly(postOnly(postDeleteBookmark)))
-	mux.HandleFunc("/edit-tag/", adminOnly(handlerEditTag))
-	mux.HandleFunc("/delete-tag/", adminOnly(postOnly(postDeleteTag)))
+	mux.HandleFunc("GET /repost", adminOnly(getRepost))
+	mux.HandleFunc("POST /repost", adminOnly(postRepost))
+
+	mux.HandleFunc("POST /unrepost/{id}", adminOnly(postUnrepost))
+
+	mux.HandleFunc("GET /save-link", adminOnly(getSaveBookmark))
+	mux.HandleFunc("POST /save-link", adminOnly(postSaveBookmark))
+
+	mux.HandleFunc("GET /edit-link/{id}", adminOnly(getEditBookmark))
+	mux.HandleFunc("POST /edit-link/{id}", adminOnly(postEditBookmark))
+
+	mux.HandleFunc("POST /edit-link-tags/{id}", adminOnly(postEditBookmarkTags))
+	mux.HandleFunc("POST /delete-link/{id}", adminOnly(postDeleteBookmark))
+
+	mux.HandleFunc("GET /edit-tag/{name}", adminOnly(getEditTag))
+	mux.HandleFunc("POST /edit-tag/{name}", adminOnly(postEditTag))
+	mux.HandleFunc("POST /delete-tag/{name}", adminOnly(postDeleteTag))
 
 	// Federation interface
-	mux.HandleFunc("/follow", postOnly(adminOnly(federatedOnly(postFollow))))
-	mux.HandleFunc("/unfollow", postOnly(adminOnly(federatedOnly(postUnfollow))))
-	mux.HandleFunc("/following", fediverseWebFork(nil, getFollowingWeb))
-	mux.HandleFunc("/followers", fediverseWebFork(nil, getFollowersWeb))
-	mux.HandleFunc("/timeline", adminOnly(federatedOnly(getTimeline)))
+	mux.HandleFunc("POST /follow", adminOnly(federatedOnly(postFollow)))
+	mux.HandleFunc("POST /unfollow", adminOnly(federatedOnly(postUnfollow)))
+	mux.HandleFunc("GET /following", fediverseWebFork(nil, getFollowingWeb))
+	mux.HandleFunc("GET /followers", fediverseWebFork(nil, getFollowersWeb))
+	mux.HandleFunc("GET /timeline", adminOnly(federatedOnly(getTimeline)))
 
 	// ActivityPub
-	mux.HandleFunc("/inbox", federatedOnly(postOnly(postInbox)))
+	mux.HandleFunc("POST /inbox", federatedOnly(postInbox))
 
 	// NodeInfo
-	mux.HandleFunc("/.well-known/nodeinfo", getWellKnownNodeInfo)
-	mux.HandleFunc("/nodeinfo/2.0", getNodeInfo)
+	mux.HandleFunc("GET /.well-known/nodeinfo", getWellKnownNodeInfo)
+	mux.HandleFunc("GET /nodeinfo/2.0", getNodeInfo)
 
 	// WebFinger
-	mux.HandleFunc("/.well-known/webfinger", federatedOnly(getWebFinger))
+	mux.HandleFunc("GET /.well-known/webfinger", federatedOnly(getWebFinger))
 
 	// Static files
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 }
 
 type dataTimeline struct {
@@ -538,19 +561,21 @@ type dataRepost struct {
 	CopyTags   bool
 }
 
-func handlerRepost(w http.ResponseWriter, rq *http.Request) {
-	formData := dataRepost{
+func repostFormData(rq *http.Request) dataRepost {
+	return dataRepost{
 		dataCommon: emptyCommon(),
 		URL:        rq.FormValue("url"),
 		Visibility: types.VisibilityFromString(rq.FormValue("visibility")),
 		CopyTags:   rq.FormValue("copy-tags") == "true",
 	}
+}
 
-	if rq.Method == http.MethodGet {
-		templateExec(w, rq, templateRepost, formData)
-		return
-	}
+func getRepost(w http.ResponseWriter, rq *http.Request) {
+	templateExec(w, rq, templateRepost, repostFormData(rq))
+}
 
+func postRepost(w http.ResponseWriter, rq *http.Request) {
+	formData := repostFormData(rq)
 	// Input validation
 	if formData.URL == "" {
 		formData.ErrorEmptyURL = true
@@ -882,7 +907,7 @@ type dataDay struct {
 
 func getDay(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
-	dayStamp := strings.TrimPrefix(rq.URL.Path, "/day/")
+	dayStamp := rq.PathValue("dayStamp")
 	// If no day given, default to today.
 	if dayStamp == "" {
 		now := time.Now()
@@ -906,27 +931,27 @@ type dataSettings struct {
 	RequestHost string
 }
 
-func handlerSettings(w http.ResponseWriter, rq *http.Request) {
+func getSettings(w http.ResponseWriter, rq *http.Request) {
 	isFirstRun := rq.FormValue("first-run") == "true"
-	if rq.Method == http.MethodGet {
-		templateExec(w, rq, templateSettings, dataSettings{
-			Settings: types.Settings{
-				NetworkHost:               settings.NetworkHost(),
-				NetworkPort:               settings.NetworkPort(),
-				SiteName:                  settings.SiteName(),
-				SiteURL:                   settings.SiteURL(),
-				SiteTitle:                 settings.SiteTitle(),
-				SiteDescriptionMycomarkup: settings.SiteDescriptionMycomarkup(),
-				CustomCSS:                 settings.CustomCSS(),
-				FederationEnabled:         settings.FederationEnabled(),
-			},
-			dataCommon:  emptyCommon(),
-			FirstRun:    isFirstRun,
-			RequestHost: rq.Host,
-		})
-		return
-	}
-
+	templateExec(w, rq, templateSettings, dataSettings{
+		Settings: types.Settings{
+			NetworkHost:               settings.NetworkHost(),
+			NetworkPort:               settings.NetworkPort(),
+			SiteName:                  settings.SiteName(),
+			SiteURL:                   settings.SiteURL(),
+			SiteTitle:                 settings.SiteTitle(),
+			SiteDescriptionMycomarkup: settings.SiteDescriptionMycomarkup(),
+			CustomCSS:                 settings.CustomCSS(),
+			FederationEnabled:         settings.FederationEnabled(),
+		},
+		dataCommon:  emptyCommon(),
+		FirstRun:    isFirstRun,
+		RequestHost: rq.Host,
+	})
+	return
+}
+func postSettings(w http.ResponseWriter, rq *http.Request) {
+	isFirstRun := rq.FormValue("first-run") == "true"
 	var newSettings = types.Settings{
 		NetworkHost:               rq.FormValue("network-host"),
 		SiteName:                  rq.FormValue("site-name"),
@@ -1029,14 +1054,14 @@ func handlerNotFederated(w http.ResponseWriter, rq *http.Request) {
 	})
 }
 
-func handlerLogout(w http.ResponseWriter, rq *http.Request) {
-	if rq.Method == http.MethodGet {
-		templateExec(w, rq, templateLogoutForm, dataAuthorized{
-			dataCommon: emptyCommon(),
-		})
-		return
-	}
+func getLogout(w http.ResponseWriter, rq *http.Request) {
+	templateExec(w, rq, templateLogoutForm, dataAuthorized{
+		dataCommon: emptyCommon(),
+	})
+	return
+}
 
+func postLogout(w http.ResponseWriter, rq *http.Request) {
 	auth.LogoutFromRequest(w, rq)
 	// TODO: Redirect to the previous (?) location, whatever it is
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
@@ -1049,14 +1074,14 @@ type dataLogin struct {
 	Incorrect bool
 }
 
-func handlerLogin(w http.ResponseWriter, rq *http.Request) {
-	if rq.Method == http.MethodGet {
-		templateExec(w, rq, templateLoginForm, dataLogin{
-			dataCommon: emptyCommon(),
-		})
-		return
-	}
+func getLogin(w http.ResponseWriter, rq *http.Request) {
+	templateExec(w, rq, templateLoginForm, dataLogin{
+		dataCommon: emptyCommon(),
+	})
+	return
+}
 
+func postLogin(w http.ResponseWriter, rq *http.Request) {
 	var (
 		name = rq.FormValue("name")
 		pass = rq.FormValue("pass")
@@ -1116,11 +1141,7 @@ type dataTag struct {
 }
 
 func getTag(w http.ResponseWriter, rq *http.Request) {
-	tagName := strings.TrimPrefix(rq.URL.Path, "/tag/")
-	if tagName == "" {
-		handlerTags(w, rq)
-		return
-	}
+	tagName := rq.PathValue("name")
 	currentPage := extractPage(rq)
 	authed := auth.AuthorizedFromRequest(rq)
 
@@ -1209,13 +1230,17 @@ type dataEditLink struct {
 	ErrorTitleNotFound bool
 }
 
-func handlerEditBookmark(w http.ResponseWriter, rq *http.Request) {
-	common := emptyCommon()
-	common.head = `<script defer src="/static/autocompletion.js"></script>`
-
+func redirectEdit(w http.ResponseWriter, rq *http.Request) bool {
 	s := strings.TrimPrefix(rq.URL.Path, "/edit-link/")
 	if s == "" {
 		http.Redirect(w, rq, "/save-link", http.StatusSeeOther)
+		return true
+	}
+	return false
+}
+
+func getEditBookmark(w http.ResponseWriter, rq *http.Request) {
+	if redirectEdit(w, rq) {
 		return
 	}
 
@@ -1230,6 +1255,34 @@ func handlerEditBookmark(w http.ResponseWriter, rq *http.Request) {
 		handlerNotFound(w, rq)
 		return
 	}
+
+	post.Tags = db.TagsForBookmarkByID(id)
+	templateExec(w, rq, templateEditLink, dataEditLink{
+		Bookmark:   post,
+		dataCommon: commonWithAutoCompletion(),
+	})
+	return
+}
+
+func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
+	if redirectEdit(w, rq) {
+		return
+	}
+
+	id, ok := extractBookmarkID(w, rq)
+	if !ok {
+		return
+	}
+
+	post, found := db.GetBookmarkByID(id)
+	if !found {
+		log.Printf("Trying to edit post no. %d that does not exist. %d.\n", id, http.StatusNotFound)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	common := commonWithAutoCompletion()
+
 	oldVisibility := post.Visibility
 
 	if rq.Method == http.MethodGet {
@@ -1337,27 +1390,30 @@ type dataEditTag struct {
 	ErrorNonExistent bool
 }
 
-func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
-	oldName := strings.TrimPrefix(rq.URL.Path, "/edit-tag/")
-	oldTag := types.Tag{
+func oldTag(rq *http.Request) types.Tag {
+	oldName := rq.PathValue("name")
+	return types.Tag{
 		Name:        oldName,
 		Description: db.DescriptionForTag(oldName),
 	}
+}
 
-	if rq.Method == http.MethodGet {
-		templateExec(w, rq, templateEditTag, dataEditTag{
-			Tag:        oldTag,
-			dataCommon: emptyCommon(),
-		})
-		return
-	}
+func getEditTag(w http.ResponseWriter, rq *http.Request) {
+	templateExec(w, rq, templateEditTag, dataEditTag{
+		Tag:        oldTag(rq),
+		dataCommon: emptyCommon(),
+	})
+}
 
+func postEditTag(w http.ResponseWriter, rq *http.Request) {
 	var newTag types.Tag
 	newName := types.CanonicalTagName(rq.FormValue("new-name"))
 	newTag.Name = newName
 	newTag.Description = strings.TrimSpace(rq.FormValue("description"))
 
 	merge := rq.FormValue("merge")
+
+	oldTag := oldTag(rq)
 
 	if db.TagExists(newTag.Name) && merge != "true" && newTag.Name != oldTag.Name {
 		log.Printf("Trying to rename a tag %s to a taken name %s.\n", oldTag.Name, newTag.Name)
@@ -1392,7 +1448,7 @@ func handlerEditTag(w http.ResponseWriter, rq *http.Request) {
 }
 
 func postDeleteTag(w http.ResponseWriter, rq *http.Request) {
-	catName := strings.TrimPrefix(rq.URL.Path, "/delete-tag/")
+	catName := rq.PathValue("name")
 	if catName == "" {
 		handlerNotFound(w, rq)
 		return
@@ -1424,26 +1480,33 @@ type dataSaveLink struct {
 	ErrorTitleNotFound bool
 }
 
-func handlerSaveBookmark(w http.ResponseWriter, rq *http.Request) {
+func commonWithAutoCompletion() *dataCommon {
+	common := emptyCommon()
+	common.head = `<script defer src="/static/autocompletion.js"></script>`
+	return common
+}
+
+func getSaveBookmark(w http.ResponseWriter, rq *http.Request) {
+	var post types.Bookmark
+
+	post.URL = rq.FormValue("url")
+	post.Title = rq.FormValue("title")
+	post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
+	post.Description = rq.FormValue("description")
+	post.Tags = types.SplitTags(rq.FormValue("tags"))
+	// TODO: Document the param behaviour
+	templateExec(w, rq, templateSaveLink, dataSaveLink{
+		Bookmark:   post,
+		dataCommon: commonWithAutoCompletion(),
+	})
+	return
+}
+
+func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 	var viewData dataSaveLink
 	var post types.Bookmark
 
-	common := emptyCommon()
-	common.head = `<script defer src="/static/autocompletion.js"></script>`
-
-	if rq.Method == http.MethodGet {
-		post.URL = rq.FormValue("url")
-		post.Title = rq.FormValue("title")
-		post.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
-		post.Description = rq.FormValue("description")
-		post.Tags = types.SplitTags(rq.FormValue("tags"))
-		// TODO: Document the param behaviour
-		templateExec(w, rq, templateSaveLink, dataSaveLink{
-			Bookmark:   post,
-			dataCommon: common,
-		})
-		return
-	}
+	common := commonWithAutoCompletion()
 
 	post.URL = rq.FormValue("url")
 	post.Title = rq.FormValue("title")
@@ -1575,21 +1638,7 @@ type dataFeed struct {
 	*dataCommon
 }
 
-var regexpPost = regexp.MustCompile("^/[0-9]+")
-
 func getIndex(w http.ResponseWriter, rq *http.Request) {
-	if regexpPost.MatchString(rq.URL.Path) {
-		fediverseWebFork(getBookmarkFedi, getBookmarkWeb)(w, rq)
-		return
-	}
-	if strings.HasPrefix(rq.URL.Path, "/@") {
-		handlerAt(w, rq)
-		return
-	}
-	if rq.URL.Path != "/" {
-		handlerNotFound(w, rq)
-		return
-	}
 	authed := auth.AuthorizedFromRequest(rq)
 	common := emptyCommon()
 	common.head = `
