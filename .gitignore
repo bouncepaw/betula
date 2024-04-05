@@ -1,3 +1,4 @@
 betula
 *.betula
 .idea/
+**/.DS_Store
