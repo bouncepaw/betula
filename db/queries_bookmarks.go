@@ -95,6 +95,26 @@ offset (? * (? - 1));
 	return getTagsForManyBookmarks(bookmarks), total
 }
 
+func RandomBookmarks(authorized bool, n uint) (bookmarks []types.Bookmark, total uint) {
+	const q = `
+select * from 
+(
+	select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID 
+	from Bookmarks 
+	where DeletionTime is null and (Visibility = 1 or ?)
+	order by random() limit ?
+)
+order by CreationTime desc;`
+
+	rows := mustQuery(q, authorized, n)
+	for rows.Next() {
+		var bm types.Bookmark
+		mustScan(rows, &bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf, &bm.OriginalAuthor)
+		bookmarks = append(bookmarks, bm)
+	}
+	return getTagsForManyBookmarks(bookmarks), uint(len(bookmarks))
+}
+
 func DeleteBookmark(id int) {
 	mustExec(`update Bookmarks set DeletionTime = current_timestamp where ID = ?`, id)
 }

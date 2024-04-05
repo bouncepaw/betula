@@ -23,7 +23,7 @@ offset (? * (? - 1))
 	}
 
 	// huh up to 64 additional queries??
-	for i, _ := range bookmarks {
+	for i := range bookmarks {
 		rows = mustQuery(`select Name from RemoteTags where BookmarkID = ?`, bookmarks[i].ID)
 		for rows.Next() {
 			var tag types.Tag
@@ -53,7 +53,7 @@ offset (? * (? - 1))
 	}
 
 	// huh up to 64 additional queries??
-	for i, _ := range bookmarks {
+	for i := range bookmarks {
 		rows = mustQuery(`select Name from RemoteTags where BookmarkID = ?`, bookmarks[i].ID)
 		for rows.Next() {
 			var tag types.Tag

@@ -2,7 +2,7 @@
 {{define "body"}}
 	<main class="h-feed">
 		<article>
-			<h2 class="p-name"><span class="mv-count">{{.TotalBookmarks}}</span> bookmark{{if ne .TotalBookmarks 1}}s{{end}}</h2>
+			<h2 class="p-name"><span class="mv-count">{{.TotalBookmarks}}</span> {{if .Random}}random{{end}} bookmark{{if ne .TotalBookmarks 1}}s{{end}}</h2>
             {{if eq .TotalBookmarks 0 | and .Authorized}}
 				<div style="margin-top:.5rem"><a class="btn btn-accent" href="/save-link">Save link</a></div>
             {{end}}

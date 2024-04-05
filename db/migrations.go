@@ -30,7 +30,7 @@ create table Posts (
     Visibility integer check ( Visibility = 0 or Visibility = 1 ),
     CreationTime text not null default current_timestamp,
     DeletionTime text,
-    RepostOf text     
+    RepostOf text
 );
 
 create table TagsToPosts (
@@ -83,7 +83,6 @@ func handleMigrations() {
 		mustExec(schemaV6) // Up to 6
 		curver = 6
 		goto past6 // And newer
-		return
 	}
 
 	// Seems to be update, we're done here.
@@ -354,7 +353,7 @@ create table NewPosts (
     Description text not null,
     Visibility integer check ( Visibility = 0 or Visibility = 1 ),
     CreationTime integer not null default (strftime('%s', 'now')),
-    DeletionTime integer                 
+    DeletionTime integer
 );
 
 insert into NewPosts (ID, URL, Title, Description, Visibility, CreationTime)

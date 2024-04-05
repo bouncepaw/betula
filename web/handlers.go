@@ -43,6 +43,8 @@ var (
 func init() {
 	mux.HandleFunc("/", handlerNotFound)
 
+	mux.HandleFunc("GET /random", getRandom)
+
 	mux.HandleFunc("GET /{$}", getIndex)
 	mux.HandleFunc("GET /{id}", fediverseWebFork(getBookmarkFedi, getBookmarkWeb))
 
@@ -113,6 +115,21 @@ func init() {
 
 	// Static files
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func getRandom(w http.ResponseWriter, rq *http.Request) {
+	authed := auth.AuthorizedFromRequest(rq)
+	common := emptyCommon()
+
+	bookmarks, totalBookmarks := db.RandomBookmarks(authed, 20)
+
+	templateExec(w, rq, templateFeed, dataFeed{
+		Random:               true,
+		TotalBookmarks:       totalBookmarks,
+		BookmarkGroupsInPage: types.GroupLocalBookmarksByDate(bookmarks),
+		SiteDescription:      settings.SiteDescriptionHTML(),
+		dataCommon:           common,
+	})
 }
 
 type dataTimeline struct {
@@ -1555,6 +1572,7 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataFeed struct {
+	Random               bool
 	TotalBookmarks       uint
 	BookmarkGroupsInPage []types.LocalBookmarkGroup
 	SiteDescription      template.HTML

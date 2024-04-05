@@ -1,8 +1,9 @@
 package db
 
 import (
-	"git.sr.ht/~bouncepaw/betula/types"
 	"testing"
+
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 func TestBookmarkCount(t *testing.T) {
@@ -22,8 +23,8 @@ func TestAddPost(t *testing.T) {
 	post := types.Bookmark{
 		CreationTime: "2023-03-18",
 		Tags: []types.Tag{
-			types.Tag{Name: "cat"},
-			types.Tag{Name: "dog"},
+			{Name: "cat"},
+			{Name: "dog"},
 		},
 		URL:         "https://betula.mycorrhiza.wiki",
 		Title:       "Betula",
@@ -33,5 +34,32 @@ func TestAddPost(t *testing.T) {
 	InsertBookmark(post)
 	if BookmarkCount(true) != 3 {
 		t.Errorf("Faulty AddPost")
+	}
+}
+
+func TestRandomBookmarks(t *testing.T) {
+	InitInMemoryDB()
+	MoreTestingBookmarks()
+
+	cases := []struct {
+		authorized bool
+		n          uint
+	}{
+		{true, 20},
+		{false, 20},
+	}
+
+	for _, tc := range cases {
+		bookmarks, total := RandomBookmarks(tc.authorized, tc.n)
+		if len(bookmarks) != int(total) {
+			t.Errorf("Length of bookmarks does not match the total count")
+		}
+		creationTime := bookmarks[0].CreationTime
+		for _, bookmark := range bookmarks[1:] {
+			if bookmark.CreationTime > creationTime {
+				t.Errorf("Bookmarks not in correct order")
+			}
+			creationTime = bookmark.CreationTime
+		}
 	}
 }
