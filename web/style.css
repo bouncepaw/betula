@@ -366,7 +366,9 @@ pre {
     .btn:visited,
     input[type="text"], input[type="password"], input[type="submit"],
     ::-webkit-file-upload-button,
-    .confirmation-tick:checked ~ .btn_confirmation-tick {
+    .confirmation-tick:checked ~ .btn_confirmation-tick,
+    .autocompletion-list,
+    .paginator {
         background: #444;
         color: #ddd;
     }
@@ -379,12 +381,20 @@ pre {
     .card-line a,
     nav a,
     nav a:hover,
-    nav a:visited {
+    nav a:visited,
+    .paginator-entry {
         color: #ddd;
         text-decoration: underline;
     }
     .card-line {
         background: #343434;
+    }
+    .autocompletion-list {
+        border: solid 1px #999;
+    }
+    .autocompletion-item:hover,
+    .autocompletion-item.selected {
+        background: #555;
     }
 }
 
@@ -392,7 +402,8 @@ pre {
     html {
         background: rgb(251, 251, 251);
     }
-    main > article {
+    main > article,
+    .autocompletion-list {
         background: white;
     }
 
@@ -427,6 +438,15 @@ pre {
     }
     .confirmation-tick:checked ~ .btn_confirmation-tick {
         background: #eee;
+    }
+
+    .autocompletion-list {
+        border: 1px solid #ccc;
+    }
+
+    .autocompletion-item:hover,
+    .autocompletion-item.selected {
+        background: #ccc;
     }
 }
 
@@ -517,8 +537,6 @@ pre {
     margin: 0;
     padding: 0;
     list-style: none;
-    background: white;
-    border: 1px solid #ccc;
     max-height: 100%;
     overflow-y: auto;
     pointer-events: auto;
@@ -528,11 +546,6 @@ pre {
     list-style: none;
     padding: 0.2em 0.5em;
     cursor: pointer;
-}
-
-.autocompletion-item:hover,
-.autocompletion-item.selected {
-    background: #ccc;
 }
 
 /* Mycomarkup */
