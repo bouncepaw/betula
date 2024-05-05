@@ -52,8 +52,12 @@
 		</article>
 		{{end}}
 		<article>
-			<h2>Delete repost</h2>
-			{{if .RepostOf}}<p>The original bookmark owner will be notified of the repost being removed.</p>{{end}}
+			{{if .RepostOf}}
+                <h2>Delete repost</h2>
+			    <p>The original bookmark owner will be notified of the repost being removed.</p>
+			{{else}}
+                <h2>Delete link</h2>
+			{{end}}
 			<form method="post" action="/delete-link/{{.ID}}">
 				<div>
 					<input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required class="confirmation-tick">
