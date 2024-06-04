@@ -75,6 +75,10 @@ func init() {
 	mux.HandleFunc("GET /settings", adminOnly(getSettings))
 	mux.HandleFunc("POST /settings", adminOnly(postSettings))
 
+	mux.HandleFunc("GET /sessions", adminOnly(getSessions))
+	mux.HandleFunc("POST /delete-session/{token}", adminOnly(deleteSession))
+	mux.HandleFunc("POST /delete-sessions/", adminOnly(deleteSessions))
+
 	mux.HandleFunc("GET /bookmarklet", adminOnly(getBookmarklet))
 
 	// Create & Modify
@@ -1003,6 +1007,41 @@ func postDeleteBookmark(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
+type dataSessions struct {
+	Sessions []types.Session
+	*dataCommon
+}
+
+func getSessions(w http.ResponseWriter, rq *http.Request) {
+	currentToken, err := auth.Token(rq)
+	if err != nil {
+		handlerUnauthorized(w, rq)
+		return
+	}
+	sessions := auth.MarkCurrentSession(currentToken, auth.Sessions())
+	templateExec(w, rq, templateSessions, dataSessions{
+		Sessions:   sessions,
+		dataCommon: emptyCommon(),
+	})
+	return
+}
+
+func deleteSession(w http.ResponseWriter, rq *http.Request) {
+	token := rq.PathValue("token")
+	db.StopSession(token)
+	http.Redirect(w, rq, "/sessions", http.StatusSeeOther)
+}
+
+func deleteSessions(w http.ResponseWriter, rq *http.Request) {
+	token, err := auth.Token(rq)
+	if err != nil {
+		handlerUnauthorized(w, rq)
+		return
+	}
+	db.StopAllSessions(token)
+	http.Redirect(w, rq, "/sessions", http.StatusSeeOther)
+}
+
 func handlerNotFound(w http.ResponseWriter, rq *http.Request) {
 	log.Printf("404 Not found: %s\n", rq.URL.Path)
 	w.WriteHeader(http.StatusNotFound)
@@ -1060,8 +1099,9 @@ func getLogin(w http.ResponseWriter, rq *http.Request) {
 
 func postLogin(w http.ResponseWriter, rq *http.Request) {
 	var (
-		name = rq.FormValue("name")
-		pass = rq.FormValue("pass")
+		name      = rq.FormValue("name")
+		pass      = rq.FormValue("pass")
+		userAgent = rq.Header.Get("User-Agent")
 	)
 
 	if !auth.CredentialsMatch(name, pass) {
@@ -1076,7 +1116,7 @@ func postLogin(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	auth.LogInResponse(w)
+	auth.LogInResponse(userAgent, w)
 	// TODO: Redirect to the previous (?) location, whatever it is
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
@@ -1089,11 +1129,12 @@ func postRegister(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	var (
-		name = rq.FormValue("name")
-		pass = rq.FormValue("pass")
+		name      = rq.FormValue("name")
+		pass      = rq.FormValue("pass")
+		userAgent = rq.Header.Get("User-Agent")
 	)
 	auth.SetCredentials(name, pass)
-	auth.LogInResponse(w)
+	auth.LogInResponse(userAgent, w)
 	http.Redirect(w, rq, "/settings?first-run=true", http.StatusSeeOther)
 }
 

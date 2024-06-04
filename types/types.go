@@ -159,6 +159,13 @@ type Settings struct {
 	FederationEnabled         bool
 }
 
+type Session struct {
+	Token        string
+	CreationTime time.Time
+	UserAgent    string
+	Current      bool
+}
+
 type Page struct {
 	Number    uint
 	URL       string

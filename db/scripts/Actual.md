@@ -11,6 +11,7 @@ Last checked: 2024-02-28
 | 12          | tables Following, Followers, Actors                                           |
 | 13          | tables RemoteBookmarks, RemoteTags                                            |
 | 14          | changes RemoteBookmarks                                                       |
-| 15          | table Bookmarks                                                               | 
+| 15          | table Bookmarks                                                               |
+| 16          | changes Sessions                                                              |
 
 The code for DB versions 1 to 5 never gets executed.

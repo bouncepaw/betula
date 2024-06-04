@@ -4,11 +4,32 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/types"
+	"git.sr.ht/~bouncepaw/betula/tools"
 	"net/http"
 	"time"
 )
 
 const tokenName = "betula-token"
+
+func Token(rq *http.Request) (string, error) {
+	cookie, err := rq.Cookie(tokenName)
+	if err != nil {
+		return "", err
+	}
+	return cookie.Value, nil
+}
+
+func MarkCurrentSession(currentToken string, sessions []types.Session) []types.Session {
+	for i, session := range sessions {
+		if session.Token == currentToken {
+			sessions[i].Current = true
+			tools.MoveElement(sessions, i, 0)
+			return sessions
+		}
+	}
+	return sessions
+}
 
 // AuthorizedFromRequest is true if the user is authorized.
 func AuthorizedFromRequest(rq *http.Request) bool {
@@ -29,10 +50,14 @@ func LogoutFromRequest(w http.ResponseWriter, rq *http.Request) {
 }
 
 // LogInResponse logs such user in and writes a cookie for them.
-func LogInResponse(w http.ResponseWriter) {
+func LogInResponse(userAgent string, w http.ResponseWriter) {
 	token := randomString(24)
-	db.AddSession(token)
+	db.AddSession(token, userAgent)
 	http.SetCookie(w, newCookie(token, time.Now().Add(365*24*time.Hour)))
+}
+
+func Sessions() []types.Session {
+	return db.Sessions()
 }
 
 func randomString(n int) string {

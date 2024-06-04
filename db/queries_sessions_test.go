@@ -6,7 +6,7 @@ import "testing"
 func TestSessionOps(t *testing.T) {
 	InitInMemoryDB()
 	token := pufferfish
-	AddSession(token)
+	AddSession(token, "")
 	if !SessionExists(token) {
 		t.Errorf("Existing token not found")
 	}

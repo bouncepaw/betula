@@ -1,0 +1,42 @@
+{{define "title"}}Sessions{{end}}
+{{define "body"}}
+    <main class="mv-sessions">
+        <article>
+            <h2 class="p-name">Sessions</h2>
+            {{if .Sessions}}
+                <ui>
+                    {{range .Sessions}}
+                        <li class="mv-session">
+                            <p>
+                                {{if .Current}}Current session:<b>{{end}}
+                                {{.UserAgent}} {{.CreationTime | timeToHuman}}
+                                {{if .Current}}</b>{{end}}
+                            </p>
+                            <form method="post" action="/delete-session/{{.Token}}">
+                                <div>
+                                    <input type="submit" value="Delete" class="btn">
+                                </div>
+                            </form>
+                        </li>
+                    {{end}}
+                </ui>
+                </article>
+                {{ $length := len .Sessions }}
+                {{ if gt $length 1 }}
+                <article>
+                    <form method="post" action="/delete-sessions/">
+                        <div>
+                            <input type="checkbox" name="confirmed" id="delete-confirmed" value="true" required
+                                   class="confirmation-tick">
+                            <label for="delete-confirmed">Delete all sessions, but the current one.</label>
+                            <input type="submit" value="Delete all" class="btn btn_confirmation-tick">
+                        </div>
+                    </form>
+                </article>
+                {{end}}
+            {{else}}
+                <p>No active sessions.</p>
+            {{end}}
+        </article>
+    </main>
+{{end}}

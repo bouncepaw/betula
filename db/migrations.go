@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-const expectedVersion = 15
+const expectedVersion = 16
 
 //go:embed scripts/*.sql
 var scripts embed.FS

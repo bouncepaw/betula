@@ -53,6 +53,7 @@ var templateRegisterForm = templateFrom(nil, "register-form")
 var templateLoginForm = templateFrom(nil, "login-form")
 var templateLogoutForm = templateFrom(nil, "logout-form")
 var templateSettings = templateFrom(nil, "settings")
+var templateSessions = templateFrom(funcMapForTime, "sessions")
 
 // Sad views:
 var templateStatus = templateFrom(nil, "status")

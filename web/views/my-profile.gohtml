@@ -16,9 +16,11 @@
                 <a href="/about" class="btn">About instance</a>
                 <a href="/digest-rss" class="btn">RSS</a>
 
-                {{if .Authorized}}<a href="/settings" class="btn">Settings</a>
-                <a href="/bookmarklet" class="btn">Bookmarklet</a>
-                <a href="/logout" class="btn">Log out</a>{{end}}
+                {{if .Authorized}}
+                    <a href="/settings" class="btn">Settings</a>
+                    <a href="/sessions" class="btn">Sessions</a>
+                    <a href="/bookmarklet" class="btn">Bookmarklet</a>
+                    <a href="/logout" class="btn">Log out</a>{{end}}
             </div>
         </article>
         <article>
