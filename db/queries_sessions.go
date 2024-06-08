@@ -7,7 +7,8 @@ import (
 )
 
 func AddSession(token, userAgent string) {
-	mustExec(`insert into Sessions(Token, UserAgent) values (?, ?);`, token, userAgent)
+	mustExec(`insert into Sessions values (?, ?, ?);`,
+		token, time.Now(), userAgent)
 }
 
 func SessionExists(token string) (has bool) {
@@ -42,12 +43,9 @@ func Sessions() (sessions []types.Session) {
 		var session types.Session
 
 		mustScan(rows, &session.Token, &timestamp, &session.UserAgent)
-		session.CreationTime, err = time.Parse(types.TimeLayout, timestamp)
+		session.CreationTime, err = time.Parse(types.TimeLayout+"Z07:00", timestamp)
 		if err != nil {
-			session.CreationTime, err = time.Parse(types.TimeLayout+"Z07:00", timestamp)
-			if err != nil {
-				continue
-			}
+			continue
 		}
 		sessions = append(sessions, session)
 	}

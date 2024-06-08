@@ -1,7 +1,7 @@
 package db
 
 import (
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 /*
