@@ -4,6 +4,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
@@ -12,11 +16,6 @@ import (
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/web"
 	_ "git.sr.ht/~bouncepaw/betula/web" // For init()
-	"log"
-	"os"
-	"path/filepath"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {

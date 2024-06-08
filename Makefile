@@ -1,5 +1,4 @@
-export CGO_CFLAGS="-D_LARGEFILE64_SOURCE"
-export CGO_ENABLED=1
+export CGO_ENABLED=0
 
 betula:
 	go build -o betula ./cmd/betula

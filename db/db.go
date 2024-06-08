@@ -9,14 +9,14 @@ import (
 	"database/sql"
 	"log"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 // Initialize opens a SQLite3 database with the given filename. The connection is encapsulated, you cannot access the database directly, you are to use the functions provided by the package.
 func Initialize(filename string) {
 	var err error
 
-	db, err = sql.Open("sqlite3", filename+"?cache=shared")
+	db, err = sql.Open("sqlite", filename+"?cache=shared")
 	if err != nil {
 		log.Fatalln(err)
 	}
