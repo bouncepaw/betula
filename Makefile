@@ -1,5 +1,7 @@
 export CGO_ENABLED=0
 
+.PHONY: betula debug-run run-with-port clean test
+
 betula:
 	go build -o betula ./cmd/betula
 
