@@ -23,7 +23,7 @@
 </header>
 <nav class="misc horizontal-scroll-on-phone">
 	<form class="search-form" action="/search" method="get">
-		<input id="search" type="text" aria-label="Search query" placeholder="Search query" name="q" value="{{.SearchQuery}}">
+		<input type="text" aria-label="Search query" placeholder="Search query" name="q" value="{{.SearchQuery}}">
 	</form>
 	<ul>
         {{if .Authorized}}<li><a href="/save-link">Save link</a></li>
@@ -36,5 +36,4 @@
 </nav>
 {{template "body" .}}
 </body>
-<script src="/static/focus.js" defer></script>
 </html>
