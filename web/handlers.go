@@ -16,6 +16,7 @@ import (
 	"humungus.tedunangst.com/r/webs/rss"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -119,6 +120,13 @@ func init() {
 
 	// Static files
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+	mux.HandleFunc("GET /favicon.ico", getFavicon)
+}
+
+func getFavicon(w http.ResponseWriter, rq *http.Request) {
+	slog.Info("404 Not found", "path", rq.URL.Path, "help", "Use a reverse proxy to provide a favicon")
+	w.WriteHeader(http.StatusNotFound)
+	_, _ = w.Write([]byte("404 Not found"))
 }
 
 func getRandom(w http.ResponseWriter, rq *http.Request) {
