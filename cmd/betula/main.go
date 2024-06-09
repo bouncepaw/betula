@@ -37,7 +37,7 @@ func main() {
 	flag.Parse()
 
 	if versionFlag {
-		fmt.Printf("Betula %s\n", "v1.3.0")
+		fmt.Printf("Betula %s\n", "v1.3.1")
 		return
 	}
 
