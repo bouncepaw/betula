@@ -1354,7 +1354,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 				return
 			}
 
-			post.CreationTime = time.Now().Format(types.TimeLayout) // It shall match the one generated in DB
+			post.CreationTime = time.Now().UTC().Format(types.TimeLayout) // It shall match the one generated in DB
 
 			// The post was unpublic, but became public. Let's broadcast Create.
 			if !wasPublic && isPublic {
@@ -1555,7 +1555,7 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 			if bookmark.Visibility != types.Public {
 				return
 			}
-			bookmark.CreationTime = time.Now().Format(types.TimeLayout) // It shall match the one generated in DB
+			bookmark.CreationTime = time.Now().UTC().Format(types.TimeLayout) // It shall match the one generated in DB
 			data, err := activities.CreateNote(bookmark)
 			if err != nil {
 				log.Printf("When creating Create{Note} activity for post no. %d: %s\n", id, err)
