@@ -1,6 +1,8 @@
 package db
 
 import (
+	"git.sr.ht/~bouncepaw/betula/tools"
+	ua "github.com/mileusna/useragent"
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -39,16 +41,20 @@ func Sessions() (sessions []types.Session) {
 	for rows.Next() {
 		var err error
 		var timestamp string
+		var creationTime time.Time
 		var session types.Session
+		var userAgent string
 
-		mustScan(rows, &session.Token, &timestamp, &session.UserAgent)
-		session.CreationTime, err = time.Parse(types.TimeLayout, timestamp)
+		mustScan(rows, &session.Token, &timestamp, &userAgent)
+		session.UserAgent = ua.Parse(userAgent)
+		creationTime, err = time.Parse(types.TimeLayout, timestamp)
 		if err != nil {
-			session.CreationTime, err = time.Parse(types.TimeLayout+"Z07:00", timestamp)
+			creationTime, err = time.Parse(types.TimeLayout+"Z07:00", timestamp)
 			if err != nil {
 				continue
 			}
 		}
+		session.LastSeen = tools.LastSeen(creationTime, time.Now())
 		sessions = append(sessions, session)
 	}
 	return sessions

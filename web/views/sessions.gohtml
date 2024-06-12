@@ -9,7 +9,7 @@
                         <li class="mv-session">
                             <p>
                                 {{if .Current}}Current session:<b>{{end}}
-                                {{.UserAgent}} {{.CreationTime | timeToHuman}}
+                                {{.UserAgent.Name}} on {{.UserAgent.OS}} {{.LastSeen}}
                                 {{if .Current}}</b>{{end}}
                             </p>
                             <form method="post" action="/delete-session/{{.Token}}">

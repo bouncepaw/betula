@@ -4,6 +4,7 @@ package types
 import (
 	"database/sql"
 	"fmt"
+	ua "github.com/mileusna/useragent"
 	"golang.org/x/net/idna"
 	"html/template"
 	"math"
@@ -160,10 +161,10 @@ type Settings struct {
 }
 
 type Session struct {
-	Token        string
-	CreationTime time.Time
-	UserAgent    string
-	Current      bool
+	Token     string
+	LastSeen  string
+	UserAgent ua.UserAgent
+	Current   bool
 }
 
 type Page struct {
