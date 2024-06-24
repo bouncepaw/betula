@@ -31,7 +31,7 @@ func LastSeen(from, to time.Time) string {
 	if diff.Hours() == 24*7 {
 		return "a week ago"
 	}
-	return fmt.Sprintf("on %s", to.Format("Monday, January 2, 2006"))
+	return fmt.Sprintf("on %s", from.Format("Monday, January 2, 2006"))
 }
 
 func pluralize(s string, count int) string {

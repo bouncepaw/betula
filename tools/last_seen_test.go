@@ -66,7 +66,7 @@ func TestLastSeen(t *testing.T) {
 		{
 			name:     "weeks ago",
 			fromTime: toTime.Add(-14 * 24 * time.Hour),
-			expected: "on Tuesday, March 21, 2023",
+			expected: "on Tuesday, March 7, 2023",
 		},
 	}
 
