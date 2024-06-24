@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -22,6 +23,7 @@ func fetchFedi(uri string) (*types.Bookmark, error) {
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("User-Agent", settings.UserAgent())
 	req.Header.Set("Accept", types.OtherActivityType)
 	resp, err := client.Do(req)
 	if err != nil {

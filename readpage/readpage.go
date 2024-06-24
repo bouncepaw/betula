@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	"git.sr.ht/~bouncepaw/betula/settings"
 	"golang.org/x/net/html"
 	"io"
 	"log"
@@ -148,7 +149,14 @@ func findData(link string, workers []worker, doc *html.Node) (data FoundData, er
 
 // findDataByLink finds the data you wished for in the document, considering the timeouts.
 func findDataByLink(link string, workers []worker) (data FoundData, err error) {
-	resp, err := client.Get(link)
+	req, err := http.NewRequest(http.MethodGet, link, nil)
+	if err != nil {
+		log.Printf("Failed to construct request from ‘%s’\n", link)
+		return data, err
+	}
+
+	req.Header.Set("User-Agent", settings.UserAgent())
+	resp, err := client.Do(req)
 	if err != nil {
 		if err.(*url.Error).Timeout() {
 			log.Printf("Request to %s timed out\n", link)

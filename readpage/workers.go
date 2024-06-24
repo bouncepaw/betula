@@ -1,10 +1,12 @@
 package readpage
 
 import (
+	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"golang.org/x/net/html"
 	"io"
 	"log"
+	"net/http"
 	"strings"
 )
 
@@ -154,7 +156,14 @@ func listenForMycomarkup(nodes chan *html.Node, data *FoundData) {
 
 			// We've found a valid <link> to a Mycomarkup document! Let's fetch it.
 
-			resp, err := client.Get(addr.String())
+			req, err := http.NewRequest(http.MethodGet, addr.String(), nil)
+			if err != nil {
+				log.Printf("Failed to construct request from ‘%s’\n", addr.String())
+				continue
+			}
+
+			req.Header.Set("User-Agent", settings.UserAgent())
+			resp, err := client.Do(req)
 			if err != nil {
 				log.Printf("Failed to fetch Mycomarkup document from ‘%s’\n", addr.String())
 			}

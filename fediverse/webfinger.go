@@ -3,8 +3,11 @@ package fediverse
 import (
 	"encoding/json"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"io"
+	"log"
+	"net/http"
 )
 
 // https://docs.joinmastodon.org/spec/webfinger/
@@ -19,8 +22,14 @@ type webfingerDocument struct {
 
 func requestIdByWebFingerAcct(user, host string) (id string, err error) {
 	requestURL := fmt.Sprintf("https://%s/.well-known/webfinger?resource=acct:%s@%s", host, user, host)
+	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
+	if err != nil {
+		log.Printf("Failed to construct request from ‘%s’\n", requestURL)
+		return "", err
+	}
 
-	resp, err := client.Get(requestURL)
+	req.Header.Set("User-Agent", settings.UserAgent())
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}

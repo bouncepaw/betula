@@ -10,6 +10,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
+	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
@@ -72,6 +73,7 @@ func SendActivityToInbox(activity []byte, inbox string) error {
 		return err
 	}
 
+	rq.Header.Set("User-Agent", settings.UserAgent())
 	rq.Header.Set("Content-Type", types.ActivityType)
 	signing.SignRequest(rq, activity)
 
