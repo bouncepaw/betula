@@ -2,4 +2,3 @@ betula
 *.betula
 .idea/
 **/.DS_Store
-/settings/.version_string.txt

@@ -20,10 +20,6 @@ const defaultHost = "0.0.0.0"
 const biggestPort = 65535
 const defaultPort = 1738
 
-//go:generate sh -c "{ [ -n \"$(git tag --points-at HEAD)\" ] && git tag --points-at HEAD || git rev-parse --short HEAD; } > .version_string.txt"
-//go:embed .version_string.txt
-var version string
-
 var cache types.Settings
 var adminUsername string
 
@@ -138,7 +134,7 @@ func SiteDomain() string {
 }
 
 func UserAgent() string {
-	return fmt.Sprintf("Betula %s; %s; Bot", version, SiteDomain)
+	return fmt.Sprintf("Betula; %s; Bot", SiteDomain)
 }
 
 func SetSettings(settings types.Settings) {
