@@ -10,11 +10,17 @@
                             <p>
                                 {{if .Current}}Current session:<b>{{end}}
                                 {{.UserAgent.Name}} on {{.UserAgent.OS}} {{.LastSeen}}
-                                {{if .Current}}</b>{{end}}
+                                {{if .Current}}</b>
+                                <button class="dashed-btn" onclick="copyTextElem({{.Token}}, this)">Copy token</button>
+                                {{end}}
                             </p>
                             <form method="post" action="/delete-session/{{.Token}}">
                                 <div>
-                                    <input type="submit" value="Delete" class="btn">
+                                <input class="btn" type="submit"
+                                        {{if .Current}}
+                                            value="Log out"
+                                        {{else}}
+                                            value="Delete" {{end}}>
                                 </div>
                             </form>
                         </li>
@@ -37,6 +43,6 @@
             {{else}}
                 <p>No active sessions.</p>
             {{end}}
-        </article>
     </main>
+    <script src="/static/copytext.js"></script>
 {{end}}
