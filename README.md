@@ -1,6 +1,8 @@
 # 🌳 Betula, a federated personal link collection manager
 ![A screenshot of Betula, featuring several links](https://betula.mycorrhiza.wiki/betula-v1.3.0.png)
 
+[![Hits-of-Code](https://hitsofcode.com/sourcehut/~bouncepaw/betula?branch=master)](https://hitsofcode.com/sourcehut/~bouncepaw/betula/view?branch=master)
+
 **Betula** is a single-user self-hosted bookmarking software with optional Fediverse support.
 
 * [Website](https://betula.mycorrhiza.wiki)
