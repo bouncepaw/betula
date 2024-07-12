@@ -3,7 +3,7 @@
 # this script relies on some local files that are not in git, bear with me
 make clean > /dev/null
 make betula > /dev/null 2> /dev/null
-rm testing.betula > /dev/null
+rm testing.betula 2> /dev/null
 killall betula
 ./betula testing.betula > /dev/null &
 sleep 1
