@@ -5,15 +5,52 @@ import (
 	"embed"
 	"fmt"
 	"log"
+	"sort"
+	"strconv"
+	"strings"
 )
 
-const expectedVersion = 16
-
 //go:embed scripts/*.sql
-var scripts embed.FS
+var scriptsFS embed.FS
+var expectedVersion int64
+
+func init() {
+	expectedVersion = getExpectedVersion()
+}
+
+func getExpectedVersion() int64 {
+	var version int64
+
+	scriptsDir, err := scriptsFS.ReadDir("scripts")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	getVersionNum := func(scriptName string) (int64, error) {
+		return strconv.ParseInt(strings.TrimSuffix(scriptName, ".sql"), 10, 64)
+	}
+
+	// Sort sql scripts by version number
+	sort.Slice(scriptsDir, func(i, j int) bool {
+		verNum1, err1 := getVersionNum(scriptsDir[i].Name())
+		verNum2, err2 := getVersionNum(scriptsDir[j].Name())
+		if err1 != nil || err2 != nil {
+			log.Fatalln(err1, err2)
+		}
+		return verNum1 < verNum2
+	})
+
+	// Get last version
+	version, err = getVersionNum(scriptsDir[len(scriptsDir)-1].Name())
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return version
+}
 
 func getScript(name string) string {
-	data, err := scripts.ReadFile("scripts/" + name + ".sql")
+	data, err := scriptsFS.ReadFile("scripts/" + name + ".sql")
 	if err != nil {
 		log.Fatalln(err)
 	}
