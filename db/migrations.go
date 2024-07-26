@@ -1,11 +1,12 @@
 package db
 
 import (
+	"cmp"
 	"database/sql"
 	"embed"
 	"fmt"
 	"log"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -26,22 +27,26 @@ func getExpectedVersion() int64 {
 		log.Fatalln(err)
 	}
 
+	scripts := make([]string, 0, len(scriptsDir))
+	for _, script := range scriptsDir {
+		scripts = append(scripts, script.Name())
+	}
+
 	getVersionNum := func(scriptName string) (int64, error) {
 		return strconv.ParseInt(strings.TrimSuffix(scriptName, ".sql"), 10, 64)
 	}
 
-	// Sort sql scripts by version number
-	sort.Slice(scriptsDir, func(i, j int) bool {
-		verNum1, err1 := getVersionNum(scriptsDir[i].Name())
-		verNum2, err2 := getVersionNum(scriptsDir[j].Name())
+	slices.SortFunc(scripts, func(i, j string) int {
+		verNum1, err1 := getVersionNum(i)
+		verNum2, err2 := getVersionNum(j)
 		if err1 != nil || err2 != nil {
 			log.Fatalln(err1, err2)
 		}
-		return verNum1 < verNum2
+		return cmp.Compare(verNum1, verNum2)
 	})
 
 	// Get last version
-	version, err = getVersionNum(scriptsDir[len(scriptsDir)-1].Name())
+	version, err = getVersionNum(scripts[len(scripts)-1])
 	if err != nil {
 		log.Fatalln(err)
 	}
