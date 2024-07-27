@@ -1,19 +1,61 @@
 package db
 
 import (
+	"cmp"
 	"database/sql"
 	"embed"
 	"fmt"
 	"log"
+	"slices"
+	"strconv"
+	"strings"
 )
 
-const expectedVersion = 16
-
 //go:embed scripts/*.sql
-var scripts embed.FS
+var scriptsFS embed.FS
+var expectedVersion int64
+
+func init() {
+	expectedVersion = getExpectedVersion()
+}
+
+func getExpectedVersion() int64 {
+	var version int64
+
+	scriptsDir, err := scriptsFS.ReadDir("scripts")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	scripts := make([]string, 0, len(scriptsDir))
+	for _, script := range scriptsDir {
+		scripts = append(scripts, script.Name())
+	}
+
+	getVersionNum := func(scriptName string) (int64, error) {
+		return strconv.ParseInt(strings.TrimSuffix(scriptName, ".sql"), 10, 64)
+	}
+
+	slices.SortFunc(scripts, func(i, j string) int {
+		verNum1, err1 := getVersionNum(i)
+		verNum2, err2 := getVersionNum(j)
+		if err1 != nil || err2 != nil {
+			log.Fatalln(err1, err2)
+		}
+		return cmp.Compare(verNum1, verNum2)
+	})
+
+	// Get last version
+	version, err = getVersionNum(scripts[len(scripts)-1])
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return version
+}
 
 func getScript(name string) string {
-	data, err := scripts.ReadFile("scripts/" + name + ".sql")
+	data, err := scriptsFS.ReadFile("scripts/" + name + ".sql")
 	if err != nil {
 		log.Fatalln(err)
 	}
