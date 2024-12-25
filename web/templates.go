@@ -80,6 +80,7 @@ var templateRemoteProfile = templateFrom(funcMapForBookmarks, "paginator-fragmen
 var templateFollowing = templateFrom(nil, "following")
 var templateFollowers = templateFrom(nil, "followers")
 var templateTimeline = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline")
+var templateFedisearchEmpty = templateFrom(nil, "fedisearch-empty")
 
 var funcMapForBookmarks = template.FuncMap{
 	"randomGlobe": func() string {

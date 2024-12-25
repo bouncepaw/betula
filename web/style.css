@@ -122,6 +122,12 @@ footer {
 }
 
 /* Design */
+p + form {
+    margin-top: .5rem;
+}
+.invisible {
+    display: none;
+}
 .post-visibility-private {
     font-weight: bold;
 }
@@ -263,6 +269,7 @@ form input[type="number"],
 form input[type="text"],
 form input[type="url"],
 form input[type="password"],
+form input[type="search"],
 textarea {
     display: block;
     width: 100%;

@@ -107,6 +107,7 @@ func init() {
 	mux.HandleFunc("GET /following", fediverseWebFork(nil, getFollowingWeb))
 	mux.HandleFunc("GET /followers", fediverseWebFork(nil, getFollowersWeb))
 	mux.HandleFunc("GET /timeline", adminOnly(federatedOnly(getTimeline)))
+	mux.HandleFunc("GET /fedisearch", adminOnly(federatedOnly(getFediSearch)))
 
 	// ActivityPub
 	mux.HandleFunc("POST /inbox", federatedOnly(postInbox))
@@ -121,6 +122,25 @@ func init() {
 	// Static files
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 	mux.HandleFunc("GET /favicon.ico", getFavicon)
+}
+
+type dataFedisearchEmpty struct {
+	*dataCommon
+
+	Mutuals []types.Actor
+}
+
+func getFediSearch(w http.ResponseWriter, rq *http.Request) {
+	query := rq.FormValue("q")
+	if query == "" {
+		slog.Info("Access empty fedisearch page")
+		templateExec(w, rq, templateFedisearchEmpty, dataFedisearchEmpty{
+			dataCommon: emptyCommon(),
+			Mutuals:    db.GetFollowing(),
+		})
+		return
+	}
+	slog.Info("Make a federated search", "q", query)
 }
 
 func getFavicon(w http.ResponseWriter, rq *http.Request) {
