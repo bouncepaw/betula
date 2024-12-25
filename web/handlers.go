@@ -220,6 +220,8 @@ func getFavicon(w http.ResponseWriter, rq *http.Request) {
 	slog.Info("404 Not found", "path", rq.URL.Path, "help", "Use a reverse proxy to provide a favicon")
 	w.WriteHeader(http.StatusNotFound)
 	_, _ = w.Write([]byte("404 Not found"))
+	var addr = fmt.Sprintf("/%d?highlight-archive=%d", bookmark.ID, archiveID)
+	http.Redirect(w, rq, addr, http.StatusSeeOther)
 }
 
 func getRandom(w http.ResponseWriter, rq *http.Request) {
