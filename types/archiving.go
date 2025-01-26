@@ -80,3 +80,9 @@ func NewCompressedDocumentArtifact(b []byte, mime string) (*Artifact, error) {
 		LastCheckedAt: sql.NullString{},
 	}, nil
 }
+
+type Archive struct {
+	ID       int64
+	Artifact Artifact
+	Note     sql.NullString
+}
