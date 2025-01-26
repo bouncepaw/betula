@@ -13,5 +13,6 @@ Last checked: 2024-02-28
 | 14          | changes RemoteBookmarks                                                       |
 | 15          | table Bookmarks                                                               |
 | 16          | changes Sessions                                                              |
+| 17          | table Archives                                                                |
 
 The code for DB versions 1 to 5 never gets executed.
