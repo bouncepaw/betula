@@ -142,7 +142,7 @@ func getArtifact(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	slog.Info("Request artifact", "id", slug, "mime", artifact.MimeType)
-	if !artifact.IsCompressed() {
+	if !artifact.IsGzipped {
 		w.Header().Add("Content-Type", artifact.MimeType.String)
 		_, err = w.Write(artifact.Data)
 		if err != nil {
@@ -153,7 +153,7 @@ func getArtifact(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// TODO: maybe support clients that do not support gzip encoding.
-	w.Header().Add("Content-Type", strings.TrimSuffix(artifact.MimeType.String, "+gzip"))
+	w.Header().Add("Content-Type", artifact.MimeType.String)
 	w.Header().Add("Content-Encoding", "gzip")
 	_, err = w.Write(artifact.Data)
 	if err != nil {
