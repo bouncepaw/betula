@@ -1615,6 +1615,7 @@ func getBookmarkFedi(w http.ResponseWriter, rq *http.Request) {
 type dataBookmark struct {
 	Bookmark    types.Bookmark
 	RepostCount int
+	Archives    []types.Archive
 	*dataCommon
 }
 
@@ -1624,6 +1625,17 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	log.Printf("Get bookmark page no. %d\n", bookmark.ID)
+
+	archivesRepo := db.NewArchivesRepo()
+	archives, err := archivesRepo.FetchForBookmark(int64(bookmark.ID))
+	if err != nil {
+		slog.Error("Failed to fetch archives for bookmark",
+			"bookmarkID", bookmark.ID,
+			"err", err)
+		// TODO: a better error
+		handlerNotFound(w, rq)
+		return
+	}
 
 	common := emptyCommon()
 	common.head = template.HTML(fmt.Sprintf(`<link rel="alternate" type="text/mycomarkup" href="/text/%d">`, bookmark.ID))
@@ -1636,6 +1648,7 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templatePost, dataBookmark{
 		Bookmark:    *bookmark,
 		RepostCount: db.CountRepostsOf(bookmark.ID),
+		Archives:    archives,
 		dataCommon:  common,
 	})
 }

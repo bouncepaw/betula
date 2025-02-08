@@ -13,6 +13,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/web"
 	_ "git.sr.ht/~bouncepaw/betula/web" // For init()
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -20,6 +21,7 @@ import (
 )
 
 func main() {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 	var port uint
 	var versionFlag bool
 

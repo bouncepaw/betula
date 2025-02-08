@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"git.sr.ht/~bouncepaw/betula/types"
+	"log/slog"
 )
 
 type ArtifactsRepo interface {
@@ -45,6 +46,7 @@ type ArchivesRepo interface {
 	AddNote(archiveID int64, note string) error
 	Fetch(archiveID int64) (*types.Archive, error)
 	Delete(archiveID int64) error
+	FetchForBookmark(bookmarkID int64) ([]types.Archive, error)
 }
 
 type dbArchivesRepo struct{}
@@ -121,6 +123,46 @@ func (repo *dbArchivesRepo) Delete(archiveID int64) error {
 	}
 
 	return tx.Commit()
+}
+
+func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive, error) {
+	var archives []types.Archive
+	// Not fetching the binary data
+	var rows, err = db.Query(`
+		select
+		    arc.ID, arc.Note,
+		    art.ID, art.MimeType, art.SavedAt, art.LastCheckedAt
+		from 
+		    Archives arc
+		join
+			Artifacts art
+		on
+			arc.ArtifactID = art.ID
+		where arc.BookmarkID = ?
+	`, bookmarkID)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var (
+			archive  types.Archive
+			artifact types.Artifact
+		)
+		err = rows.Scan(&archive.ID, &archive.Note,
+			&artifact.ID, &artifact.MimeType, &artifact.SavedAt, &artifact.LastCheckedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		archive.Artifact = artifact
+		archives = append(archives, archive)
+	}
+
+	slog.Debug("Fetched archives for bookmark",
+		"bookmarkID", bookmarkID,
+		"archiveLen", len(archives))
+	return archives, nil
 }
 
 func NewArchivesRepo() ArchivesRepo {
