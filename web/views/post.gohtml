@@ -40,17 +40,17 @@
 				<input type="submit" value="Make a new archive copy" class="btn">
 			</form>
 			{{if len .Archives}}
-				<ul>{{$highlight:=.HighlightArtifact}}
+				<ul>{{$highlight:=.HighlightArchive}}
 				{{range .Archives}}
 					<li>
 						<a href="/artifact/{{.Artifact.ID}}">
-							{{if eq $highlight .Artifact.ID}}
-								<mark>{{timestampToHuman .Artifact.SavedAt.String}}</mark>
+							{{if eq $highlight .ID}}
+								<mark>{{timestampToHuman .SavedAt.String}}</mark>
 							{{else}}
-								{{timestampToHuman .Artifact.SavedAt.String}}
+								{{timestampToHuman .SavedAt.String}}
 							{{end}}
 						</a>
-						<span class="archive-mime">{{.Artifact.MimeType.String}}</span>
+						<span class="archive-mime">{{.Artifact.MimeType}}</span>
 					</li>
 				{{end}}
 				</ul>

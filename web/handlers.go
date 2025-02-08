@@ -143,7 +143,7 @@ func getArtifact(w http.ResponseWriter, rq *http.Request) {
 
 	slog.Info("Request artifact", "id", slug, "mime", artifact.MimeType)
 	if !artifact.IsGzipped {
-		w.Header().Add("Content-Type", artifact.MimeType.String)
+		w.Header().Add("Content-Type", artifact.MimeType)
 		_, err = w.Write(artifact.Data)
 		if err != nil {
 			slog.Error("Failed to write artifact data",
@@ -153,7 +153,7 @@ func getArtifact(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// TODO: maybe support clients that do not support gzip encoding.
-	w.Header().Add("Content-Type", artifact.MimeType.String)
+	w.Header().Add("Content-Type", artifact.MimeType)
 	w.Header().Add("Content-Encoding", "gzip")
 	_, err = w.Write(artifact.Data)
 	if err != nil {
@@ -185,7 +185,7 @@ func postMakeNewArchive(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	err = db.NewArchivesRepo().Store(int64(bookmark.ID), artifact)
+	archiveID, err := db.NewArchivesRepo().Store(int64(bookmark.ID), artifact)
 	if err != nil {
 		slog.Error("Failed to store the new archive",
 			"url", bookmark.URL, "err", err)
@@ -193,7 +193,8 @@ func postMakeNewArchive(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	http.Redirect(w, rq, fmt.Sprintf("/%d?highlight-artifact=%s", bookmark.ID, artifact.ID), http.StatusSeeOther)
+	var addr = fmt.Sprintf("/%d?highlight-archive=%d", bookmark.ID, archiveID)
+	http.Redirect(w, rq, addr, http.StatusSeeOther)
 }
 
 func getFavicon(w http.ResponseWriter, rq *http.Request) {
@@ -1669,8 +1670,8 @@ type dataBookmark struct {
 	Bookmark    types.Bookmark
 	RepostCount int
 
-	Archives          []types.Archive
-	HighlightArtifact string
+	Archives         []types.Archive
+	HighlightArchive int64
 	*dataCommon
 }
 
@@ -1699,13 +1700,25 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 <link rel="alternate" type="%s" href="/%d"'>`, types.OtherActivityType, bookmark.ID))
 	}
 
+	var highlightArchive int64
+	{
+		var val = rq.FormValue("highlight-archive")
+		var n, err = strconv.Atoi(val)
+		if err != nil {
+			slog.Warn("Invalid value for highlight-archive",
+				"val", val, "err", err)
+		} else {
+			highlightArchive = int64(n)
+		}
+	}
+
 	bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
 	templateExec(w, rq, templatePost, dataBookmark{
-		Bookmark:          *bookmark,
-		RepostCount:       db.CountRepostsOf(bookmark.ID),
-		Archives:          archives,
-		HighlightArtifact: rq.FormValue("highlight-artifact"),
-		dataCommon:        common,
+		Bookmark:         *bookmark,
+		RepostCount:      db.CountRepostsOf(bookmark.ID),
+		Archives:         archives,
+		HighlightArchive: highlightArchive,
+		dataCommon:       common,
 	})
 }
 
