@@ -8,33 +8,18 @@ import (
 )
 
 type ArtifactsRepo interface {
-	Store(*types.Artifact) error
 	Fetch(string) (*types.Artifact, error)
-	Delete(string) error
 }
 
 type dbArtifactsRepo struct{}
-
-// Boringly banal CRUD without the U.
-
-func (repo *dbArtifactsRepo) Store(artifact *types.Artifact) error {
-	var _, err = db.Exec(`insert into Artifacts (ID, MimeType, Data, IsGzipped) values (?, ?, ?, ?)`,
-		artifact.ID, artifact.MimeType, artifact.Data)
-	return err
-}
 
 func (repo *dbArtifactsRepo) Fetch(id string) (*types.Artifact, error) {
 	var artifact = types.Artifact{
 		ID: id,
 	}
-	var row = db.QueryRow(`select MimeType, Data, SavedAt, IsGzipped from Artifacts where ID = ?`, id)
-	var err = row.Scan(&artifact.MimeType, &artifact.Data, &artifact.SavedAt, &artifact.IsGzipped)
+	var row = db.QueryRow(`select MimeType, Data, IsGzipped from Artifacts where ID = ?`, id)
+	var err = row.Scan(&artifact.MimeType, &artifact.Data, &artifact.IsGzipped)
 	return &artifact, err
-}
-
-func (repo *dbArtifactsRepo) Delete(id string) error {
-	var _, err = db.Exec(`delete from Artifacts where ID = ?`, id)
-	return err
 }
 
 func NewArtifactsRepo() ArtifactsRepo {
@@ -42,96 +27,52 @@ func NewArtifactsRepo() ArtifactsRepo {
 }
 
 type ArchivesRepo interface {
-	Store(bookmarkID int64, artifact *types.Artifact) error
-	AddNote(archiveID int64, note string) error
-	Fetch(archiveID int64) (*types.Archive, error)
-	Delete(archiveID int64) error
+	// Store stores a new archive for the given bookmark with
+	// the given artifact. It returns id of the new archive.
+	Store(bookmarkID int64, artifact *types.Artifact) (int64, error)
 	FetchForBookmark(bookmarkID int64) ([]types.Archive, error)
 }
 
 type dbArchivesRepo struct{}
 
-func (repo *dbArchivesRepo) Store(bookmarkID int64, artifact *types.Artifact) error {
+func (repo *dbArchivesRepo) Store(bookmarkID int64, artifact *types.Artifact) (int64, error) {
 	var tx, err = db.BeginTx(context.Background(), nil)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	_, err = tx.Exec(`insert into Artifacts (ID, MimeType, Data, IsGzipped) values (?, ?, ?, ?)`,
+	// If the hash (ID) is taken already, it means we already have such an
+	// artifact in our database. OK, whatever, that's why we `ignore`
+	// in the request below. The archive will reuse the old artifact then.
+	_, err = tx.Exec(`
+		insert or ignore into Artifacts (ID, MimeType, Data, IsGzipped)
+		values (?, ?, ?, ?)`,
 		artifact.ID, artifact.MimeType, artifact.Data, artifact.IsGzipped)
 	if err != nil {
-		return errors.Join(err, tx.Rollback())
+		return 0, errors.Join(err, tx.Rollback())
 	}
 
-	_, err = tx.Exec(`insert into Archives (BookmarkID, ArtifactID) values (?, ?)`,
+	var newArchiveID int64
+	var row = tx.QueryRow(
+		`insert into Archives (BookmarkID, ArtifactID) values (?, ?) returning ID`,
 		bookmarkID, artifact.ID)
+	err = row.Scan(&newArchiveID)
 	if err != nil {
-		return errors.Join(err, tx.Rollback())
+		return 0, errors.Join(err, tx.Rollback())
 	}
 
-	return tx.Commit()
+	return newArchiveID, tx.Commit()
 }
 
-func (repo *dbArchivesRepo) AddNote(archiveID int64, note string) error {
-	var _, err = db.Exec(`update Archives set Note = ? where ID = ?`,
-		note, archiveID)
-	return err
-}
-
-func (repo *dbArchivesRepo) Fetch(archiveID int64) (*types.Archive, error) {
-	var tx, err = db.BeginTx(context.Background(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var archive types.Archive
-	var row = tx.QueryRow(`select ID, ArtifactID, Note from Archives where ID = ?`,
-		archiveID)
-	err = row.Scan(&archive.ID, &archive.Artifact.ID, &archive.Note)
-	if err != nil {
-		return nil, errors.Join(err, tx.Rollback())
-	}
-
-	row = tx.QueryRow(`select MimeType, Data, SavedAt, LastCheckedAt, IsGzipped from Artifacts where ID = ?`,
-		archive.Artifact.ID)
-	err = row.Scan(
-		&archive.Artifact.MimeType, &archive.Artifact.Data,
-		&archive.Artifact.SavedAt, &archive.Artifact.IsGzipped)
-	if err != nil {
-		return nil, errors.Join(err, tx.Rollback())
-	}
-	return &archive, tx.Commit()
-}
-
-func (repo *dbArchivesRepo) Delete(archiveID int64) error {
-	var tx, err = db.BeginTx(context.Background(), nil)
-	if err != nil {
-		return err
-	}
-
-	var row = tx.QueryRow(`delete from Archives where ID = ? returning ArtifactID`,
-		archiveID)
-	var artifactID string
-	err = row.Scan(&artifactID)
-	if err != nil {
-		return errors.Join(err, tx.Rollback())
-	}
-
-	_, err = tx.Exec(`delete from main.Artifacts where ID = ?`, artifactID)
-	if err != nil {
-		return errors.Join(err, tx.Rollback())
-	}
-
-	return tx.Commit()
-}
+// TODO: when implementing deletion, delete artifacts iff they only have one usage
 
 func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive, error) {
 	var archives []types.Archive
 	// Not fetching the binary data
 	var rows, err = db.Query(`
 		select
-		    arc.ID, arc.Note,
-		    art.ID, art.MimeType, art.SavedAt, art.IsGzipped
+		    arc.ID, arc.SavedAt,
+		    art.ID, art.MimeType, art.IsGzipped
 		from 
 		    Archives arc
 		join
@@ -140,6 +81,8 @@ func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive,
 			arc.ArtifactID = art.ID
 		where
 		    arc.BookmarkID = ?
+		order by
+		    arc.SavedAt desc
 	`, bookmarkID)
 	if err != nil {
 		return nil, err
@@ -150,8 +93,8 @@ func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive,
 			archive  types.Archive
 			artifact types.Artifact
 		)
-		err = rows.Scan(&archive.ID, &archive.Note,
-			&artifact.ID, &artifact.MimeType, &artifact.SavedAt, &artifact.IsGzipped)
+		err = rows.Scan(&archive.ID, &archive.SavedAt,
+			&artifact.ID, &artifact.MimeType, &artifact.IsGzipped)
 		if err != nil {
 			return nil, err
 		}
@@ -162,7 +105,7 @@ func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive,
 
 	slog.Debug("Fetched archives for bookmark",
 		"bookmarkID", bookmarkID,
-		"archiveLen", len(archives))
+		"archivesLen", len(archives))
 	return archives, nil
 }
 

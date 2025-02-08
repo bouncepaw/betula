@@ -13,9 +13,8 @@ import (
 // Artifact is an artifact in any format stored in database.
 type Artifact struct {
 	ID        string
-	MimeType  sql.NullString
+	MimeType  string
 	Data      []byte
-	SavedAt   sql.NullString
 	IsGzipped bool
 }
 
@@ -70,13 +69,9 @@ func NewCompressedDocumentArtifact(b []byte, mime string) (*Artifact, error) {
 	}
 
 	return &Artifact{
-		ID: id,
-		MimeType: sql.NullString{
-			String: mime,
-			Valid:  true,
-		},
+		ID:        id,
+		MimeType:  mime,
 		Data:      gzipped,
-		SavedAt:   sql.NullString{},
 		IsGzipped: true,
 	}, nil
 }
@@ -84,5 +79,5 @@ func NewCompressedDocumentArtifact(b []byte, mime string) (*Artifact, error) {
 type Archive struct {
 	ID       int64
 	Artifact Artifact
-	Note     sql.NullString
+	SavedAt  sql.NullString
 }

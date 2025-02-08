@@ -7,6 +7,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -29,7 +30,7 @@ func StartServer() {
 			Addr:    listenAddr(),
 			Handler: &auther{mux},
 		}
-		log.Printf("Running HTTP server at %s\n", srv.Addr)
+		slog.Info("Running HTTP server", "addr", srv.Addr)
 		go func() {
 			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				log.Fatalln(err)
