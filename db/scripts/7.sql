@@ -6,7 +6,11 @@ create table Artifacts
     MimeType      text, -- nullable. Just send as is if no idea what is it.
     Data          blob,
     SavedAt       text not null default current_timestamp,
+
+    -- LastCheckedAt was removed in 18.
     LastCheckedAt text -- null = never checked
+
+    -- IsGzipped was added in 18.
 );
 
 -- THE REST OF THIS FILE WAS DROPPED LATER

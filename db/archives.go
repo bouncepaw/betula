@@ -18,7 +18,7 @@ type dbArtifactsRepo struct{}
 // Boringly banal CRUD without the U.
 
 func (repo *dbArtifactsRepo) Store(artifact *types.Artifact) error {
-	var _, err = db.Exec(`insert into Artifacts (ID, MimeType, Data) values (?, ?, ?)`,
+	var _, err = db.Exec(`insert into Artifacts (ID, MimeType, Data, IsGzipped) values (?, ?, ?, ?)`,
 		artifact.ID, artifact.MimeType, artifact.Data)
 	return err
 }
@@ -27,8 +27,8 @@ func (repo *dbArtifactsRepo) Fetch(id string) (*types.Artifact, error) {
 	var artifact = types.Artifact{
 		ID: id,
 	}
-	var row = db.QueryRow(`select MimeType, Data, SavedAt, LastCheckedAt from Artifacts where ID = ?`, id)
-	var err = row.Scan(&artifact.MimeType, &artifact.Data, &artifact.SavedAt, &artifact.LastCheckedAt)
+	var row = db.QueryRow(`select MimeType, Data, SavedAt, IsGzipped from Artifacts where ID = ?`, id)
+	var err = row.Scan(&artifact.MimeType, &artifact.Data, &artifact.SavedAt, &artifact.IsGzipped)
 	return &artifact, err
 }
 
@@ -57,8 +57,8 @@ func (repo *dbArchivesRepo) Store(bookmarkID int64, artifact *types.Artifact) er
 		return err
 	}
 
-	_, err = tx.Exec(`insert into Artifacts (ID, MimeType, Data) values (?, ?, ?)`,
-		artifact.ID, artifact.MimeType, artifact.Data)
+	_, err = tx.Exec(`insert into Artifacts (ID, MimeType, Data, IsGzipped) values (?, ?, ?, ?)`,
+		artifact.ID, artifact.MimeType, artifact.Data, artifact.IsGzipped)
 	if err != nil {
 		return errors.Join(err, tx.Rollback())
 	}
@@ -92,11 +92,11 @@ func (repo *dbArchivesRepo) Fetch(archiveID int64) (*types.Archive, error) {
 		return nil, errors.Join(err, tx.Rollback())
 	}
 
-	row = tx.QueryRow(`select MimeType, Data, SavedAt, LastCheckedAt from Artifacts where ID = ?`,
+	row = tx.QueryRow(`select MimeType, Data, SavedAt, LastCheckedAt, IsGzipped from Artifacts where ID = ?`,
 		archive.Artifact.ID)
 	err = row.Scan(
 		&archive.Artifact.MimeType, &archive.Artifact.Data,
-		&archive.Artifact.SavedAt, &archive.Artifact.LastCheckedAt)
+		&archive.Artifact.SavedAt, &archive.Artifact.IsGzipped)
 	if err != nil {
 		return nil, errors.Join(err, tx.Rollback())
 	}
@@ -131,14 +131,15 @@ func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive,
 	var rows, err = db.Query(`
 		select
 		    arc.ID, arc.Note,
-		    art.ID, art.MimeType, art.SavedAt, art.LastCheckedAt
+		    art.ID, art.MimeType, art.SavedAt, art.IsGzipped
 		from 
 		    Archives arc
 		join
 			Artifacts art
 		on
 			arc.ArtifactID = art.ID
-		where arc.BookmarkID = ?
+		where
+		    arc.BookmarkID = ?
 	`, bookmarkID)
 	if err != nil {
 		return nil, err
@@ -150,7 +151,7 @@ func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive,
 			artifact types.Artifact
 		)
 		err = rows.Scan(&archive.ID, &archive.Note,
-			&artifact.ID, &artifact.MimeType, &artifact.SavedAt, &artifact.LastCheckedAt)
+			&artifact.ID, &artifact.MimeType, &artifact.SavedAt, &artifact.IsGzipped)
 		if err != nil {
 			return nil, err
 		}

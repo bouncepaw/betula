@@ -12,21 +12,17 @@ import (
 
 // Artifact is an artifact in any format stored in database.
 type Artifact struct {
-	ID            string
-	MimeType      sql.NullString
-	Data          []byte
-	SavedAt       sql.NullString
-	LastCheckedAt sql.NullString
-}
-
-func (a Artifact) IsCompressed() bool {
-	return a.MimeType.Valid && strings.HasSuffix(a.MimeType.String, "+gzip")
+	ID        string
+	MimeType  sql.NullString
+	Data      []byte
+	SavedAt   sql.NullString
+	IsGzipped bool
 }
 
 // NewCompressedDocumentArtifact makes an Artifact from the given
 // uncompressed document. Artifact.ID is a base64 representation
 // of an SHA-256 hash sum of the document contents. Artifact.MimeType
-// is the source MIME type but with "+gzip" added at the end.
+// is the source MIME type. Artifact.IsGzipped is true.
 // Artifact.Data is gzipped document contents.
 //
 // Gzip was chosen because it's the most widely accepted content
@@ -76,12 +72,12 @@ func NewCompressedDocumentArtifact(b []byte, mime string) (*Artifact, error) {
 	return &Artifact{
 		ID: id,
 		MimeType: sql.NullString{
-			String: mime + "+gzip",
+			String: mime,
 			Valid:  true,
 		},
-		Data:          gzipped,
-		SavedAt:       sql.NullString{},
-		LastCheckedAt: sql.NullString{},
+		Data:      gzipped,
+		SavedAt:   sql.NullString{},
+		IsGzipped: true,
 	}, nil
 }
 

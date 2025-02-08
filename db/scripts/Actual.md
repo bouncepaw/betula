@@ -1,6 +1,6 @@
 Last checked: 2024-02-28
 
-| **Version** | **Actuality**                                                                 |
+| **Version** | **Description**                                                               |
 |-------------|-------------------------------------------------------------------------------|
 | 6           | tables TagsToPosts, BetulaMeta, Sessions, TagDescriptions, Jobs, KnownReposts |
 | 7           | table Artifacts, rest dropped                                                 |
@@ -14,5 +14,6 @@ Last checked: 2024-02-28
 | 15          | table Bookmarks                                                               |
 | 16          | changes Sessions                                                              |
 | 17          | table Archives                                                                |
+| 18          | changes Artifacts, Archives                                                   |
 
 The code for DB versions 1 to 5 never gets executed.

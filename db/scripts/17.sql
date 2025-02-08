@@ -4,3 +4,4 @@ create table Archives (
     ArtifactID text    not null,
     Note       text
 );
+-- 18 added URL.
