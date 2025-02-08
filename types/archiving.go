@@ -35,12 +35,16 @@ func (a Artifact) IsCompressed() bool {
 func NewCompressedDocumentArtifact(b []byte, mime string) (*Artifact, error) {
 	var id string
 	{
-		var hash = sha256.New().Sum(b)
+		var hash = sha256.New()
+		var _, err = hash.Write(b)
+		if err != nil {
+			return nil, fmt.Errorf("failed to write bytes to sha256: %w", err)
+		}
 
 		var buf strings.Builder
 		var encoder = base64.NewEncoder(base64.URLEncoding, &buf)
 
-		var _, err = encoder.Write(hash)
+		_, err = encoder.Write(hash.Sum(nil))
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate base64 hash sum: %w", err)
 		}
