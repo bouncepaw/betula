@@ -104,6 +104,7 @@ func init() {
 
 	// Archives
 	mux.HandleFunc("POST /make-new-archive/{id}", adminOnly(postMakeNewArchive))
+	mux.HandleFunc("GET /artifact/{slug}", adminOnly(getArtifact))
 
 	// Federation interface
 	mux.HandleFunc("POST /follow", adminOnly(federatedOnly(postFollow)))
@@ -125,6 +126,40 @@ func init() {
 	// Static files
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 	mux.HandleFunc("GET /favicon.ico", getFavicon)
+}
+
+func getArtifact(w http.ResponseWriter, rq *http.Request) {
+	// TODO: when uses of artifacts other than archives emerge,
+	// implement access restrictions. Artifacts that belong to
+	// archives shall remain private. That would probably
+	// involve changing the database scheme.
+	var slug = rq.PathValue("slug")
+	var artifact, err = db.NewArtifactsRepo().Fetch(slug)
+	if err != nil {
+		slog.Warn("Requested artifact does not exist", "id", slug)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	slog.Info("Request artifact", "id", slug, "mime", artifact.MimeType)
+	if !artifact.IsCompressed() {
+		w.Header().Add("Content-Type", artifact.MimeType.String)
+		_, err = w.Write(artifact.Data)
+		if err != nil {
+			slog.Error("Failed to write artifact data",
+				"err", err, "id", slug)
+		}
+		return
+	}
+
+	// TODO: maybe support clients that do not support gzip encoding.
+	w.Header().Add("Content-Type", strings.TrimSuffix(artifact.MimeType.String, "+gzip"))
+	w.Header().Add("Content-Encoding", "gzip")
+	_, err = w.Write(artifact.Data)
+	if err != nil {
+		slog.Error("Failed to write artifact data",
+			"err", err, "id", slug)
+	}
 }
 
 func postMakeNewArchive(w http.ResponseWriter, rq *http.Request) {
