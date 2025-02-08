@@ -38,7 +38,7 @@ func NewCompressedDocumentArtifact(b []byte, mime string) (*Artifact, error) {
 		}
 
 		var buf strings.Builder
-		var encoder = base64.NewEncoder(base64.URLEncoding, &buf)
+		var encoder = base64.NewEncoder(base64.RawURLEncoding, &buf)
 
 		_, err = encoder.Write(hash.Sum(nil))
 		if err != nil {

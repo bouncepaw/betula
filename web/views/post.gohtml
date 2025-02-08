@@ -35,17 +35,26 @@
 			</a>
 		</article>
 		<article>
-			<h2>Archives</h2>
+			<h3>Archive copies</h3>
+			<form method="post" action="/make-new-archive/{{.Bookmark.ID}}">
+				<input type="submit" value="Make a new archive copy" class="btn">
+			</form>
 			{{if len .Archives}}
-				<ul>
+				<ul>{{$highlight:=.HighlightArtifact}}
 				{{range .Archives}}
-					<li><a href="/artifact/{{.Artifact.ID}}">{{timestampToHuman .Artifact.SavedAt.String}}</a></li>
+					<li>
+						<a href="/artifact/{{.Artifact.ID}}">
+							{{if eq $highlight .Artifact.ID}}
+								<mark>{{timestampToHuman .Artifact.SavedAt.String}}</mark>
+							{{else}}
+								{{timestampToHuman .Artifact.SavedAt.String}}
+							{{end}}
+						</a>
+						<span class="archive-mime">{{.Artifact.MimeType.String}}</span>
+					</li>
 				{{end}}
 				</ul>
 			{{end}}
-			<form method="post" action="/make-new-archive/{{.Bookmark.ID}}">
-				<input type="submit" value="Make a new archive" class="btn">
-			</form>
 		</article>
 	</main>
 	<script src="/static/copytext.js"></script>
