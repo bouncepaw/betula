@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/archiving"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
@@ -101,6 +102,9 @@ func init() {
 	mux.HandleFunc("POST /edit-tag/{name}", adminOnly(postEditTag))
 	mux.HandleFunc("POST /delete-tag/{name}", adminOnly(postDeleteTag))
 
+	// Archives
+	mux.HandleFunc("POST /make-new-archive/{id}", adminOnly(postMakeNewArchive))
+
 	// Federation interface
 	mux.HandleFunc("POST /follow", adminOnly(federatedOnly(postFollow)))
 	mux.HandleFunc("POST /unfollow", adminOnly(federatedOnly(postUnfollow)))
@@ -121,6 +125,40 @@ func init() {
 	// Static files
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
 	mux.HandleFunc("GET /favicon.ico", getFavicon)
+}
+
+func postMakeNewArchive(w http.ResponseWriter, rq *http.Request) {
+	var bookmark, ok = extractBookmark(w, rq)
+	if !ok {
+		return
+	}
+	slog.Info("Requesting to make a new archive", "bookmarkID", bookmark.ID)
+
+	var bytes, mime, err = archiving.NewObeliskArchiver().Fetch(bookmark.URL)
+	if err != nil {
+		slog.Error("Obelisk failed to fetch an archive of the page",
+			"url", bookmark.URL, "err", err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	artifact, err := types.NewCompressedDocumentArtifact(bytes, mime)
+	if err != nil {
+		slog.Error("Failed to compress the new archive",
+			"url", bookmark.URL, "err", err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	err = db.NewArchivesRepo().Store(int64(bookmark.ID), artifact)
+	if err != nil {
+		slog.Error("Failed to store the new archive",
+			"url", bookmark.URL, "err", err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
 
 func getFavicon(w http.ResponseWriter, rq *http.Request) {

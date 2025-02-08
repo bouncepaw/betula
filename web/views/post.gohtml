@@ -39,11 +39,11 @@
 			{{if len .Archives}}
 				<ul>
 				{{range .Archives}}
-					<li><a href="/artifact/">{{timestampToHuman .Artifact.SavedAt.String}}</a></li>
+					<li><a href="/artifact/{{.Artifact.ID}}">{{timestampToHuman .Artifact.SavedAt.String}}</a></li>
 				{{end}}
 				</ul>
 			{{end}}
-			<form>
+			<form method="post" action="/make-new-archive/{{.Bookmark.ID}}">
 				<input type="submit" value="Make a new archive" class="btn">
 			</form>
 		</article>
