@@ -194,7 +194,7 @@ func postMakeNewArchive(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	http.Redirect(w, rq, "/", http.StatusSeeOther)
+	http.Redirect(w, rq, fmt.Sprintf("/%d?highlight-artifact=%s", bookmark.ID, artifact.ID), http.StatusSeeOther)
 }
 
 type dataFedisearchEmpty struct {
@@ -1688,7 +1688,9 @@ func getBookmarkFedi(w http.ResponseWriter, rq *http.Request) {
 type dataBookmark struct {
 	Bookmark    types.Bookmark
 	RepostCount int
-	Archives    []types.Archive
+
+	Archives          []types.Archive
+	HighlightArtifact string
 	*dataCommon
 }
 
@@ -1719,10 +1721,11 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 
 	bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
 	templateExec(w, rq, templatePost, dataBookmark{
-		Bookmark:    *bookmark,
-		RepostCount: db.CountRepostsOf(bookmark.ID),
-		Archives:    archives,
-		dataCommon:  common,
+		Bookmark:          *bookmark,
+		RepostCount:       db.CountRepostsOf(bookmark.ID),
+		Archives:          archives,
+		HighlightArtifact: rq.FormValue("highlight-artifact"),
+		dataCommon:        common,
 	})
 }
 
