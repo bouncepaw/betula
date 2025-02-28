@@ -338,119 +338,6 @@ pre {
     float: right;
 }
 
-/* Colors. Keep both sections in sync. */
-@media (prefers-color-scheme: dark) {
-    a, .wikilink_external { color: #f1fa8c; }
-    a:visited, .wikilink_external:visited { color: #ffb86c; }
-    .wikilink_new, .wikilink_new:visited { color: #dd4444; }
-
-    .transclusion .transclusion__link { color: #ddd; }
-
-    article code,
-    article .codeblock,
-    textarea,
-    table { border: 0; background-color: #444444; color: #ddd; }
-    mark { background: rgba(130, 80, 30, 5); color: inherit; }
-
-    html {
-        background: #222;
-        color: #ddd;
-    }
-    main > article {
-        background: #343434;
-    }
-
-    .btn,
-    .btn:active,
-    .btn:hover,
-    .btn:visited,
-    input[type="text"], input[type="password"], input[type="submit"],
-    ::-webkit-file-upload-button,
-    .confirmation-tick:checked ~ .btn_confirmation-tick,
-    .autocompletion-list,
-    .paginator {
-        background: #444;
-        color: #ddd;
-    }
-
-    .edit-post-btn,
-    .edit-post-btn:visited,
-    .post-tags a,
-    .date-heading a,
-    .date-link,
-    .card-line a,
-    nav a,
-    nav a:hover,
-    nav a:visited,
-    .paginator-entry {
-        color: #ddd;
-        text-decoration: underline;
-    }
-    .card-line {
-        background: #343434;
-    }
-    .autocompletion-list {
-        border: solid 1px #999;
-    }
-    .autocompletion-item:hover,
-    .autocompletion-item.selected {
-        background: #555;
-    }
-}
-
-@media (prefers-color-scheme: light) {
-    html {
-        background: rgb(251, 251, 251);
-    }
-    main > article,
-    .autocompletion-list {
-        background: white;
-    }
-
-    .btn,
-    .btn:active,
-    .btn:hover,
-    .btn:visited {
-        color: black;
-    }
-
-    .edit-post-btn,
-    .edit-post-btn:visited,
-    .post-tags a,
-    .date-heading a,
-    .date-link,
-    .card-line a,
-    nav a,
-    nav a:hover,
-    nav a:visited {
-        color: black;
-        text-decoration: underline;
-    }
-    .card-line {
-        background: #efefef;
-    }
-    a.btn_destructive,
-    a.btn_destructive:visited,
-    .btn_destructive {
-        border-color: #aa1818;
-        background-color: #ee4343;
-        color: white;
-    }
-    .confirmation-tick:checked ~ .btn_confirmation-tick {
-        background: #eee;
-    }
-
-    .autocompletion-list {
-        border: 1px solid #ccc;
-    }
-
-    .autocompletion-item:hover,
-    .autocompletion-item.selected {
-        background: #ccc;
-    }
-}
-
-
 /* Buttons */
 ::-webkit-file-upload-button,
 .btn {
@@ -640,4 +527,116 @@ figure {
 }
 figcaption {
     padding-bottom: .5rem;
+}
+
+/* Colors. Keep both sections in sync. */
+@media (prefers-color-scheme: dark) {
+    a, .wikilink_external { color: #f1fa8c; }
+    a:visited, .wikilink_external:visited { color: #ffb86c; }
+    .wikilink_new, .wikilink_new:visited { color: #dd4444; }
+
+    .transclusion .transclusion__link { color: #ddd; }
+
+    article code,
+    article .codeblock,
+    textarea,
+    table { border: 0; background-color: #444444; color: #ddd; }
+    mark { background: rgba(130, 80, 30, 5); color: inherit; }
+
+    html {
+        background: #222;
+        color: #ddd;
+    }
+    main > article {
+        background: #343434;
+    }
+
+    .btn,
+    .btn:active,
+    .btn:hover,
+    .btn:visited,
+    input[type="text"], input[type="password"], input[type="submit"],
+    ::-webkit-file-upload-button,
+    .confirmation-tick:checked ~ .btn_confirmation-tick,
+    .autocompletion-list,
+    .paginator {
+        background: #444;
+        color: #ddd;
+    }
+
+    .edit-post-btn,
+    .edit-post-btn:visited,
+    .post-tags a,
+    .date-heading a,
+    .date-link,
+    .card-line a,
+    nav a,
+    nav a:hover,
+    nav a:visited,
+    .paginator-entry {
+        color: #ddd;
+        text-decoration: underline;
+    }
+    .card-line {
+        background: #343434;
+    }
+    .autocompletion-list {
+        border: solid 1px #999;
+    }
+    .autocompletion-item:hover,
+    .autocompletion-item.selected {
+        background: #555;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    html {
+        background: rgb(251, 251, 251);
+    }
+    main > article,
+    .autocompletion-list {
+        background: white;
+    }
+
+    .btn,
+    .btn:active,
+    .btn:hover,
+    .btn:visited {
+        color: black;
+    }
+
+    .edit-post-btn,
+    .edit-post-btn:visited,
+    .post-tags a,
+    .date-heading a,
+    .date-link,
+    .card-line a,
+    nav a,
+    nav a:hover,
+    nav a:visited {
+        color: black;
+        text-decoration: underline;
+    }
+    .card-line {
+        background: #efefef;
+    }
+    a.btn_destructive,
+    a.btn_destructive:visited,
+    .btn_destructive {
+        border-color: #aa1818;
+        background-color: #ee4343;
+        color: white;
+    }
+    .confirmation-tick:checked ~ .btn_confirmation-tick {
+        background: #eee;
+    }
+
+    .autocompletion-list {
+        border: 1px solid #ccc;
+    }
+
+    .autocompletion-item:hover,
+    .autocompletion-item.selected {
+        background: #ccc;
+    }
 }
