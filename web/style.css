@@ -241,9 +241,6 @@ dd + dt {
     padding: 4px 8px;
     text-decoration: none;
 }
-form {
-    max-width: 30rem;
-}
 form > div + div {
     margin-top: 16px;
 }
@@ -273,7 +270,7 @@ textarea {
     font-family: sans-serif;
 }
 form input[type="submit"] {
-    min-width: 50%;
+    min-width: 33%;
     max-width: 15rem;
     margin-top: 8px;
 }
