@@ -35,7 +35,7 @@ import (
 )
 
 var (
-	//go:embed views/*.gohtml *.css *.js
+	//go:embed views/*.gohtml *.css *.js pix/*
 	fs embed.FS
 	//go:embed bookmarklet.js
 	bookmarkletScript string
@@ -126,7 +126,6 @@ func init() {
 
 	// Static files
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
-	mux.HandleFunc("GET /favicon.ico", getFavicon)
 }
 
 func getArtifact(w http.ResponseWriter, rq *http.Request) {
