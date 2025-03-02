@@ -1,54 +1,61 @@
-<svg height="300" width="300" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg" style="fill:var(--brand-bg)">
-  <style>
-  :root { 
-    --brand-leaves-1: black;
-    --brand-leaves-2: black;
-    --brand-trunk: white;
-    --brand-outline: black;
-    --brand-bg: white; 
-  }
-  </style>
-  <pattern id="the-lines" width="10" height="2" patternUnits="userSpaceOnUse">
-    <line x1="0" y1="0" x2="10" y2="0" style="stroke:var(--brand-leaves-1); stroke-width:2.1" />
-    <line x1="0" y1="2" x2="10" y2="2" style="stroke:var(--brand-leaves-2); stroke-width:2"/>
-  </pattern>
-  <rect width="26" height="26"/>
-  <g
-  transform="translate(2.4, 1)"
-  fill="none"
-  stroke-width="1.1"
-  stroke-linecap="round"
-  style="stroke: var(--brand-outline)">
-    <!-- The Crown -->
-    <path d="        
-M  8.3  17   C  2   20  -1  12  5     11
-L  4    11   C  0   0   12  -1  13    4.3
-L  11   6    C  18  -1  19  10  17.4  11
-L  16   9.8  C  24  16  15  21  12    16
-Z
-"  fill="url(#the-lines)" id="the-crown"/>
-    <path d="        
-M  8.3  17   C  2   20  -1  12  5     11
-M  4    11   C  0   0   12  -1  13    4.3
-M  11   6    C  18  -1  19  10  17.4  11
-M  16   9.8  C  24  16  15  21  12    16
-"/>
-    <!-- The Trunk -->
-    <path d="
-M  5    23   Q  8   22  9   13        
-L 12 13 Q 12 22 14 23
-Z
-" fill="var(--brand-trunk)" stroke="var(--brand-trunk)" stroke-linejoin="round" stroke-width="0.8"/>
-    <path d="
-M  5    23   Q  8   22  9   13
-L 9 13
-L 12 13
-M  14   23   Q  12  22  12  13
-" stroke-linejoin="round"/>
-    <!-- The Spots -->
-    <path d="
-M  12   16   C  10  16  10  19  12    18
-M  7.3  21   C  9   22  11  20  8     19
-" fill="var(--brand-outline)"/>
-  </g>
+<svg height="300" width="300" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+	<style>
+		:root {
+			fill: white;
+		}
+		#the-lines line,
+		g {
+			stroke: black;
+		}
+		#the-trunk {
+			fill: white;
+			stroke: white;
+		}
+		#the-spots {
+			fill: black;
+		}
+	</style>
+	<pattern id="the-lines" width="10" height="2" patternUnits="userSpaceOnUse">
+		<line x1="0" y1="0" x2="10" y2="0" stroke-width="2.1"/>
+		<line x1="0" y1="2" x2="10" y2="2" stroke-width="2"/>
+	</pattern>
+	<rect width="26" height="26"/>
+	<g
+			transform="translate(2.4, 1)"
+			fill="none"
+			stroke-width="1.1"
+			stroke-linecap="round">
+
+		<!-- The Crown -->
+		<path fill="url(#the-lines)" id="the-crown" d="
+			M  8.3  17   C  2   20  -1  12  5     11
+			L  4    11   C  0   0   12  -1  13    4.3
+			L  11   6    C  18  -1  19  10  17.4  11
+			L  16   9.8  C  24  16  15  21  12    16
+			Z"/>
+		<path d="
+			M  8.3  17   C  2   20  -1  12  5     11
+			M  4    11   C  0   0   12  -1  13    4.3
+			M  11   6    C  18  -1  19  10  17.4  11
+			M  16   9.8  C  24  16  15  21  12    16
+			"/>
+
+		<!-- The Trunk -->
+		<path id="the-trunk" stroke-linejoin="round" stroke-width="0.8" d="
+			M  5    23   Q  8   22  9   13
+			L  12   13   Q  12  22  14  23
+			Z"/>
+		<path stroke-linejoin="round" d="
+			M  5    23   Q  8   22  9   13
+			L 9 13
+			L 12 13
+			M  14   23   Q  12  22  12  13
+			"/>
+
+		<!-- The Spots -->
+		<path id="the-spots" d="
+			M  12   16   C  10  16  10  19  12    18
+			M  7.3  21   C  9   22  11  20  8     19
+			"/>
+	</g>
 </svg>
