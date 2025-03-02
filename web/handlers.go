@@ -35,7 +35,7 @@ import (
 )
 
 var (
-	//go:embed views/*.gohtml *.css *.js
+	//go:embed views/*.gohtml *.css *.js pix/*
 	fs embed.FS
 	//go:embed bookmarklet.js
 	bookmarkletScript string
@@ -125,7 +125,6 @@ func init() {
 
 	// Static files
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
-	mux.HandleFunc("GET /favicon.ico", getFavicon)
 }
 
 func getArtifact(w http.ResponseWriter, rq *http.Request) {
@@ -195,12 +194,6 @@ func postMakeNewArchive(w http.ResponseWriter, rq *http.Request) {
 
 	var addr = fmt.Sprintf("/%d?highlight-archive=%d", bookmark.ID, archiveID)
 	http.Redirect(w, rq, addr, http.StatusSeeOther)
-}
-
-func getFavicon(w http.ResponseWriter, rq *http.Request) {
-	slog.Info("404 Not found", "path", rq.URL.Path, "help", "Use a reverse proxy to provide a favicon")
-	w.WriteHeader(http.StatusNotFound)
-	_, _ = w.Write([]byte("404 Not found"))
 }
 
 func getRandom(w http.ResponseWriter, rq *http.Request) {

@@ -32,6 +32,7 @@
         overflow-x: scroll;
         white-space: nowrap;
     }
+    .hide-on-phone,
     .horizontal-scroll-on-phone::-webkit-scrollbar {
         display: none;
     }

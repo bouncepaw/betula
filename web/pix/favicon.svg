@@ -1,7 +1,7 @@
 <svg height="300" width="300" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
 	<style>
 		:root {
-			fill: white;
+			fill: transparent;
 		}
 		#the-lines line,
 		g {
@@ -27,7 +27,7 @@
 			stroke-linecap="round">
 
 		<!-- The Crown -->
-		<path fill="url(#the-lines)" id="the-crown" d="
+		<path fill="black" id="the-crown" d="
 			M  8.3  17   C  2   20  -1  12  5     11
 			L  4    11   C  0   0   12  -1  13    4.3
 			L  11   6    C  18  -1  19  10  17.4  11

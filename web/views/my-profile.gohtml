@@ -2,6 +2,10 @@
 {{define "body"}}
     <main>
         <article class="profile-card">
+            <!-- TODO: redo this part -->
+            <div style="float: right">
+                <img src="/static/pix/favicon.svg" alt="Betula logo" style="height:3rem;">
+            </div>
             <h2>{{.SiteName}}</h2>
             {{if and .FederationEnabled}}
                 <div>
