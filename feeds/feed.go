@@ -104,7 +104,7 @@ func Digest() *rss.Feed {
 }
 
 const descriptionTemplate = `
-<h2><a href="/%d">%s</a></h2>
+<h2><a href="%s">%s</a></h2>
 <p>🔗 <a href="%s">%s</a></p>
 %s
 %s
@@ -121,7 +121,7 @@ func descriptionForOnePost(post types.Bookmark) string {
 
 	return fmt.Sprintf(
 		descriptionTemplate,
-		post.ID,
+		post.URL,
 		post.Title,
 		post.URL,
 		types.CleanerLink(post.URL),
