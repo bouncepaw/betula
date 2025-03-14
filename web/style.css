@@ -267,7 +267,7 @@ textarea {
     margin: 0;
     line-height: 1.5rem;
     font-size: 1rem;
-    border: 2px inset #eee;
+    border: 2px inset black;
     font-family: sans-serif;
 }
 form input[type="submit"] {
@@ -537,8 +537,15 @@ figcaption {
 
     article code,
     article .codeblock,
-    textarea,
-    table { border: 0; background-color: #444444; color: #ddd; }
+    table {
+        border: 0;
+        background-color: #444;
+        color: #ddd;
+    }
+    textarea {
+        background: #444;
+        color: #ddd;
+    }
     mark { background: rgba(130, 80, 30, 5); color: inherit; }
 
     html {
