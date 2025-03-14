@@ -14,11 +14,17 @@
 		#the-spots {
 			fill: black;
 		}
+		@media (prefers-color-scheme: dark) {
+			circle {
+				fill: white;
+			}
+		}
 	</style>
 	<pattern id="the-lines" width="10" height="2" patternUnits="userSpaceOnUse">
 		<line x1="0" y1="0" x2="10" y2="0" stroke-width="2.1"/>
 		<line x1="0" y1="2" x2="10" y2="2" stroke-width="2"/>
 	</pattern>
+	<circle r="13" cx="13" cy="13"/>
 	<rect width="26" height="26"/>
 	<g
 			transform="translate(2.4, 1)"
@@ -46,10 +52,10 @@
 			L  12   13   Q  12  22  14  23
 			Z"/>
 		<path stroke-linejoin="round" d="
-			M  5    23   Q  8   22  9   13
-			L 9 13
-			L 12 13
-			M  14   23   Q  12  22  12  13
+			M  5.5    22.5   Q  8   22  9   13
+			L  9    13
+			L  12   13
+			M  14.6   22.5   Q  12  22  12  13
 			"/>
 
 		<!-- The Spots -->
