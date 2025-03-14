@@ -267,7 +267,6 @@ textarea {
     margin: 0;
     line-height: 1.5rem;
     font-size: 1rem;
-    border: 2px inset black;
     font-family: sans-serif;
 }
 form input[type="submit"] {
@@ -542,10 +541,6 @@ figcaption {
         background-color: #444;
         color: #ddd;
     }
-    textarea {
-        background: #444;
-        color: #ddd;
-    }
     mark { background: rgba(130, 80, 30, 5); color: inherit; }
 
     html {
@@ -564,9 +559,18 @@ figcaption {
     ::-webkit-file-upload-button,
     .confirmation-tick:checked ~ .btn_confirmation-tick,
     .autocompletion-list,
-    .paginator {
+    .paginator,
+    textarea {
         background: #444;
         color: #ddd;
+    }
+
+    form input[type="number"],
+    form input[type="text"],
+    form input[type="url"],
+    form input[type="password"],
+    textarea {
+        border: 2px inset black;
     }
 
     .edit-post-btn,
@@ -643,5 +647,13 @@ figcaption {
     .autocompletion-item:hover,
     .autocompletion-item.selected {
         background: #ccc;
+    }
+
+    form input[type="number"],
+    form input[type="text"],
+    form input[type="url"],
+    form input[type="password"],
+    textarea {
+        border: 2px inset #eee;
     }
 }
