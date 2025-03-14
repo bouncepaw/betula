@@ -17,8 +17,8 @@ func (repo *dbArtifactsRepo) Fetch(id string) (*types.Artifact, error) {
 	var artifact = types.Artifact{
 		ID: id,
 	}
-	var row = db.QueryRow(`select MimeType, Data, IsGzipped from Artifacts where ID = ?`, id)
-	var err = row.Scan(&artifact.MimeType, &artifact.Data, &artifact.IsGzipped)
+	var row = db.QueryRow(`select MimeType, Data, IsGzipped, length(Data) from Artifacts where ID = ?`, id)
+	var err = row.Scan(&artifact.MimeType, &artifact.Data, &artifact.IsGzipped, &artifact.Size)
 	return &artifact, err
 }
 
@@ -72,7 +72,7 @@ func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive,
 	var rows, err = db.Query(`
 		select
 		    arc.ID, arc.SavedAt,
-		    art.ID, art.MimeType, art.IsGzipped
+		    art.ID, art.MimeType, art.IsGzipped, length(art.Data)
 		from 
 		    Archives arc
 		join
@@ -94,7 +94,7 @@ func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive,
 			artifact types.Artifact
 		)
 		err = rows.Scan(&archive.ID, &archive.SavedAt,
-			&artifact.ID, &artifact.MimeType, &artifact.IsGzipped)
+			&artifact.ID, &artifact.MimeType, &artifact.IsGzipped, &artifact.Size)
 		if err != nil {
 			return nil, err
 		}

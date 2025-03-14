@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -16,6 +17,7 @@ type Artifact struct {
 	MimeType  string
 	Data      []byte
 	IsGzipped bool
+	Size      int
 }
 
 // NewCompressedDocumentArtifact makes an Artifact from the given
@@ -74,6 +76,29 @@ func NewCompressedDocumentArtifact(b []byte, mime string) (*Artifact, error) {
 		Data:      gzipped,
 		IsGzipped: true,
 	}, nil
+}
+
+func (a *Artifact) HumanSize() string {
+	switch {
+	case a.Size == 0:
+		return "empty"
+	case a.Size < 1024:
+		return fmt.Sprintf("%d B", a.Size)
+	case a.Size < 1024*1024:
+		return fmt.Sprintf("%.2f KiB", float64(a.Size)/float64(1024))
+	default:
+		return fmt.Sprintf("%.2f MiB", float64(a.Size)/float64(1024*1024))
+	}
+}
+
+var reMime = regexp.MustCompile(`[a-z]+/([a-z]+).*`)
+
+func (a *Artifact) HumanMimeType() string {
+	matches := reMime.FindStringSubmatch(a.MimeType)
+	if len(matches) != 2 {
+		return a.MimeType
+	}
+	return matches[1]
 }
 
 type Archive struct {

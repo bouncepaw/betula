@@ -1696,12 +1696,14 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 	var highlightArchive int64
 	{
 		var val = rq.FormValue("highlight-archive")
-		var n, err = strconv.Atoi(val)
-		if err != nil {
-			slog.Warn("Invalid value for highlight-archive",
-				"val", val, "err", err)
-		} else {
-			highlightArchive = int64(n)
+		if val != "" {
+			var n, err = strconv.Atoi(val)
+			if err != nil {
+				slog.Warn("Invalid value for highlight-archive",
+					"val", val, "err", err)
+			} else {
+				highlightArchive = int64(n)
+			}
 		}
 	}
 

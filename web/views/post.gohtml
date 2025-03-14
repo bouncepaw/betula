@@ -44,13 +44,9 @@
 				{{range .Archives}}
 					<li>
 						<a href="/artifact/{{.Artifact.ID}}">
-							{{if eq $highlight .ID}}
-								<mark>{{timestampToHuman .SavedAt.String}}</mark>
-							{{else}}
-								{{timestampToHuman .SavedAt.String}}
-							{{end}}
-						</a>
-						<span class="archive-mime">{{.Artifact.MimeType}}</span>
+							{{if eq $highlight .ID}}<mark>{{timestampToHuman .SavedAt.String}}</mark>{{else}}{{timestampToHuman .SavedAt.String}}{{end}}</a>
+						<span class="archive-mime">{{.Artifact.HumanMimeType}}</span>
+						<span class="archive-size">{{.Artifact.HumanSize}}</span>
 					</li>
 				{{end}}
 				</ul>
