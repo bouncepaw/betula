@@ -34,6 +34,7 @@
 				</time>
 			</a>
 		</article>
+		{{if .Authorized}}
 		<article>
 			<h3>Archive copies</h3>
 			<form method="post" action="/make-new-archive/{{.Bookmark.ID}}">
@@ -52,6 +53,7 @@
 				</ul>
 			{{end}}
 		</article>
+		{{end}}
 	</main>
 	<script src="/static/copytext.js"></script>
 {{end}}
