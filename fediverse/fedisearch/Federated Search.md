@@ -1,7 +1,7 @@
 # Betula's Approach to Federated Search
-There is already an ongoing federated search initiative present, called [Fediverse Discovery Providers](https://www.fediscovery.org), or Fediscovery for short. It's not ready yet, no specs are found, and it's probably gonna be very general. I do not particularly want to wait for them, hence I'm rolling out my own ad-hoc protocol suited for federated search of bookmarks.
+There is already an ongoing federated search initiative present, called [Fediverse Discovery Providers](https://www.fediscovery.org), or Fediscovery for short. It's not ready yet, no specs are found, and it's probably going to be very general. I do not particularly want to wait for them, hence I'm rolling out my own ad-hoc protocol suited for federated search of bookmarks.
 
-I tried to design it universal enough for all fellow Fediverse bookmarking services, but of course it's going to be very biased. After all, I develop Betula, and Postmarks is not in active development anymore (why is it more popular though?), and there is nothing else like this out there.
+I tried to design it universal enough for all fellow Fediverse bookmarking services, but of course it's going to be very biased. After all, I am the one who develops Betula, so of course I take it into consideration first.
 
 ## Search results
 Alice wants to ask Bob for search results. She makes a POST request to `https://BOB/.well-known/betula-federated-search` similar to the following JSON signed with an HTTP signature.
@@ -10,8 +10,8 @@ Alice wants to ask Bob for search results. She makes a POST request to `https://
 {
    "version": "v1",
    "query": "#solarpunk #software",
-   "cursor": "https://BOB/45",
    "limit": 6,
+   "offset": 0,
    "actor": "https://ALICE/@alice",
    "to": "https://BOB/@bob"
 }
@@ -23,7 +23,7 @@ If the signature is fine, the status is 200 and Bob returns an object like this:
 
 ```json
 {
-	"moreAvailable": true,
+	"moreAvailable": 0,
 	"bookmarks": [
 		{
 			"@context": [
@@ -65,7 +65,7 @@ If the signature is fine, the status is 200 and Bob returns an object like this:
 }
 ```
 
-The `moreAvailable` field is `true` if more can be requested. The `items` is a list of `Note` objects. They are the same as if received over regular ActivityPub broadcasting, except there is no wrapping `Create` or `Update` activity. Alice might save these bookmarks to her database.
+The `moreAvailable` field tells how many more bookmarks can be requested by adjusting the query. The `items` is a list of `Note` objects. They are the same as if received over regular ActivityPub broadcasting, except there is no wrapping `Create` or `Update` activity. Alice might save these bookmarks to her database.
 
 Possible errors are:
 
