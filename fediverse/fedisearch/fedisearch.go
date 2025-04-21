@@ -4,13 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/types"
+	"log/slog"
 	"maps"
 	"math"
 	"math/rand"
 	"net/url"
 	"slices"
+	"sync"
 )
 
 type Request struct {
@@ -46,31 +49,31 @@ type response struct {
 // State is the current state of a federated search request from
 // betulist's point of view.
 type State struct {
-	query string
-	// seen maps actors to number of bookmarks already seen.
+	Query string
+	// Seen maps actors to number of bookmarks already seen.
 	// When requesting more bookmarks, these values become
 	// values of the "offset" field.
-	seen map[string]int
+	Seen map[string]int
 
-	// expected maps actors to number of bookmarks expected
+	// Expected maps actors to number of bookmarks expected
 	// to be possible to request. These values come from
 	// the "moreAvailable" field.
-	expected map[string]int
+	Expected map[string]int
 
-	// unseen lists actor that have not been
+	// Unseen lists actor that have not been
 	// requested for bookmarks yet, so it's unknown how many
 	// do they have.
-	unseen []string
+	Unseen []string
 
 	ourID string
 }
 
 func NewSearchRequest(q string, mutuals []string, ourID string) *State {
 	return &State{
-		query:    q,
-		seen:     nil,
-		expected: nil,
-		unseen:   mutuals,
+		Query:    q,
+		Seen:     nil,
+		Expected: nil,
+		Unseen:   mutuals,
 		ourID:    ourID,
 	}
 }
@@ -80,16 +83,16 @@ func NewSearchRequest(q string, mutuals []string, ourID string) *State {
 func StateFromFormParams(params url.Values, ourID string) (*State, error) {
 	var (
 		s = State{
-			query:    params.Get("query"),
-			seen:     make(map[string]int),
-			expected: make(map[string]int),
+			Query:    params.Get("query"),
+			Seen:     make(map[string]int),
+			Expected: make(map[string]int),
 			ourID:    ourID,
 		}
 		seenJSON     = []byte(params.Get("seen"))
 		expectedJSON = []byte(params.Get("expected"))
 		err          = errors.Join(
-			json.Unmarshal(seenJSON, &s.seen),
-			json.Unmarshal(expectedJSON, &s.expected))
+			json.Unmarshal(seenJSON, &s.Seen),
+			json.Unmarshal(expectedJSON, &s.Expected))
 	)
 	if err != nil {
 		return nil, err
@@ -103,27 +106,27 @@ func StateFromFormParams(params url.Values, ourID string) (*State, error) {
 // written in title case to match how we write Go templates.
 func (s *State) SerializeForForm() (map[string]string, error) {
 	var j = map[string]string{
-		"Query": s.query,
+		"Query": s.Query,
 	}
 
-	if s.seen != nil {
-		var seen, err = json.Marshal(s.seen)
+	if s.Seen != nil {
+		var seen, err = json.Marshal(s.Seen)
 		if err != nil {
 			return nil, err
 		}
 		j["Seen"] = string(seen)
 	}
 
-	if s.expected != nil {
-		var expected, err = json.Marshal(s.expected)
+	if s.Expected != nil {
+		var expected, err = json.Marshal(s.Expected)
 		if err != nil {
 			return nil, err
 		}
 		j["Expected"] = string(expected)
 	}
 
-	if s.unseen != nil {
-		var unseen, err = json.Marshal(s.unseen)
+	if s.Unseen != nil {
+		var unseen, err = json.Marshal(s.Unseen)
 		if err != nil {
 			return nil, err
 		}
@@ -141,14 +144,14 @@ func (s *State) RequestsToMake() []Request {
 		choice   = Choice{}
 		requests []Request
 	)
-	choice.fillFor(maps.Clone(s.expected), slices.Clone(s.unseen))
+	choice.fillFor(maps.Clone(s.Expected), slices.Clone(s.Unseen))
 
 	for actorID, limit := range choice {
 		requests = append(requests, Request{
 			Version: "v1",
-			Query:   s.query,
+			Query:   s.Query,
 			Limit:   limit,
-			Offset:  s.seen[actorID],
+			Offset:  s.Seen[actorID],
 			From:    s.ourID,
 			To:      actorID,
 		})
@@ -156,11 +159,83 @@ func (s *State) RequestsToMake() []Request {
 	return requests
 }
 
+func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
+	var newState = &State{
+		Query:    s.Query,
+		Seen:     maps.Clone(s.Seen),
+		Expected: maps.Clone(s.Expected),
+		Unseen:   slices.Clone(s.Unseen),
+		ourID:    s.ourID,
+	}
+
+	var mutex sync.Mutex
+
+	var reqs = s.RequestsToMake()
+	slog.Info("Making federated search requests",
+		"len(reqs)", len(reqs), "query", s.Query)
+
+	var wg sync.WaitGroup
+	wg.Add(len(reqs))
+
+	for i, req := range reqs {
+		go func() {
+			defer wg.Done()
+			var ok = s.doRequest(i, req, newState, &mutex)
+			if !ok {
+				mutex.Lock()
+				delete(newState.Expected, req.To)
+				mutex.Unlock()
+			}
+		}()
+	}
+}
+
+func (s *State) doRequest(i int, req Request, newState *State, mutex *sync.Mutex) (ok bool) {
+	var theJSON, err = json.Marshal(req)
+	if err != nil {
+		slog.Error("Failed to marshal request", "req", req, "i", i, "err", err)
+		return false
+	}
+
+	theURL, err := url.Parse(req.To)
+	if err != nil {
+		slog.Error("Failed to parse url", "url", req.To, "err", err)
+		return false
+	}
+
+	bytes, status, err := fediverse.PostSignedDocumentToAddress(
+		theJSON, "application/json", "application/json",
+		fmt.Sprintf("https://%s/.well-known/betula-federated-search", theURL.Host))
+	if err != nil {
+		slog.Error("Failed to fetch bookmarks",
+			"err", err, "status", status, "resp", bytes, "i")
+		return false
+	}
+
+	slog.Info("Fetched remote bookmarks",
+		"req", req, "i", i)
+
+	var resp response
+	err = json.Unmarshal(bytes, &resp)
+	if err != nil {
+		slog.Error("Failed to unmarshal response", "err", err, "resp", bytes, "i", i)
+		return false
+	}
+
+	for _, bookmark := range resp.Bookmarks {
+		object, err := activities.RemoteBookmarkFromDict(bookmark)
+		if err != nil {
+			slog.Error("Failed to unmarshal bookmark", "err", err, "bookmark", bookmark, "i", i)
+			continue
+		}
+
+	}
+}
+
 type Choice map[string]int
 
 func (choice Choice) fillFor(expected map[string]int, unseen []string) {
 	for choice.sum() < 65 {
-		fmt.Printf("%v\n", expected)
 		if len(unseen) > 0 {
 			var (
 				unfilledSlots = float64(65.0 - choice.sum())

@@ -12,7 +12,7 @@ Alice wants to ask Bob for search results. She makes a POST request to `https://
    "query": "#solarpunk #software",
    "limit": 6,
    "offset": 0,
-   "actor": "https://ALICE/@alice",
+   "from": "https://ALICE/@alice",
    "to": "https://BOB/@bob"
 }
 ```

@@ -8,6 +8,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/archiving"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	"git.sr.ht/~bouncepaw/betula/fediverse/fedisearch"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
@@ -112,7 +113,7 @@ func init() {
 	mux.HandleFunc("GET /following", fediverseWebFork(nil, getFollowingWeb))
 	mux.HandleFunc("GET /followers", fediverseWebFork(nil, getFollowersWeb))
 	mux.HandleFunc("GET /timeline", adminOnly(federatedOnly(getTimeline)))
-	mux.HandleFunc("GET /fedisearch", adminOnly(federatedOnly(getFediSearch)))
+	mux.HandleFunc("GET /fedisearch", adminOnly(federatedOnly(handlerFediSearch)))
 
 	// ActivityPub
 	mux.HandleFunc("POST /inbox", federatedOnly(postInbox))
@@ -197,31 +198,32 @@ func postMakeNewArchive(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, addr, http.StatusSeeOther)
 }
 
-type dataFedisearchEmpty struct {
+type dataFedisearch struct {
 	*dataCommon
 
 	Mutuals []types.Actor
+	State   *fedisearch.State // nil for empty fedisearch page
 }
 
-func getFediSearch(w http.ResponseWriter, rq *http.Request) {
-	query := rq.FormValue("q")
+func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
+	var query = rq.FormValue("query")
 	if query == "" {
 		slog.Info("Access empty fedisearch page")
-		templateExec(w, rq, templateFedisearchEmpty, dataFedisearchEmpty{
+		templateExec(w, rq, templateFedisearchEmpty, dataFedisearch{
 			dataCommon: emptyCommon(),
 			Mutuals:    db.GetFollowing(),
 		})
 		return
 	}
-	slog.Info("Make a federated search", "q", query)
-}
 
-func getFavicon(w http.ResponseWriter, rq *http.Request) {
-	slog.Info("404 Not found", "path", rq.URL.Path, "help", "Use a reverse proxy to provide a favicon")
-	w.WriteHeader(http.StatusNotFound)
-	_, _ = w.Write([]byte("404 Not found"))
-	var addr = fmt.Sprintf("/%d?highlight-archive=%d", bookmark.ID, archiveID)
-	http.Redirect(w, rq, addr, http.StatusSeeOther)
+	slog.Info("Make a federated search", "query", query)
+	var prevState, err = fedisearch.StateFromFormParams(rq.Form, fediverse.OurID())
+	if err != nil {
+		slog.Error("Failed to parse federated search state", "query", query, "err", err)
+		handlerNotFound(w, rq) // TODO: proper error page
+		return
+	}
+
 }
 
 func getRandom(w http.ResponseWriter, rq *http.Request) {

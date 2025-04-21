@@ -82,10 +82,10 @@ func TestState_RequestsToMake(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &State{
-				query:    tt.fields.query,
-				seen:     tt.fields.seen,
-				expected: tt.fields.expected,
-				unseen:   tt.fields.unseen,
+				Query:    tt.fields.query,
+				Seen:     tt.fields.seen,
+				Expected: tt.fields.expected,
+				Unseen:   tt.fields.unseen,
 				ourID:    tt.fields.ourID,
 			}
 			reqs := slices.SortedFunc(
