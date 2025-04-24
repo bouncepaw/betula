@@ -83,11 +83,17 @@ func StateFromFormParams(params url.Values, ourID string) (*State, error) {
 		seenJSON     = []byte(params.Get("seen"))
 		unseenJSON   = []byte(params.Get("unseen"))
 		expectedJSON = []byte(params.Get("expected"))
-		err          = errors.Join( // nobody dares to program like this but me
-			json.Unmarshal(seenJSON, &s.Seen),
-			json.Unmarshal(unseenJSON, &s.Unseen),
-			json.Unmarshal(expectedJSON, &s.Expected))
+		err          error
 	)
+	if len(seenJSON) > 0 {
+		err = errors.Join(json.Unmarshal(seenJSON, &s.Seen))
+	}
+	if len(unseenJSON) > 0 {
+		err = errors.Join(json.Unmarshal(unseenJSON, &s.Unseen))
+	}
+	if len(expectedJSON) > 0 {
+		err = errors.Join(json.Unmarshal(expectedJSON, &s.Expected))
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -183,6 +189,8 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 			}
 		}()
 	}
+
+	wg.Wait()
 
 	var rendered = fediverse.RenderRemoteBookmarks(bookmarks)
 	return rendered, newState, nil
