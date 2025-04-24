@@ -188,6 +188,8 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 			}
 		}()
 	}
+
+	return nil, nil, nil
 }
 
 func (s *State) doRequest(i int, req Request, newState *State, mutex *sync.Mutex) (ok bool) {
@@ -228,8 +230,9 @@ func (s *State) doRequest(i int, req Request, newState *State, mutex *sync.Mutex
 			slog.Error("Failed to unmarshal bookmark", "err", err, "bookmark", bookmark, "i", i)
 			continue
 		}
-
+		_ = object
 	}
+	return false // TODO
 }
 
 type Choice map[string]int

@@ -3,16 +3,20 @@
 <main class="h-feed">
     <article>
         <h2>Federated search ⁂</h2>
-        <p>
+        {{if eq .State nil}}<p>
             Search bookmarks your mutuals have published.
             They can search your bookmarks similarly.
             Of course, only public bookmarks can be found.
-        </p>
+        </p>{{end}}
         {{if len .Mutuals}}
             <form action="/fedisearch" method="post">
                 <div>
                     <label for="search-query" aria-hidden="false" class="invisible">Federated search query</label>
-                    <input type="search" id="search-query" name="query" placeholder="#solarpunk #software">
+                    <input type="search" id="search-query" name="query" placeholder="#solarpunk #software"
+                           {{if .State}}value="{{.State.Query}}"{{end}}>
+                    {{if .State}}<input type="hidden" name="seen" value="{{.State.SeenSerialized}}">
+                    <input type="hidden" name="unseen" value="{{.State.UnseenSerialized}}">
+                    <input type="hidden" name="unseen" value="{{.State.ExpectedSerialized}}">{{end}}
                 </div>
                 <input type="submit" value="Search" class="btn">
             </form>
@@ -24,15 +28,13 @@
         {{end}}
     </article>
 
-    {{if len .Mutuals}}
+    {{if and (len .Mutuals) (eq .State nil)}}
         <article>
             <h3>Mutuals</h3>
-            <p>These are betulists that will be searched.</p>
-            <ul>
-            {{range .Mutuals}}
+            <p>These are the betulists that will be searched.</p>
+            <ul>{{range .Mutuals}}
                 <li><a href="/{{.Acct}}">{{.Acct}}</a></li>
-            {{end}}
-            </ul>
+            {{end}}</ul>
         </article>
     {{end}}
 </main>

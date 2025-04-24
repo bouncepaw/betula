@@ -216,13 +216,13 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	slog.Info("Make a federated search", "query", query)
-	var prevState, err = fedisearch.StateFromFormParams(rq.Form, fediverse.OurID())
-	if err != nil {
-		slog.Error("Failed to parse federated search state", "query", query, "err", err)
-		handlerNotFound(w, rq) // TODO: proper error page
-		return
-	}
+	//slog.Info("Make a federated search", "query", query)
+	//var prevState, err = fedisearch.StateFromFormParams(rq.Form, fediverse.OurID())
+	//if err != nil {
+	//	slog.Error("Failed to parse federated search state", "query", query, "err", err)
+	//	handlerNotFound(w, rq) // TODO: proper error page
+	//	return
+	//}
 
 }
 
