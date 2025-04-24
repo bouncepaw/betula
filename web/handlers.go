@@ -213,7 +213,7 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 		slog.Info("Access empty fedisearch page")
 		templateExec(w, rq, templateFedisearch, dataFedisearch{
 			dataCommon: emptyCommon(),
-			Mutuals:    db.GetFollowing(),
+			Mutuals:    db.GetMutuals(),
 		})
 		return
 	}
@@ -239,7 +239,7 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 		"nextState", nextState, "prevState", prevState)
 	templateExec(w, rq, templateFedisearch, dataFedisearch{
 		dataCommon: emptyCommon(),
-		Mutuals:    db.GetFollowing(),
+		Mutuals:    db.GetMutuals(),
 		Bookmarks:  bookmarks,
 		State:      nextState,
 	})

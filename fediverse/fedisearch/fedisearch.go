@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -89,6 +90,14 @@ func StateFromFormParams(params url.Values, ourID string) (*State, error) {
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	// First page:
+	if len(seenJSON) == 0 && len(unseenJSON) == 0 && len(expectedJSON) == 0 {
+		var mutuals = db.GetMutuals()
+		for _, m := range mutuals {
+			s.Unseen = append(s.Unseen, m.ID)
+		}
 	}
 	return &s, nil
 }
