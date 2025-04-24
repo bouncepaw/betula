@@ -113,8 +113,11 @@ func init() {
 	mux.HandleFunc("GET /following", fediverseWebFork(nil, getFollowingWeb))
 	mux.HandleFunc("GET /followers", fediverseWebFork(nil, getFollowersWeb))
 	mux.HandleFunc("GET /timeline", adminOnly(federatedOnly(getTimeline)))
+
+	// Federated search
 	mux.HandleFunc("GET /fedisearch", adminOnly(federatedOnly(handlerFediSearch)))
 	mux.HandleFunc("POST /fedisearch", adminOnly(federatedOnly(handlerFediSearch)))
+	mux.HandleFunc("POST /.well-known/betula-federated-search", federatedOnly(postFediSearchAPI))
 
 	// ActivityPub
 	mux.HandleFunc("POST /inbox", federatedOnly(postInbox))
@@ -244,6 +247,59 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 		Bookmarks:  bookmarks,
 		State:      nextState,
 	})
+}
+
+func postFediSearchAPI(w http.ResponseWriter, rq *http.Request) {
+	var data, err = io.ReadAll(io.LimitReader(rq.Body, 32*1024*1024))
+	if err != nil {
+		slog.Error("Failed to read body of fedisearch request", "err", err)
+		http.Error(w, "Failed to read request", http.StatusBadRequest)
+		return
+	}
+
+	if ok := fediverse.VerifyRequest(rq, data); !ok {
+		slog.Warn("Failed to verify signature for fedisearch request")
+		http.Error(w, "Failed to verify signature", http.StatusUnauthorized)
+		return
+	}
+
+	req, err := fedisearch.ParseAPIRequest(data)
+	if err != nil {
+		slog.Error("Failed to parse fedisearch request", "err", err)
+		http.Error(w, "Failed to parse request", http.StatusForbidden)
+		return
+	}
+
+	var bookmarks, totalResults = search.ForFederated(req.Query, uint(req.Offset), uint(req.Limit))
+	var moreAvailable = int(totalResults) - len(bookmarks) - req.Offset
+	if moreAvailable < 0 {
+		moreAvailable = 0 // just in case
+	}
+	var bookmarkObjects = make([]activities.Dict, 0, len(bookmarks))
+
+	for _, bookmark := range bookmarks {
+		var dict, err = activities.NoteFromBookmark(bookmark)
+		if err != nil {
+			slog.Error("Failed to make a Note from bookmark", "bookmark", bookmark, "err", err)
+			continue
+		}
+		bookmarkObjects = append(bookmarkObjects, dict)
+	}
+
+	response, err := json.Marshal(map[string]any{
+		"bookmarks":     bookmarkObjects,
+		"moreAvailable": moreAvailable,
+	})
+	if err != nil {
+		slog.Error("Failed to marshal response", "err", err)
+		http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(response)
+	if err != nil {
+		slog.Error("Failed to write response", "err", err)
+	}
 }
 
 func getRandom(w http.ResponseWriter, rq *http.Request) {
