@@ -53,7 +53,7 @@ func PostSignedDocumentToAddress(doc []byte, contentType string, accept string, 
 
 	if resp.StatusCode != http.StatusOK {
 		slog.Warn("Non-OK status code returned",
-			"err", err, "addr", addr, "status", resp.StatusCode, "body", body)
+			"err", err, "addr", addr, "status", resp.StatusCode, "body", string(body))
 	}
 
 	return body, resp.StatusCode, nil

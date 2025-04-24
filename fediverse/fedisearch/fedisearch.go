@@ -192,6 +192,9 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 
 	wg.Wait()
 
+	newState.Unseen = slices.DeleteFunc(newState.Unseen, func(s string) bool {
+		return slices.Contains(newState.Unseen, s)
+	})
 	var rendered = fediverse.RenderRemoteBookmarks(bookmarks)
 	return rendered, newState, nil
 }
@@ -230,7 +233,7 @@ func (s *State) doRequest(i int, req Request,
 	var resp response
 	err = json.Unmarshal(bytes, &resp)
 	if err != nil {
-		slog.Error("Failed to unmarshal response", "err", err, "resp", bytes, "i", i)
+		slog.Error("Failed to unmarshal response", "err", err, "resp", string(bytes), "i", i)
 		return false
 	}
 
