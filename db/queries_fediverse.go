@@ -140,14 +140,13 @@ join PublicKeys on Owner = ActorID;
 
 func GetMutuals() (actors []types.Actor) {
 	rows := mustQuery(`
-with followers as (
-    select ActorID from Followers
-)
 select Following.ActorID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
 from Following
-join Actors on ActorID = Actors.ID
-join PublicKeys on Owner = ActorID
-where Following.ActorID in followers;`)
+join Actors on Following.ActorID = Actors.ID
+join PublicKeys on Owner = Following.ActorID
+where Following.ActorID in (
+	select Followers.ActorID from Followers
+);`)
 	for rows.Next() {
 		var a types.Actor
 		mustScan(rows, &a.ID, &a.PreferredUsername, &a.Inbox, &a.DisplayedName, &a.Summary, &a.Domain, &a.PublicKey.PublicKeyPEM)
