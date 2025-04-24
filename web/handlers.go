@@ -113,7 +113,7 @@ func init() {
 	mux.HandleFunc("GET /following", fediverseWebFork(nil, getFollowingWeb))
 	mux.HandleFunc("GET /followers", fediverseWebFork(nil, getFollowersWeb))
 	mux.HandleFunc("GET /timeline", adminOnly(federatedOnly(getTimeline)))
-	mux.HandleFunc("GET /fedisearch", adminOnly(federatedOnly(handlerFediSearch)))
+	mux.HandleFunc("/fedisearch", adminOnly(federatedOnly(handlerFediSearch)))
 
 	// ActivityPub
 	mux.HandleFunc("POST /inbox", federatedOnly(postInbox))
