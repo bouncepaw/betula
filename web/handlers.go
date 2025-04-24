@@ -202,28 +202,47 @@ type dataFedisearch struct {
 	*dataCommon
 
 	Mutuals []types.Actor
-	State   *fedisearch.State // nil for empty fedisearch page
+
+	State     *fedisearch.State // nil for empty fedisearch page
+	Bookmarks []types.RenderedRemoteBookmark
 }
 
 func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 	var query = rq.FormValue("query")
 	if query == "" {
 		slog.Info("Access empty fedisearch page")
-		templateExec(w, rq, templateFedisearchEmpty, dataFedisearch{
+		templateExec(w, rq, templateFedisearch, dataFedisearch{
 			dataCommon: emptyCommon(),
 			Mutuals:    db.GetFollowing(),
 		})
 		return
 	}
 
-	//slog.Info("Make a federated search", "query", query)
-	//var prevState, err = fedisearch.StateFromFormParams(rq.Form, fediverse.OurID())
-	//if err != nil {
-	//	slog.Error("Failed to parse federated search state", "query", query, "err", err)
-	//	handlerNotFound(w, rq) // TODO: proper error page
-	//	return
-	//}
+	slog.Info("Make a federated search", "query", query)
+	var prevState, err = fedisearch.StateFromFormParams(rq.Form, fediverse.OurID())
+	if err != nil {
+		slog.Error("Failed to parse federated search state",
+			"query", query, "err", err)
+		handlerNotFound(w, rq) // TODO: proper error page
+		return
+	}
 
+	bookmarks, nextState, err := prevState.FetchPage()
+	if err != nil {
+		slog.Error("Failed to fetch federated search bookmarks",
+			"query", query, "err", err)
+		handlerNotFound(w, rq) // TODO: proper error page
+		return
+	}
+
+	slog.Info("Showing federated search bookmarks",
+		"nextState", nextState, "prevState", prevState)
+	templateExec(w, rq, templateFedisearch, dataFedisearch{
+		dataCommon: emptyCommon(),
+		Mutuals:    db.GetFollowing(),
+		Bookmarks:  bookmarks,
+		State:      nextState,
+	})
 }
 
 func getRandom(w http.ResponseWriter, rq *http.Request) {

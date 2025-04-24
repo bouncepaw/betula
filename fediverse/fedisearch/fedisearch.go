@@ -68,16 +68,6 @@ type State struct {
 	ourID string
 }
 
-func NewSearchRequest(q string, mutuals []string, ourID string) *State {
-	return &State{
-		Query:    q,
-		Seen:     nil,
-		Expected: nil,
-		Unseen:   mutuals,
-		ourID:    ourID,
-	}
-}
-
 // StateFromFormParams fetches fields with serialized state
 // and constructs it from them.
 func StateFromFormParams(params url.Values, ourID string) (*State, error) {
@@ -85,13 +75,16 @@ func StateFromFormParams(params url.Values, ourID string) (*State, error) {
 		s = State{
 			Query:    params.Get("query"),
 			Seen:     make(map[string]int),
+			Unseen:   make([]string, 0),
 			Expected: make(map[string]int),
 			ourID:    ourID,
 		}
 		seenJSON     = []byte(params.Get("seen"))
+		unseenJSON   = []byte(params.Get("unseen"))
 		expectedJSON = []byte(params.Get("expected"))
-		err          = errors.Join(
+		err          = errors.Join( // nobody dares to program like this but me
 			json.Unmarshal(seenJSON, &s.Seen),
+			json.Unmarshal(unseenJSON, &s.Unseen),
 			json.Unmarshal(expectedJSON, &s.Expected))
 	)
 	if err != nil {
@@ -100,40 +93,31 @@ func StateFromFormParams(params url.Values, ourID string) (*State, error) {
 	return &s, nil
 }
 
-// SerializeForForm serializes State into a dictionary that
-// is easily used in Go templates. The map's fields are:
-// "Query", "Seen", "Expected", "Unseen". They are
-// written in title case to match how we write Go templates.
-func (s *State) SerializeForForm() (map[string]string, error) {
-	var j = map[string]string{
-		"Query": s.Query,
+func (s *State) SeenSerialized() string {
+	var bytes, err = json.Marshal(s.Seen)
+	if err != nil {
+		slog.Error("Error serializing seen", "err", err)
+		return ""
 	}
+	return string(bytes)
+}
 
-	if s.Seen != nil {
-		var seen, err = json.Marshal(s.Seen)
-		if err != nil {
-			return nil, err
-		}
-		j["Seen"] = string(seen)
+func (s *State) UnseenSerialized() string {
+	var bytes, err = json.Marshal(s.Unseen)
+	if err != nil {
+		slog.Error("Error serializing unseen", "err", err)
+		return ""
 	}
+	return string(bytes)
+}
 
-	if s.Expected != nil {
-		var expected, err = json.Marshal(s.Expected)
-		if err != nil {
-			return nil, err
-		}
-		j["Expected"] = string(expected)
+func (s *State) ExpectedSerialized() string {
+	var bytes, err = json.Marshal(s.Expected)
+	if err != nil {
+		slog.Error("Error serializing expected", "err", err)
+		return ""
 	}
-
-	if s.Unseen != nil {
-		var unseen, err = json.Marshal(s.Unseen)
-		if err != nil {
-			return nil, err
-		}
-		j["Unseen"] = string(unseen)
-	}
-
-	return j, nil
+	return string(bytes)
 }
 
 // RequestsToMake returns a list of requests to make.
@@ -170,6 +154,8 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 
 	var mutex sync.Mutex
 
+	var bookmarks []types.RemoteBookmark
+
 	var reqs = s.RequestsToMake()
 	slog.Info("Making federated search requests",
 		"len(reqs)", len(reqs), "query", s.Query)
@@ -180,7 +166,7 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 	for i, req := range reqs {
 		go func() {
 			defer wg.Done()
-			var ok = s.doRequest(i, req, newState, &mutex)
+			var ok = s.doRequest(i, req, newState, &bookmarks, &mutex)
 			if !ok {
 				mutex.Lock()
 				delete(newState.Expected, req.To)
@@ -189,10 +175,17 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 		}()
 	}
 
-	return nil, nil, nil
+	var rendered = fediverse.RenderRemoteBookmarks(bookmarks)
+	return rendered, newState, nil
 }
 
-func (s *State) doRequest(i int, req Request, newState *State, mutex *sync.Mutex) (ok bool) {
+func (s *State) NextPageExpected() bool {
+	return len(s.Expected) > 0
+}
+
+func (s *State) doRequest(i int, req Request,
+	newState *State, bookmarks *[]types.RemoteBookmark,
+	mutex *sync.Mutex) (ok bool) {
 	var theJSON, err = json.Marshal(req)
 	if err != nil {
 		slog.Error("Failed to marshal request", "req", req, "i", i, "err", err)
@@ -224,15 +217,23 @@ func (s *State) doRequest(i int, req Request, newState *State, mutex *sync.Mutex
 		return false
 	}
 
+	var foundBookmarks []types.RemoteBookmark
 	for _, bookmark := range resp.Bookmarks {
-		object, err := activities.RemoteBookmarkFromDict(bookmark)
+		bm, err := activities.RemoteBookmarkFromDict(bookmark)
 		if err != nil {
-			slog.Error("Failed to unmarshal bookmark", "err", err, "bookmark", bookmark, "i", i)
+			slog.Error("Failed to unmarshal bookmark", "err", err, "bookmark", bm, "i", i)
 			continue
 		}
-		_ = object
+		foundBookmarks = append(foundBookmarks, *bm)
 	}
-	return false // TODO
+
+	mutex.Lock()
+	newState.Expected[req.To] = resp.MoreAvailable
+	newState.Seen[req.To] = newState.Seen[req.To] + len(foundBookmarks)
+	*bookmarks = append(*bookmarks, foundBookmarks...)
+	mutex.Unlock()
+
+	return true
 }
 
 type Choice map[string]int

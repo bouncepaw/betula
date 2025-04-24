@@ -14,9 +14,6 @@
                     <label for="search-query" aria-hidden="false" class="invisible">Federated search query</label>
                     <input type="search" id="search-query" name="query" placeholder="#solarpunk #software"
                            {{if .State}}value="{{.State.Query}}"{{end}}>
-                    {{if .State}}<input type="hidden" name="seen" value="{{.State.SeenSerialized}}">
-                    <input type="hidden" name="unseen" value="{{.State.UnseenSerialized}}">
-                    <input type="hidden" name="unseen" value="{{.State.ExpectedSerialized}}">{{end}}
                 </div>
                 <input type="submit" value="Search" class="btn">
             </form>
@@ -27,6 +24,38 @@
             </p>
         {{end}}
     </article>
+
+    {{range .Bookmarks}}
+        <article class="h-entry">
+            <div class="card-line">
+                <a href="/{{.AuthorAcct}}">{{.AuthorDisplayedName}}</a> {{if .RepostOf.Valid}}<a href="{{.ID}}" class="u-repost-of">reposted</a>{{else}}<a href="{{.ID}}">bookmarked</a>{{end}}
+                <button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
+                <a href="/repost?url={{.ID}}" class="float-right" target="_blank">Repost</a>
+            </div>
+
+            <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
+            <a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
+
+            {{if .Description}}
+                <div class="myco e-content">
+                    {{.Description}}
+                </div>
+            {{end}}
+            <div class="post-tags">
+                {{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
+            </div>
+        </article>
+    {{end}}
+
+    {{if and .State .State.NextPageExpected}}
+        <form action="/fedisearch" method="post">
+            <input type="hidden" id="search-query" name="query" value="{{.State.Query}}">
+            <input type="hidden" name="seen" value="{{.State.SeenSerialized}}">
+            <input type="hidden" name="unseen" value="{{.State.UnseenSerialized}}">
+            <input type="hidden" name="unseen" value="{{.State.ExpectedSerialized}}">
+            <input type="submit" value="Next page" class="btn">
+        </form>
+    {{end}}
 
     {{if and (len .Mutuals) (eq .State nil)}}
         <article>
