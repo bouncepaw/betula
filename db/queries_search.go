@@ -7,7 +7,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-func SearchOffset(text string, includedTags []string, excludedTags []string, limit, offset uint) (results []types.Bookmark, totalResults uint) {
+func SearchOffset(text string, includedTags []string, excludedTags []string, offset, limit uint) (results []types.Bookmark, totalResults uint) {
 	text = strings.ToLower(text)
 	sort.Strings(includedTags)
 	sort.Strings(excludedTags)
