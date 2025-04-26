@@ -12,6 +12,7 @@ import (
 	"maps"
 	"math"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"slices"
 	"sync"
@@ -221,7 +222,7 @@ func (s *State) doRequest(i int, req Request,
 	bytes, status, err := fediverse.PostSignedDocumentToAddress(
 		theJSON, "application/json", "application/json",
 		fmt.Sprintf("https://%s/.well-known/betula-federated-search", theURL.Host))
-	if err != nil {
+	if err != nil || status != http.StatusOK {
 		slog.Error("Failed to fetch bookmarks",
 			"err", err, "status", status, "resp", bytes, "i")
 		return false
@@ -236,6 +237,8 @@ func (s *State) doRequest(i int, req Request,
 		slog.Error("Failed to unmarshal response", "err", err, "resp", string(bytes), "i", i)
 		return false
 	}
+
+	slog.Info("Got response", "resp", resp, "i", i)
 
 	var foundBookmarks []types.RemoteBookmark
 	for _, bookmark := range resp.Bookmarks {
