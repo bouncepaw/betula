@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 var (
@@ -29,7 +30,7 @@ func ParseAPIRequest(bytes []byte) (*Request, error) {
 		return nil, ErrUnsupportedVersion
 	case req.To != fediverse.OurID():
 		return nil, ErrWrongTo
-	case !(fromActor.SubscriptionStatus.WeFollowThem() && fromActor.SubscriptionStatus.TheyFollowUs()):
+	case fromActor.SubscriptionStatus != types.SubscriptionMutual:
 		return nil, ErrNotMutual
 	}
 
