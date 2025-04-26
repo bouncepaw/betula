@@ -300,8 +300,6 @@ func postFediSearchAPI(w http.ResponseWriter, rq *http.Request) {
 	if err != nil {
 		slog.Error("Failed to write response", "err", err)
 	}
-	var addr = fmt.Sprintf("/%d?highlight-archive=%d", bookmark.ID, archiveID)
-	http.Redirect(w, rq, addr, http.StatusSeeOther)
 }
 
 func getRandom(w http.ResponseWriter, rq *http.Request) {
