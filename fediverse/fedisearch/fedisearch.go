@@ -163,7 +163,7 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 	var newState = &State{
 		Query:    s.Query,
 		Seen:     maps.Clone(s.Seen),
-		Expected: maps.Clone(s.Expected),
+		Expected: map[string]int{},
 		Unseen:   slices.Clone(s.Unseen),
 		ourID:    s.ourID,
 	}
@@ -194,7 +194,8 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 	wg.Wait()
 
 	newState.Unseen = slices.DeleteFunc(newState.Unseen, func(s string) bool {
-		return slices.Contains(newState.Unseen, s)
+		_, ok := newState.Seen[s]
+		return ok
 	})
 	var rendered = fediverse.RenderRemoteBookmarks(bookmarks)
 	return rendered, newState, nil
@@ -251,7 +252,9 @@ func (s *State) doRequest(i int, req Request,
 	}
 
 	mutex.Lock()
-	newState.Expected[req.To] = resp.MoreAvailable
+	if resp.MoreAvailable != 0 {
+		newState.Expected[req.To] = resp.MoreAvailable
+	}
 	newState.Seen[req.To] = newState.Seen[req.To] + len(foundBookmarks)
 	*bookmarks = append(*bookmarks, foundBookmarks...)
 	mutex.Unlock()
