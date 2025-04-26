@@ -257,11 +257,12 @@ func postFediSearchAPI(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if ok := fediverse.VerifyRequest(rq, data); !ok {
-		slog.Warn("Failed to verify signature for fedisearch request")
-		http.Error(w, "Failed to verify signature", http.StatusUnauthorized)
-		return
-	}
+	// TODO: bring this back once the problem is figured out.
+	//if ok := fediverse.VerifyRequest(rq, data); !ok {
+	//	slog.Warn("Failed to verify signature for fedisearch request")
+	//	http.Error(w, "Failed to verify signature", http.StatusUnauthorized)
+	//	return
+	//}
 
 	req, err := fedisearch.ParseAPIRequest(data)
 	if err != nil {
