@@ -12,7 +12,7 @@
 			<div class="p-summary">{{.Description | mycomarkup}}</div>
 			{{if .FederationEnabled}}
 				<form action="/fedisearch" method="post">
-					<input type="hidden" id="search-query" name="query" value="{{.Query}}">
+					<input type="hidden" id="search-query" name="query" value="#{{.Name}}">
 					<input type="submit" value="Search mutuals instead" class="btn">
 				</form>
 			{{end}}
