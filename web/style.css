@@ -576,7 +576,6 @@ figcaption {
     form input[type="text"],
     form input[type="url"],
     form input[type="password"],
-    form input[type="search"],
     textarea {
         border: 2px inset black;
     }
@@ -661,7 +660,6 @@ figcaption {
     form input[type="text"],
     form input[type="url"],
     form input[type="password"],
-    form input[type="search"]
     textarea {
         border: 2px inset #eee;
     }

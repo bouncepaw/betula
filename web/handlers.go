@@ -300,6 +300,8 @@ func postFediSearchAPI(w http.ResponseWriter, rq *http.Request) {
 	if err != nil {
 		slog.Error("Failed to write response", "err", err)
 	}
+	var addr = fmt.Sprintf("/%d?highlight-archive=%d", bookmark.ID, archiveID)
+	http.Redirect(w, rq, addr, http.StatusSeeOther)
 }
 
 func getRandom(w http.ResponseWriter, rq *http.Request) {
@@ -605,7 +607,7 @@ func getNodeInfo(w http.ResponseWriter, rq *http.Request) {
 		"version": "2.0",
 		"software": map[string]string{
 			"name":    "betula",
-			"version": "1.4.0-rc1",
+			"version": "1.4.0",
 		},
 		"protocols": []string{"activitypub"},
 		"services": map[string][]string{
