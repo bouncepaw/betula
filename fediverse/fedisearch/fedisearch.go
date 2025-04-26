@@ -169,7 +169,7 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 	}
 
 	var mutex sync.Mutex
-
+	var requestedActors []string
 	var bookmarks []types.RemoteBookmark
 
 	var reqs = s.RequestsToMake()
@@ -180,6 +180,7 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 	wg.Add(len(reqs))
 
 	for i, req := range reqs {
+		requestedActors = append(requestedActors, req.To)
 		go func() {
 			defer wg.Done()
 			var ok = s.doRequest(i, req, newState, &bookmarks, &mutex)
@@ -194,8 +195,7 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 	wg.Wait()
 
 	newState.Unseen = slices.DeleteFunc(newState.Unseen, func(s string) bool {
-		_, ok := newState.Seen[s]
-		return ok
+		return slices.Contains(requestedActors, s)
 	})
 	var rendered = fediverse.RenderRemoteBookmarks(bookmarks)
 	return rendered, newState, nil

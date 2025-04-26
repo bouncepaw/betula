@@ -288,8 +288,8 @@ func postFediSearchAPI(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	response, err := json.Marshal(map[string]any{
-		"bookmarks":     bookmarkObjects,
-		"moreAvailable": moreAvailable,
+		"bookmarks":      bookmarkObjects,
+		"more_available": moreAvailable,
 	})
 	if err != nil {
 		slog.Error("Failed to marshal response", "err", err)
