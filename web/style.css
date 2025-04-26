@@ -123,6 +123,12 @@ footer {
 }
 
 /* Design */
+p + form {
+    margin-top: .5rem;
+}
+.invisible {
+    display: none;
+}
 .post-visibility-private {
     font-weight: bold;
 }
@@ -261,6 +267,7 @@ form input[type="number"],
 form input[type="text"],
 form input[type="url"],
 form input[type="password"],
+form input[type="search"],
 textarea {
     display: block;
     width: 100%;
@@ -555,7 +562,7 @@ figcaption {
     .btn:active,
     .btn:hover,
     .btn:visited,
-    input[type="text"], input[type="password"], input[type="submit"],
+    input[type="text"], input[type="password"], input[type="submit"], input[type="search"],
     ::-webkit-file-upload-button,
     .confirmation-tick:checked ~ .btn_confirmation-tick,
     .autocompletion-list,

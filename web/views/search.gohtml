@@ -4,6 +4,12 @@
 	<article>
 		<h2 class="p-name">Search: {{.Query}}</h2>
 		<p><span class="mv-count">{{.TotalBookmarks}}</span> bookmark{{if ne .TotalBookmarks 1}}s{{end}} match the query.</p>
+		{{if .FederationEnabled}}
+			<form action="/fedisearch" method="post">
+				<input type="hidden" id="search-query" name="query" value="{{.Query}}">
+				<input type="submit" value="Search mutuals instead" class="btn">
+			</form>
+		{{end}}
 	</article>
 	{{template "range bookmark groups + paginator" .}}
 </main>

@@ -10,6 +10,12 @@
 			<h2 class="p-name">Tag {{.Name}}</h2>
 			<p><span class="mv-count">{{.TotalBookmarks}}</span> bookmark{{if ne .TotalBookmarks 1}}s have{{else}} has{{end}} this tag.</p>
 			<div class="p-summary">{{.Description | mycomarkup}}</div>
+			{{if .FederationEnabled}}
+				<form action="/fedisearch" method="post">
+					<input type="hidden" id="search-query" name="query" value="#{{.Name}}">
+					<input type="submit" value="Search mutuals instead" class="btn">
+				</form>
+			{{end}}
 		</article>
 		{{template "range bookmark groups + paginator" .}}
 	</main>

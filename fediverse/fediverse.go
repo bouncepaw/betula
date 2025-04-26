@@ -2,7 +2,11 @@
 package fediverse
 
 import (
+	"bytes"
+	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
+	"io"
 	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -15,6 +19,44 @@ import (
 
 var client = http.Client{
 	Timeout: 2 * time.Second,
+}
+
+func PostSignedDocumentToAddress(doc []byte, contentType string, accept string, addr string) ([]byte, int, error) {
+	rq, err := http.NewRequest(http.MethodPost, addr, bytes.NewReader(doc))
+	if err != nil {
+		slog.Error("Failed to prepare signed document request",
+			"err", err, "addr", addr)
+		return nil, 0, err
+	}
+
+	rq.Header.Set("User-Agent", settings.UserAgent())
+	rq.Header.Set("Content-Type", contentType)
+	rq.Header.Set("Accept", accept)
+	signing.SignRequest(rq, doc)
+
+	resp, err := client.Do(rq)
+	if err != nil {
+		slog.Error("Failed to send signed document request",
+			"err", err, "addr", addr)
+		return nil, 0, err
+	}
+
+	var (
+		bodyReader = io.LimitReader(resp.Body, 1024*1024*10)
+		body       []byte
+	)
+	body, err = io.ReadAll(bodyReader)
+	if err != nil {
+		slog.Error("Failed to read body", "err", err)
+		return nil, 0, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		slog.Warn("Non-OK status code returned",
+			"err", err, "addr", addr, "status", resp.StatusCode)
+	}
+
+	return body, resp.StatusCode, nil
 }
 
 // VerifyRequest returns true if the request is alright. This function makes HTTP requests on your behalf to retrieve the public key.

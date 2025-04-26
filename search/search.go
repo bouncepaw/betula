@@ -15,6 +15,17 @@ var (
 	includeRepostRe = regexp.MustCompile(`\brepost:()\s*`)
 )
 
+func ForFederated(query string, offset, limit uint) (bookmarks []types.Bookmark, totalResults uint) {
+	if limit > types.BookmarksPerPage {
+		limit = types.BookmarksPerPage
+	}
+
+	query, excludedTags := extractWithRegex(query, excludeTagRe)
+	query, includedTags := extractWithRegex(query, includeTagRe)
+
+	return db.SearchOffset(query, includedTags, excludedTags, offset, limit)
+}
+
 // For searches for the given query.
 func For(query string, authorized bool, page uint) (postsInPage []types.Bookmark, totalPosts uint) {
 	// We extract excluded tags first.

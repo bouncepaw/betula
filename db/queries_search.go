@@ -7,6 +7,56 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
+func SearchOffset(text string, includedTags []string, excludedTags []string, offset, limit uint) (results []types.Bookmark, totalResults uint) {
+	text = strings.ToLower(text)
+	sort.Strings(includedTags)
+	sort.Strings(excludedTags)
+
+	const q = `
+select ID, URL, Title, Description, Visibility, CreationTime, RepostOf
+from Bookmarks
+where DeletionTime is null and Visibility = 1
+order by CreationTime desc
+`
+	rows := mustQuery(q)
+
+	var unfilteredBookmarks []types.Bookmark
+	for rows.Next() {
+		var b types.Bookmark
+		mustScan(rows, &b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RepostOf)
+		unfilteredBookmarks = append(unfilteredBookmarks, b)
+	}
+
+	var i uint = 0
+	var ignoredBookmarks uint = 0
+	bookmarksToIgnore := offset
+
+	for _, post := range unfilteredBookmarks {
+		if !textOK(post, text) {
+			continue
+		}
+
+		post.Tags = TagsForBookmarkByID(post.ID)
+		if !tagsOK(post.Tags, includedTags, excludedTags) {
+			continue
+		}
+
+		isRepost := post.RepostOf != nil
+		if isRepost {
+			continue // for now
+		}
+
+		totalResults++
+		if ignoredBookmarks >= bookmarksToIgnore && i < limit {
+			results = append(results, post)
+			i++
+		} else {
+			ignoredBookmarks++
+		}
+	}
+	return results, totalResults
+}
+
 func Search(text string, includedTags []string, excludedTags []string, repostsOnly, authorized bool, page uint) (results []types.Bookmark, totalResults uint) {
 	text = strings.ToLower(text)
 	sort.Strings(includedTags)

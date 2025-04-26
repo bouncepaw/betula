@@ -138,6 +138,23 @@ join PublicKeys on Owner = ActorID;
 	return
 }
 
+func GetMutuals() (actors []types.Actor) {
+	rows := mustQuery(`
+select Following.ActorID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
+from Following
+join Actors on Following.ActorID = Actors.ID
+join PublicKeys on Owner = Following.ActorID
+where Following.ActorID in (
+	select Followers.ActorID from Followers
+);`)
+	for rows.Next() {
+		var a types.Actor
+		mustScan(rows, &a.ID, &a.PreferredUsername, &a.Inbox, &a.DisplayedName, &a.Summary, &a.Domain, &a.PublicKey.PublicKeyPEM)
+		actors = append(actors, a)
+	}
+	return
+}
+
 func ActorByAcct(user, host string) (a *types.Actor, found bool) {
 	rows := mustQuery(`
 select Actors.ID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
