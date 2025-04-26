@@ -130,11 +130,14 @@ func CustomCSS() string                  { return cache.CustomCSS }
 func FederationEnabled() bool            { return cache.FederationEnabled }
 
 func SiteDomain() string {
+	if SiteURL() == "" {
+		return ""
+	}
 	return stricks.ParseValidURL(SiteURL()).Host
 }
 
 func UserAgent() string {
-	return fmt.Sprintf("Betula; %s; Bot", SiteDomain)
+	return fmt.Sprintf("Betula; %s; Bot", SiteDomain())
 }
 
 func SetSettings(settings types.Settings) {
