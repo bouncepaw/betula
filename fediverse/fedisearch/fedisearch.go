@@ -224,12 +224,12 @@ func (s *State) doRequest(i int, req Request,
 		fmt.Sprintf("https://%s/.well-known/betula-federated-search", theURL.Host))
 	if err != nil || status != http.StatusOK {
 		slog.Error("Failed to fetch bookmarks",
-			"err", err, "status", status, "resp", bytes, "i")
+			"err", err, "status", status, "to", req.To)
 		return false
 	}
 
-	slog.Info("Fetched remote bookmarks",
-		"req", req, "i", i)
+	slog.Info("Sent request",
+		"req", req)
 
 	var resp response
 	err = json.Unmarshal(bytes, &resp)
@@ -238,7 +238,7 @@ func (s *State) doRequest(i int, req Request,
 		return false
 	}
 
-	slog.Info("Got response", "resp", resp, "i", i)
+	slog.Info("Got response", "resp", resp, "to", req.To, "payload", string(bytes))
 
 	var foundBookmarks []types.RemoteBookmark
 	for _, bookmark := range resp.Bookmarks {
