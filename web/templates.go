@@ -55,7 +55,7 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 					expectedHost, givenHost,
 				)),
 			}
-			common.TopLevelNotifications = append(common.TopLevelNotifications, notif)
+			common.SystemNotifications = append(common.SystemNotifications, notif)
 		}
 
 		if strings.HasPrefix(settings.SiteURL(), "http://") {
@@ -65,7 +65,7 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 					`<b>[BET-114]</b> Configured to use the address “%s”, which uses HTTP. Federation will not work. Check <a href="/settings">Settings</a>. See <a href="/help/en/errors">Help</a>.`,
 					settings.SiteURL())),
 			}
-			common.TopLevelNotifications = append(common.TopLevelNotifications, notif)
+			common.SystemNotifications = append(common.SystemNotifications, notif)
 		}
 	}
 
@@ -167,8 +167,8 @@ type dataCommon struct {
 	head        template.HTML
 	searchQuery string
 
-	paginator             []types.Page
-	TopLevelNotifications []Notification
+	paginator           []types.Page
+	SystemNotifications []Notification
 }
 
 type viewData interface {
@@ -223,7 +223,7 @@ func (c *dataCommon) Fill(C dataCommon) {
 	c.siteTitle = C.siteTitle
 	c.authorized = C.authorized
 	c.siteName = C.siteName
-	c.TopLevelNotifications = append(c.TopLevelNotifications, C.TopLevelNotifications...)
+	c.SystemNotifications = append(c.SystemNotifications, C.SystemNotifications...)
 }
 
 func emptyCommon() *dataCommon {
