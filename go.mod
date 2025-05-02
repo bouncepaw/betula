@@ -1,6 +1,6 @@
 module git.sr.ht/~bouncepaw/betula
 
-go 1.22
+go 1.23.3
 
 require (
 	git.sr.ht/~bouncepaw/mycomarkup/v5 v5.6.0
