@@ -64,3 +64,22 @@ func EnsureKeysFromDatabase() {
 		setKeys(privKeyPEMMaybe.String)
 	}
 }
+
+// VerifyRequestSignature returns true if the request has correct signature. This function makes HTTP requests on your behalf to retrieve the public key.
+func VerifyRequestSignature(rq *http.Request, content []byte) bool {
+	_, err := httpsig.VerifyRequest(rq, content, func(keyID string) (httpsig.PublicKey, error) {
+		pem := db.KeyPemByID(keyID)
+		if pem == "" {
+			// The zero PublicKey has a None key type, which the underlying VerifyRequest handles well.
+			return httpsig.PublicKey{}, nil
+		}
+
+		_, pub, err := httpsig.DecodeKey(pem)
+		return pub, err
+	})
+	if err != nil {
+		log.Printf("When verifying the signature of request to %s got error: %s\n", rq.URL.RequestURI(), err)
+		return false
+	}
+	return true
+}

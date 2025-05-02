@@ -257,7 +257,7 @@ func postFediSearchAPI(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if ok := fediverse.VerifyRequest(rq, data); !ok {
+	if ok := signing.VerifyRequestSignature(rq, data); !ok {
 		slog.Warn("Failed to verify signature for fedisearch request")
 		http.Error(w, "Failed to verify signature", http.StatusUnauthorized)
 		return
@@ -864,7 +864,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			log.Printf("Couldn't fetch actor: %s\n", err)
 			return
 		}
-		if signedOK := fediverse.VerifyRequest(rq, data); !signedOK {
+		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
 			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
 			return
 		}
@@ -883,7 +883,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			log.Printf("Couldn't fetch actor: %s\n", err)
 			return
 		}
-		if signedOK := fediverse.VerifyRequest(rq, data); !signedOK {
+		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
 			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
 			return
 		}
@@ -904,7 +904,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			log.Printf("Couldn't fetch actor: %s\n", err)
 			return
 		}
-		if signedOK := fediverse.VerifyRequest(rq, data); !signedOK {
+		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
 			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
 			return
 		}
