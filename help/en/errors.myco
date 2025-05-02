@@ -1,0 +1,43 @@
+= Error codes
+Some parts of Betula user interface expose error codes for easier reference. This is a newer addition, so most of error states have no error codes. Existing ones are listed here.
+
+== BET-113
+This error is specific for federated instances only.
+
+This error is shown when you're visiting a visiting a Betula page logged-in, and the host you're requesting does not match the host specified in the Settings.
+
+Most likely, the reverse proxy you are using is not passing the `Host` header along by default. You have to make it do so, otherwise the federation will not fully work.
+
+For Apache, add the following lines to your `VirtualHost`:
+
+```httpd
+UseCanonicalName on
+ProxyPreserveHost on
+```
+
+For Angie or nginx, add the following line to your `location /` (where you have the `proxy_pass` directive):
+
+```nginx
+proxy_set_header Host $host;
+```
+
+In rarer cases, you might see this error when accessing the instance from a mirror.
+
+If you want to hide this error notification for any reason, use this custom CSS:
+
+```css
+.notif[notif-cat="Host mismatch"] { display: none; }
+```
+
+== BET-114
+This error is specific for federated instances only.
+
+The site address specified in Settings does not start with `https://`. In Fediverse, only HTTPS servers work, so you have to change the address so it uses the correct the protocol, even if you provide HTTP as well.
+
+You should also have HTTPS properly set up with a reverse proxy. See [[https://betula.mycorrhiza.wiki/https-domain.html | Setting up a domain and HTTPS]].
+
+If you want to hide this error notification for any reason, use this custom CSS:
+
+```css
+.notif[notif-cat="Wrong protocol"] { display: none; }
+```

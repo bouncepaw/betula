@@ -22,6 +22,7 @@ var (
 		{"meta", "Metainformation", ""},
 		{"mycomarkup", "Mycomarkup formatting", ""},
 		{"search", "Advanced search", ""},
+		{"errors", "Error codes", ""},
 	}
 )
 

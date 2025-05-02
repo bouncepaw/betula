@@ -51,7 +51,7 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 			var notif = Notification{
 				Category: NotificationHostMismatch,
 				Body: template.HTML(fmt.Sprintf(
-					`<b>[BET-113]</b> Configured to use the domain “%s”, but this request has Host header “%s”. Federation might not work. Is your reverse proxy misconfigured? Check <a href="/settings">Settings</a>. See <a href="/help/en/errors">Help</a>.`,
+					`<b>[BET-113]</b> Configured to use the domain “%s”, but this request has Host header “%s”. Federation might not work. Is your reverse proxy misconfigured? Check <a href="/settings">Settings</a>. See <a href="/help/en/errors#BET_113">Help</a>.`,
 					expectedHost, givenHost,
 				)),
 			}
@@ -62,7 +62,7 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 			var notif = Notification{
 				Category: NotificationWrongProtocol,
 				Body: template.HTML(fmt.Sprintf(
-					`<b>[BET-114]</b> Configured to use the address “%s”, which uses HTTP. Federation will not work. Check <a href="/settings">Settings</a>. See <a href="/help/en/errors">Help</a>.`,
+					`<b>[BET-114]</b> Configured to use the address “%s”, which uses HTTP. Federation will not work. Check <a href="/settings">Settings</a>. See <a href="/help/en/errors#BET_114">Help</a>.`,
 					settings.SiteURL())),
 			}
 			common.SystemNotifications = append(common.SystemNotifications, notif)
