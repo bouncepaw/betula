@@ -617,6 +617,13 @@ figcaption {
     .autocompletion-item.selected {
         background: #555;
     }
+
+    .notif[notif-cat="Host mismatch"] {
+        background: #311;
+    }
+    .notif[notif-cat="Wrong protocol"] {
+        background: #400;
+    }
 }
 
 @media (prefers-color-scheme: light) {
