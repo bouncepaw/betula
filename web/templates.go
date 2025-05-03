@@ -10,6 +10,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -41,6 +42,33 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 		siteTitle:  settings.SiteTitle(),
 		siteName:   settings.SiteName(),
 	}
+
+	if settings.FederationEnabled() && common.authorized {
+		var givenHost = rq.Host
+		var expectedHost = settings.SiteDomain()
+
+		if expectedHost != givenHost {
+			var notif = Notification{
+				Category: NotificationHostMismatch,
+				Body: template.HTML(fmt.Sprintf(
+					`<b>[BET-113]</b> Configured to use the domain “%s”, but this request has Host header “%s”. Federation might not work. Is your reverse proxy misconfigured? Check <a href="/settings">Settings</a>. See <a href="/help/en/errors#BET_113">Help</a>.`,
+					expectedHost, givenHost,
+				)),
+			}
+			common.SystemNotifications = append(common.SystemNotifications, notif)
+		}
+
+		if strings.HasPrefix(settings.SiteURL(), "http://") {
+			var notif = Notification{
+				Category: NotificationWrongProtocol,
+				Body: template.HTML(fmt.Sprintf(
+					`<b>[BET-114]</b> Configured to use the address “%s”, which uses HTTP. Federation will not work. Check <a href="/settings">Settings</a>. See <a href="/help/en/errors#BET_114">Help</a>.`,
+					settings.SiteURL())),
+			}
+			common.SystemNotifications = append(common.SystemNotifications, notif)
+		}
+	}
+
 	data.Fill(common)
 	err := temp.ExecuteTemplate(w, "skeleton.gohtml", data)
 	if err != nil {
@@ -119,16 +147,28 @@ var funcMapForTime = template.FuncMap{
 	},
 }
 
+type NotificationCategory string
+
+const (
+	NotificationHostMismatch  NotificationCategory = "Host mismatch"
+	NotificationWrongProtocol NotificationCategory = "Wrong protocol"
+)
+
+type Notification struct {
+	Category NotificationCategory
+	Body     template.HTML
+}
+
 // Do not bother to fill it.
 type dataCommon struct {
-	federationEnabled bool
-	authorized        bool
-	siteTitle         template.HTML
-	siteName          string
-	head              template.HTML
-	searchQuery       string
+	authorized  bool
+	siteTitle   template.HTML
+	siteName    string
+	head        template.HTML
+	searchQuery string
 
-	paginator []types.Page
+	paginator           []types.Page
+	SystemNotifications []Notification
 }
 
 type viewData interface {
@@ -183,6 +223,7 @@ func (c *dataCommon) Fill(C dataCommon) {
 	c.siteTitle = C.siteTitle
 	c.authorized = C.authorized
 	c.siteName = C.siteName
+	c.SystemNotifications = append(c.SystemNotifications, C.SystemNotifications...)
 }
 
 func emptyCommon() *dataCommon {

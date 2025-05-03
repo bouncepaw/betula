@@ -24,6 +24,13 @@
 		</ul>
 	</nav>
 </header>
+{{if .SystemNotifications}}
+	<div class="notifs toplevel-notifs">
+		{{range .SystemNotifications}}
+			<div class="notif" notif-cat="{{.Category}}">{{.Body}}</div>
+		{{end}}
+	</div>
+{{end}}
 <nav class="misc horizontal-scroll-on-phone">
 	<form class="search-form" action="/search" method="get">
 		<input type="text" aria-label="Search query" placeholder="Search query" name="q" value="{{.SearchQuery}}">

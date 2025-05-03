@@ -4,7 +4,7 @@
             "header"
             "misc"
             "main"
-            "footer";
+            "notifs";
         grid-row-gap: 0;
         margin: 0;
     }
@@ -55,10 +55,11 @@
 @media screen and (min-width: 40rem) {
     body {
         grid-template-columns: 180px 1fr;
+        grid-template-rows: auto auto 1fr;
         grid-template-areas:
             "header main"
             "misc   main"
-            "footer main";
+            "notifs main";
         grid-column-gap: 8px;
     }
     nav li {
@@ -92,9 +93,10 @@
 @media screen and (min-width: calc(40rem + 360px)) {
     body {
         grid-template-columns: 1fr 40rem 1fr;
+        grid-template-rows: auto 1fr;
         grid-template-areas:
             "header main misc"
-            "footer main misc";
+            "header main notifs";
         grid-column-gap: 8px;
     }
 }
@@ -118,8 +120,8 @@ main {
 .misc {
     grid-area: misc;
 }
-footer {
-    grid-area: footer;
+.notifs {
+    grid-area: notifs;
 }
 
 /* Design */
@@ -533,6 +535,18 @@ figcaption {
     padding-bottom: .5rem;
 }
 
+/* Notifications */
+.notifs {
+    box-sizing: content-box;
+}
+.notif {
+    padding: .75rem;
+    border-radius: .5rem;
+}
+.notif + .notif {
+    margin-top: .5rem;
+}
+
 /* Colors. Keep both sections in sync. */
 @media (prefers-color-scheme: dark) {
     a, .wikilink_external { color: #f1fa8c; }
@@ -603,6 +617,13 @@ figcaption {
     .autocompletion-item.selected {
         background: #555;
     }
+
+    .notif[notif-cat="Host mismatch"] {
+        background: #311;
+    }
+    .notif[notif-cat="Wrong protocol"] {
+        background: #400;
+    }
 }
 
 @media (prefers-color-scheme: light) {
@@ -662,5 +683,12 @@ figcaption {
     form input[type="password"],
     textarea {
         border: 2px inset #eee;
+    }
+
+    .notif[notif-cat="Host mismatch"] {
+        background: bisque;
+    }
+    .notif[notif-cat="Wrong protocol"] {
+        background: mistyrose;
     }
 }
