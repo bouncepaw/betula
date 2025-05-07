@@ -540,11 +540,19 @@ figcaption {
     box-sizing: content-box;
 }
 .notif {
-    padding: .75rem;
     border-radius: .5rem;
 }
 .notif + .notif {
     margin-top: .5rem;
+}
+.notifs .notif {
+    padding: .75rem;
+}
+main .notif {
+    padding: .5rem 1rem;
+}
+main .notif:last-of-type {
+    margin-bottom: .5rem;
 }
 
 /* Colors. Keep both sections in sync. */
@@ -624,6 +632,12 @@ figcaption {
     .notif[notif-cat="Wrong protocol"] {
         background: #400;
     }
+    .notif[notif-cat="Failure"] {
+        background: darkred;
+    }
+    .notif[notif-cat="Success"] {
+        background: darkgreen;
+    }
 }
 
 @media (prefers-color-scheme: light) {
@@ -690,5 +704,11 @@ figcaption {
     }
     .notif[notif-cat="Wrong protocol"] {
         background: mistyrose;
+    }
+    .notif[notif-cat="Failure"] {
+        background: salmon;
+    }
+    .notif[notif-cat="Success"] {
+        background: darkseagreen;
     }
 }

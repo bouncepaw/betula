@@ -106,6 +106,7 @@ func init() {
 	// Archives
 	mux.HandleFunc("POST /make-new-archive/{id}", adminOnly(postMakeNewArchive))
 	mux.HandleFunc("GET /artifact/{slug}", adminOnly(getArtifact))
+	mux.HandleFunc("POST /delete-archive", adminOnly(postDeleteArchive))
 
 	// Federation interface
 	mux.HandleFunc("POST /follow", adminOnly(federatedOnly(postFollow)))
@@ -131,6 +132,70 @@ func init() {
 
 	// Static files
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
+	// This turned out to be much more complex than I wanted it to.
+	// Corner cases be damned.
+	var (
+		err                 error
+		archiveIDParameter  = rq.FormValue("archive-id")
+		bookmarkIDParameter = rq.FormValue("bookmark-id")
+	)
+	slog.Info("Request archive deletion",
+		"archiveID", archiveIDParameter, "bookmarkID", bookmarkIDParameter)
+
+	var bookmarkID int64
+	bookmarkID, err = strconv.ParseInt(bookmarkIDParameter, 10, 64)
+	if err != nil {
+		slog.Warn("Failed to parse bookmark id",
+			"bookmarkID", bookmarkIDParameter, "err", err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	var bookmark, found = db.GetBookmarkByID(int(bookmarkID))
+	if !found {
+		slog.Info("Bookmark not found", "bookmarkID", bookmarkID)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	var templateData dataBookmark
+
+	var archiveID int64
+	archiveID, err = strconv.ParseInt(archiveIDParameter, 10, 64)
+	if err != nil {
+		templateData = renderBookmark(bookmark, w, rq)
+		templateData.Notifications = append(templateData.Notifications,
+			Notification{
+				Category: NotificationFailure,
+				Body: template.HTML(fmt.Sprintf(
+					"Failed to parse archive id. ID = %s, err = %s",
+					archiveIDParameter, err)),
+			})
+		slog.Warn("Failed to parse archive id for deletion", "id", archiveID, "err", err)
+	} else if err = db.NewArchivesRepo().DeleteArchive(archiveID); err != nil {
+		templateData = renderBookmark(bookmark, w, rq)
+		templateData.Notifications = append(templateData.Notifications,
+			Notification{
+				Category: NotificationFailure,
+				Body: template.HTML(fmt.Sprintf(
+					"Failed to delete archive: %s",
+					err)),
+			})
+		slog.Warn("Failed to delete archive", "id", archiveID, "err", err)
+	} else {
+		templateData = renderBookmark(bookmark, w, rq)
+		templateData.Notifications = append(templateData.Notifications,
+			Notification{
+				Category: NotificationSuccess,
+				Body:     "Archive deleted",
+			})
+		slog.Info("Deleted archive", "id", archiveID, "bookmarkID", bookmarkID)
+	}
+
+	templateExec(w, rq, templatePost, templateData)
 }
 
 func getArtifact(w http.ResponseWriter, rq *http.Request) {
@@ -1773,6 +1838,8 @@ type dataBookmark struct {
 	Archives         []types.Archive
 	HighlightArchive int64
 	*dataCommon
+
+	Notifications []Notification
 }
 
 func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
@@ -1781,16 +1848,26 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	log.Printf("Get bookmark page no. %d\n", bookmark.ID)
+	var data = renderBookmark(*bookmark, w, rq)
+	templateExec(w, rq, templatePost, data)
+}
 
+func renderBookmark(bookmark types.Bookmark, w http.ResponseWriter, rq *http.Request) dataBookmark {
+	var notifications []Notification
+
+	// TODO: do not fetch for the unauthorized
 	archivesRepo := db.NewArchivesRepo()
 	archives, err := archivesRepo.FetchForBookmark(int64(bookmark.ID))
 	if err != nil {
 		slog.Error("Failed to fetch archives for bookmark",
 			"bookmarkID", bookmark.ID,
 			"err", err)
-		// TODO: a better error
-		handlerNotFound(w, rq)
-		return
+		notifications = append(notifications,
+			Notification{
+				Category: NotificationFailure,
+				Body: template.HTML(fmt.Sprintf(
+					"Failed to fetch archives: %s", err)),
+			})
 	}
 
 	common := emptyCommon()
@@ -1815,13 +1892,13 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
-	templateExec(w, rq, templatePost, dataBookmark{
-		Bookmark:         *bookmark,
+	return dataBookmark{
+		Bookmark:         bookmark,
 		RepostCount:      db.CountRepostsOf(bookmark.ID),
 		Archives:         archives,
 		HighlightArchive: highlightArchive,
 		dataCommon:       common,
-	})
+	}
 }
 
 type dataFeed struct {

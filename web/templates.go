@@ -152,6 +152,8 @@ type NotificationCategory string
 const (
 	NotificationHostMismatch  NotificationCategory = "Host mismatch"
 	NotificationWrongProtocol NotificationCategory = "Wrong protocol"
+	NotificationSuccess       NotificationCategory = "Success"
+	NotificationFailure       NotificationCategory = "Failure"
 )
 
 type Notification struct {

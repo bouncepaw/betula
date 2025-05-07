@@ -31,6 +31,7 @@ type ArchivesRepo interface {
 	// the given artifact. It returns id of the new archive.
 	Store(bookmarkID int64, artifact *types.Artifact) (int64, error)
 	FetchForBookmark(bookmarkID int64) ([]types.Archive, error)
+	DeleteArchive(archiveID int64) error
 }
 
 type dbArchivesRepo struct{}
@@ -64,7 +65,41 @@ func (repo *dbArchivesRepo) Store(bookmarkID int64, artifact *types.Artifact) (i
 	return newArchiveID, tx.Commit()
 }
 
-// TODO: when implementing deletion, delete artifacts iff they only have one usage
+func (repo *dbArchivesRepo) DeleteArchive(archiveID int64) error {
+	var tx, err = db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	// Artifacts might be reused, so after deleting the archive,
+	// the corresponding artifact is to be deleted only if
+	// no other archives refer it.
+
+	var artifactID string
+	var row = tx.QueryRow(
+		`delete from Archives where ID = ? returning ArtifactID`,
+		archiveID)
+	if err = row.Scan(&artifactID); err != nil {
+		return errors.Join(err, tx.Rollback())
+	}
+
+	var artifactUsageCount int64
+	row = tx.QueryRow(
+		`select count(*) from Archives where ArtifactID = ?`,
+		artifactID)
+	if err = row.Scan(&artifactUsageCount); err != nil {
+		return errors.Join(err, tx.Rollback())
+	}
+
+	if artifactUsageCount == 0 {
+		_, err = tx.Exec(`delete from Artifacts where ID = ?`, artifactID)
+		if err != nil {
+			return errors.Join(err, tx.Rollback())
+		}
+	}
+
+	return tx.Commit()
+}
 
 func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive, error) {
 	var archives []types.Archive

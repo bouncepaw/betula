@@ -1,6 +1,9 @@
 {{define "title"}}Link: {{.Bookmark.Title}}{{end}}
 {{define "body"}}
 	<main>
+		{{if .Notifications}}{{range .Notifications}}
+		<div class="notif" notif-cat="{{.Category}}">{{.Body}}</div>
+		{{end}}{{end}}
 		<article class="post-page h-entry">
 			<div class="card-line">
 				{{if .Bookmark.RepostOf}}<a href="{{.Bookmark.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
@@ -40,7 +43,7 @@
 			<form method="post" action="/make-new-archive/{{.Bookmark.ID}}">
 				<input type="submit" value="Make a new archive copy" class="btn">
 			</form>
-			{{if len .Archives}}
+			{{if len .Archives}}{{$bookmarkID := .Bookmark.ID}}
 				<ul>{{$highlight:=.HighlightArchive}}
 				{{range .Archives}}
 					<li>
@@ -48,6 +51,9 @@
 							{{if eq $highlight .ID}}<mark>{{timestampToHuman .SavedAt.String}}</mark>{{else}}{{timestampToHuman .SavedAt.String}}{{end}}</a>
 						<span class="archive-mime">{{.Artifact.HumanMimeType}}</span>
 						<span class="archive-size">{{.Artifact.HumanSize}}</span>
+						<form action="/delete-archive?archive-id={{.ID}}&bookmark-id={{$bookmarkID}}" method="post" style="display: inline-block">
+							<input type="submit" value="Delete" class="btn">
+						</form>
 					</li>
 				{{end}}
 				</ul>
