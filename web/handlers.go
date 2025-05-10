@@ -25,6 +25,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/db"
@@ -57,8 +58,11 @@ func init() {
 	mux.HandleFunc("GET /text/{id}", getText)
 	mux.HandleFunc("GET /digest-rss", getDigestRss)
 	mux.HandleFunc("GET /posts-rss", getPostsRss)
-	mux.HandleFunc("GET /go/{id}", getGo)
 	mux.HandleFunc("GET /about", getAbout)
+
+	// Go-links
+	mux.HandleFunc("GET /go/{id}", getGoLink)
+	mux.HandleFunc("POST /create-go-link", adminOnly(postCreateGoLink))
 
 	mux.HandleFunc("GET /tag", handlerTags)
 	mux.HandleFunc("GET /tag/{name}", getTag)
@@ -132,6 +136,59 @@ func init() {
 
 	// Static files
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+}
+
+func badGoLinkSlug(slug string) bool {
+	if len(slug) == 0 || unicode.IsDigit(rune(slug[0])) {
+		return true
+	}
+	invalidChar := func(r rune) bool {
+		return !(unicode.IsLetter(r) || unicode.IsNumber(r))
+	}
+	return strings.ContainsFunc(slug, invalidChar)
+}
+
+func postCreateGoLink(w http.ResponseWriter, rq *http.Request) {
+	var (
+		bookmarkIDParam = rq.FormValue("bookmark-id")
+		slug            = rq.FormValue("slug")
+	)
+
+	bookmarkID, err := strconv.ParseInt(bookmarkIDParam, 10, 64)
+	if err != nil {
+		slog.Warn("Failed to parse bookmark id",
+			"bookmarkID", bookmarkIDParam, "err", err)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	var bookmark, found = db.GetBookmarkByID(int(bookmarkID))
+	if !found {
+		slog.Info("Bookmark not found", "bookmarkID", bookmarkID)
+		handlerNotFound(w, rq)
+		return
+	}
+
+	var templateData dataBookmark
+
+	if badGoLinkSlug(slug) {
+		templateData = renderBookmark(bookmark, w, rq)
+		templateData.Notifications = append(templateData.Notifications,
+			Notification{
+				Category: NotificationFailure,
+				Body: template.HTML(fmt.Sprintf(
+					"Bad go-link slug: %s", slug)),
+			})
+		slog.Warn("Bad go-link slug", "slug", slug, "bookmarkID", bookmarkID)
+	}
+}
+
+func getGoLink(w http.ResponseWriter, rq *http.Request) {
+	bookmark, ok := extractBookmark(w, rq)
+	if !ok {
+		return
+	}
+	http.Redirect(w, rq, bookmark.URL, http.StatusSeeOther)
 }
 
 func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
@@ -1927,12 +1984,4 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 		SiteDescription:      settings.SiteDescriptionHTML(),
 		dataCommon:           common,
 	})
-}
-
-func getGo(w http.ResponseWriter, rq *http.Request) {
-	bookmark, ok := extractBookmark(w, rq)
-	if !ok {
-		return
-	}
-	http.Redirect(w, rq, bookmark.URL, http.StatusSeeOther)
 }
