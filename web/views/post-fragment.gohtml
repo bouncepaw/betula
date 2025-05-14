@@ -12,8 +12,8 @@
 			{{end}}
 		</div>
 
-		<h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
-		<a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
+		<h4 class="p-name"><a class="u-url" href="/go/{{.ID}}">{{.Title}}</a></h4>
+		<a class="u-bookmark-of h-cite" href="/go/{{.ID}}">{{shortenLink .URL}}</a>
 
 		{{if .Description}}
 			<div class="myco e-content">
@@ -35,8 +35,8 @@
 			<button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
 		</div>
 
-		<h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
-		<a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
+		<h4 class="p-name"><a class="u-url" href="/go/{{.ID}}">{{.Title}}</a></h4>
+		<a class="u-bookmark-of h-cite" href="/go/{{.ID}}">{{shortenLink .URL}}</a>
 
 		{{if .Description}}
 			<div class="myco e-content">

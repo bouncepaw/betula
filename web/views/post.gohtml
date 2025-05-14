@@ -20,8 +20,8 @@
 				{{end}}
 			</div>
 			
-			<h4 class="p-name"><a class="u-url" href="{{.Bookmark.URL}}">{{.Bookmark.Title}}</a></h4>
-			<a class="u-bookmark-of h-cite" href="{{.Bookmark.URL}}">{{shortenLink .Bookmark.URL}}</a>
+			<h4 class="p-name"><a class="u-url" href="/go/{{.Bookmark.ID}}">{{.Bookmark.Title}}</a></h4>
+			<a class="u-bookmark-of h-cite" href="/go/{{.Bookmark.ID}}">{{shortenLink .Bookmark.URL}}</a>
 
 			{{if .Bookmark.Description}}
 				<div class="myco e-content">
