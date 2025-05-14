@@ -93,10 +93,12 @@ func Index() {
 	}
 
 	// In most cases, you would need the sql.Null* types to handle
-	// the case when there is no entry for the setting. For this
-	// particular setting, we are perfectly fine with it just
+	// the case when there is no entry for the setting. For these
+	// particular settings, we are perfectly fine with it just
 	// returning "" when it is not present.
 	cache.CustomCSS = db.MetaEntry[string](db.BetulaMetaCustomCSS)
+	cache.PublicCustomJS = db.MetaEntry[string](db.BetulaMetaPublicCustomJS)
+	cache.PrivateCustomJS = db.MetaEntry[string](db.BetulaMetaPrivateCustomJS)
 
 	siteURL := db.MetaEntry[sql.NullString](db.BetulaMetaSiteURL)
 	if !siteURL.Valid {
@@ -128,6 +130,8 @@ func SiteDescriptionHTML() template.HTML { return cacheSiteDescription }
 func SiteDescriptionMycomarkup() string  { return cache.SiteDescriptionMycomarkup }
 func CustomCSS() string                  { return cache.CustomCSS }
 func FederationEnabled() bool            { return cache.FederationEnabled }
+func PublicCustomJS() string             { return cache.PublicCustomJS }
+func PrivateCustomJS() string            { return cache.PrivateCustomJS }
 
 func SiteDomain() string {
 	if SiteURL() == "" {
@@ -152,6 +156,8 @@ func SetSettings(settings types.Settings) {
 	db.SetMetaEntry(db.BetulaMetaSiteURL, settings.SiteURL)
 	db.SetMetaEntry(db.BetulaMetaCustomCSS, settings.CustomCSS)
 	db.SetMetaEntry(db.BetulaMetaEnableFederation, settings.FederationEnabled)
+	db.SetMetaEntry(db.BetulaMetaPublicCustomJS, settings.PublicCustomJS)
+	db.SetMetaEntry(db.BetulaMetaPrivateCustomJS, settings.PrivateCustomJS)
 	Index()
 }
 

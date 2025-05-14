@@ -218,6 +218,10 @@ func (c *dataCommon) AdminUsername() string {
 	return settings.AdminUsername()
 }
 
+func (c *dataCommon) PublicCustomJS() string { return settings.PublicCustomJS() }
+
+func (c *dataCommon) PrivateCustomJS() string { return settings.PrivateCustomJS() }
+
 func (c *dataCommon) Fill(C dataCommon) {
 	if c == nil {
 		panic("common data is nil! Initialize it at templateExec invocation.")

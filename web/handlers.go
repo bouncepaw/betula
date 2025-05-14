@@ -66,6 +66,8 @@ func init() {
 	mux.HandleFunc("GET /day/{dayStamp}", getDay)
 	mux.HandleFunc("GET /search", getSearch)
 	mux.HandleFunc("GET /static/style.css", getStyle)
+	mux.HandleFunc("GET /static/private.js", getPrivateCustomJS)
+	mux.HandleFunc("GET /static/public.js", getPublicCustomJS)
 
 	mux.HandleFunc("POST /register", postRegister)
 
@@ -1030,6 +1032,36 @@ func getEnglishHelp(w http.ResponseWriter, rq *http.Request) {
 	})
 }
 
+func getPrivateCustomJS(w http.ResponseWriter, rq *http.Request) {
+	var js = settings.PrivateCustomJS()
+	if js == "" {
+		slog.Info("No custom private JS found; 404")
+		http.NotFound(w, rq)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/javascript")
+	var _, err = io.WriteString(w, js)
+	if err != nil {
+		slog.Error("Failed to server private custom JS", "err", err)
+	}
+}
+
+func getPublicCustomJS(w http.ResponseWriter, rq *http.Request) {
+	var js = settings.PublicCustomJS()
+	if js == "" {
+		slog.Info("No custom public JS found; 404")
+		http.NotFound(w, rq)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/javascript")
+	var _, err = io.WriteString(w, js)
+	if err != nil {
+		slog.Error("Failed to server public custom JS", "err", err)
+	}
+}
+
 func getStyle(w http.ResponseWriter, rq *http.Request) {
 	w.Header().Set("Content-Type", "text/css; charset=utf-8")
 	file, err := fs.Open("style.css")
@@ -1165,11 +1197,13 @@ func getSettings(w http.ResponseWriter, rq *http.Request) {
 			NetworkHost:               settings.NetworkHost(),
 			NetworkPort:               settings.NetworkPort(),
 			SiteName:                  settings.SiteName(),
-			SiteURL:                   settings.SiteURL(),
 			SiteTitle:                 settings.SiteTitle(),
 			SiteDescriptionMycomarkup: settings.SiteDescriptionMycomarkup(),
+			SiteURL:                   settings.SiteURL(),
 			CustomCSS:                 settings.CustomCSS(),
 			FederationEnabled:         settings.FederationEnabled(),
+			PublicCustomJS:            settings.PublicCustomJS(),
+			PrivateCustomJS:           settings.PrivateCustomJS(),
 		},
 		dataCommon:  emptyCommon(),
 		FirstRun:    isFirstRun,
@@ -1188,6 +1222,8 @@ func postSettings(w http.ResponseWriter, rq *http.Request) {
 		SiteURL:                   rq.FormValue("site-url"),
 		CustomCSS:                 rq.FormValue("custom-css"),
 		FederationEnabled:         rq.FormValue("enable-federation") == "true",
+		PublicCustomJS:            rq.FormValue("public-custom-js"),
+		PrivateCustomJS:           rq.FormValue("private-custom-js"),
 	}
 
 	// If the port ≤ 0 or not really numeric, show error.

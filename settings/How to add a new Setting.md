@@ -2,6 +2,8 @@
 
 2023-06-28 I decided to add a new Setting: Custom CSS. Thought that I should document it for a future Settingist.
 
+2025-05-14 When implementing Custom JS, the document was brought to speed.
+
 As you can see, there are quite a lot of steps to add a new setting. That should discourage you from adding settings. No one really wants them.
 
 ## Update `types.Settings`
@@ -72,7 +74,7 @@ func SetSettings(settings types.Settings) {
 ```
 
 ## Update the handler
-In `handlers.go` in `handlerSettings` mention the new field of `types.Settings` everywhere while making sense.
+In `handlers.go` in `getSettings` and `postSettings` mention the new field of `types.Settings` everywhere while making sense.
 
 ## Implement the feature
 There is no guide for that, every feature is unique.

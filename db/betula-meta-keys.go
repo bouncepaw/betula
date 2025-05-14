@@ -15,4 +15,6 @@ const (
 	BetulaMetaCustomCSS         BetulaMetaKey = "Custom CSS"
 	BetulaMetaPrivateKey        BetulaMetaKey = "Private key PEM"
 	BetulaMetaEnableFederation  BetulaMetaKey = "Federation enabled"
+	BetulaMetaPublicCustomJS    BetulaMetaKey = "Public custom JS"
+	BetulaMetaPrivateCustomJS   BetulaMetaKey = "Private custom JS"
 )

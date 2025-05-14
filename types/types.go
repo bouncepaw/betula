@@ -158,6 +158,8 @@ type Settings struct {
 	SiteURL                   string
 	CustomCSS                 string
 	FederationEnabled         bool
+	PublicCustomJS            string
+	PrivateCustomJS           string
 }
 
 type Session struct {

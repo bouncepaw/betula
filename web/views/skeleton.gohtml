@@ -45,5 +45,7 @@
 	</ul>
 </nav>
 {{template "body" .}}
+{{if .PublicCustomJS}}<script src="/static/public.js"></script>{{end}}
+{{if and .Authorized .PrivateCustomJS}}<script src="/static/private.js"></script>{{end}}
 </body>
 </html>

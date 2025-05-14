@@ -88,6 +88,22 @@
 					</p>
 				</div>
 
+				<div>
+					<label for="public-custom-js">Public custom JavaScript</label>
+					<textarea id="public-custom-js" name="public-custom-js">{{.PublicCustomJS}}</textarea>
+					<p class="input-caption">
+						This script will be loaded for everyone.
+					</p>
+				</div>
+
+				<div>
+					<label for="private-custom-js">Private custom JavaScript</label>
+					<textarea id="private-custom-js" name="private-custom-js">{{.PrivateCustomJS}}</textarea>
+					<p class="input-caption">
+						This script will be loaded only for you, after the public script.
+					</p>
+				</div>
+
 				<input type="submit" class="btn" value="Save">
 			</form>
 		</article>
