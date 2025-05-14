@@ -1043,7 +1043,7 @@ func getPrivateCustomJS(w http.ResponseWriter, rq *http.Request) {
 	w.Header().Set("Content-Type", "text/javascript")
 	var _, err = io.WriteString(w, js)
 	if err != nil {
-		slog.Error("Failed to server private custom JS", "err", err)
+		slog.Error("Failed to serve private custom JS", "err", err)
 	}
 }
 
@@ -1058,7 +1058,7 @@ func getPublicCustomJS(w http.ResponseWriter, rq *http.Request) {
 	w.Header().Set("Content-Type", "text/javascript")
 	var _, err = io.WriteString(w, js)
 	if err != nil {
-		slog.Error("Failed to server public custom JS", "err", err)
+		slog.Error("Failed to serve public custom JS", "err", err)
 	}
 }
 
