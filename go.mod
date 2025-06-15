@@ -3,6 +3,7 @@ module git.sr.ht/~bouncepaw/betula
 go 1.23.3
 
 require (
+	codeberg.org/bouncepaw/obelisk-ng v0.10.2
 	git.sr.ht/~bouncepaw/mycomarkup/v5 v5.6.0
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/mileusna/useragent v1.3.5
@@ -12,7 +13,6 @@ require (
 )
 
 require (
-	codeberg.org/bouncepaw/obelisk-ng v0.10.1 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c // indirect

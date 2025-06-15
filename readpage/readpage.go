@@ -7,6 +7,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/charset"
 	"io"
 	"log"
 	"net/http"
@@ -174,7 +175,12 @@ func findDataByLink(link string, workers []worker) (data FoundData, err error) {
 		}
 	}(resp.Body)
 
-	doc, err := html.Parse(resp.Body)
+	r, err := charset.NewReader(resp.Body, resp.Header.Get("Content-Type"))
+	if err != nil {
+		r = resp.Body
+	}
+
+	doc, err := html.Parse(r)
 	if err != nil {
 		log.Printf("Can't parse HTML from %s\n", link)
 		return data, err
