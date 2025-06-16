@@ -134,6 +134,10 @@ func init() {
 
 	// Static files
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(fs))))
+
+	// The service worker needs to be served from the page root to be registered with the correct scope.
+	mux.HandleFunc("GET /service-worker.js", adminOnly(getServiceWorker))
+	mux.HandleFunc("GET /manifest.json", getManifest)
 }
 
 func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
@@ -1758,6 +1762,16 @@ func getSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 	bookmark.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
 	bookmark.Description = rq.FormValue("description")
 	bookmark.Tags = types.SplitTags(rq.FormValue("tags"))
+
+	// When sharing a web page via the web-share API on Chrome or Firefox, the URL of the shared page
+	// is placed on the "description" query parameter instead of the "url" parameter.
+	// If "url" is empty and "description" starts with "http", we can reasonably assume that the
+	// "description" is the actual URL.
+	if bookmark.URL == "" && strings.HasPrefix(bookmark.Description, "http") {
+		bookmark.URL = bookmark.Description
+		bookmark.Description = ""
+	}
+
 	// TODO: Document the param behaviour
 	templateExec(w, rq, templateSaveLink, dataSaveLink{
 		Bookmark:   bookmark,
@@ -1963,6 +1977,50 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 		SiteDescription:      settings.SiteDescriptionHTML(),
 		dataCommon:           common,
 	})
+}
+
+func getServiceWorker(w http.ResponseWriter, r *http.Request) {
+	http.ServeFileFS(w, r, fs, "service-worker.js")
+}
+
+func getManifest(w http.ResponseWriter, r *http.Request) {
+	manifest, err := json.Marshal(map[string]any{
+		"name":      settings.SiteName(),
+		"display":   "standalone",
+		"start_url": "/",
+		"share_target": map[string]any{
+			"action": "/save-link",
+			"method": "GET",
+			"params": map[string]any{
+				"url":   "url",
+				"title": "title",
+				"text":  "description",
+			},
+		},
+		"icons": []any{
+			map[string]any{
+				"src":   "static/pix/icon-512.png",
+				"type":  "image/png",
+				"sizes": "512x512",
+			},
+			map[string]any{
+				"src":   "static/pix/icon-192.png",
+				"type":  "image/png",
+				"sizes": "192x192",
+			},
+		},
+	})
+
+	if err != nil {
+		log.Printf("When marhalling manifest.json: %s", err)
+		handlerNotFound(w, r)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(manifest); err != nil {
+		log.Printf("When serving manifest.json: %s", err)
+	}
 }
 
 func getGo(w http.ResponseWriter, rq *http.Request) {

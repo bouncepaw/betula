@@ -7,6 +7,19 @@
 	<link rel="stylesheet" href="/static/style.css">
 	<link rel="icon" href="/static/pix/favicon.svg" type="image/svg+xml">
 	<link rel="apple-touch-icon" href="/static/pix/favicon.png">
+
+    {{if .Authorized}}
+	<link rel="manifest" href="/manifest.json">
+
+	<script>
+		if ("serviceWorker" in navigator) {
+			navigator.serviceWorker.register("/service-worker.js")
+				.then((reg) => console.log("Service Worker registered with scope: ", reg.scope))
+				.catch((err) => console.log("Service Worker registration failed: ", err));
+		}
+	</script>
+    {{end}}
+
 	{{.Head}}
 </head>
 <body class="{{if .Authorized}}authorized{{else}}not-authorized{{end}}">
