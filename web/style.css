@@ -632,6 +632,9 @@ main .notif:last-of-type {
     .notif[notif-cat="Wrong protocol"] {
         background: #400;
     }
+    .notif[notif-cat="Clarification"] {
+        background: #343434;
+    }
     .notif[notif-cat="Failure"] {
         background: darkred;
     }
@@ -704,6 +707,9 @@ main .notif:last-of-type {
     }
     .notif[notif-cat="Wrong protocol"] {
         background: mistyrose;
+    }
+    .notif[notif-cat="Clarification"] {
+        background: #ffffff;
     }
     .notif[notif-cat="Failure"] {
         background: salmon;

@@ -21,6 +21,9 @@
                     <input type="checkbox" name="another" id="another-confirmed" {{if .Another}} checked {{end}} value="true">
                     <label for="another-confirmed">Submit another?</label>
                 </div>
+                {{if ne .DuplicateBookmarkID 0}}
+                    <input type="hidden" name="duplicate" value="true">
+                {{end}}
             </form>
         </article>
     </main>

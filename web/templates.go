@@ -150,10 +150,11 @@ var funcMapForTime = template.FuncMap{
 type NotificationCategory string
 
 const (
-	NotificationHostMismatch  NotificationCategory = "Host mismatch"
-	NotificationWrongProtocol NotificationCategory = "Wrong protocol"
 	NotificationSuccess       NotificationCategory = "Success"
 	NotificationFailure       NotificationCategory = "Failure"
+	NotificationHostMismatch  NotificationCategory = "Host mismatch"
+	NotificationClarification NotificationCategory = "Clarification"
+	NotificationWrongProtocol NotificationCategory = "Wrong protocol"
 )
 
 type Notification struct {
@@ -240,4 +241,9 @@ func commonWithAutoCompletion() *dataCommon {
 	common := emptyCommon()
 	common.head = `<script defer src="/static/autocompletion.js"></script>`
 	return common
+}
+
+func (c *dataCommon) withSystemNotifications(notifications ...Notification) *dataCommon {
+	c.SystemNotifications = append(c.SystemNotifications, notifications...)
+	return c
 }

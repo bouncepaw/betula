@@ -1533,6 +1533,8 @@ type dataEditLink struct {
 	ErrorEmptyURL      bool
 	ErrorInvalidURL    bool
 	ErrorTitleNotFound bool
+
+	DuplicateBookmarkID int
 }
 
 func getEditBookmark(w http.ResponseWriter, rq *http.Request) {
@@ -1568,10 +1570,33 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	bookmark.URL = rq.FormValue("url")
+	oldURL := bookmark.URL
+	newURL := rq.FormValue("url")
+	bookmark.URL = newURL
 	bookmark.Title = rq.FormValue("title")
 	bookmark.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
 	bookmark.Description = rq.FormValue("description")
+
+	// If this is true, a user can edit a bookmark with the URL of another bookmark next time they click 'Save' button.
+	saveDuplicate := rq.FormValue("duplicate") == "true"
+
+	if oldURL != newURL && !saveDuplicate {
+		existingBookmarkID, found := db.GetBookmarkIDByURL(newURL)
+		if found {
+			templateExec(w, rq, templateEditLink, dataEditLink{
+				Bookmark: *bookmark,
+				dataCommon: commonWithAutoCompletion().
+					withSystemNotifications(
+						Notification{
+							Category: NotificationClarification,
+							Body:     template.HTML(fmt.Sprintf(`A bookmark with this URL <a href="%d">already exists</a>.`, existingBookmarkID)),
+						}),
+				DuplicateBookmarkID: existingBookmarkID,
+			})
+			return
+		}
+	}
+
 	bookmark.Tags = types.SplitTags(rq.FormValue("tags"))
 
 	var viewData dataEditLink
@@ -1752,6 +1777,8 @@ type dataSaveLink struct {
 	ErrorEmptyURL      bool
 	ErrorInvalidURL    bool
 	ErrorTitleNotFound bool
+
+	DuplicateBookmarkID int
 }
 
 func getSaveBookmark(w http.ResponseWriter, rq *http.Request) {
@@ -1792,6 +1819,9 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 	bookmark.Description = rq.FormValue("description")
 	bookmark.Tags = types.SplitTags(rq.FormValue("tags"))
 
+	// If this is true, a user can save a duplicate next time they click 'Save' button.
+	saveDuplicate := rq.FormValue("duplicate") == "true"
+
 	if bookmark.URL == "" && bookmark.Title == "" {
 		viewData.emptyUrl(bookmark, common, w, rq)
 		return
@@ -1822,6 +1852,26 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
+	// Check if a bookmark with this URL already exists.
+	if !saveDuplicate {
+		existingBookmarkID, found := db.GetBookmarkIDByURL(bookmark.URL)
+		if found {
+			bookmark.ID = existingBookmarkID
+			templateExec(w, rq, templateSaveLink, dataSaveLink{
+				Bookmark: bookmark,
+				dataCommon: commonWithAutoCompletion().
+					withSystemNotifications(
+						Notification{
+							Category: NotificationClarification,
+							Body:     template.HTML(fmt.Sprintf(`A bookmark with this URL <a href="%d">already exists</a>.`, existingBookmarkID)),
+						}),
+				DuplicateBookmarkID: existingBookmarkID,
+			})
+			return
+		}
+	}
+
+	// No duplicate found, insert a new bookmark
 	id := db.InsertBookmark(bookmark)
 	bookmark.ID = int(id)
 

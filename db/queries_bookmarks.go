@@ -170,6 +170,21 @@ limit 1;
 	return b, found
 }
 
+// GetBookmarkIDByURL returns the first bookmark ID with the given URL, if any.
+func GetBookmarkIDByURL(url string) (id int, found bool) {
+	const q = `
+select ID 
+from Bookmarks 
+where URL = ? and DeletionTime is null
+limit 1;`
+	rows := mustQuery(q, url)
+	for rows.Next() {
+		mustScan(rows, &id)
+		found = true
+	}
+	return id, found
+}
+
 func BookmarkCount(authorized bool) uint {
 	const q = `
 with

@@ -33,6 +33,9 @@
 			<form method="post" action="/edit-link/{{.ID}}">
 	            {{template "form fragment" .}}
 				<input type="submit" class="btn" value="Save">
+				{{if ne .DuplicateBookmarkID 0}}
+                    <input type="hidden" name="duplicate" value="true">
+                {{end}}
 			</form>
 		</article>
 		{{end}}
