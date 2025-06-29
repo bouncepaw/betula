@@ -4,6 +4,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"log/slog"
+	"os"
+	"path/filepath"
+
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
@@ -12,10 +17,6 @@ import (
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/web"
 	_ "git.sr.ht/~bouncepaw/betula/web" // For init()
-	"log"
-	"log/slog"
-	"os"
-	"path/filepath"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -39,7 +40,7 @@ func main() {
 	flag.Parse()
 
 	if versionFlag {
-		fmt.Printf("Betula %s\n", "v1.4.0")
+		fmt.Printf("Betula %s\n", "v1.5.0-rc1")
 		return
 	}
 
