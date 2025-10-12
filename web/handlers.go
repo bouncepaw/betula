@@ -5,17 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/archiving"
-	"git.sr.ht/~bouncepaw/betula/fediverse"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
-	"git.sr.ht/~bouncepaw/betula/fediverse/fedisearch"
-	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
-	"git.sr.ht/~bouncepaw/betula/jobs"
-	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
-	"git.sr.ht/~bouncepaw/betula/readpage"
-	"git.sr.ht/~bouncepaw/betula/stricks"
 	"html/template"
-	"humungus.tedunangst.com/r/webs/rss"
 	"io"
 	"log"
 	"log/slog"
@@ -25,6 +15,17 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/archiving"
+	"git.sr.ht/~bouncepaw/betula/fediverse"
+	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	"git.sr.ht/~bouncepaw/betula/fediverse/fedisearch"
+	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
+	"git.sr.ht/~bouncepaw/betula/jobs"
+	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
+	"git.sr.ht/~bouncepaw/betula/readpage"
+	"git.sr.ht/~bouncepaw/betula/stricks"
+	"humungus.tedunangst.com/r/webs/rss"
 
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/db"
@@ -460,7 +461,7 @@ func postUnfollow(w http.ResponseWriter, rq *http.Request) {
 	}
 	if err = jobs.SendActivityToInbox(activity, actor.Inbox); err != nil {
 		log.Printf("When sending activity: %s\n", err)
-		return
+		// Proceed with unfollowing even if sending failed
 	}
 	db.StopFollowing(actor.ID)
 	http.Redirect(w, rq, next, http.StatusSeeOther)
