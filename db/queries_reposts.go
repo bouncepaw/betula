@@ -1,9 +1,10 @@
 package db
 
 import (
-	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 // RepostsOf returns all reposts known about the specified bookmark.
@@ -20,11 +21,6 @@ func RepostsOf(id int) (reposts []types.RepostInfo, err error) {
 		reposts = append(reposts, repost)
 	}
 	return reposts, nil
-}
-
-func CountRepostsOf(id int) int {
-	const q = `select count(*) from KnownReposts where PostID = ?;`
-	return querySingleValue[int](q, id)
 }
 
 func SaveRepost(bookmarkID int, repost types.RepostInfo) {

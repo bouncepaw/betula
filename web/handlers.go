@@ -52,7 +52,6 @@ func init() {
 	mux.HandleFunc("GET /{$}", getIndex)
 	mux.HandleFunc("GET /{id}", fediverseWebFork(getBookmarkFedi, getBookmarkWeb))
 
-	mux.HandleFunc("GET /reposts-of/{id}", getRepostsOf)
 	mux.HandleFunc("GET /help/en/", getEnglishHelp)
 	mux.HandleFunc("GET /help", getHelp)
 	mux.HandleFunc("GET /text/{id}", getText)
@@ -765,34 +764,6 @@ func postUnrepost(w http.ResponseWriter, rq *http.Request) {
 			},
 		})
 	}
-}
-
-type dataRepostsOf struct {
-	*dataCommon
-
-	types.Bookmark
-	Reposts []types.RepostInfo
-}
-
-func getRepostsOf(w http.ResponseWriter, rq *http.Request) {
-	bookmark, ok := extractBookmark(w, rq)
-	if !ok {
-		return
-	}
-
-	reposts, err := db.RepostsOf(bookmark.ID)
-	if err != nil {
-		// time parsing issues! whatever
-		handlerNotFound(w, rq)
-		return
-	}
-	templateExec(w, rq, templateRepostsFor, dataRepostsOf{
-		dataCommon: emptyCommon(),
-		Bookmark:   *bookmark,
-		Reposts:    reposts,
-	})
-
-	log.Printf("Show %d reposts for bookmark no. %d\n", len(reposts), bookmark.ID)
 }
 
 type dataRepost struct {
@@ -1933,8 +1904,8 @@ func getBookmarkFedi(w http.ResponseWriter, rq *http.Request) {
 }
 
 type dataBookmark struct {
-	Bookmark    types.Bookmark
-	RepostCount int
+	Bookmark types.Bookmark
+	Reposts  []types.RepostInfo
 
 	Archives         []types.Archive
 	HighlightArchive int64
@@ -1993,9 +1964,23 @@ func renderBookmark(bookmark types.Bookmark, w http.ResponseWriter, rq *http.Req
 	}
 
 	bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
+
+	var reposts []types.RepostInfo
+	if r, err := db.RepostsOf(bookmark.ID); err != nil {
+		slog.Warn("Failed to fetch reposts for bookmark", "bookmarkID", bookmark.ID, "err", err)
+		notifications = append(notifications,
+			Notification{
+				Category: NotificationFailure,
+				Body: template.HTML(fmt.Sprintf(
+					"Failed to fetch reposts: %s", err)),
+			})
+	} else {
+		reposts = r
+	}
+
 	return dataBookmark{
 		Bookmark:         bookmark,
-		RepostCount:      db.CountRepostsOf(bookmark.ID),
+		Reposts:          reposts,
 		Archives:         archives,
 		HighlightArchive: highlightArchive,
 		dataCommon:       common,

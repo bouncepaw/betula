@@ -91,7 +91,6 @@ var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment", "save-
 var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment", "edit-link")
 var templateRepost = templateFrom(funcMapForForm, "repost")
 var templatePost = templateFrom(funcMapForBookmarks, "post-fragment", "post")
-var templateRepostsFor = templateFrom(funcMapForTime, "reposts-of")
 var templateFeed = templateFrom(funcMapForBookmarks, "paginator-fragment", "post-fragment", "feed")
 var templateSearch = templateFrom(funcMapForBookmarks, "paginator-fragment", "post-fragment", "search")
 var templateTag = templateFrom(funcMapForBookmarks, "paginator-fragment", "post-fragment", "tag")
@@ -121,6 +120,9 @@ var funcMapForBookmarks = template.FuncMap{
 			log.Fatalln(err)
 		}
 		return t.Format("2006-01-02 15:04")
+	},
+	"timeToHuman": func(ti *time.Time) string {
+		return ti.Format("2006-01-02 15:04")
 	},
 	"shortenLink": func(a string) template.HTML {
 		result, pathPart := types.CleanerLinkParts(a)
