@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/myco"
+	"git.sr.ht/~bouncepaw/betula/notif"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
+	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"html/template"
 	"log"
 	"math/rand"
@@ -103,11 +105,14 @@ var templateBookmarklet = templateFrom(nil, "bookmarklet")
 var templateMyProfile = templateFrom(funcMapForTime, "my-profile")
 
 // Fedded verse views:
-var templateRemoteProfile = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline", "remote-profile")
-var templateFollowing = templateFrom(nil, "following")
-var templateFollowers = templateFrom(nil, "followers")
-var templateTimeline = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline")
-var templateFedisearch = templateFrom(funcMapForBookmarks, "fedisearch")
+var (
+	templateRemoteProfile = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline", "remote-profile")
+	templateFollowing     = templateFrom(nil, "following")
+	templateFollowers     = templateFrom(nil, "followers")
+	templateTimeline      = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline")
+	templateFedisearch    = templateFrom(funcMapForBookmarks, "fedisearch")
+	templateNotifications = templateFrom(funcMapForNotifications, "notifications")
+)
 
 var funcMapForBookmarks = template.FuncMap{
 	"randomGlobe": func() string {
@@ -146,6 +151,13 @@ var funcMapForForm = template.FuncMap{
 var funcMapForTime = template.FuncMap{
 	"timeToHuman": func(t *time.Time) string {
 		return t.Format("2006-01-02 15:04")
+	},
+}
+
+var funcMapForNotifications = template.FuncMap{
+	"render": func(n notiftypes.Notification) template.HTML {
+		notification := notif.RenderedNotification(n)
+		return notification.AsHTML()
 	},
 }
 

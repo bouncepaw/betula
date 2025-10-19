@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/notif"
+	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"html/template"
 	"io"
 	"log"
@@ -42,6 +44,9 @@ var (
 	//go:embed bookmarklet.js
 	bookmarkletScript string
 	mux               = http.NewServeMux()
+
+	// One day, all shall be in services!
+	svcNotif = notif.New(db.New())
 )
 
 func init() {
@@ -105,6 +110,11 @@ func init() {
 	mux.HandleFunc("POST /edit-tag/{name}", adminOnly(postEditTag))
 	mux.HandleFunc("POST /delete-tag/{name}", adminOnly(postDeleteTag))
 
+	// Notifications
+	mux.HandleFunc("GET /notifications", adminOnly(federatedOnly(getNotifications)))
+	mux.HandleFunc("POST /notifications/read", adminOnly(federatedOnly(postAllNotificationsRead)))
+	mux.HandleFunc("POST /notifications/read/{date}", adminOnly(federatedOnly(postNotificationRead)))
+
 	// Archives
 	mux.HandleFunc("POST /make-new-archive/{id}", adminOnly(postMakeNewArchive))
 	mux.HandleFunc("GET /artifact/{slug}", adminOnly(getArtifact))
@@ -138,6 +148,56 @@ func init() {
 	// The service worker needs to be served from the page root to be registered with the correct scope.
 	mux.HandleFunc("GET /service-worker.js", adminOnly(getServiceWorker))
 	mux.HandleFunc("GET /manifest.json", getManifest)
+}
+
+func postNotificationRead(w http.ResponseWriter, rq *http.Request) {
+	date := rq.FormValue("date")
+
+	err := svcNotif.MarkAsRead(date)
+	if err != nil {
+		slog.Error("Failed to mark bookmarks as read",
+			"date", date, "err", err)
+		handlerBadRequest(w, rq)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func postAllNotificationsRead(w http.ResponseWriter, rq *http.Request) {
+	err := svcNotif.MarkAllAsRead()
+	if err != nil {
+		slog.Error("Failed to mark all bookmarks as read", "err", err)
+		handlerBadRequest(w, rq)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+type dataNotifications struct {
+	*dataCommon
+
+	Count  int
+	Groups []notiftypes.NotificationGroup
+}
+
+func getNotifications(w http.ResponseWriter, rq *http.Request) {
+	groups, err := svcNotif.GetAll()
+	if err != nil {
+		slog.Error("Failed to get all notifications", "err", err)
+		handlerBadRequest(w, rq)
+		return
+	}
+
+	var count int
+	for _, g := range groups {
+		count += len(g.Notifications)
+	}
+
+	templateExec(w, rq, templateNotifications, dataNotifications{
+		dataCommon: emptyCommon(),
+		Count:      count,
+		Groups:     groups,
+	})
 }
 
 func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
@@ -1299,6 +1359,15 @@ func deleteSessions(w http.ResponseWriter, rq *http.Request) {
 	}
 	db.StopAllSessions(token)
 	http.Redirect(w, rq, "/sessions", http.StatusSeeOther)
+}
+
+func handlerBadRequest(w http.ResponseWriter, rq *http.Request) {
+	slog.Error("400 Bad Request", "url", rq.URL.Path)
+	w.WriteHeader(http.StatusBadRequest)
+	templateExec(w, rq, templateStatus, dataAuthorized{
+		dataCommon: emptyCommon(),
+		Status:     http.StatusText(http.StatusBadRequest),
+	})
 }
 
 func handlerNotFound(w http.ResponseWriter, rq *http.Request) {
