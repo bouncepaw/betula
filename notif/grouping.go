@@ -24,7 +24,7 @@ func GroupNotificationsByDay(notifications []notiftypes.Notification) []notiftyp
 	}
 
 	slices.SortFunc(result, func(a, b notiftypes.NotificationGroup) int {
-		return strings.Compare(a.Title, b.Title) * -1 // negation
+		return strings.Compare(b.Title, a.Title)
 	})
 
 	return result

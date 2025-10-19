@@ -33,7 +33,8 @@ func (repo *RepoNotif) Store(ctx context.Context, kind notiftypes.Kind, payload 
 }
 
 func (repo *RepoNotif) GetAll(ctx context.Context) ([]notiftypes.Notification, error) {
-	rows, err := db.QueryContext(ctx, "select ID, CreatedAt, Kind, Payload from Notifications")
+	rows, err := db.QueryContext(ctx,
+		"select ID, CreatedAt, Kind, Payload from Notifications order by CreatedAt desc")
 	if err != nil {
 		return nil, err
 	}
