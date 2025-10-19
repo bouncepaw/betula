@@ -67,6 +67,7 @@
     }
     h1 {
         margin: 8px;
+        font-size: 1.5rem;
     }
     main > article {
         max-width: 40rem;
