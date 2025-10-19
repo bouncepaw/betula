@@ -448,6 +448,7 @@ pre {
 }
 .myco blockquote {
     margin-left: 0;
+    margin-right: 0;
     padding-left: 1rem;
     border-left: #999 2px solid;
 }
