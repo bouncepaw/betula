@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"time"
 )
@@ -18,22 +19,17 @@ func (repo *RepoNotif) Count(ctx context.Context) (int64, error) {
 	return count, nil
 }
 
-func (repo *RepoNotif) Store(ctx context.Context, notifications ...notiftypes.Notification) error {
-	tx, err := db.BeginTx(ctx, nil)
-	defer tx.Rollback()
+func (repo *RepoNotif) Store(ctx context.Context, kind notiftypes.Kind, payload any) error {
+	j, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
-	for _, notification := range notifications {
-		_, err = tx.Exec(
-			"insert into Notifications (ID, CreatedAt, Kind, Payload) values (?, ?, ?, ?)",
-			notification.ID, notification.CreatedAt, notification.Kind, notification.Payload)
-		if err != nil {
-			return err
-		}
-	}
-	return tx.Commit()
+	_, err = db.ExecContext(ctx,
+		"insert into Notifications (Kind, Payload) values (?, ?)",
+		kind, j)
+
+	return err
 }
 
 func (repo *RepoNotif) GetAll(ctx context.Context) ([]notiftypes.Notification, error) {

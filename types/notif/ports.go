@@ -11,7 +11,7 @@ type Service interface {
 }
 
 type Repository interface {
-	Store(context.Context, ...Notification) error
+	Store(context.Context, Kind, any) error
 	GetAll(context.Context) ([]Notification, error)
 	Count(context.Context) (int64, error)
 	DeleteAll(context.Context) error

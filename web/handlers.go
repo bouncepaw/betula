@@ -968,7 +968,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
-			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
+			slog.Error("Failed to verify signature", "actorID", report.ActorID)
 			return
 		}
 
@@ -987,7 +987,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
-			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
+			slog.Error("Failed to verify signature", "actorID", report.ActorID)
 			return
 		}
 
@@ -1008,7 +1008,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
-			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
+			slog.Error("Failed to verify signature", "actorID", report.ActorID)
 			return
 		}
 
