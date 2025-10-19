@@ -3,24 +3,25 @@
 
 [![Hits-of-Code](https://hitsofcode.com/sourcehut/~bouncepaw/betula?branch=master)](https://hitsofcode.com/sourcehut/~bouncepaw/betula/view?branch=master)
 
-**Betula** is a single-user self-hosted bookmarking software with Fediverse support and archives.
+**Betula** is a single-user self-hosted federated bookmark manager with Fediverse support and archives.
 
 * [Website](https://betula.mycorrhiza.wiki)
-* [Source code](https://git.sr.ht/~bouncepaw/betula)
+* [Source code](https://codeberg.org/bouncepaw/betula)
 * [Mailing list](https://lists.sr.ht/~bouncepaw/betula)
 * [Donate on Boosty (with devlog)](https://boosty.to/bouncepaw)
 
 ## Features
-* Publish bookmarks, along with optional title and description formatted with [Mycomarkup](https://mycorrhiza.wiki/help/en/mycomarkup).
+* Publish bookmarks, along with optional title and description/notes formatted with [Mycomarkup](https://links.bouncepaw.com/help/en/mycomarkup).
 * Add tags to your bookmarks.
 * Fediverse:
   * You can repost posts from other Betula instances, and other software, sometimes.
   * Other Fediverse software such as Mastodon can follow Betula instances.
-  * You can follow other Betulas and receive new bookmarks in your Timeline!
+  * You can follow other Betula instances and receive new bookmarks in your Timeline!
 * Make archive copies of web pages.
 * The whole collection is saved as a single SQLite file.
-* Search.
+* Search locally or search your mutuals' Betula instances.
 * Bookmarklet.
+* [Miniflux](https://miniflux.app) integration.
 * Bookmarks can be public or private. Share only what you want to share!
 * Simple user interface that does not require JavaScript.
   * If you have JavaScript, you can use tag autocompletion.
