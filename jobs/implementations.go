@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/db"
@@ -11,10 +12,14 @@ import (
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
+	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"log"
+	"log/slog"
 	"strconv"
 	"strings"
 )
+
+var repoNotif = db.New()
 
 func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.Job) {
 	return func(job jobtype.Job) {
@@ -115,14 +120,22 @@ func sendRejectFollow(report activities.FollowReport) {
 
 func sendAcceptFollow(report activities.FollowReport) {
 	if !stricks.ValidURL(report.ActorID) {
-		log.Printf("Invaling actor ID: %s. Dropping activity.\n", report.ActorID)
+		slog.Error("Dropping activity", "reason", "invalid actor ID", "actorID", report.ActorID)
+		return
 	}
 
 	activity, err := activities.NewAccept(report.OriginalActivity)
 	if err = SendActivityToInbox(activity, fediverse.RequestActorInboxByID(report.ActorID)); err != nil {
-		log.Println(err)
+		slog.Error("Failed to send activity", "err", err, "recipient", report.ActorID)
 	} else {
 		db.AddFollower(report.ActorID)
+
+		err = repoNotif.Store(context.Background(), notiftypes.KindFollow, notiftypes.FollowPayload{
+			ActorID: report.ActorID,
+		})
+		if err != nil {
+			slog.Error("Failed to store follow notification", "err", err)
+		}
 	}
 }
 

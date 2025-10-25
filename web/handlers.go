@@ -5,6 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
+	"git.sr.ht/~bouncepaw/betula/ports/notif"
+	"git.sr.ht/~bouncepaw/betula/svc/archiving"
+	"git.sr.ht/~bouncepaw/betula/svc/notif"
+	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"html/template"
 	"io"
 	"log"
@@ -16,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~bouncepaw/betula/archiving"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/fedisearch"
@@ -42,6 +46,11 @@ var (
 	//go:embed bookmarklet.js
 	bookmarkletScript string
 	mux               = http.NewServeMux()
+
+	// One day, all shall be in services!
+	svcNotif     notifports.Service     = notifsvc.New(db.New())
+	svcArchiving archivingports.Service = archivingsvc.New(
+		archivingsvc.NewObeliskFetcher(), db.NewArchivesRepo())
 )
 
 func init() {
@@ -105,6 +114,10 @@ func init() {
 	mux.HandleFunc("POST /edit-tag/{name}", adminOnly(postEditTag))
 	mux.HandleFunc("POST /delete-tag/{name}", adminOnly(postDeleteTag))
 
+	// Notifications
+	mux.HandleFunc("GET /notifications", adminOnly(federatedOnly(getNotifications)))
+	mux.HandleFunc("POST /notifications/read", adminOnly(federatedOnly(postAllNotificationsRead)))
+
 	// Archives
 	mux.HandleFunc("POST /make-new-archive/{id}", adminOnly(postMakeNewArchive))
 	mux.HandleFunc("GET /artifact/{slug}", adminOnly(getArtifact))
@@ -138,6 +151,43 @@ func init() {
 	// The service worker needs to be served from the page root to be registered with the correct scope.
 	mux.HandleFunc("GET /service-worker.js", adminOnly(getServiceWorker))
 	mux.HandleFunc("GET /manifest.json", getManifest)
+}
+
+func postAllNotificationsRead(w http.ResponseWriter, rq *http.Request) {
+	err := svcNotif.MarkAllAsRead()
+	if err != nil {
+		slog.Error("Failed to mark all bookmarks as read", "err", err)
+		handlerBadRequest(w, rq)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+type dataNotifications struct {
+	*dataCommon
+
+	Count  int
+	Groups []notiftypes.NotificationGroup
+}
+
+func getNotifications(w http.ResponseWriter, rq *http.Request) {
+	groups, err := svcNotif.GetAll()
+	if err != nil {
+		slog.Error("Failed to get all notifications", "err", err)
+		handlerBadRequest(w, rq)
+		return
+	}
+
+	var count int
+	for _, g := range groups {
+		count += len(g.Notifications)
+	}
+
+	templateExec(w, rq, templateNotifications, dataNotifications{
+		dataCommon: emptyCommon(),
+		Count:      count,
+		Groups:     groups,
+	})
 }
 
 func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
@@ -174,7 +224,7 @@ func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
 	if err != nil {
 		templateData = renderBookmark(bookmark, w, rq)
 		templateData.Notifications = append(templateData.Notifications,
-			Notification{
+			SystemNotification{
 				Category: NotificationFailure,
 				Body: template.HTML(fmt.Sprintf(
 					"Failed to parse archive id. ID = %s, err = %s",
@@ -184,7 +234,7 @@ func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
 	} else if err = db.NewArchivesRepo().DeleteArchive(archiveID); err != nil {
 		templateData = renderBookmark(bookmark, w, rq)
 		templateData.Notifications = append(templateData.Notifications,
-			Notification{
+			SystemNotification{
 				Category: NotificationFailure,
 				Body: template.HTML(fmt.Sprintf(
 					"Failed to delete archive: %s",
@@ -194,7 +244,7 @@ func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
 	} else {
 		templateData = renderBookmark(bookmark, w, rq)
 		templateData.Notifications = append(templateData.Notifications,
-			Notification{
+			SystemNotification{
 				Category: NotificationSuccess,
 				Body:     "Archive deleted",
 			})
@@ -245,27 +295,9 @@ func postMakeNewArchive(w http.ResponseWriter, rq *http.Request) {
 	}
 	slog.Info("Requesting to make a new archive", "bookmarkID", bookmark.ID)
 
-	var bytes, mime, err = archiving.NewObeliskArchiver().Fetch(bookmark.URL)
+	archiveID, err := svcArchiving.Archive(*bookmark)
 	if err != nil {
-		slog.Error("Obelisk failed to fetch an archive of the page",
-			"url", bookmark.URL, "err", err)
-		handlerNotFound(w, rq)
-		return
-	}
-
-	artifact, err := types.NewCompressedDocumentArtifact(bytes, mime)
-	if err != nil {
-		slog.Error("Failed to compress the new archive",
-			"url", bookmark.URL, "err", err)
-		handlerNotFound(w, rq)
-		return
-	}
-
-	archiveID, err := db.NewArchivesRepo().Store(int64(bookmark.ID), artifact)
-	if err != nil {
-		slog.Error("Failed to store the new archive",
-			"url", bookmark.URL, "err", err)
-		handlerNotFound(w, rq)
+		handlerBadRequest(w, rq)
 		return
 	}
 
@@ -908,7 +940,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
-			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
+			slog.Error("Failed to verify signature", "actorID", report.ActorID)
 			return
 		}
 
@@ -927,7 +959,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
-			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
+			slog.Error("Failed to verify signature", "actorID", report.ActorID)
 			return
 		}
 
@@ -948,7 +980,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
-			log.Printf("Couldn't verify the signature from %s\n", report.ActorID)
+			slog.Error("Failed to verify signature", "actorID", report.ActorID)
 			return
 		}
 
@@ -1301,6 +1333,15 @@ func deleteSessions(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, "/sessions", http.StatusSeeOther)
 }
 
+func handlerBadRequest(w http.ResponseWriter, rq *http.Request) {
+	slog.Error("400 Bad Request", "url", rq.URL.Path)
+	w.WriteHeader(http.StatusBadRequest)
+	templateExec(w, rq, templateStatus, dataAuthorized{
+		dataCommon: emptyCommon(),
+		Status:     http.StatusText(http.StatusBadRequest),
+	})
+}
+
 func handlerNotFound(w http.ResponseWriter, rq *http.Request) {
 	log.Printf("404 Not found: %s\n", rq.URL.Path)
 	w.WriteHeader(http.StatusNotFound)
@@ -1559,7 +1600,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 				Bookmark: *bookmark,
 				dataCommon: commonWithAutoCompletion().
 					withSystemNotifications(
-						Notification{
+						SystemNotification{
 							Category: NotificationClarification,
 							Body:     template.HTML(fmt.Sprintf(`A bookmark with this URL <a href="%d">already exists</a>.`, existingBookmarkID)),
 						}),
@@ -1833,7 +1874,7 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 				Bookmark: bookmark,
 				dataCommon: commonWithAutoCompletion().
 					withSystemNotifications(
-						Notification{
+						SystemNotification{
 							Category: NotificationClarification,
 							Body:     template.HTML(fmt.Sprintf(`A bookmark with this URL <a href="%d">already exists</a>.`, existingBookmarkID)),
 						}),
@@ -1911,7 +1952,7 @@ type dataBookmark struct {
 	HighlightArchive int64
 	*dataCommon
 
-	Notifications []Notification
+	Notifications []SystemNotification
 }
 
 func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
@@ -1925,7 +1966,7 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 }
 
 func renderBookmark(bookmark types.Bookmark, w http.ResponseWriter, rq *http.Request) dataBookmark {
-	var notifications []Notification
+	var notifications []SystemNotification
 
 	// TODO: do not fetch for the unauthorized
 	archivesRepo := db.NewArchivesRepo()
@@ -1935,7 +1976,7 @@ func renderBookmark(bookmark types.Bookmark, w http.ResponseWriter, rq *http.Req
 			"bookmarkID", bookmark.ID,
 			"err", err)
 		notifications = append(notifications,
-			Notification{
+			SystemNotification{
 				Category: NotificationFailure,
 				Body: template.HTML(fmt.Sprintf(
 					"Failed to fetch archives: %s", err)),
@@ -1969,7 +2010,7 @@ func renderBookmark(bookmark types.Bookmark, w http.ResponseWriter, rq *http.Req
 	if r, err := db.RepostsOf(bookmark.ID); err != nil {
 		slog.Warn("Failed to fetch reposts for bookmark", "bookmarkID", bookmark.ID, "err", err)
 		notifications = append(notifications,
-			Notification{
+			SystemNotification{
 				Category: NotificationFailure,
 				Body: template.HTML(fmt.Sprintf(
 					"Failed to fetch reposts: %s", err)),

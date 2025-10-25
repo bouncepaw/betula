@@ -537,7 +537,7 @@ figcaption {
     padding-bottom: .5rem;
 }
 
-/* Notifications */
+/* Notifications of all kinds */
 .notifs {
     box-sizing: content-box;
 }
@@ -557,6 +557,13 @@ main .notif:last-of-type {
     margin-bottom: .5rem;
 }
 
+.notif-day .notif {
+    padding: 0;
+}
+
+.grayed-out {
+    filter: opacity(.3) grayscale(.5);
+}
 /* Colors. Keep both sections in sync. */
 @media (prefers-color-scheme: dark) {
     a, .wikilink_external { color: #f1fa8c; }

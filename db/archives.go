@@ -3,13 +3,10 @@ package db
 import (
 	"context"
 	"errors"
+	"git.sr.ht/~bouncepaw/betula/ports/archiving"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log/slog"
 )
-
-type ArtifactsRepo interface {
-	Fetch(string) (*types.Artifact, error)
-}
 
 type dbArtifactsRepo struct{}
 
@@ -22,16 +19,8 @@ func (repo *dbArtifactsRepo) Fetch(id string) (*types.Artifact, error) {
 	return &artifact, err
 }
 
-func NewArtifactsRepo() ArtifactsRepo {
+func NewArtifactsRepo() archivingports.ArtifactsRepo {
 	return &dbArtifactsRepo{}
-}
-
-type ArchivesRepo interface {
-	// Store stores a new archive for the given bookmark with
-	// the given artifact. It returns id of the new archive.
-	Store(bookmarkID int64, artifact *types.Artifact) (int64, error)
-	FetchForBookmark(bookmarkID int64) ([]types.Archive, error)
-	DeleteArchive(archiveID int64) error
 }
 
 type dbArchivesRepo struct{}
@@ -144,6 +133,6 @@ func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive,
 	return archives, nil
 }
 
-func NewArchivesRepo() ArchivesRepo {
+func NewArchivesRepo() archivingports.ArchivesRepo {
 	return &dbArchivesRepo{}
 }

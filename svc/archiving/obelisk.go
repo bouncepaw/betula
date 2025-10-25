@@ -1,4 +1,4 @@
-package archiving
+package archivingsvc
 
 import (
 	"codeberg.org/bouncepaw/obelisk-ng"
@@ -6,21 +6,14 @@ import (
 	"time"
 )
 
-// Archiver archives documents.
-type Archiver interface {
-	// Fetch fetches an archive copy for the document identified by URL.
-	// Returns contents, MIME-type and a possible error.
-	Fetch(url string) ([]byte, string, error)
-}
-
-// ObeliskArchiver fetched archive copies using
+// ObeliskFetcher fetches archive copies using
 // the obelisk-ng library.
-type ObeliskArchiver struct {
+type ObeliskFetcher struct {
 	*obelisk.Archiver
 }
 
-func NewObeliskArchiver() *ObeliskArchiver {
-	var a = ObeliskArchiver{
+func NewObeliskFetcher() *ObeliskFetcher {
+	var a = ObeliskFetcher{
 		Archiver: &obelisk.Archiver{
 			Cache:            nil,
 			EnableLog:        true,
@@ -37,7 +30,7 @@ func NewObeliskArchiver() *ObeliskArchiver {
 	return &a
 }
 
-func (o *ObeliskArchiver) Fetch(url string) ([]byte, string, error) {
+func (o *ObeliskFetcher) Fetch(url string) ([]byte, string, error) {
 	return o.Archiver.Archive(context.Background(), obelisk.Request{
 		URL: url,
 	})

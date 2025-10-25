@@ -5,6 +5,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/myco"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	notiftypes "git.sr.ht/~bouncepaw/betula/svc/notif"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"html/template"
 	"log"
@@ -48,7 +49,7 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 		var expectedHost = settings.SiteDomain()
 
 		if expectedHost != givenHost {
-			var notif = Notification{
+			var notif = SystemNotification{
 				Category: NotificationHostMismatch,
 				Body: template.HTML(fmt.Sprintf(
 					`<b>[BET-113]</b> Configured to use the domain “%s”, but this request has Host header “%s”. Federation might not work. Is your reverse proxy misconfigured? Check <a href="/settings">Settings</a>. See <a href="/help/en/errors#BET_113">Help</a>.`,
@@ -59,7 +60,7 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 		}
 
 		if strings.HasPrefix(settings.SiteURL(), "http://") {
-			var notif = Notification{
+			var notif = SystemNotification{
 				Category: NotificationWrongProtocol,
 				Body: template.HTML(fmt.Sprintf(
 					`<b>[BET-114]</b> Configured to use the address “%s”, which uses HTTP. Federation will not work. Check <a href="/settings">Settings</a>. See <a href="/help/en/errors#BET_114">Help</a>.`,
@@ -103,11 +104,14 @@ var templateBookmarklet = templateFrom(nil, "bookmarklet")
 var templateMyProfile = templateFrom(funcMapForTime, "my-profile")
 
 // Fedded verse views:
-var templateRemoteProfile = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline", "remote-profile")
-var templateFollowing = templateFrom(nil, "following")
-var templateFollowers = templateFrom(nil, "followers")
-var templateTimeline = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline")
-var templateFedisearch = templateFrom(funcMapForBookmarks, "fedisearch")
+var (
+	templateRemoteProfile = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline", "remote-profile")
+	templateFollowing     = templateFrom(nil, "following")
+	templateFollowers     = templateFrom(nil, "followers")
+	templateTimeline      = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline")
+	templateFedisearch    = templateFrom(funcMapForBookmarks, "fedisearch")
+	templateNotifications = templateFrom(funcMapForNotifications, "notifications")
+)
 
 var funcMapForBookmarks = template.FuncMap{
 	"randomGlobe": func() string {
@@ -149,6 +153,10 @@ var funcMapForTime = template.FuncMap{
 	},
 }
 
+var funcMapForNotifications = template.FuncMap{
+	"render": notiftypes.Render,
+}
+
 type NotificationCategory string
 
 const (
@@ -159,7 +167,7 @@ const (
 	NotificationWrongProtocol NotificationCategory = "Wrong protocol"
 )
 
-type Notification struct {
+type SystemNotification struct {
 	Category NotificationCategory
 	Body     template.HTML
 }
@@ -173,7 +181,7 @@ type dataCommon struct {
 	searchQuery string
 
 	paginator           []types.Page
-	SystemNotifications []Notification
+	SystemNotifications []SystemNotification
 }
 
 type viewData interface {
@@ -245,7 +253,7 @@ func commonWithAutoCompletion() *dataCommon {
 	return common
 }
 
-func (c *dataCommon) withSystemNotifications(notifications ...Notification) *dataCommon {
+func (c *dataCommon) withSystemNotifications(notifications ...SystemNotification) *dataCommon {
 	c.SystemNotifications = append(c.SystemNotifications, notifications...)
 	return c
 }

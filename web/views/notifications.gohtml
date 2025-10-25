@@ -1,0 +1,37 @@
+{{define "title"}}{{if eq .Count 0}}No{{else}}{{.Count}}{{end}} new notification{{if ne 1 .Count}}s{{end}}{{end}}
+{{define "body"}}
+<main>
+    <article>
+        {{if gt .Count 0}}<button class="btn float-right"
+                onclick="markAllAsRead(this)"
+        >Clear</button>{{end}}
+        <h2><span id="count">{{if eq .Count 0}}No{{else}}{{.Count}}{{end}}</span> new notification<span id="s">{{if ne 1 .Count}}s{{end}}</span></h2>
+    </article>
+{{range .Groups}}
+    <article class="notif-day">
+        <h3>{{.Title}}</h3>
+{{range .Notifications}}{{render .}}{{end}}
+    </article>
+{{end}}
+</main>
+<script>
+    let count = document.querySelector('#count'),
+        s = document.querySelector('#s')
+
+    function markAllAsRead(btn) {
+        btn.remove()
+
+        let articles = document.querySelectorAll('.notif-day')
+        for (let article of articles) {
+            article.classList.add('grayed-out')
+        }
+
+        s.textContent = 's'
+        count.textContent = 'No'
+
+        fetch(`/notifications/read`, {
+            method: 'POST',
+        }).then(response => console.log(response))
+    }
+</script>
+{{end}}

@@ -29,7 +29,8 @@
 		<ul>
 			<li><a href="/">Bookmarks</a></li>
 			<li><a href="/tag">Tags</a></li>
-			{{if and .Authorized .FederationEnabled}}<li><a href="/timeline">Timeline</a></li>{{end}}
+			{{if and .Authorized .FederationEnabled}}<li><a href="/timeline">Timeline</a></li>
+			<li><a href="/notifications">Notifications</a></li>{{end}}
 			<li><a href="/random">Random</a></li>
 			<li><a href="/@{{.AdminUsername}}">{{if .Authorized}}Your profile{{else}}About author{{end}}</a></li>
 			{{if .Authorized}}<li><a href="/settings">Settings</a></li>
