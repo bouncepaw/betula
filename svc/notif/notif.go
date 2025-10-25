@@ -2,7 +2,7 @@ package notifsvc
 
 import (
 	"context"
-	"git.sr.ht/~bouncepaw/betula/ports/notifports"
+	"git.sr.ht/~bouncepaw/betula/ports/notif"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"sync"
 )

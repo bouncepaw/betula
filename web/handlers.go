@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/ports/notifports"
+	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
+	"git.sr.ht/~bouncepaw/betula/ports/notif"
+	"git.sr.ht/~bouncepaw/betula/svc/archiving"
 	"git.sr.ht/~bouncepaw/betula/svc/notif"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"html/template"
@@ -19,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~bouncepaw/betula/archiving"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/fedisearch"
@@ -47,7 +48,9 @@ var (
 	mux               = http.NewServeMux()
 
 	// One day, all shall be in services!
-	svcNotif notifports.Service = notifsvc.New(db.New())
+	svcNotif     notifports.Service     = notifsvc.New(db.New())
+	svcArchiving archivingports.Service = archivingsvc.New(
+		archivingsvc.NewObeliskFetcher(), db.NewArchivesRepo())
 )
 
 func init() {
@@ -292,27 +295,9 @@ func postMakeNewArchive(w http.ResponseWriter, rq *http.Request) {
 	}
 	slog.Info("Requesting to make a new archive", "bookmarkID", bookmark.ID)
 
-	var bytes, mime, err = archiving.NewObeliskArchiver().Fetch(bookmark.URL)
+	archiveID, err := svcArchiving.Archive(*bookmark)
 	if err != nil {
-		slog.Error("Obelisk failed to fetch an archive of the page",
-			"url", bookmark.URL, "err", err)
-		handlerNotFound(w, rq)
-		return
-	}
-
-	artifact, err := types.NewCompressedDocumentArtifact(bytes, mime)
-	if err != nil {
-		slog.Error("Failed to compress the new archive",
-			"url", bookmark.URL, "err", err)
-		handlerNotFound(w, rq)
-		return
-	}
-
-	archiveID, err := db.NewArchivesRepo().Store(int64(bookmark.ID), artifact)
-	if err != nil {
-		slog.Error("Failed to store the new archive",
-			"url", bookmark.URL, "err", err)
-		handlerNotFound(w, rq)
+		handlerBadRequest(w, rq)
 		return
 	}
 

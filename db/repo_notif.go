@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"encoding/json"
-	"git.sr.ht/~bouncepaw/betula/ports/notifports"
+	"git.sr.ht/~bouncepaw/betula/ports/notif"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"time"
 )
