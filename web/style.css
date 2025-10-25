@@ -561,6 +561,9 @@ main .notif:last-of-type {
     padding: 0;
 }
 
+.grayed-out {
+    filter: opacity(.3) grayscale(.5);
+}
 /* Colors. Keep both sections in sync. */
 @media (prefers-color-scheme: dark) {
     a, .wikilink_external { color: #f1fa8c; }
