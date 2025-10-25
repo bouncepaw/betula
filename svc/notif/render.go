@@ -1,23 +1,32 @@
-package notif
+package notifsvc
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/db"
-	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
+	"git.sr.ht/~bouncepaw/betula/types/notif"
 	"html/template"
 	"log/slog"
 )
 
-// Things that didn't fit in the template.
+// Render returns an HTML representation of the notification
+// that is ready to be inserted on the notifications page.
+//
+// This didn't fit well into the templates well, so it's
+// a separate function.
+func Render(notif notiftypes.Notification) template.HTML {
+	rendered := renderedNotification(notif)
+	return rendered.AsHTML()
+}
+
 // TODO: Might introduce caching in the future, maybe.
 
-var ErrActorNotFound = errors.New("actor not found")
+var errActorNotFound = errors.New("actor not found")
 
-type RenderedNotification notiftypes.Notification
+type renderedNotification notiftypes.Notification
 
-func (n *RenderedNotification) AsHTML() template.HTML {
+func (n *renderedNotification) AsHTML() template.HTML {
 	var (
 		html template.HTML
 		err  error
@@ -39,7 +48,7 @@ func (n *RenderedNotification) AsHTML() template.HTML {
 	return html
 }
 
-func (n *RenderedNotification) likeAsHTML() (template.HTML, error) {
+func (n *renderedNotification) likeAsHTML() (template.HTML, error) {
 	var payload notiftypes.LikePayload
 	if err := json.Unmarshal(n.Payload, &payload); err != nil {
 		return "", err
@@ -47,7 +56,7 @@ func (n *RenderedNotification) likeAsHTML() (template.HTML, error) {
 
 	actor, found := db.ActorByID(payload.ActorID)
 	if !found {
-		return "", ErrActorNotFound
+		return "", errActorNotFound
 	}
 	return template.HTML(fmt.Sprintf(
 		`<div class="notif" notif-cat="like">
@@ -57,7 +66,7 @@ func (n *RenderedNotification) likeAsHTML() (template.HTML, error) {
 	)), nil
 }
 
-func (n *RenderedNotification) followAsHTML() (template.HTML, error) {
+func (n *renderedNotification) followAsHTML() (template.HTML, error) {
 	var payload notiftypes.FollowPayload
 	if err := json.Unmarshal(n.Payload, &payload); err != nil {
 		return "", err
@@ -65,7 +74,7 @@ func (n *RenderedNotification) followAsHTML() (template.HTML, error) {
 
 	actor, found := db.ActorByID(payload.ActorID)
 	if !found {
-		return "", ErrActorNotFound
+		return "", errActorNotFound
 	}
 	return template.HTML(fmt.Sprintf(
 		`<div class="notif" notif-cat="follow">
@@ -74,7 +83,7 @@ func (n *RenderedNotification) followAsHTML() (template.HTML, error) {
 		actor.Acct(), actor.DisplayedName)), nil
 }
 
-func (n *RenderedNotification) remarkAsHTML() (template.HTML, error) {
+func (n *renderedNotification) remarkAsHTML() (template.HTML, error) {
 	var payload notiftypes.RemarkPayload
 	if err := json.Unmarshal(n.Payload, &payload); err != nil {
 		return "", err
@@ -82,7 +91,7 @@ func (n *RenderedNotification) remarkAsHTML() (template.HTML, error) {
 
 	actor, found := db.ActorByID(payload.ActorID)
 	if !found {
-		return "", ErrActorNotFound
+		return "", errActorNotFound
 	}
 
 	// TODO: s/repost/remark when the time comes

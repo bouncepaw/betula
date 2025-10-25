@@ -1,4 +1,4 @@
-package notif
+package notifsvc
 
 import (
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"

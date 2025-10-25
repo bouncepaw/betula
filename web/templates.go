@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/myco"
-	"git.sr.ht/~bouncepaw/betula/notif"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	notiftypes "git.sr.ht/~bouncepaw/betula/svc/notif"
 	"git.sr.ht/~bouncepaw/betula/types"
-	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"html/template"
 	"log"
 	"math/rand"
@@ -50,7 +49,7 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 		var expectedHost = settings.SiteDomain()
 
 		if expectedHost != givenHost {
-			var notif = Notification{
+			var notif = SystemNotification{
 				Category: NotificationHostMismatch,
 				Body: template.HTML(fmt.Sprintf(
 					`<b>[BET-113]</b> Configured to use the domain “%s”, but this request has Host header “%s”. Federation might not work. Is your reverse proxy misconfigured? Check <a href="/settings">Settings</a>. See <a href="/help/en/errors#BET_113">Help</a>.`,
@@ -61,7 +60,7 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 		}
 
 		if strings.HasPrefix(settings.SiteURL(), "http://") {
-			var notif = Notification{
+			var notif = SystemNotification{
 				Category: NotificationWrongProtocol,
 				Body: template.HTML(fmt.Sprintf(
 					`<b>[BET-114]</b> Configured to use the address “%s”, which uses HTTP. Federation will not work. Check <a href="/settings">Settings</a>. See <a href="/help/en/errors#BET_114">Help</a>.`,
@@ -155,10 +154,7 @@ var funcMapForTime = template.FuncMap{
 }
 
 var funcMapForNotifications = template.FuncMap{
-	"render": func(n notiftypes.Notification) template.HTML {
-		notification := notif.RenderedNotification(n)
-		return notification.AsHTML()
-	},
+	"render": notiftypes.Render,
 }
 
 type NotificationCategory string
@@ -171,7 +167,7 @@ const (
 	NotificationWrongProtocol NotificationCategory = "Wrong protocol"
 )
 
-type Notification struct {
+type SystemNotification struct {
 	Category NotificationCategory
 	Body     template.HTML
 }
@@ -185,7 +181,7 @@ type dataCommon struct {
 	searchQuery string
 
 	paginator           []types.Page
-	SystemNotifications []Notification
+	SystemNotifications []SystemNotification
 }
 
 type viewData interface {
@@ -257,7 +253,7 @@ func commonWithAutoCompletion() *dataCommon {
 	return common
 }
 
-func (c *dataCommon) withSystemNotifications(notifications ...Notification) *dataCommon {
+func (c *dataCommon) withSystemNotifications(notifications ...SystemNotification) *dataCommon {
 	c.SystemNotifications = append(c.SystemNotifications, notifications...)
 	return c
 }

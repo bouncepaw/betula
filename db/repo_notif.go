@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"git.sr.ht/~bouncepaw/betula/ports/notifports"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"time"
 )
@@ -74,7 +75,7 @@ func (repo *RepoNotif) DeleteDate(ctx context.Context, date string) error {
 	return err
 }
 
-var _ notiftypes.Repository = &RepoNotif{}
+var _ notifports.Repository = &RepoNotif{}
 
 func New() *RepoNotif {
 	return &RepoNotif{}
