@@ -23,6 +23,7 @@ var (
 		{"mycomarkup", "Mycomarkup formatting", ""},
 		{"search", "Advanced search", ""},
 		{"errors", "Error codes", ""},
+		{"miniflux", "Miniflux integration", ""},
 	}
 )
 
