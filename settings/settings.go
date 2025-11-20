@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Package settings provides intermediary access to settings of a Betula instance. It handles DB interaction for you. Make sure access to it is initialized.
 package settings
 

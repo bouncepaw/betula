@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Command betula runs Betula, a personal link collection software.
 package main
 

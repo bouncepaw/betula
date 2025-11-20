@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Package signing manages HTTP signatures and managing a pair of private and public keys. This package is a wrapper around Ted of the Honk's httpsig package.
 package signing
 

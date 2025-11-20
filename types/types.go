@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Package types provides common data types used across all Betula, all conveniently collected in a single box for resolving import cycles nicely.
 package types
 

@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022-2025 Betula contributors
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- Sorry for losing data here, my dear adventurous beta user:
 drop table if exists Actors;
 drop table if exists Following;

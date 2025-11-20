@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022-2025 Betula contributors
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- DROPPED IN 11: it was causing confusion to me
 create table WebFingerAccts (
     Acct text primary key, -- In acct:bouncepaw@links.bouncepaw.com, everything after acct:

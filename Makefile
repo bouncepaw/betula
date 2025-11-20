@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022-2025 Betula contributors
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
 export CGO_CFLAGS="-D_LARGEFILE64_SOURCE"
 export CGO_ENABLED=1
 

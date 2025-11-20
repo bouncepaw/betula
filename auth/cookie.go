@@ -1,11 +1,15 @@
+// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
 package auth
 
 import (
 	"crypto/rand"
 	"encoding/hex"
 	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/types"
 	"git.sr.ht/~bouncepaw/betula/tools"
+	"git.sr.ht/~bouncepaw/betula/types"
 	"net/http"
 	"time"
 )

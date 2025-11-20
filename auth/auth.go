@@ -1,13 +1,18 @@
+// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Package auth provides you functions that let you work with auth. All state is stored in-package. The password is stored hashed, so safe enough.
 package auth
 
 import (
 	"database/sql"
+	"log"
+	"sync/atomic"
+
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"golang.org/x/crypto/bcrypt"
-	"log"
-	"sync/atomic"
 )
 
 var (

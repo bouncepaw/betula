@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022-2025 Betula contributors
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 drop table IncomingPosts;
 
 -- RemoteBookmarks lists all known bookmarks that were sent from who we follow our way.

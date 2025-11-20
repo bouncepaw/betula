@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022-2025 Betula contributors
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 create table Bookmarks (
     ID integer primary key autoincrement,
     URL text not null check (URL <> ''),

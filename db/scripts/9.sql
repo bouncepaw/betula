@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2022-2025 Betula contributors
+--
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 drop table Subscriptions;
 
 -- DROPPED IN 12: they were migrated to similar tables that have primary keys

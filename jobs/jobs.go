@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Package jobs handles behind-the-scenes scheduled stuff.
 //
 // It makes sense to call all functions here in a separate goroutine.
