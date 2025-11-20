@@ -6,7 +6,7 @@ on:
     branches: [ "master" ]
 jobs:
   build:
-    runs-on: codeberg-tiny
+    runs-on: codeberg-small
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
