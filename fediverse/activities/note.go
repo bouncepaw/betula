@@ -1,4 +1,5 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -167,16 +168,22 @@ func UpdateNote(post types.Bookmark) ([]byte, error) {
 	return json.Marshal(activity)
 }
 
-type CreateNoteReport struct {
-	Bookmark types.RemoteBookmark
-}
-type UpdateNoteReport struct {
-	Bookmark types.RemoteBookmark
-}
-type DeleteNoteReport struct {
-	ActorID    string
-	BookmarkID string
-}
+type (
+	CreateNoteReport struct {
+		Bookmark types.RemoteBookmark
+	}
+
+	UpdateNoteReport struct {
+		Bookmark        types.RemoteBookmark
+		ActorID         string
+		LikesCollection *Collection
+	}
+
+	DeleteNoteReport struct {
+		ActorID    string
+		BookmarkID string
+	}
+)
 
 func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error) {
 	if typ := getString(object, "type"); typ != "Note" && typ != "Page" && typ != "Article" {
@@ -295,13 +302,37 @@ func guessCreateNote(activity Dict) (report any, err error) {
 }
 
 func guessUpdateNote(activity Dict) (report any, err error) {
-	bookmark, err := guessNoteObject(activity)
+	object, ok := activity["object"].(Dict)
+	if !ok {
+		return nil, ErrNoObject
+	}
+
+	bookmark, err := RemoteBookmarkFromDict(object)
 	if err != nil {
 		return nil, err
 	}
-	return UpdateNoteReport{
+	bookmark.Activity = activity["original activity"].([]byte)
+
+	unr := UpdateNoteReport{
+		ActorID:  getIDSomehow(activity, "actor"),
 		Bookmark: *bookmark,
-	}, nil
+	}
+	if unr.ActorID == "" {
+		return nil, ErrNoActor
+	}
+
+	if object["likes"] != nil {
+		switch likesCollection := object["likes"].(type) {
+		case string: // Don't care, not fetching.
+		case Dict: // Now we're talking!
+			unr.LikesCollection, err = collectionFromDict(likesCollection)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return unr, nil
 }
 
 func guessDeleteNote(activity Dict) (report any, err error) {

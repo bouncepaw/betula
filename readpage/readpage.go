@@ -21,6 +21,8 @@ import (
 	"time"
 )
 
+// SPDX-SnippetBegin
+// SPDX-SnippetCopyrightText: Bourne Co. Music Publishers
 /*
 	When you wish upon a star
 	Makes no difference who you are
@@ -28,6 +30,7 @@ import (
 	Will come to you
 	— Leigh Harline, Ned Washington
 */
+// SPDX-SnippetEnd
 
 var (
 	ErrNoTitleFound = errors.New("no title found in the document")

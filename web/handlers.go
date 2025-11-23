@@ -1,4 +1,12 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2023 Danila Gorelko
+// SPDX-FileCopyrightText: 2023 ninedraft
+// SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2023 Umar Getagazov
+// SPDX-FileCopyrightText: 2024 Danila Gorelko
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2025 Danila Gorelko
+// SPDX-FileCopyrightText: 2025 Guilherme Puida Moreira
+// SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -10,8 +18,10 @@ import (
 	"errors"
 	"fmt"
 	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
+	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/notif"
 	"git.sr.ht/~bouncepaw/betula/svc/archiving"
+	likingsvc "git.sr.ht/~bouncepaw/betula/svc/liking"
 	"git.sr.ht/~bouncepaw/betula/svc/notif"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"html/template"
@@ -55,6 +65,7 @@ var (
 	svcNotif     notifports.Service     = notifsvc.New(db.New())
 	svcArchiving archivingports.Service = archivingsvc.New(
 		archivingsvc.NewObeliskFetcher(), db.NewArchivesRepo())
+	svcLiking likingports.Service = likingsvc.New(db.NewLikingRepo())
 )
 
 func init() {
@@ -901,6 +912,16 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		db.InsertRemoteBookmark(report.Bookmark)
 
 	case activities.UpdateNoteReport:
+		_, err := fediverse.RequestActorByID(report.ActorID)
+		if err != nil {
+			log.Printf("Couldn't fetch actor: %s\n", err)
+			return
+		}
+		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
+			slog.Error("Failed to verify signature", "actorID", report.ActorID)
+			return
+		}
+
 		if !db.RemoteBookmarkIsStored(report.Bookmark.ID) {
 			// TODO: maybe store them?
 			log.Printf("%s updated the bookmark %s, but we don't have it. Contents: %q. Ignoring.\n",
@@ -911,6 +932,10 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		log.Printf("%s updated the bookmark %s. Contents: %q\n",
 			report.Bookmark.ActorID, report.Bookmark.ID, report.Bookmark.DescriptionMycomarkup.String)
 		db.UpdateRemoteBookmark(report.Bookmark)
+
+		if err := svcLiking.HandleIncomingUpdateNoteActivity(report); err != nil {
+			slog.Error("Failed to handle Update{Note} for likes", "err", err)
+		}
 
 	case activities.DeleteNoteReport:
 		log.Printf("%s deleted the bookmark %s.\n", report.ActorID, report.BookmarkID)
