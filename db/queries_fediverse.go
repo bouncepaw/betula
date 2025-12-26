@@ -40,12 +40,18 @@ offset (? * (? - 1))
 }
 
 func GetRemoteBookmarks(page uint) (bookmarks []types.RemoteBookmark, total uint) {
-	total = querySingleValue[uint](`select count(ID) from RemoteBookmarks`)
+	total = querySingleValue[uint](`
+select count(RB.ID) 
+from RemoteBookmarks RB
+inner join Following F on RB.ActorID = F.ActorID
+where F.AcceptedStatus = 1`)
 
 	rows := mustQuery(`
-select ID, RepostOf, ActorID, Title, DescriptionHTML, DescriptionMycomarkup, PublishedAt, UpdatedAt, URL
-from RemoteBookmarks
-order by PublishedAt desc
+select RB.ID, RB.RepostOf, RB.ActorID, RB.Title, RB.DescriptionHTML, RB.DescriptionMycomarkup, RB.PublishedAt, RB.UpdatedAt, RB.URL
+from RemoteBookmarks RB
+inner join Following F on RB.ActorID = F.ActorID
+where F.AcceptedStatus = 1
+order by RB.PublishedAt desc
 limit ?
 offset (? * (? - 1))
 `, types.BookmarksPerPage, types.BookmarksPerPage, page) // same paging for local bookmarks
