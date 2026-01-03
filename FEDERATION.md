@@ -12,7 +12,10 @@ Every Betula is a single-user installation. Thus, Betula's URL is also its admin
 The inbox is found at `/inbox`. Unknown Activities are dropped.
 
 ## Verification
-Betula does not yet implement HTTP signatures and relies on manual resource fetching instead. HTTP signatures support may be implemented in the future.
+HTTP Signatures implementation taken from Honk.
+
+## Voting system
+Betula only supports likes. No dislikes or emoji reactions.
 
 ## Repost notification
 Public reposts are reported to authors of original posts.

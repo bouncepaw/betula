@@ -13,6 +13,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 	"html/template"
 	"log"
+	"log/slog"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -46,6 +47,7 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 		authorized: auth.AuthorizedFromRequest(rq),
 		siteTitle:  settings.SiteTitle(),
 		siteName:   settings.SiteName(),
+		endpoint:   rq.URL.Path,
 	}
 
 	if settings.FederationEnabled() && common.authorized {
@@ -77,7 +79,7 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 	data.Fill(common)
 	err := temp.ExecuteTemplate(w, "skeleton.gohtml", data)
 	if err != nil {
-		log.Printf("While writing template: %s\n", err)
+		slog.Error("Failed to write template", "err", err, "data", data)
 	}
 }
 
@@ -183,6 +185,7 @@ type dataCommon struct {
 	siteName    string
 	head        template.HTML
 	searchQuery string
+	endpoint    string
 
 	paginator           []types.Page
 	SystemNotifications []SystemNotification
@@ -195,6 +198,20 @@ type viewData interface {
 	Head() template.HTML
 	SearchQuery() string
 	Pages() []types.Page
+	Endpoint() string
+}
+
+func (c *dataCommon) CurrentPage() uint {
+	for _, page := range c.paginator {
+		if page.IsCurrent {
+			return page.Number
+		}
+	}
+	return 0
+}
+
+func (c *dataCommon) Endpoint() string {
+	return c.endpoint
 }
 
 func (c *dataCommon) SearchQuery() string {
@@ -244,6 +261,7 @@ func (c *dataCommon) Fill(C dataCommon) {
 	c.siteTitle = C.siteTitle
 	c.authorized = C.authorized
 	c.siteName = C.siteName
+	c.endpoint = C.endpoint
 	c.SystemNotifications = append(c.SystemNotifications, C.SystemNotifications...)
 }
 

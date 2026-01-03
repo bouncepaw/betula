@@ -1,4 +1,6 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2023 Goldstein
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -53,28 +55,48 @@ func TestGroupPostsByDate(t *testing.T) {
 					CreationTime: "2024-01-12 12:45",
 					Title:        "I hope it will help me.",
 				},
+				{
+					CreationTime: "2026-01-01 10:00",
+					Title:        "It never did. Key 2 malfunctions to this day.",
+				},
 			},
 			[]LocalBookmarkGroup{
-				{"2024-01-10", []Bookmark{
+				{"2024-01-10", []RenderedLocalBookmark{
 					{
-						CreationTime: "2024-01-10 15:35",
-						Title:        "I spilled energy drink on my MacBook keyboard.",
+						Bookmark: Bookmark{
+							CreationTime: "2024-01-10 15:35",
+							Title:        "I spilled energy drink on my MacBook keyboard.",
+						},
 					},
 					{
-						CreationTime: "2024-01-10 15:37",
-						Title:        "Why did I even buy it? I don't drink energy drinks!",
-					},
-				}},
-				{"2024-01-11", []Bookmark{
-					{
-						CreationTime: "2024-01-11 10:00",
-						Title:        "I ordered some compressed air.",
+						Bookmark: Bookmark{
+							CreationTime: "2024-01-10 15:37",
+							Title:        "Why did I even buy it? I don't drink energy drinks!",
+						},
 					},
 				}},
-				{"2024-01-12", []Bookmark{
+				{"2024-01-11", []RenderedLocalBookmark{
 					{
-						CreationTime: "2024-01-12 12:45",
-						Title:        "I hope it will help me.",
+						Bookmark: Bookmark{
+							CreationTime: "2024-01-11 10:00",
+							Title:        "I ordered some compressed air.",
+						},
+					},
+				}},
+				{"2024-01-12", []RenderedLocalBookmark{
+					{
+						Bookmark: Bookmark{
+							CreationTime: "2024-01-12 12:45",
+							Title:        "I hope it will help me.",
+						},
+					},
+				}},
+				{"2026-01-01", []RenderedLocalBookmark{
+					{
+						Bookmark: Bookmark{
+							CreationTime: "2026-01-01 10:00",
+							Title:        "It never did. Key 2 malfunctions to this day.",
+						},
 					},
 				}},
 			},
@@ -85,7 +107,7 @@ func TestGroupPostsByDate(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%d", i+1), func(t *testing.T) {
-			if gotGroupedPosts := GroupLocalBookmarksByDate(tt.args); !reflect.DeepEqual(gotGroupedPosts, tt.wantGroupedPosts) {
+			if gotGroupedPosts := GroupLocalBookmarksByDate(RenderLocalBookmarks(tt.args)); !reflect.DeepEqual(gotGroupedPosts, tt.wantGroupedPosts) {
 				t.Errorf("GroupPostsByDate() = %v, want %v", gotGroupedPosts, tt.wantGroupedPosts)
 			}
 		})

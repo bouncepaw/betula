@@ -1,27 +1,35 @@
-{{define "remote bookmarks paginated"}}
+{{define "remote bookmarks paginated"}}{{$root:=.}}
     {{range .BookmarkGroupsInPage}}
         <h3 class="date-heading">{{.Date}}</h3>
-        {{range .Bookmarks}}
-            <article class="h-entry">
-                <div class="card-line">
-                    <a href="/{{.AuthorAcct}}">{{.AuthorDisplayedName}}</a> {{if .RepostOf.Valid}}<a href="{{.ID}}" class="u-repost-of">reposted</a>{{else}}<a href="{{.ID}}">bookmarked</a>{{end}}
-                    <button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
-                    <a href="/repost?url={{.ID}}" class="float-right" target="_blank">Repost</a>
-                </div>
+    {{range .Bookmarks}}
+        <article class="h-entry remote-bookmark" id="{{.ID}}">
+            <div class="card-line">
+                <a href="/{{.AuthorAcct}}">{{.AuthorDisplayedName}}</a> {{if .RepostOf.Valid}}<a href="{{.ID}}" class="u-repost-of">reposted</a>{{else}}<a href="{{.ID}}">bookmarked</a>{{end}}
+            </div>
 
-                <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
-                <a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
+            <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
+            <a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
 
-                {{if .Description}}
-                    <div class="myco e-content">
-                        {{.Description}}
-                    </div>
-                {{end}}
-                <div class="post-tags">
-                    {{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
+            {{if .Description}}
+                <div class="myco e-content">
+                    {{.Description}}
                 </div>
-            </article>
-        {{end}}
+            {{end}}
+            <div class="post-tags">
+                {{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
+            </div>
+            <div class="bookmark-controls">
+                <a href="/repost?url={{.ID}}" class="btn" target="_blank">Repost...</a>
+                <form method="POST" action="{{if .LikedByUs}}/unlike{{else}}/like{{end}}">
+                    <input type="hidden" name="id" value="{{.ID}}">
+                    <input type="hidden" name="next" value="{{$root.Endpoint}}?page={{$root.CurrentPage}}#{{.ID}}">
+                    <input type="submit" class="btn" value="{{if .LikedByUs}}💔 Unlike {{.LikeCounter}}{{else}}❤️ Like {{if .LikeCounter}}{{.LikeCounter}}{{end}}{{end}}">
+                </form>
+                <button class="btn" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
+                <a class="btn" style="margin-left:auto" href="{{.ID}}">View original</a>
+            </div>
+        </article>
+    {{end}}
     {{else}}
         {{if ne .TotalBookmarks 0}}
             <article>Page not found. Choose a page from the paginator below.</article>

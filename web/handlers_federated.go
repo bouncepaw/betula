@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -31,6 +32,64 @@ import (
 	"net/http"
 )
 
+// Query parameters (all required):
+//   - id: id of the bookmark to like; either a number or ActivityPub id.
+//   - next: url to redirect to.
+func postLike(w http.ResponseWriter, rq *http.Request) {
+	var (
+		bookmarkID = rq.FormValue("id")
+		next       = rq.FormValue("next")
+	)
+
+	if bookmarkID == "" || next == "" {
+		slog.Error("Empty input for like",
+			"id", bookmarkID, "next", next)
+		handlerBadRequest(w, rq)
+		return
+	}
+
+	err := svcLiking.LikeAnyBookmark(bookmarkID)
+	if err != nil {
+		slog.Error("Failed to like", "err", err,
+			"id", bookmarkID, "next", next)
+		handlerBadRequest(w, rq)
+		return
+	}
+
+	slog.Info("Liked", "id", bookmarkID, "next", next)
+	// Not doing url verification for now. Maybe I should?
+	http.Redirect(w, rq, next, http.StatusSeeOther)
+}
+
+// Query parameters (all required):
+//   - id: id of the bookmark to unlike; either a number or ActivityPub id.
+//   - next: url to redirect to.
+func postUnlike(w http.ResponseWriter, rq *http.Request) {
+	var (
+		bookmarkID = rq.FormValue("id")
+		next       = rq.FormValue("next")
+	)
+
+	if bookmarkID == "" || next == "" {
+		slog.Error("Empty input for unlike",
+			"id", bookmarkID, "next", next)
+		handlerBadRequest(w, rq)
+		return
+	}
+
+	err := svcLiking.UnlikeAnyBookmark(bookmarkID)
+	if err != nil {
+		slog.Error("Failed to unlike", "err", err,
+			"id", bookmarkID, "next", next)
+		handlerBadRequest(w, rq)
+		return
+	}
+
+	slog.Info("Unliked", "id", bookmarkID, "next", next)
+	// Not doing url verification for now. Maybe I should?
+	http.Redirect(w, rq, next, http.StatusSeeOther)
+}
+
 type dataTimeline struct {
 	*dataCommon
 
@@ -40,7 +99,7 @@ type dataTimeline struct {
 }
 
 func getTimeline(w http.ResponseWriter, rq *http.Request) {
-	log.Println("You viewed the Timeline")
+	slog.Info("You viewed the Timeline")
 
 	common := emptyCommon()
 
@@ -48,11 +107,16 @@ func getTimeline(w http.ResponseWriter, rq *http.Request) {
 	bookmarks, total := db.GetRemoteBookmarks(currentPage)
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, total)
 
+	renderedBookmarks := fediverse.RenderRemoteBookmarks(bookmarks)
+	if err := svcLiking.FillLikes(nil, renderedBookmarks); err != nil {
+		slog.Error("Failed to fill likes for remote bookmarks", "err", err)
+	}
+
 	templateExec(w, rq, templateTimeline, dataTimeline{
 		dataCommon:           common,
 		TotalBookmarks:       total,
 		Following:            db.CountFollowing(),
-		BookmarkGroupsInPage: types.GroupRemoteBookmarksByDate(fediverse.RenderRemoteBookmarks(bookmarks)),
+		BookmarkGroupsInPage: types.GroupRemoteBookmarksByDate(renderedBookmarks),
 	})
 }
 
@@ -563,7 +627,7 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	bookmarks, nextState, err := prevState.FetchPage()
+	renderedBookmarks, nextState, err := prevState.FetchPage()
 	if err != nil {
 		slog.Error("Failed to fetch federated search bookmarks",
 			"query", query, "err", err)
@@ -571,12 +635,16 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
+	if err := svcLiking.FillLikes(nil, renderedBookmarks); err != nil {
+		slog.Error("Failed to fill likes for remote bookmarks", "err", err)
+	}
+
 	slog.Info("Showing federated search bookmarks",
 		"nextState", nextState, "prevState", prevState)
 	templateExec(w, rq, templateFedisearch, dataFedisearch{
 		dataCommon: emptyCommon(),
 		Mutuals:    db.GetMutuals(),
-		Bookmarks:  bookmarks,
+		Bookmarks:  renderedBookmarks,
 		State:      nextState,
 	})
 }

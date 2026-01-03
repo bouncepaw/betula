@@ -1,4 +1,6 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -38,7 +40,7 @@ func guessReject(activity Dict) (any, error) {
 		return nil, ErrNoActor
 	}
 	if report.ObjectID == "" {
-		return nil, ErrNoActor
+		return nil, ErrNoObject
 	}
 	if obj, ok := activity["object"]; ok {
 		switch v := obj.(type) {

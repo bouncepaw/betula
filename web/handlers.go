@@ -7,6 +7,7 @@
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
 // SPDX-FileCopyrightText: 2025 Guilherme Puida Moreira
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -17,8 +18,10 @@ import (
 	"encoding/json"
 	"fmt"
 	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
+	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/notif"
 	"git.sr.ht/~bouncepaw/betula/svc/archiving"
+	likingsvc "git.sr.ht/~bouncepaw/betula/svc/liking"
 	"git.sr.ht/~bouncepaw/betula/svc/notif"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"html/template"
@@ -59,6 +62,8 @@ var (
 	svcNotif     notifports.Service     = notifsvc.New(db.New())
 	svcArchiving archivingports.Service = archivingsvc.New(
 		archivingsvc.NewObeliskFetcher(), db.NewArchivesRepo())
+	svcLiking likingports.Service = likingsvc.New(
+		db.NewLikeRepo(), db.NewLocalBookmarksRepo(), db.NewRemoteBookmarkRepo())
 )
 
 func init() {
@@ -137,6 +142,8 @@ func init() {
 	mux.HandleFunc("GET /following", fediverseWebFork(nil, getFollowingWeb))
 	mux.HandleFunc("GET /followers", fediverseWebFork(nil, getFollowersWeb))
 	mux.HandleFunc("GET /timeline", adminOnly(federatedOnly(getTimeline)))
+	mux.HandleFunc("POST /like", adminOnly(federatedOnly(postLike)))
+	mux.HandleFunc("POST /unlike", adminOnly(federatedOnly(postUnlike)))
 
 	// Federated search
 	mux.HandleFunc("GET /fedisearch", adminOnly(federatedOnly(handlerFediSearch)))
@@ -321,11 +328,12 @@ func getRandom(w http.ResponseWriter, rq *http.Request) {
 	common := emptyCommon()
 
 	bookmarks, totalBookmarks := db.RandomBookmarks(authed, 20)
+	groups := types.GroupLocalBookmarksByDate(types.RenderLocalBookmarks(bookmarks))
 
 	templateExec(w, rq, templateFeed, dataFeed{
 		Random:               true,
 		TotalBookmarks:       totalBookmarks,
-		BookmarkGroupsInPage: types.GroupLocalBookmarksByDate(bookmarks),
+		BookmarkGroupsInPage: groups,
 		SiteDescription:      settings.SiteDescriptionHTML(),
 		dataCommon:           common,
 	})
@@ -385,13 +393,18 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		currentPage := extractPage(rq)
 		bookmarks, total := db.GetRemoteBookmarksBy(actor.ID, currentPage)
 
+		renderedBookmarks := fediverse.RenderRemoteBookmarks(bookmarks)
+		if err := svcLiking.FillLikes(nil, renderedBookmarks); err != nil {
+			slog.Error("Failed to fill likes for remote bookmarks", "err", err)
+		}
+
 		common := emptyCommon()
 		common.searchQuery = actor.Acct()
 		common.paginator = types.PaginatorFromURL(rq.URL, currentPage, total)
 		templateExec(w, rq, templateRemoteProfile, dataAt{
 			dataCommon:           common,
 			Account:              *actor,
-			BookmarkGroupsInPage: types.GroupRemoteBookmarksByDate(fediverse.RenderRemoteBookmarks(bookmarks)),
+			BookmarkGroupsInPage: types.GroupRemoteBookmarksByDate(renderedBookmarks),
 			TotalBookmarks:       total,
 		})
 
@@ -558,6 +571,12 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 	currentPage := extractPage(rq)
 	bookmarks, totalBookmarks := search.For(query, authed, currentPage)
 
+	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
+	if err := svcLiking.FillLikes(renderedBookmarks, nil); err != nil {
+		slog.Error("Failed to fill likes for local bookmarks", "err", err)
+	}
+	groups := types.GroupLocalBookmarksByDate(renderedBookmarks)
+
 	common := emptyCommon()
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalBookmarks)
 	common.searchQuery = query
@@ -565,7 +584,7 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateSearch, dataSearch{
 		dataCommon:           common,
 		Query:                query,
-		BookmarkGroupsInPage: types.GroupLocalBookmarksByDate(bookmarks),
+		BookmarkGroupsInPage: groups,
 		TotalBookmarks:       totalBookmarks,
 	})
 }
@@ -603,7 +622,7 @@ var dayStampRegex = regexp.MustCompile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 type dataDay struct {
 	*dataCommon
 	DayStamp  string
-	Bookmarks []types.Bookmark
+	Bookmarks []types.RenderedLocalBookmark
 }
 
 func getDay(w http.ResponseWriter, rq *http.Request) {
@@ -617,10 +636,16 @@ func getDay(w http.ResponseWriter, rq *http.Request) {
 		handlerNotFound(w, rq)
 		return
 	}
+
+	bookmarks := types.RenderLocalBookmarks(db.BookmarksForDay(authed, dayStamp))
+	if err := svcLiking.FillLikes(bookmarks, nil); err != nil {
+		slog.Error("Failed to fill likes for local bookmarks", "err", err)
+	}
+
 	templateExec(w, rq, templateDay, dataDay{
 		dataCommon: emptyCommon(),
 		DayStamp:   dayStamp,
-		Bookmarks:  db.BookmarksForDay(authed, dayStamp),
+		Bookmarks:  bookmarks,
 	})
 }
 
@@ -898,6 +923,11 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 
 	bookmarks, totalBookmarks := db.BookmarksWithTag(authed, tagName, currentPage)
+	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
+	if err := svcLiking.FillLikes(renderedBookmarks, nil); err != nil {
+		slog.Error("Failed to fill likes for local bookmarks", "err", err)
+	}
+	groups := types.GroupLocalBookmarksByDate(renderedBookmarks)
 
 	common := emptyCommon()
 	common.searchQuery = "#" + tagName
@@ -907,7 +937,7 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 			Name:        tagName,
 			Description: db.DescriptionForTag(tagName),
 		},
-		BookmarkGroupsInPage: types.GroupLocalBookmarksByDate(bookmarks),
+		BookmarkGroupsInPage: groups,
 		TotalBookmarks:       totalBookmarks,
 		dataCommon:           common,
 	})
@@ -1454,11 +1484,17 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 
 	currentPage := extractPage(rq)
 	bookmarks, totalBookmarks := db.Bookmarks(authed, currentPage)
+	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
+	if err := svcLiking.FillLikes(renderedBookmarks, nil); err != nil {
+		slog.Error("Failed to fill likes for local bookmarks", "err", err)
+	}
+	groups := types.GroupLocalBookmarksByDate(renderedBookmarks)
+
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalBookmarks)
 
 	templateExec(w, rq, templateFeed, dataFeed{
 		TotalBookmarks:       totalBookmarks,
-		BookmarkGroupsInPage: types.GroupLocalBookmarksByDate(bookmarks),
+		BookmarkGroupsInPage: groups,
 		SiteDescription:      settings.SiteDescriptionHTML(),
 		dataCommon:           common,
 	})

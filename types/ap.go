@@ -94,6 +94,9 @@ type RenderedRemoteBookmark struct {
 	Description template.HTML
 	Tags        []Tag
 	PublishedAt time.Time
+
+	LikedByUs   bool
+	LikeCounter int
 }
 
 type RemoteBookmarkGroup struct {

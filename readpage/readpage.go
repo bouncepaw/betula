@@ -21,6 +21,8 @@ import (
 	"time"
 )
 
+// SPDX-SnippetBegin
+// SPDX-SnippetCopyrightText: Bourne Co. Music Publishers
 /*
 	When you wish upon a star
 	Makes no difference who you are
@@ -28,6 +30,7 @@ import (
 	Will come to you
 	— Leigh Harline, Ned Washington
 */
+// SPDX-SnippetEnd
 
 var (
 	ErrNoTitleFound = errors.New("no title found in the document")
@@ -108,7 +111,7 @@ func findData(link string, workers []worker, doc *html.Node) (data FoundData, er
 
 	// The workers have 1 second to fulfill their fate. That's a lot of time!
 	// I'm being generous here.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
 	var (

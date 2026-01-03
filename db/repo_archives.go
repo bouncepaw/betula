@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -14,6 +14,12 @@ import (
 
 type dbArtifactsRepo struct{}
 
+func NewArtifactsRepo() archivingports.ArtifactsRepo {
+	return &dbArtifactsRepo{}
+}
+
+type dbArchivesRepo struct{}
+
 func (repo *dbArtifactsRepo) Fetch(id string) (*types.Artifact, error) {
 	var artifact = types.Artifact{
 		ID: id,
@@ -22,12 +28,6 @@ func (repo *dbArtifactsRepo) Fetch(id string) (*types.Artifact, error) {
 	var err = row.Scan(&artifact.MimeType, &artifact.Data, &artifact.IsGzipped, &artifact.Size)
 	return &artifact, err
 }
-
-func NewArtifactsRepo() archivingports.ArtifactsRepo {
-	return &dbArtifactsRepo{}
-}
-
-type dbArchivesRepo struct{}
 
 func (repo *dbArchivesRepo) Store(bookmarkID int64, artifact *types.Artifact) (int64, error) {
 	var tx, err = db.BeginTx(context.Background(), nil)

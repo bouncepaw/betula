@@ -210,6 +210,17 @@ a.edit-post-btn {
     overflow: hidden;
     clear: both;
 }
+.bookmark-controls {
+    display: flex;
+    flex-direction: row;
+}
+.bookmark-controls .btn,
+.bookmark-controls .post-visibility {
+    font-size: small;
+}
+.bookmark-controls input[type="submit"] {
+    margin: 0;
+}
 .post-page .post-tags {
     font-size: medium;
 }

@@ -1,4 +1,7 @@
 # Betula database styleguide
+
+**NOTE 2025.** This document is outdated.
+
 ## SQL formatting
 There is no chosen SQL code style yet. Just keep it close to what Bouncepaw might consider sane.
 

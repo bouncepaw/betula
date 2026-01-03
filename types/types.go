@@ -1,4 +1,12 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2022 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2023 Danila Gorelko
+// SPDX-FileCopyrightText: 2023 Goldstein
+// SPDX-FileCopyrightText: 2023 ninedraft
+// SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2024 Danila Gorelko
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -65,28 +73,47 @@ type Bookmark struct {
 	OriginalAuthor sql.NullString
 }
 
+func RenderLocalBookmarks(bookmarks []Bookmark) []RenderedLocalBookmark {
+	rendered := make([]RenderedLocalBookmark, len(bookmarks))
+	for i, bookmark := range bookmarks {
+		rendered[i] = RenderedLocalBookmark{
+			Bookmark: bookmark,
+			// Likes filled in later.
+		}
+	}
+	return rendered
+}
+
+type RenderedLocalBookmark struct {
+	Bookmark
+
+	LikeCounter int
+	LikedByUs   bool
+}
+
 type LocalBookmarkGroup struct {
 	Date      string
-	Bookmarks []Bookmark
+	Bookmarks []RenderedLocalBookmark
 }
 
 // GroupLocalBookmarksByDate groups the bookmarks by date. The dates are strings like 2024-01-10. This function expects the input bookmarks to be sorted by date.
-func GroupLocalBookmarksByDate(ungroupedBookmarks []Bookmark) (groupedBookmarks []LocalBookmarkGroup) {
+func GroupLocalBookmarksByDate(ungroupedBookmarks []RenderedLocalBookmark) (groupedBookmarks []LocalBookmarkGroup) {
 	if len(ungroupedBookmarks) == 0 {
 		return nil
 	}
 
-	ungroupedBookmarks = append(ungroupedBookmarks, Bookmark{
-		CreationTime: "9999-99-99 99:99",
-		Title:        "cutoff",
-	})
+	ungroupedBookmarks = append(ungroupedBookmarks, RenderedLocalBookmark{
+		Bookmark: Bookmark{
+			CreationTime: "9999-99-99 99:99",
+			Title:        "cutoff",
+		}})
 
 	// len(2006-01-02)
 	const datelen = 10
 
 	var (
 		currentDate      string
-		currentBookmarks []Bookmark
+		currentBookmarks []RenderedLocalBookmark
 	)
 
 	for _, bookmark := range ungroupedBookmarks {

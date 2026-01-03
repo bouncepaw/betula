@@ -1,4 +1,6 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -16,7 +18,10 @@ import (
 )
 
 func getIDSomehow(activity Dict, field string) string {
-	m := activity[field]
+	m, ok := activity[field]
+	if !ok {
+		return ""
+	}
 	switch v := m.(type) {
 	case string:
 		if stricks.ValidURL(v) {
