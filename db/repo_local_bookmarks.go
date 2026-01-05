@@ -4,7 +4,10 @@
 
 package db
 
-import likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
+import (
+	"context"
+	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
+)
 
 type RepoLocalBookmarks struct{}
 
@@ -14,8 +17,12 @@ func NewLocalBookmarksRepo() *RepoLocalBookmarks {
 	return &RepoLocalBookmarks{}
 }
 
-func (repo *RepoLocalBookmarks) Exists(bookmarkID int) (bool, error) {
-	row := db.QueryRow(
+func (repo *RepoLocalBookmarks) Exists(
+	ctx context.Context,
+	bookmarkID int,
+) (bool, error) {
+	row := db.QueryRowContext(
+		ctx,
 		`select exists(select 1 from Bookmarks where ID = ?)`,
 		bookmarkID,
 	)

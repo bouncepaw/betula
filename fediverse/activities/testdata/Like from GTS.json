@@ -1,0 +1,8 @@
+{
+	"@context":"https://www.w3.org/ns/activitystreams",
+	"actor":"https://social.agor.ai/users/fish",
+	"id":"https://social.agor.ai/users/fish/liked/01KE2Z6HTKFHN4Z5S27JNTJNSG",
+	"object":"https://activitypub.academy/users/difricus_koloddath/statuses/115833494550206707",
+	"to":"https://activitypub.academy/users/difricus_koloddath",
+	"type":"Like"
+}

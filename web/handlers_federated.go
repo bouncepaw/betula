@@ -21,6 +21,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
+	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/readpage"
 	"git.sr.ht/~bouncepaw/betula/search"
 	"git.sr.ht/~bouncepaw/betula/settings"
@@ -48,7 +49,7 @@ func postLike(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	err := svcLiking.LikeAnyBookmark(bookmarkID)
+	err := svcLiking.Like(rq.Context(), bookmarkID)
 	if err != nil {
 		slog.Error("Failed to like", "err", err,
 			"id", bookmarkID, "next", next)
@@ -77,7 +78,7 @@ func postUnlike(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	err := svcLiking.UnlikeAnyBookmark(bookmarkID)
+	err := svcLiking.Unlike(rq.Context(), bookmarkID)
 	if err != nil {
 		slog.Error("Failed to unlike", "err", err,
 			"id", bookmarkID, "next", next)
@@ -108,7 +109,7 @@ func getTimeline(w http.ResponseWriter, rq *http.Request) {
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, total)
 
 	renderedBookmarks := fediverse.RenderRemoteBookmarks(bookmarks)
-	if err := svcLiking.FillLikes(nil, renderedBookmarks); err != nil {
+	if err := svcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
 		slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 	}
 
@@ -335,9 +336,57 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
 		}
 
+	case activities.LikeReport:
+		_, err := fediverse.RequestActorByID(report.ActorID)
+		if err != nil {
+			log.Printf("Couldn't fetch actor: %s\n", err)
+			return
+		}
+		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
+			slog.Error("Failed to verify signature", "actorID", report.ActorID)
+			return
+		}
+
+		event := likingports.EventLike{
+			LikeID:        report.ID,
+			ActorID:       report.ActorID,
+			LikedObjectID: report.ObjectID,
+			Activity:      report.Activity,
+		}
+		err = svcLiking.ReceiveLike(rq.Context(), event)
+		if err != nil {
+			slog.Error("Failed to receive Like",
+				"event", event, "err", err)
+			return
+		}
+
+	case activities.UndoLikeReport:
+		_, err := fediverse.RequestActorByID(report.Object.ActorID)
+		if err != nil {
+			log.Printf("Couldn't fetch actor: %s\n", err)
+			return
+		}
+		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
+			slog.Error("Failed to verify signature", "actorID", report.Object.ActorID)
+			return
+		}
+
+		event := likingports.EventUndoLike{
+			UndoLikeID: report.ID,
+			ActorID:    report.Object.ActorID,
+			LikeID:     report.Object.ID,
+			Activity:   report.Activity,
+		}
+		err = svcLiking.ReceiveUndoLike(rq.Context(), event)
+		if err != nil {
+			slog.Error("Failed to receive Undo{Like}",
+				"event", event, "err", err)
+			return
+		}
+
 	default:
 		// Not meant to happen
-		log.Printf("Invalid report type")
+		slog.Error("Invalid report type; this is a bug")
 	}
 }
 
@@ -635,7 +684,7 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if err := svcLiking.FillLikes(nil, renderedBookmarks); err != nil {
+	if err := svcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
 		slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 	}
 

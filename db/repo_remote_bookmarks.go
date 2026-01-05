@@ -4,12 +4,14 @@
 
 package db
 
-import likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
+import (
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
+)
 
 type RepoRemoteBookmarks struct {
 }
 
-var _ likingports.RemoteBookmarkRepository = &RepoRemoteBookmarks{}
+var _ apports.RemoteBookmarkRepository = &RepoRemoteBookmarks{}
 
 func NewRemoteBookmarkRepo() *RepoRemoteBookmarks {
 	return &RepoRemoteBookmarks{}
@@ -23,6 +25,15 @@ func (repo *RepoRemoteBookmarks) Exists(bookmarkID string) (bool, error) {
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+func (repo *RepoRemoteBookmarks) GetActorIDFor(bookmarkID string) (string, error) {
+	row := db.QueryRow(
+		`select ActorID from RemoteBookmarks where ID = ?`,
+		bookmarkID)
+	var actorID string
+	err := row.Scan(&actorID)
+	return actorID, err
 }
 
 // TODO: port old queries to this repo

@@ -1,4 +1,6 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -6,7 +8,6 @@ package activities
 
 import (
 	"encoding/json"
-	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
 type UndoAnnounceReport struct {
@@ -17,25 +18,10 @@ type UndoFollowReport struct {
 	FollowReport
 }
 
-func newUndo(objectId string, object Dict) ([]byte, error) {
-	object["id"] = objectId
-	return json.Marshal(Dict{
-		"@context": atContext,
-		"type":     "Undo",
-		"actor":    betulaActor,
-		"id":       objectId + "?undo",
-		"object":   object,
-	})
-}
-
-func NewUndoAnnounce(repostURL string, originalPostURL string) ([]byte, error) {
-	return newUndo(
-		repostURL,
-		Dict{
-			"type":   "Announce",
-			"actor":  settings.SiteURL(),
-			"object": originalPostURL,
-		})
+type UndoLikeReport struct {
+	ID       string
+	Object   LikeReport
+	Activity json.RawMessage
 }
 
 func guessUndo(activity Dict) (reportMaybe any, err error) {
@@ -71,6 +57,7 @@ func guessUndo(activity Dict) (reportMaybe any, err error) {
 			}
 		}
 		return report, nil
+
 	case "Follow":
 		if objectMap == nil {
 			return nil, ErrNoObject
@@ -80,6 +67,21 @@ func guessUndo(activity Dict) (reportMaybe any, err error) {
 			return nil, err
 		}
 		return UndoFollowReport{followReport.(FollowReport)}, nil
+
+	case "Like":
+		if objectMap == nil {
+			return nil, ErrNoObject
+		}
+		likeReport, err := guessLike(objectMap)
+		if err != nil {
+			return nil, err
+		}
+		return UndoLikeReport{
+			ID:       getIDSomehow(activity, "id"),
+			Object:   likeReport.(LikeReport),
+			Activity: activity["original activity"].([]byte),
+		}, nil
+
 	default:
 		return nil, ErrUnknownType
 	}

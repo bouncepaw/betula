@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -19,6 +20,7 @@ var guesserMap = map[string]func(Dict) (any, error){
 	"Create":   guessCreateNote,
 	"Update":   guessUpdateNote,
 	"Delete":   guessDeleteNote,
+	"Like":     guessLike,
 }
 
 func Guess(raw []byte) (report any, err error) {

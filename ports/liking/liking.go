@@ -5,6 +5,7 @@
 package likingports
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -13,24 +14,24 @@ import (
 
 type (
 	LikeRepository interface {
-		InsertLike(like LikeModel) error
-		DeleteOurLikeOf(objectID string) error
-		StatiFor(objectIDs []string) (map[string]LikeStatus, error)
+		InsertLike(ctx context.Context, like LikeModel) error
+		DeleteOurLikeOf(ctx context.Context, objectID string) error
+		DeleteLikeBy(ctx context.Context, likeID, actorID string) error
+		StatiFor(ctx context.Context, objectIDs []string) (map[string]LikeStatus, error)
 	}
 	LocalBookmarkRepository interface {
-		Exists(id int) (bool, error)
-	}
-	RemoteBookmarkRepository interface {
-		Exists(id string) (bool, error)
+		Exists(ctx context.Context, id int) (bool, error)
 	}
 )
 
 type Service interface {
-	LikeAnyBookmark(bookmarkID string) error
-	UnlikeAnyBookmark(bookmarkID string) error
+	Like(ctx context.Context, bookmarkID string) error
+	Unlike(ctx context.Context, bookmarkID string) error
 
-	FillLikes([]types.RenderedLocalBookmark, []types.RenderedRemoteBookmark) error
-	// todo: locals too
+	FillLikes(context.Context, []types.RenderedLocalBookmark, []types.RenderedRemoteBookmark) error
+
+	ReceiveLike(context.Context, EventLike) error
+	ReceiveUndoLike(context.Context, EventUndoLike) error
 }
 
 type (
@@ -58,3 +59,19 @@ type (
 func (m LikeModel) SavedAt() (time.Time, error) {
 	return time.Parse(time.DateTime, m.SerializedSavedAt.String)
 }
+
+type (
+	EventLike struct {
+		LikeID        string
+		ActorID       string
+		LikedObjectID string
+		Activity      json.RawMessage
+	}
+
+	EventUndoLike struct {
+		UndoLikeID string
+		ActorID    string
+		LikeID     string
+		Activity   json.RawMessage
+	}
+)

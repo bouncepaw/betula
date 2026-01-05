@@ -17,6 +17,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"git.sr.ht/~bouncepaw/betula/gateways/activitypub"
 	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/notif"
@@ -59,11 +60,18 @@ var (
 	mux               = http.NewServeMux()
 
 	// One day, all shall be in services!
-	svcNotif     notifports.Service     = notifsvc.New(db.New())
+	svcNotif     notifports.Service     = notifsvc.New(repoNotif)
 	svcArchiving archivingports.Service = archivingsvc.New(
 		archivingsvc.NewObeliskFetcher(), db.NewArchivesRepo())
 	svcLiking likingports.Service = likingsvc.New(
-		db.NewLikeRepo(), db.NewLocalBookmarksRepo(), db.NewRemoteBookmarkRepo())
+		db.NewLikeRepo(),
+		db.NewLocalBookmarksRepo(),
+		repoNotif,
+		activityPub)
+
+	repoNotif = db.New()
+
+	activityPub = apgw.NewActivityPub(db.NewRemoteBookmarkRepo())
 )
 
 func init() {
@@ -394,7 +402,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		bookmarks, total := db.GetRemoteBookmarksBy(actor.ID, currentPage)
 
 		renderedBookmarks := fediverse.RenderRemoteBookmarks(bookmarks)
-		if err := svcLiking.FillLikes(nil, renderedBookmarks); err != nil {
+		if err := svcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
 			slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 		}
 
@@ -572,7 +580,7 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 	bookmarks, totalBookmarks := search.For(query, authed, currentPage)
 
 	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
-	if err := svcLiking.FillLikes(renderedBookmarks, nil); err != nil {
+	if err := svcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)
 	}
 	groups := types.GroupLocalBookmarksByDate(renderedBookmarks)
@@ -638,7 +646,7 @@ func getDay(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	bookmarks := types.RenderLocalBookmarks(db.BookmarksForDay(authed, dayStamp))
-	if err := svcLiking.FillLikes(bookmarks, nil); err != nil {
+	if err := svcLiking.FillLikes(rq.Context(), bookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)
 	}
 
@@ -924,7 +932,7 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 
 	bookmarks, totalBookmarks := db.BookmarksWithTag(authed, tagName, currentPage)
 	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
-	if err := svcLiking.FillLikes(renderedBookmarks, nil); err != nil {
+	if err := svcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)
 	}
 	groups := types.GroupLocalBookmarksByDate(renderedBookmarks)
@@ -1485,7 +1493,7 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 	currentPage := extractPage(rq)
 	bookmarks, totalBookmarks := db.Bookmarks(authed, currentPage)
 	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
-	if err := svcLiking.FillLikes(renderedBookmarks, nil); err != nil {
+	if err := svcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)
 	}
 	groups := types.GroupLocalBookmarksByDate(renderedBookmarks)

@@ -1,0 +1,7 @@
+{
+	"@context":"https://www.w3.org/ns/activitystreams",
+	"id":"https://activitypub.academy/users/difricus_koloddath#likes/1374",
+	"type":"Like",
+	"actor":"https://activitypub.academy/users/difricus_koloddath",
+	"object":"https://alice.bouncepaw.com/8"
+}

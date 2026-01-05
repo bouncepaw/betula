@@ -19,22 +19,41 @@ func NewLikeRepo() *RepoLikes {
 	return &RepoLikes{}
 }
 
-func (repo *RepoLikes) InsertLike(like likingports.LikeModel) error {
-	_, err := db.Exec(`
+func (repo *RepoLikes) InsertLike(
+	ctx context.Context,
+	like likingports.LikeModel,
+) error {
+	_, err := db.ExecContext(ctx, `
 		insert into Likes (ID, ActorID, ObjectID, SourceJSON)
 		values (?, ?, ?, ?)
 	`, like.ID, like.ActorID, like.ObjectID, like.SourceJSON)
 	return err
 }
 
-func (repo *RepoLikes) DeleteOurLikeOf(objectID string) error {
-	_, err := db.Exec(`
+func (repo *RepoLikes) DeleteOurLikeOf(
+	ctx context.Context,
+	objectID string,
+) error {
+	_, err := db.ExecContext(ctx, `
 		delete from Likes where ObjectID = ? and ActorID is null
 	`, objectID)
 	return err
 }
 
-func (repo *RepoLikes) StatiFor(objectIDs []string) (map[string]likingports.LikeStatus, error) {
+func (repo *RepoLikes) DeleteLikeBy(
+	ctx context.Context,
+	likeID, actorID string,
+) error {
+	_, err := db.ExecContext(ctx,
+		`delete from Likes where ID = ? and ActorID = ?`,
+		likeID, actorID)
+	return err
+}
+
+func (repo *RepoLikes) StatiFor(
+	ctx context.Context,
+	objectIDs []string,
+) (map[string]likingports.LikeStatus, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -49,7 +68,7 @@ func (repo *RepoLikes) StatiFor(objectIDs []string) (map[string]likingports.Like
 		// X is not NULL in a group. The count(*) function (with no arguments) returns
 		// the total number of rows in the group.” Thus, count(*) - count(X) is times
 		// X is NULL in a group. If there's a NULL like actor, that means it's us.
-		row := tx.QueryRow(`
+		row := tx.QueryRowContext(ctx, `
 			select
 				count (*),
 				(count (*) - count (ActorID)) > 0
