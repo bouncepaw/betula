@@ -181,6 +181,9 @@ limit 1`, user, host)
 	return
 }
 
+// ActorByID
+//
+// Deprecated: Use (*ActorRepo).GetActorByID instead.
 func ActorByID(actorID string) (a *types.Actor, found bool) {
 	rows := mustQuery(`
 select Actors.ID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
@@ -197,6 +200,9 @@ limit 1`, actorID)
 	return
 }
 
+// StoreValidActor
+//
+// Deprecated: Use (*ActorRepo).StoreActor instead.
 func StoreValidActor(a types.Actor) {
 	// assume actor.Valid()
 	mustExec(`

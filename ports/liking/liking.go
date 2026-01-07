@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"time"
 )
@@ -18,6 +19,10 @@ type (
 		DeleteOurLikeOf(ctx context.Context, objectID string) error
 		DeleteLikeBy(ctx context.Context, likeID, actorID string) error
 		StatiFor(ctx context.Context, objectIDs []string) (map[string]LikeStatus, error)
+
+		// ActorsThatLiked returns IDs of actors that liked the bookmark,
+		// whether we liked it ourselves or an error.
+		ActorsThatLiked(ctx context.Context, objectID string) ([]string, bool, error)
 	}
 	LocalBookmarkRepository interface {
 		Exists(ctx context.Context, id int) (bool, error)
@@ -32,6 +37,8 @@ type Service interface {
 
 	ReceiveLike(context.Context, EventLike) error
 	ReceiveUndoLike(context.Context, EventUndoLike) error
+
+	ActorsThatLiked(ctx context.Context, bookmarkID int) ([]apports.Actor, bool, error)
 }
 
 type (

@@ -6,6 +6,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"time"
@@ -85,4 +86,36 @@ func (repo *RepoLikes) StatiFor(
 	}
 
 	return res, tx.Commit()
+}
+
+func (repo *RepoLikes) ActorsThatLiked(
+	ctx context.Context,
+	objectID string,
+) ([]string, bool, error) {
+	rows, err := db.QueryContext(ctx,
+		`select ActorID from Likes where ObjectID = ?`,
+		objectID)
+	if err != nil {
+		return nil, false, err
+	}
+	defer rows.Close()
+
+	var (
+		actors  []string
+		weLiked bool
+	)
+	for rows.Next() {
+		var actorID sql.NullString
+		err := rows.Scan(&actorID)
+		if err != nil {
+			return nil, false, err
+		}
+
+		if actorID.Valid {
+			actors = append(actors, actorID.String)
+		} else {
+			weLiked = true
+		}
+	}
+	return actors, weLiked, nil
 }

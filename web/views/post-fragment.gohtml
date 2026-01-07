@@ -6,7 +6,10 @@
 		<div class="card-line">
 			{{if .RepostOf}}<a href="{{.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
 			<a class="u-url" href="/{{.ID}}">{{.ID}}.</a>
-			{{if not $root.Authorized}}<button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>{{end}}
+			{{if not $root.Authorized}}
+				{{if gt .LikeCounter 0}}{{if .LikeCounter}}{{.LikeCounter}} like{{if ne .LikeCounter 1}}s{{end}}{{end}}{{end}}
+				<button class="dashed-btn float-right" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
+			{{end}}
 			{{if $root.Authorized}}
 				{{if .Visibility}}
 					<span class="post-visibility post-visibility-public float-right">Public</span>

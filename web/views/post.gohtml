@@ -1,6 +1,6 @@
 {{define "title"}}Link: {{.Bookmark.Title}}{{end}}
 {{define "body"}}
-	<main>
+	<main>{{$root := .}}
 		{{if .Notifications}}{{range .Notifications}}
 		<div class="notif" notif-cat="{{.Category}}">{{.Body}}</div>
 		{{end}}{{end}}
@@ -8,8 +8,8 @@
 			<div class="card-line">
 				{{if .Bookmark.RepostOf}}<a href="{{.Bookmark.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
 				<a class="u-url" href="/{{.Bookmark.ID}}">{{.Bookmark.ID}}.</a>
-				{{if .Authorized}}<a class="edit-post-link float-right" href="/edit-link/{{.Bookmark.ID}}">Edit</a>{{end}}
-				<button class="dashed-btn float-right" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy link</button>
+				{{if not .Authorized}}{{if .LikeCounter}}{{.LikeCounter}} like{{if ne .LikeCounter 1}}s{{end}}{{end}}
+				<button class="dashed-btn float-right" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy link</button>{{end}}
 				{{if .Authorized}}
 					{{if .Bookmark.Visibility}}
 						<span class="post-visibility post-visibility-public float-right">Public</span>
@@ -35,6 +35,16 @@
 					{{timestampToHuman .Bookmark.CreationTime}} UTC
 				</time>
 			</a>
+
+			{{if $root.Authorized}}<div class="bookmark-controls">
+				<a class="btn" href="/edit-link/{{.Bookmark.ID}}">Edit...</a>
+				<form method="POST" action="{{if .LikedByUs}}/unlike{{else}}/like{{end}}">
+					<input type="hidden" name="id" value="{{.Bookmark.ID}}">
+					<input type="hidden" name="next" value="{{$root.Endpoint}}?page={{$root.CurrentPage}}#{{.Bookmark.ID}}">
+					<input type="submit" class="btn" value="{{if .LikedByUs}}💔 Unlike yourself{{else}}❤️ Like yourself{{end}}">
+				</form>
+				<button class="btn" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy link</button>
+			</div>{{end}}
 		</article>
 		{{if .Reposts}}
 		<article>
@@ -67,6 +77,15 @@
 				{{end}}
 				</ul>
 			{{end}}
+		</article>
+		{{end}}
+		{{if and .Authorized .FederationEnabled .LikeCounter}}
+		<article>
+			<h3>{{.LikeCounter}} like{{if ne .LikeCounter 1}}s{{end}}</h3>
+			<ul>
+				{{if .LikedByUs}}<li>Yours</li>{{end}}
+				{{range .Likes}}<li><a href="/{{.Acct}}">{{.DisplayedName}}</a></li>{{end}}
+			</ul>
 		</article>
 		{{end}}
 	</main>

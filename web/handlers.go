@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"git.sr.ht/~bouncepaw/betula/gateways/activitypub"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/notif"
@@ -69,9 +70,11 @@ var (
 		repoNotif,
 		activityPub)
 
-	repoNotif = db.New()
+	repoNotif          = db.New()
+	repoActor          = db.NewActorRepo()
+	repoRemoteBookmark = db.NewRemoteBookmarkRepo()
 
-	activityPub = apgw.NewActivityPub(db.NewRemoteBookmarkRepo())
+	activityPub = apgw.NewActivityPub(repoActor, repoRemoteBookmark)
 )
 
 func init() {
@@ -1394,6 +1397,10 @@ type dataBookmark struct {
 	Bookmark types.Bookmark
 	Reposts  []types.RepostInfo
 
+	LikeCounter int
+	LikedByUs   bool
+	Likes       []apports.Actor
+
 	Archives         []types.Archive
 	HighlightArchive int64
 	*dataCommon
@@ -1411,7 +1418,11 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templatePost, data)
 }
 
-func renderBookmark(bookmark types.Bookmark, w http.ResponseWriter, rq *http.Request) dataBookmark {
+func renderBookmark(
+	bookmark types.Bookmark,
+	w http.ResponseWriter,
+	rq *http.Request,
+) dataBookmark {
 	var notifications []SystemNotification
 
 	// TODO: do not fetch for the unauthorized
@@ -1465,12 +1476,41 @@ func renderBookmark(bookmark types.Bookmark, w http.ResponseWriter, rq *http.Req
 		reposts = r
 	}
 
+	var (
+		likes       []apports.Actor
+		likedByUs   bool
+		likeCounter int
+	)
+	{
+		likes, likedByUs, err = svcLiking.ActorsThatLiked(rq.Context(), bookmark.ID)
+		if err != nil {
+			slog.Warn("Failed to fetch likes for bookmark",
+				"bookmarkID", bookmark.ID, "err", err)
+			notifications = append(notifications,
+				SystemNotification{
+					Category: NotificationFailure,
+					Body: template.HTML(fmt.Sprintf(
+						"Failed to fetch likes: %s", err)),
+				})
+		}
+
+		likeCounter = len(likes)
+		if likedByUs {
+			likeCounter++
+		}
+	}
+
 	return dataBookmark{
 		Bookmark:         bookmark,
 		Reposts:          reposts,
 		Archives:         archives,
 		HighlightArchive: highlightArchive,
 		dataCommon:       common,
+		Notifications:    notifications,
+
+		LikeCounter: likeCounter,
+		LikedByUs:   likedByUs,
+		Likes:       likes,
 	}
 }
 
