@@ -26,7 +26,7 @@
         white-space: nowrap;
     }
     h1 {
-        font-size: medium;
+        font-size: 1rem;
     }
     main > article {
         padding: 8px;
@@ -213,16 +213,18 @@ a.edit-post-btn {
 .bookmark-controls {
     display: flex;
     flex-direction: row;
+    gap: .25rem;
 }
 .bookmark-controls .btn,
 .bookmark-controls .post-visibility {
     font-size: small;
+    height: 1.625rem;
 }
 .bookmark-controls input[type="submit"] {
     margin: 0;
 }
 .post-page .post-tags {
-    font-size: medium;
+    font-size: 1rem;
 }
 .post-tags > * {
     display: inline;
@@ -234,7 +236,7 @@ a.edit-post-btn {
 }
 .post-page .u-repost-of,
 .post-page .u-bookmark-of {
-    font-size: medium;
+    font-size: 1rem;
     line-height: 150%;
 }
 dt {
@@ -328,7 +330,7 @@ h3, h4 {
 }
 .h-entry h4 {
     margin: 0;
-    font-size: medium;
+    font-size: 1rem;
 }
 article p:last-of-type:not(.h-entry p) {
     margin-bottom: 0;
@@ -365,7 +367,7 @@ pre {
 /* Buttons */
 ::-webkit-file-upload-button,
 .btn {
-    line-height: normal;
+    line-height: 1.1rem;
     display: inline-block;
     border: 1px #999 solid;
     text-decoration: none;

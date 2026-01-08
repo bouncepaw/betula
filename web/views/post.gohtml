@@ -37,13 +37,13 @@
 			</a>
 
 			{{if $root.Authorized}}<div class="bookmark-controls">
-				<a class="btn" href="/edit-link/{{.Bookmark.ID}}">Edit...</a>
 				<form method="POST" action="{{if .LikedByUs}}/unlike{{else}}/like{{end}}">
 					<input type="hidden" name="id" value="{{.Bookmark.ID}}">
 					<input type="hidden" name="next" value="{{$root.Endpoint}}?page={{$root.CurrentPage}}#{{.Bookmark.ID}}">
 					<input type="submit" class="btn" value="{{if .LikedByUs}}💔 Unlike yourself{{else}}❤️ Like yourself{{end}}">
 				</form>
 				<button class="btn" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy link</button>
+				<a class="btn" style="margin-left:auto"  href="/edit-link/{{.ID}}">Edit</a>
 			</div>{{end}}
 		</article>
 		{{if .Reposts}}
