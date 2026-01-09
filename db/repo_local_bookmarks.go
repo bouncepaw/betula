@@ -7,6 +7,7 @@ package db
 import (
 	"context"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 type RepoLocalBookmarks struct{}
@@ -29,6 +30,21 @@ func (repo *RepoLocalBookmarks) Exists(
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+func (repo *RepoLocalBookmarks) GetBookmarkByID(
+	ctx context.Context,
+	id int,
+) (types.Bookmark, error) {
+	row := db.QueryRowContext(ctx, `
+		select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID 
+		from Bookmarks
+		where ID = ? and DeletionTime is null
+	`, id)
+
+	var b types.Bookmark
+	err := row.Scan(&b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RepostOf, &b.OriginalAuthor)
+	return b, err
 }
 
 // TODO: port old queries to this repo

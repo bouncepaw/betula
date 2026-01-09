@@ -6,38 +6,46 @@ package likingsvc
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	notifports "git.sr.ht/~bouncepaw/betula/ports/notif"
+	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
 	"log/slog"
 	"strconv"
 )
 
 type Service struct {
-	logger            *slog.Logger
-	likeRepo          likingports.LikeRepository
-	localBookmarkRepo likingports.LocalBookmarkRepository
-	notifRepo         notifports.Repository
-	activityPub       apports.ActivityPub
+	logger             *slog.Logger
+	likeRepo           likingports.LikeRepository
+	likeCollectionRepo likingports.LikeCollectionRepository
+	localBookmarkRepo  likingports.LocalBookmarkRepository
+	notifRepo          notifports.Repository
+
+	activityPub apports.ActivityPub
 }
 
 var _ likingports.Service = &Service{}
 
 func New(
 	likeRepo likingports.LikeRepository,
+	likeCollectionRepo likingports.LikeCollectionRepository,
 	localBookmarkRepo likingports.LocalBookmarkRepository,
 	notifRepo notifports.Repository,
+
 	activityPub apports.ActivityPub,
 ) *Service {
 	return &Service{
-		logger:            slog.Default(),
-		likeRepo:          likeRepo,
-		localBookmarkRepo: localBookmarkRepo,
-		notifRepo:         notifRepo,
-		activityPub:       activityPub,
+		logger:             slog.Default(),
+		likeRepo:           likeRepo,
+		likeCollectionRepo: likeCollectionRepo,
+		localBookmarkRepo:  localBookmarkRepo,
+		notifRepo:          notifRepo,
+
+		activityPub: activityPub,
 	}
 }
 
@@ -90,6 +98,15 @@ func (svc *Service) FillLikes(
 		status := statusMap[bookmark.ID]
 		remoteBookmarks[i].LikeCounter = status.Count
 		remoteBookmarks[i].LikedByUs = status.LikedByUs
+
+		totalItems, err := svc.likeCollectionRepo.GetTotalItemsFor(ctx, bookmark.ID)
+		if errors.Is(err, sql.ErrNoRows) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		remoteBookmarks[i].LikeCounter = totalItems
 	}
 	return nil
 }
@@ -131,4 +148,18 @@ func (svc *Service) validLocalBookmarkID(ctx context.Context, bookmarkID string)
 		return fmt.Errorf("local bookmark id does not exist: %s", bookmarkID)
 	}
 	return nil
+}
+
+func (svc *Service) ReceiveLikeCollection(
+	ctx context.Context,
+	event likingports.EventLikeCollectionSeen,
+) error {
+	model := likingports.LikeCollectionModel{
+		ID:            stricks.NullStringFromPtr(event.ID),
+		LikedObjectID: event.LikedObjectID,
+		TotalItems:    event.TotalItems,
+		SourceJSON:    event.SourceJSON,
+	}
+
+	return svc.likeCollectionRepo.UpsertLikeCollection(ctx, model)
 }

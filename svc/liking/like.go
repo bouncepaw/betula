@@ -27,6 +27,12 @@ func (svc *Service) Like(ctx context.Context, bookmarkID string) error {
 		go func() {
 			_ = svc.sendLikeToRemoteActor(bookmarkID)
 		}()
+
+		// Optimistic UI.
+		err = svc.likeCollectionRepo.IncrementIfPresent(ctx, bookmarkID)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

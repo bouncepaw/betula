@@ -93,3 +93,26 @@ values
 
 	return tx.Commit()
 }
+
+func (repo *ActorRepo) GetFollowers(ctx context.Context) ([]types.Actor, error) {
+	rows, err := db.QueryContext(ctx, `
+		select ActorID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
+		from Followers
+		join Actors on ActorID = Actors.ID
+		join PublicKeys on Owner = ActorID
+`)
+	if err != nil {
+		return nil, err
+	}
+
+	var actors []types.Actor
+	for rows.Next() {
+		var a types.Actor
+		err = rows.Scan(&a.ID, &a.PreferredUsername, &a.Inbox, &a.DisplayedName, &a.Summary, &a.Domain, &a.PublicKey.PublicKeyPEM)
+		if err != nil {
+			return nil, err
+		}
+		actors = append(actors, a)
+	}
+	return actors, nil
+}

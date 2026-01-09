@@ -119,3 +119,16 @@ func (repo *RepoLikes) ActorsThatLiked(
 	}
 	return actors, weLiked, nil
 }
+
+func (repo *RepoLikes) LikedObjectForLike(
+	ctx context.Context,
+	likeID string,
+) (string, error) {
+	row := db.QueryRowContext(ctx, `
+		select ObjectID from Likes where ID = ?
+	`, likeID)
+
+	var objectID string
+	err := row.Scan(&objectID)
+	return objectID, err
+}

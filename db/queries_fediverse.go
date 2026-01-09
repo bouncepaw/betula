@@ -133,6 +133,9 @@ join PublicKeys on Owner = ActorID;`)
 	return
 }
 
+// GetFollowers
+//
+// Deprecated: Use (*ActorRepo).GetFollowers instead.
 func GetFollowers() (actors []types.Actor) {
 	rows := mustQuery(`
 select ActorID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM

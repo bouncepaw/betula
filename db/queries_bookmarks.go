@@ -160,6 +160,8 @@ where
 }
 
 // GetBookmarkByID returns the bookmark corresponding to the given id, if there is any.
+//
+// Deprecated: Use local bookmark repo.
 func GetBookmarkByID(id int) (b types.Bookmark, found bool) {
 	const q = `
 select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID from Bookmarks

@@ -1,4 +1,5 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -163,20 +164,45 @@ func UpdateNote(post types.Bookmark) ([]byte, error) {
 	}
 	activity["type"] = "Update"
 	activity["id"] = fmt.Sprintf("%s/%d?update", settings.SiteURL(), post.ID)
-	activity["object"].(Dict)["updated"] = time.Now().Format(time.RFC3339)
+	activity["object"].(Dict)["updated"] = time.Now().UTC().Format(time.RFC3339)
 	return json.Marshal(activity)
 }
 
-type CreateNoteReport struct {
-	Bookmark types.RemoteBookmark
+func UpdateNoteWithLikes(post types.Bookmark, likeCounter int) ([]byte, error) {
+	activity, err := makeNoteAction(post)
+	if err != nil {
+		return nil, err
+	}
+	activity["type"] = "Update"
+	activity["id"] = fmt.Sprintf("%s/%d?update", settings.SiteURL(), post.ID)
+	activity["object"].(Dict)["updated"] = time.Now().UTC().Format(time.RFC3339)
+
+	likeCollectionID := fmt.Sprintf("%s/%d?likes", settings.SiteURL(), post.ID)
+	activity["object"].(Dict)["likes"] = Collection{
+		ID:         &likeCollectionID,
+		Type:       "Collection",
+		TotalItems: likeCounter,
+	}
+	return json.Marshal(activity)
 }
-type UpdateNoteReport struct {
-	Bookmark types.RemoteBookmark
-}
-type DeleteNoteReport struct {
-	ActorID    string
-	BookmarkID string
-}
+
+type (
+	CreateNoteReport struct {
+		Bookmark        types.RemoteBookmark
+		LikesCollection *Collection
+	}
+
+	UpdateNoteReport struct {
+		Bookmark        types.RemoteBookmark
+		ActorID         string
+		LikesCollection *Collection
+	}
+
+	DeleteNoteReport struct {
+		ActorID    string
+		BookmarkID string
+	}
+)
 
 func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error) {
 	if typ := getString(object, "type"); typ != "Note" && typ != "Page" && typ != "Article" {
@@ -269,7 +295,7 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 	return &bookmark, nil
 }
 
-func guessNoteObject(activity Dict) (note *types.RemoteBookmark, err error) {
+func guessCreateNote(activity Dict) (report any, err error) {
 	object, ok := activity["object"].(Dict)
 	if !ok {
 		return nil, ErrNoObject
@@ -281,27 +307,55 @@ func guessNoteObject(activity Dict) (note *types.RemoteBookmark, err error) {
 	}
 	bookmark.Activity = activity["original activity"].([]byte)
 
-	return bookmark, nil
-}
-
-func guessCreateNote(activity Dict) (report any, err error) {
-	bookmark, err := guessNoteObject(activity)
-	if err != nil {
-		return nil, err
-	}
-	return CreateNoteReport{
+	cnr := CreateNoteReport{
 		Bookmark: *bookmark,
-	}, nil
+	}
+
+	if object["likes"] != nil {
+		switch likesCollection := object["likes"].(type) {
+		case string: // Don't care, not fetching.
+		case Dict: // Now we're talking!
+			cnr.LikesCollection, err = collectionFromDict(likesCollection)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return cnr, nil
 }
 
 func guessUpdateNote(activity Dict) (report any, err error) {
-	bookmark, err := guessNoteObject(activity)
+	object, ok := activity["object"].(Dict)
+	if !ok {
+		return nil, ErrNoObject
+	}
+
+	bookmark, err := RemoteBookmarkFromDict(object)
 	if err != nil {
 		return nil, err
 	}
-	return UpdateNoteReport{
+	bookmark.Activity = activity["original activity"].([]byte)
+
+	unr := UpdateNoteReport{
+		ActorID:  getIDSomehow(activity, "actor"),
 		Bookmark: *bookmark,
-	}, nil
+	}
+	if unr.ActorID == "" {
+		return nil, ErrNoActor
+	}
+
+	if object["likes"] != nil {
+		switch likesCollection := object["likes"].(type) {
+		case string: // Don't care, not fetching.
+		case Dict: // Now we're talking!
+			unr.LikesCollection, err = collectionFromDict(likesCollection)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return unr, nil
 }
 
 func guessDeleteNote(activity Dict) (report any, err error) {

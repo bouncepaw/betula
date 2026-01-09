@@ -19,13 +19,26 @@ type (
 		DeleteOurLikeOf(ctx context.Context, objectID string) error
 		DeleteLikeBy(ctx context.Context, likeID, actorID string) error
 		StatiFor(ctx context.Context, objectIDs []string) (map[string]LikeStatus, error)
+		LikedObjectForLike(
+			ctx context.Context,
+			likeID string,
+		) (string, error)
 
 		// ActorsThatLiked returns IDs of actors that liked the bookmark,
 		// whether we liked it ourselves or an error.
 		ActorsThatLiked(ctx context.Context, objectID string) ([]string, bool, error)
 	}
+
+	LikeCollectionRepository interface {
+		UpsertLikeCollection(ctx context.Context, likeCollection LikeCollectionModel) error
+		GetTotalItemsFor(ctx context.Context, objectID string) (int, error)
+		IncrementIfPresent(ctx context.Context, objectID string) error
+		DecrementIfPresent(ctx context.Context, objectID string) error
+	}
+
 	LocalBookmarkRepository interface {
-		Exists(ctx context.Context, id int) (bool, error)
+		Exists(context.Context, int) (bool, error)
+		GetBookmarkByID(context.Context, int) (types.Bookmark, error)
 	}
 )
 
@@ -37,6 +50,7 @@ type Service interface {
 
 	ReceiveLike(context.Context, EventLike) error
 	ReceiveUndoLike(context.Context, EventUndoLike) error
+	ReceiveLikeCollection(context.Context, EventLikeCollectionSeen) error
 
 	ActorsThatLiked(ctx context.Context, bookmarkID int) ([]apports.Actor, bool, error)
 }
@@ -80,5 +94,13 @@ type (
 		ActorID    string
 		LikeID     string
 		Activity   json.RawMessage
+	}
+
+	EventLikeCollectionSeen struct {
+		ID            *string
+		Type          string
+		TotalItems    int
+		LikedObjectID string
+		SourceJSON    json.RawMessage
 	}
 )

@@ -17,6 +17,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -26,6 +28,46 @@ type ActivityPub struct {
 
 	logger     *slog.Logger
 	httpClient *http.Client
+}
+
+func (ap *ActivityPub) BroadcastToFollowers(
+	ctx context.Context,
+	activity []byte,
+) error {
+	followers, err := ap.actorRepo.GetFollowers(ctx)
+	if err != nil {
+		return err
+	}
+	ap.logger.Info("Broadcasting to followers",
+		"count", len(followers), "activity", string(activity))
+
+	var (
+		wg        sync.WaitGroup
+		succSends atomic.Int32
+		sema      = make(chan struct{}, 10)
+	)
+	for i, follower := range followers {
+		wg.Add(1)
+		go func() {
+			sema <- struct{}{}
+			defer wg.Done()
+			defer func() { <-sema }()
+
+			actor := newActor(follower)
+			err := actor.sendActivityQuiet(activity)
+			if err != nil {
+				slog.Error("Failed to send activity to follower",
+					"err", err, "i", i, "follower", follower)
+				return
+			}
+			succSends.Add(1)
+		}()
+	}
+	wg.Wait()
+
+	ap.logger.Info("Broadcasted to followers",
+		"success", succSends.Load(), "total", len(followers))
+	return nil
 }
 
 var _ apports.ActivityPub = &ActivityPub{}

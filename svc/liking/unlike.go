@@ -23,6 +23,12 @@ func (svc *Service) Unlike(ctx context.Context, bookmarkID string) error {
 		go func() {
 			_ = svc.sendUndoLikeToRemoteActor(bookmarkID)
 		}()
+
+		// Optimistic UI.
+		err = svc.likeCollectionRepo.DecrementIfPresent(ctx, bookmarkID)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

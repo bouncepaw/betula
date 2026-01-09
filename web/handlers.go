@@ -65,13 +65,17 @@ var (
 	svcArchiving archivingports.Service = archivingsvc.New(
 		archivingsvc.NewObeliskFetcher(), db.NewArchivesRepo())
 	svcLiking likingports.Service = likingsvc.New(
-		db.NewLikeRepo(),
-		db.NewLocalBookmarksRepo(),
+		repoLike,
+		repoLikeCollection,
+		repoLocalBookmark,
 		repoNotif,
 		activityPub)
 
+	repoLike           = db.NewLikeRepo()
+	repoLikeCollection = db.NewLikeCollectionRepo()
 	repoNotif          = db.New()
 	repoActor          = db.NewActorRepo()
+	repoLocalBookmark  = db.NewLocalBookmarksRepo()
 	repoRemoteBookmark = db.NewRemoteBookmarkRepo()
 
 	activityPub = apgw.NewActivityPub(repoActor, repoRemoteBookmark)

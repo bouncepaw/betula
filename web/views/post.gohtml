@@ -43,7 +43,7 @@
 					<input type="submit" class="btn" value="{{if .LikedByUs}}💔 Unlike yourself{{else}}❤️ Like yourself{{end}}">
 				</form>
 				<button class="btn" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy link</button>
-				<a class="btn" style="margin-left:auto"  href="/edit-link/{{.ID}}">Edit</a>
+				<a class="btn" style="margin-left:auto"  href="/edit-link/{{.Bookmark.ID}}">Edit</a>
 			</div>{{end}}
 		</article>
 		{{if .Reposts}}

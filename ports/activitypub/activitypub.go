@@ -15,6 +15,7 @@ type (
 		AuthorOfRemoteBookmark(remoteBookmarkID string) (Actor, error)
 		LocalBookmarkIDFromActivityPubID(id string) (int, error)
 		ActorByID(ctx context.Context, actorID string, opts GetActorsOpts) (Actor, error)
+		BroadcastToFollowers(ctx context.Context, activity []byte) error
 	}
 
 	Actor interface {
@@ -33,6 +34,7 @@ type (
 	ActorRepository interface {
 		GetActorByID(ctx context.Context, id string, opts GetActorsOpts) (types.Actor, error)
 		StoreActor(ctx context.Context, actor types.Actor) error
+		GetFollowers(context.Context) ([]types.Actor, error)
 	}
 	GetActorsOpts struct {
 		GetPublicKey bool

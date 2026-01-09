@@ -65,3 +65,8 @@ func (a *Actor) SendSerializedActivity(activity []byte) error {
 	// TODO: that function shall be this function.
 	return jobs.SendActivityToInbox(activity, a.inboxURL)
 }
+
+func (a *Actor) sendActivityQuiet(activity []byte) error {
+	// TODO: that function shall be this function.
+	return jobs.SendQuietActivityToInbox(activity, a.inboxURL)
+}

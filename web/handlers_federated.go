@@ -218,7 +218,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 
 	report, err := activities.Guess(data)
 	if err != nil {
-		log.Printf("Error while parsing incoming activity: %v\n", err)
+		slog.Error("Failed to parse incoming activity", "err", err)
 		return
 	}
 	if report == nil {
@@ -238,6 +238,20 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			report.Bookmark.ActorID, report.Bookmark.ID, report.Bookmark.DescriptionMycomarkup.String)
 		db.InsertRemoteBookmark(report.Bookmark)
 
+		if report.LikesCollection != nil {
+			event := likingports.EventLikeCollectionSeen{
+				ID:            report.LikesCollection.ID,
+				Type:          report.LikesCollection.Type,
+				TotalItems:    report.LikesCollection.TotalItems,
+				LikedObjectID: report.Bookmark.ID,
+				SourceJSON:    data,
+			}
+			err = svcLiking.ReceiveLikeCollection(rq.Context(), event)
+			if err != nil {
+				slog.Error("Failed to receive like collection", "err", err)
+			}
+		}
+
 	case activities.UpdateNoteReport:
 		if !db.RemoteBookmarkIsStored(report.Bookmark.ID) {
 			// TODO: maybe store them?
@@ -249,6 +263,23 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		log.Printf("%s updated the bookmark %s. Contents: %q\n",
 			report.Bookmark.ActorID, report.Bookmark.ID, report.Bookmark.DescriptionMycomarkup.String)
 		db.UpdateRemoteBookmark(report.Bookmark)
+
+		if report.LikesCollection != nil {
+			event := likingports.EventLikeCollectionSeen{
+				ID:            report.LikesCollection.ID,
+				Type:          report.LikesCollection.Type,
+				TotalItems:    report.LikesCollection.TotalItems,
+				LikedObjectID: report.Bookmark.ID,
+			}
+			slog.Info("The update contained a likes collection; handling",
+				"event", event)
+			event.SourceJSON = data // not including in logs
+
+			err = svcLiking.ReceiveLikeCollection(rq.Context(), event)
+			if err != nil {
+				slog.Error("Failed to receive like collection", "err", err)
+			}
+		}
 
 	case activities.DeleteNoteReport:
 		log.Printf("%s deleted the bookmark %s.\n", report.ActorID, report.BookmarkID)
@@ -355,8 +386,9 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 		err = svcLiking.ReceiveLike(rq.Context(), event)
 		if err != nil {
+			event.Activity = nil
 			slog.Error("Failed to receive Like",
-				"event", event, "err", err)
+				"event", event, "err", err, "activity", report.Activity)
 			return
 		}
 
@@ -379,8 +411,9 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 		err = svcLiking.ReceiveUndoLike(rq.Context(), event)
 		if err != nil {
+			event.Activity = nil
 			slog.Error("Failed to receive Undo{Like}",
-				"event", event, "err", err)
+				"event", event, "err", err, "activity", report.Activity)
 			return
 		}
 
