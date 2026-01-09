@@ -44,7 +44,7 @@ func main() {
 	flag.Parse()
 
 	if versionFlag {
-		fmt.Printf("Betula %s\n", "v1.6.0-wip")
+		fmt.Printf("Betula %s\n", "v1.6.0-rc1")
 		return
 	}
 

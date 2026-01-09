@@ -48,7 +48,7 @@
 		</article>
 		{{if .Reposts}}
 		<article>
-			<h3>{{len .Reposts}} repost{{if gt (len .Reposts) 1}}s{{end}}<h3>
+			<h3>{{len .Reposts}} repost{{if gt (len .Reposts) 1}}s{{end}}</h3>
 			<ul>
 			{{range .Reposts}}
 				<li><a href="{{.URL}}">{{.Name}}</a> reposted at {{.Timestamp | timeToHuman}}</li>
