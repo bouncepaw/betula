@@ -40,7 +40,7 @@
 				<form method="POST" action="{{if .LikedByUs}}/unlike{{else}}/like{{end}}">
 					<input type="hidden" name="id" value="{{.Bookmark.ID}}">
 					<input type="hidden" name="next" value="{{$root.Endpoint}}?page={{$root.CurrentPage}}#{{.Bookmark.ID}}">
-					<input type="submit" class="btn" value="{{if .LikedByUs}}💔 Unlike yourself{{else}}❤️ Like yourself{{end}}">
+					<input type="submit" class="btn" value="{{if .LikedByUs}}💔 Unlike yourself {{.LikeCounter}}{{else}}❤️ Like yourself {{if .LikeCounter}}{{.LikeCounter}}{{end}}{{end}}">
 				</form>
 				<button class="btn" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy link</button>
 				<a class="btn" style="margin-left:auto"  href="/edit-link/{{.Bookmark.ID}}">Edit</a>

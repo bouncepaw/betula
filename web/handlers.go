@@ -255,7 +255,7 @@ func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
 	var archiveID int64
 	archiveID, err = strconv.ParseInt(archiveIDParameter, 10, 64)
 	if err != nil {
-		templateData = renderBookmark(bookmark, w, rq)
+		templateData = renderBookmark(bookmark, w, rq, false)
 		templateData.Notifications = append(templateData.Notifications,
 			SystemNotification{
 				Category: NotificationFailure,
@@ -265,7 +265,7 @@ func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
 			})
 		slog.Warn("Failed to parse archive id for deletion", "id", archiveID, "err", err)
 	} else if err = db.NewArchivesRepo().DeleteArchive(archiveID); err != nil {
-		templateData = renderBookmark(bookmark, w, rq)
+		templateData = renderBookmark(bookmark, w, rq, false)
 		templateData.Notifications = append(templateData.Notifications,
 			SystemNotification{
 				Category: NotificationFailure,
@@ -275,7 +275,7 @@ func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
 			})
 		slog.Warn("Failed to delete archive", "id", archiveID, "err", err)
 	} else {
-		templateData = renderBookmark(bookmark, w, rq)
+		templateData = renderBookmark(bookmark, w, rq, false)
 		templateData.Notifications = append(templateData.Notifications,
 			SystemNotification{
 				Category: NotificationSuccess,
@@ -1418,7 +1418,7 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	log.Printf("Get bookmark page no. %d\n", bookmark.ID)
-	var data = renderBookmark(*bookmark, w, rq)
+	var data = renderBookmark(*bookmark, w, rq, true)
 	templateExec(w, rq, templatePost, data)
 }
 
@@ -1426,6 +1426,7 @@ func renderBookmark(
 	bookmark types.Bookmark,
 	w http.ResponseWriter,
 	rq *http.Request,
+	includeLikes bool,
 ) dataBookmark {
 	var notifications []SystemNotification
 
@@ -1485,7 +1486,7 @@ func renderBookmark(
 		likedByUs   bool
 		likeCounter int
 	)
-	{
+	if includeLikes {
 		likes, likedByUs, err = svcLiking.ActorsThatLiked(rq.Context(), bookmark.ID)
 		if err != nil {
 			slog.Warn("Failed to fetch likes for bookmark",

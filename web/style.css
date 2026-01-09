@@ -226,6 +226,9 @@ a.edit-post-btn {
 .post-page .post-tags {
     font-size: 1rem;
 }
+.post-page .bookmark-controls {
+    margin: .25rem 0;
+}
 .post-tags > * {
     display: inline;
 }

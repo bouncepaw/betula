@@ -32,11 +32,6 @@
 		</div>
 
 		{{if $root.Authorized}}<div class="bookmark-controls">
-			<form method="POST" action="{{if .LikedByUs}}/unlike{{else}}/like{{end}}">
-				<input type="hidden" name="id" value="{{.ID}}">
-				<input type="hidden" name="next" value="{{$root.Endpoint}}?page={{$root.CurrentPage}}{{if eq $root.Endpoint "/search"}}&q={{$root.SearchQuery}}{{end}}#{{.ID}}">
-				<input type="submit" class="btn" value="{{if .LikedByUs}}💔 Unlike {{.LikeCounter}}{{else}}❤️ Like {{if .LikeCounter}}{{.LikeCounter}}{{end}}{{end}}">
-			</form>
 			<button class="btn" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
 			<a class="btn" style="margin-left:auto"  href="/edit-link/{{.ID}}">Edit</a>
 		</div>{{end}}

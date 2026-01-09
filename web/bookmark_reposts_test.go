@@ -33,7 +33,7 @@ func TestRenderBookmarkIncludesReposts(t *testing.T) {
 	r := httptest.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
 
-	data := renderBookmark(bookmark, w, r)
+	data := renderBookmark(bookmark, w, r, false)
 	if len(data.Reposts) != 2 {
 		t.Errorf("expected 2 reposts in render data, got %d", len(data.Reposts))
 	}
