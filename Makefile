@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022-2025 Betula contributors
+# SPDX-FileCopyrightText: 2022-2026 Betula contributors
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -15,6 +15,12 @@ debug-run: clean betula
 
 run-with-port: betula
 	./betula -port 8081 db.betula
+
+lint:
+	golangci-lint run
+
+lint-fix:
+	golangci-lint run --fix
 
 clean:
 	rm -f betula

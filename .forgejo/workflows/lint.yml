@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Danila Gorelko
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+name: lint
+on:
+  pull_request:
+    branches: [ "master" ]
+  push:
+    branches: [ "master" ]
+jobs:
+  lint:
+    runs-on: codeberg-small
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - name: golangci-lint
+        uses: 'https://github.com/golangci/golangci-lint-action@v9'
+        with:
+          version: v2.6
