@@ -7,9 +7,10 @@ package activities
 import (
 	"encoding/base64"
 	"encoding/json"
-	"git.sr.ht/~bouncepaw/betula/settings"
-	"git.sr.ht/~bouncepaw/betula/stricks"
 	"path"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
 func NewLike(likedObjectID, recipientID string) (json.RawMessage, error) {

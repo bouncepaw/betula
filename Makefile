@@ -29,6 +29,7 @@ test: clean betula
 	go test ./db
 	go test ./types
 	go test ./feeds
+	go test ./pkg/httpsig
 	go test ./readpage
 	go test ./fediverse/activities
 	sh test-web.sh

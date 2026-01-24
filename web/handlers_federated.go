@@ -14,6 +14,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
+	"log/slog"
+	"net/http"
+
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
@@ -21,16 +26,12 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/readpage"
 	"git.sr.ht/~bouncepaw/betula/search"
 	"git.sr.ht/~bouncepaw/betula/settings"
-	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
-	"io"
-	"log"
-	"log/slog"
-	"net/http"
 )
 
 // Query parameters (all required):

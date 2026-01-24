@@ -11,10 +11,11 @@ package activities
 
 import (
 	"errors"
-	"git.sr.ht/~bouncepaw/betula/settings"
-	"git.sr.ht/~bouncepaw/betula/stricks"
-	"git.sr.ht/~bouncepaw/betula/types"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 func getIDSomehow(activity Dict, field string) string {

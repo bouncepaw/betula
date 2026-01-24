@@ -1,13 +1,14 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2022-2026 Betula contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
 package feeds
 
 import (
-	"git.sr.ht/~bouncepaw/betula/db"
 	"testing"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/db"
 )
 
 func TestFiveLastDays(t *testing.T) {

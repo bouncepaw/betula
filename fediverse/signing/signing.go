@@ -13,8 +13,8 @@ import (
 	"net/http"
 
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/pkg/httpsig"
 	"git.sr.ht/~bouncepaw/betula/settings"
-	"humungus.tedunangst.com/r/webs/httpsig"
 )
 
 // SignRequest signs the request.

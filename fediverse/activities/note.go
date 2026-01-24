@@ -10,11 +10,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/stricks"
-	"golang.org/x/net/html"
 	"html/template"
 	"strings"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"golang.org/x/net/html"
 
 	"git.sr.ht/~bouncepaw/betula/myco"
 	"git.sr.ht/~bouncepaw/betula/settings"

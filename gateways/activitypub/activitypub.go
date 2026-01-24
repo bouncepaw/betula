@@ -10,9 +10,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
-	"git.sr.ht/~bouncepaw/betula/settings"
-	"git.sr.ht/~bouncepaw/betula/stricks"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -20,6 +17,10 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
+	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
 type ActivityPub struct {

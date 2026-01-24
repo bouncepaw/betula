@@ -7,11 +7,12 @@ package likingsvc
 import (
 	"context"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
-	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
-	"git.sr.ht/~bouncepaw/betula/stricks"
-	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 	"strconv"
+
+	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
+	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 )
 
 func (svc *Service) ReceiveLike(ctx context.Context, event likingports.EventLike) error {

@@ -7,8 +7,9 @@ package activities
 import (
 	"encoding/json"
 	"fmt"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 	"git.sr.ht/~bouncepaw/betula/settings"
-	"git.sr.ht/~bouncepaw/betula/stricks"
 )
 
 // NewAccept wraps the acceptedActivity in an Accept activity.

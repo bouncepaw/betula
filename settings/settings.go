@@ -9,11 +9,12 @@ import (
 	"database/sql"
 	_ "embed"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/stricks"
 	"html"
 	"html/template"
 	"log"
 	"net/url"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/myco"

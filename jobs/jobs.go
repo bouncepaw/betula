@@ -11,15 +11,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
-	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
-	"git.sr.ht/~bouncepaw/betula/settings"
-	"git.sr.ht/~bouncepaw/betula/stricks"
-	"git.sr.ht/~bouncepaw/betula/types"
 	"log"
 	"net/http"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
+	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 var jobch = make(chan jobtype.Job)

@@ -5,13 +5,14 @@
 package readpage
 
 import (
-	"git.sr.ht/~bouncepaw/betula/settings"
-	"git.sr.ht/~bouncepaw/betula/stricks"
-	"golang.org/x/net/html"
 	"io"
 	"log"
 	"net/http"
 	"strings"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/settings"
+	"golang.org/x/net/html"
 )
 
 const (
@@ -170,15 +171,19 @@ func listenForMycomarkup(nodes chan *html.Node, data *FoundData) {
 			resp, err := client.Do(req)
 			if err != nil {
 				log.Printf("Failed to fetch Mycomarkup document from ‘%s’\n", addr.String())
+				continue
 			}
 
 			raw, err := io.ReadAll(resp.Body)
 			if err != nil {
 				log.Printf("Failed to read Mycomarkup document from ‘%s’\n", addr.String())
+				resp.Body.Close()
+				continue
 			}
 
 			data.Mycomarkup = string(raw)
 			state = 1
+			resp.Body.Close()
 		}
 	}
 }

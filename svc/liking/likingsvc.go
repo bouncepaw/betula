@@ -9,13 +9,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
+	"strconv"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	notifports "git.sr.ht/~bouncepaw/betula/ports/notif"
-	"git.sr.ht/~bouncepaw/betula/stricks"
 	"git.sr.ht/~bouncepaw/betula/types"
-	"log/slog"
-	"strconv"
 )
 
 type Service struct {

@@ -8,14 +8,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
-	"git.sr.ht/~bouncepaw/betula/stricks"
-	"git.sr.ht/~bouncepaw/betula/types"
 	"io"
 	"log"
 	"net/http"
 	"strings"
+
+	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 // RequestActorByNickname returns actor by string like @bouncepaw@links.bouncepaw.com or bouncepaw@links.bouncepaw.com. The returned value might be from the cache and perhaps stale.

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2022-2026 Betula contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -7,14 +7,15 @@ package feeds
 
 import (
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/myco"
-	"git.sr.ht/~bouncepaw/betula/settings"
-	"git.sr.ht/~bouncepaw/betula/types"
-	"humungus.tedunangst.com/r/webs/rss"
 	"log"
 	"strings"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/myco"
+	"git.sr.ht/~bouncepaw/betula/pkg/rss"
+	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 const rssTimeFormat = time.RFC822

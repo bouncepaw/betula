@@ -6,8 +6,9 @@ package activities
 
 import (
 	"encoding/json"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 	"git.sr.ht/~bouncepaw/betula/settings"
-	"git.sr.ht/~bouncepaw/betula/stricks"
 )
 
 func NewAnnounce(originalURL string, repostURL string) ([]byte, error) {

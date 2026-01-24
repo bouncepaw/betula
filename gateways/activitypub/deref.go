@@ -7,11 +7,12 @@ package apgw
 import (
 	"encoding/json"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
-	"git.sr.ht/~bouncepaw/betula/stricks"
-	"git.sr.ht/~bouncepaw/betula/types"
 	"io"
 	"net/http"
+
+	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 func (ap *ActivityPub) dereferenceActorID(actorID string) (types.Actor, error) {

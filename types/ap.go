@@ -10,7 +10,7 @@ import (
 	"html/template"
 	"time"
 
-	"git.sr.ht/~bouncepaw/betula/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 )
 
 const ActivityType = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""
