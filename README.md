@@ -1,5 +1,5 @@
 # 🌳 Betula, a federated personal link collection manager
-![A screenshot of Betula, featuring several bookmarks](https://betula.mycorrhiza.wiki/betula-v1.4.0.png)
+![A screenshot of Betula, featuring several bookmarks](https://betula.mycorrhiza.wiki/media/betula-v1.6.0.png)
 
 [![Hits-of-Code](https://hitsofcode.com/sourcehut/~bouncepaw/betula?branch=master)](https://hitsofcode.com/sourcehut/~bouncepaw/betula/view?branch=master)
 

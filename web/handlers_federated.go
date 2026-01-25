@@ -521,7 +521,7 @@ func getNodeInfo(w http.ResponseWriter, rq *http.Request) {
 		"version": "2.0",
 		"software": map[string]string{
 			"name":    "betula",
-			"version": "1.6.0-rc1",
+			"version": "1.6.0",
 		},
 		"protocols": []string{"activitypub"},
 		"services": map[string][]string{
