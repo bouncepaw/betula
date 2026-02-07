@@ -8,9 +8,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"git.sr.ht/~bouncepaw/betula/readpage"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
@@ -59,33 +59,15 @@ func fetchFedi(uri string) (*types.Bookmark, error) {
 	}, nil
 }
 
-// FetchBookmarkAsRepost fetches a bookmark on the given address somehow. First, it tries to get a Note ActivityPub object formatted with Betula rules. If it fails to do so, it resorts to the readpage method.
+// FetchBookmarkAsRepost fetches a bookmark on the given address.
 func FetchBookmarkAsRepost(uri string) (*types.Bookmark, error) {
-	log.Printf("Fetching remote bookmark from %s\n", uri)
 	bookmark, err := fetchFedi(uri)
 	if err != nil {
-		log.Printf("Tried to fetch a remote bookmark from %s, failed with: %s. Falling back to microformats\n", uri, err)
-		// no return
-	} else {
-		log.Printf("Fetched a remote bookmark from %s\n", uri)
-		return bookmark, nil
-	}
-
-	foundData, err := readpage.FindDataForMyRepost(uri)
-	if err != nil {
+		slog.Error("Failed to fetch bookmark for repost", "uri", uri, "err", err)
 		return nil, err
-	} else if foundData.IsHFeed || foundData.BookmarkOf == "" || foundData.PostName == "" {
-		return nil, ErrNotBookmark
 	}
 
-	log.Printf("Fetched a remote bookmark from %s with readpage\n", uri)
-	return &types.Bookmark{
-		Tags:           types.TagsFromStringSlice(foundData.Tags),
-		URL:            foundData.BookmarkOf,
-		Title:          foundData.PostName,
-		Description:    foundData.Mycomarkup,
-		Visibility:     types.Public,
-		RepostOf:       &uri,             // TODO: transitive reposts are a thing...
-		OriginalAuthor: sql.NullString{}, // actors are found only in activities
-	}, nil
+	slog.Info("Fetched bookmark for repost", "uri", uri, "bookmark", bookmark)
+	return bookmark, nil
+	// NOTE: IndieWeb-style reposts are no longer supported.
 }

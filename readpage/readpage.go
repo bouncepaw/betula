@@ -1,4 +1,8 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2024 arne
+// SPDX-FileCopyrightText: 2025 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -8,17 +12,17 @@ package readpage
 import (
 	"context"
 	"errors"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
-	"git.sr.ht/~bouncepaw/betula/settings"
-	"golang.org/x/net/html"
-	"golang.org/x/net/html/charset"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/charset"
+
+	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
 // SPDX-SnippetBegin
@@ -36,34 +40,22 @@ var (
 	ErrNoTitleFound = errors.New("no title found in the document")
 	ErrTimeout      = errors.New("request timed out")
 
-	titleWorkers      = []worker{listenForTitle}
-	makeRepostWorkers = []worker{
-		listenForPostName, listenForBookmarkOf, listenForTags, listenForMycomarkup, listenForHFeed,
-	}
-	checkRepostWorkers = []worker{listenForRepostOf}
+	titleWorkers = []worker{listenForTitle}
 )
 
 // FindTitle finds a <title> in the document.
 //
 // If there is no title, or the title is empty string, ErrNoTitleFound is returned.
 // If any other error occurred, it is returned.
+//
+// Deprecated: Use the service wrapper.
+// TODO: delete this code, reimplement in the service.
 func FindTitle(link string) (string, error) {
 	data, err := findDataByLink(link, titleWorkers)
 	if data.title == "" && err == nil {
 		err = ErrNoTitleFound
 	}
 	return data.title, err
-}
-
-// FindDataForMyRepost finds data relevant for us to make a repost.
-func FindDataForMyRepost(link string) (FoundData, error) {
-	return findDataByLink(link, makeRepostWorkers)
-}
-
-func IsThisValidRepost(report activities.AnnounceReport) (validRepost bool, err error) {
-	data, err := findDataByLink(report.RepostPage, checkRepostWorkers)
-	valid := data.RepostOf != "" && data.RepostOf == report.OriginalPage
-	return valid, err
 }
 
 // The rest of the package is private.
@@ -81,24 +73,6 @@ type FoundData struct {
 
 	// docurl is the URL of the very document we're working with now. Needed to resolve relative links.
 	docurl *url.URL
-
-	// PostName is the first p-name found.
-	PostName string
-
-	// BookmarkOf is the first u-bookmark-of found. Must be a valid URL.
-	BookmarkOf string
-
-	// RepostOf is the first u-repost-of found. Must be a valid URL.
-	RepostOf string
-
-	// Tags are all p-category found.
-	Tags []string
-
-	// Mycomarkup is the Mycomarkup text. It is fetched with a second request.
-	Mycomarkup string
-
-	// IsHFeed is true if the document has an h-feed somewhere in the beginning. You don't repost h-feed:s.
-	IsHFeed bool
 }
 
 func findData(link string, workers []worker, doc *html.Node) (data FoundData, err error) {
@@ -210,28 +184,4 @@ func traverse(ctx context.Context, n *html.Node, nodes chan *html.Node) {
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		traverse(ctx, c, nodes)
 	}
-}
-
-func nodeAttribute(node *html.Node, attrName string) (value string, found bool) {
-	for _, attr := range node.Attr {
-		if attr.Key == attrName {
-			return attr.Val, true
-		}
-	}
-	return "", false
-}
-
-func nodeHasClass(node *html.Node, class string) bool {
-	classList, found := nodeAttribute(node, "class")
-	if !found {
-		return false
-	}
-
-	for _, c := range strings.Split(classList, " ") {
-		if c == class {
-			return true
-		}
-	}
-
-	return false
 }

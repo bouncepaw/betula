@@ -16,13 +16,14 @@ package types
 import (
 	"database/sql"
 	"fmt"
-	ua "github.com/mileusna/useragent"
-	"golang.org/x/net/idna"
 	"html/template"
 	"math"
 	"net/url"
 	"strings"
 	"time"
+
+	ua "github.com/mileusna/useragent"
+	"golang.org/x/net/idna"
 
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/util"
 )
@@ -239,7 +240,7 @@ type RepostInfo struct {
 	Timestamp time.Time
 	URL       string
 	Name      string
-}
+} // TODO: move it somewhere more appropriate.
 
 // TimeLayout is the time layout used across Betula.
 const TimeLayout = "2006-01-02 15:04:05"

@@ -1,4 +1,5 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -89,13 +90,12 @@ var table = []struct {
 	report any
 }{
 	{json1, nil, AnnounceReport{
-		ReposterUsername: "alice",
-		RepostPage:       "https://links.alice/84",
-		OriginalPage:     "https://links.bob/42",
+		ActorID:    "https://links.alice",
+		AnnounceID: "https://links.alice/84",
+		ObjectID:   "https://links.bob/42",
 	}},
 	{jsonNoId, ErrNoId, nil},
 	{jsonBadId, ErrNoId, nil},
-	{jsonNoUsername, ErrNoActorUsername, nil},
 	{badJson, errors.New("invalid character 'L' looking for beginning of value"), nil},
 	{jsonSallyOffered, ErrUnknownType, nil},
 	// one might want to write many more tests

@@ -68,15 +68,14 @@ const publicAudience = "https://www.w3.org/ns/activitystreams#Public"
 type Dict = map[string]any
 
 var (
-	ErrNoType          = errors.New("activities: type absent or invalid")
-	ErrNoActor         = errors.New("activities: actor absent or invalid")
-	ErrNoActorUsername = errors.New("activities: actor with absent or invalid username")
-	ErrUnknownType     = errors.New("activities: unknown activity type")
-	ErrNoId            = errors.New("activities: id absent or invalid")
-	ErrNoObject        = errors.New("activities: object absent or invalid")
-	ErrEmptyField      = errors.New("activities: empty field")
-	ErrNotNote         = errors.New("activities: not a Note")
-	ErrHostMismatch    = errors.New("activities: host mismatch")
+	ErrNoType       = errors.New("activities: type absent or invalid")
+	ErrNoActor      = errors.New("activities: actor absent or invalid")
+	ErrUnknownType  = errors.New("activities: unknown activity type")
+	ErrNoId         = errors.New("activities: id absent or invalid")
+	ErrNoObject     = errors.New("activities: object absent or invalid")
+	ErrEmptyField   = errors.New("activities: empty field")
+	ErrNotNote      = errors.New("activities: not a Note")
+	ErrHostMismatch = errors.New("activities: host mismatch")
 )
 
 var betulaActor string

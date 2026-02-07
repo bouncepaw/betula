@@ -1,4 +1,6 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -26,9 +28,9 @@ func NewAnnounce(originalURL string, repostURL string) ([]byte, error) {
 }
 
 type AnnounceReport struct {
-	ReposterUsername string
-	RepostPage       string // page where the repost is
-	OriginalPage     string // page that was reposted
+	ActorID    string
+	AnnounceID string // id of the repost
+	ObjectID   string // object that was reposted
 }
 
 func mustHaveSuchField[T any](activity Dict, field string, errOnLack error, lambdaOnPresence func(T)) error {
@@ -46,52 +48,17 @@ func mustHaveSuchField[T any](activity Dict, field string, errOnLack error, lamb
 }
 
 func guessAnnounce(activity Dict) (reportMaybe any, err error) {
-	var (
-		actorMap Dict
-		report   AnnounceReport
-	)
-
-	if err := mustHaveSuchField(
-		activity, "actor", ErrNoActor,
-		func(v Dict) {
-			actorMap = v
-		},
-	); err != nil {
-		return nil, err
+	report := AnnounceReport{
+		ActorID:    getIDSomehow(activity, "actor"),
+		AnnounceID: getIDSomehow(activity, "id"),
+		ObjectID:   getIDSomehow(activity, "object"),
 	}
 
-	if err := mustHaveSuchField(
-		actorMap, "preferredUsername", ErrNoActorUsername,
-		func(v string) {
-			report.ReposterUsername = v
-		},
-	); err != nil {
-		return nil, err
-	}
-
-	if err := mustHaveSuchField(
-		activity, "object", ErrNoObject,
-		func(v string) {
-			report.OriginalPage = v
-		},
-	); err != nil {
-		return nil, err
-	}
-
-	if err := mustHaveSuchField(
-		activity, "id", ErrNoId,
-		func(v string) {
-			report.RepostPage = v
-		},
-	); err != nil {
-		return nil, err
-	}
-
-	if !stricks.ValidURL(report.OriginalPage) {
+	if !stricks.ValidURL(report.ObjectID) {
 		return nil, ErrNoObject
 	}
 
-	if !stricks.ValidURL(report.RepostPage) {
+	if !stricks.ValidURL(report.AnnounceID) {
 		return nil, ErrNoId
 	}
 

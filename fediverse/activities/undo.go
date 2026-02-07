@@ -43,17 +43,17 @@ func guessUndo(activity Dict) (reportMaybe any, err error) {
 	case "Announce":
 		switch repost := objectMap["id"].(type) {
 		case string:
-			report.RepostPage = repost
+			report.AnnounceID = repost
 		}
 		switch original := objectMap["object"].(type) {
 		case string:
-			report.OriginalPage = original
+			report.ObjectID = original
 		}
 		switch actor := objectMap["actor"].(type) {
 		case Dict:
 			switch username := actor["preferredUsername"].(type) {
 			case string:
-				report.ReposterUsername = username
+				report.ActorID = username
 			}
 		}
 		return report, nil

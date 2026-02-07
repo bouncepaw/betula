@@ -30,25 +30,27 @@ import (
 
 	"git.sr.ht/~bouncepaw/betula/feeds"
 	"git.sr.ht/~bouncepaw/betula/gateways/activitypub"
+	wwwgw "git.sr.ht/~bouncepaw/betula/gateways/www"
 	"git.sr.ht/~bouncepaw/betula/pkg/rss"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/notif"
+	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
+	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	"git.sr.ht/~bouncepaw/betula/svc/archiving"
 	likingsvc "git.sr.ht/~bouncepaw/betula/svc/liking"
 	"git.sr.ht/~bouncepaw/betula/svc/notif"
+	remarkingsvc "git.sr.ht/~bouncepaw/betula/svc/remarking"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
-
-	"git.sr.ht/~bouncepaw/betula/fediverse"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
-	"git.sr.ht/~bouncepaw/betula/jobs"
-	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
-	"git.sr.ht/~bouncepaw/betula/readpage"
 
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/fediverse"
+	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/help"
+	"git.sr.ht/~bouncepaw/betula/jobs"
+	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/search"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -71,6 +73,7 @@ var (
 		repoLocalBookmark,
 		repoNotif,
 		activityPub)
+	svcRemarking remarkingports.Service = remarkingsvc.New(activityPub)
 
 	repoLike           = db.NewLikeRepo()
 	repoLikeCollection = db.NewLikeCollectionRepo()
@@ -79,7 +82,8 @@ var (
 	repoLocalBookmark  = db.NewLocalBookmarksRepo()
 	repoRemoteBookmark = db.NewRemoteBookmarkRepo()
 
-	activityPub = apgw.NewActivityPub(repoActor, repoRemoteBookmark)
+	activityPub apports.ActivityPub   = apgw.NewActivityPub(repoActor, repoRemoteBookmark)
+	www         wwwports.WorldWideWeb = wwwgw.New()
 )
 
 func init() {
@@ -1111,7 +1115,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 			viewData.invalidUrl(*bookmark, common, w, rq)
 			return
 		}
-		newTitle, err := readpage.FindTitle(bookmark.URL)
+		newTitle, err := www.TitleOfPage(bookmark.URL)
 		if err != nil {
 			log.Printf("Can't get HTML title from URL: %s\n", bookmark.URL)
 			viewData.titleNotFound(*bookmark, common, w, rq)
@@ -1332,7 +1336,7 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 			viewData.invalidUrl(bookmark, common, w, rq)
 			return
 		}
-		newTitle, err := readpage.FindTitle(bookmark.URL)
+		newTitle, err := www.TitleOfPage(bookmark.URL)
 		if err != nil {
 			viewData.titleNotFound(bookmark, common, w, rq)
 			return

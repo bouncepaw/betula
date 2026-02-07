@@ -12,10 +12,8 @@ import "time"
 type JobCategory string
 
 const (
-	SendAnnounce        JobCategory = "notify about my repost"
-	ReceiveAnnounce     JobCategory = "verify their repost"
-	ReceiveUndoAnnounce JobCategory = "receive unrepost"
-	SendUndoAnnounce    JobCategory = "notify about my unrepost"
+	SendAnnounce     JobCategory = "notify about my repost"
+	SendUndoAnnounce JobCategory = "notify about my unrepost"
 
 	/* I changed the style from now. The new style is below. */
 

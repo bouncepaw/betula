@@ -28,6 +28,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
+	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
 	"git.sr.ht/~bouncepaw/betula/readpage"
 	"git.sr.ht/~bouncepaw/betula/search"
 	"git.sr.ht/~bouncepaw/betula/settings"
@@ -283,16 +284,58 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 	case activities.DeleteNoteReport:
+		_, err := fediverse.RequestActorByID(report.ActorID)
+		if err != nil {
+			log.Printf("Couldn't fetch actor: %s\n", err)
+			return
+		}
+		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
+			slog.Error("Failed to verify signature", "actorID", report.ActorID)
+			return
+		}
+
 		log.Printf("%s deleted the bookmark %s.\n", report.ActorID, report.BookmarkID)
 		db.DeleteRemoteBookmark(report.BookmarkID)
 
 	case activities.UndoAnnounceReport:
-		log.Printf("%s revoked their repost of %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
-		jobs.ScheduleJSON(jobtype.ReceiveUndoAnnounce, report)
+		_, err := fediverse.RequestActorByID(report.ActorID)
+		if err != nil {
+			log.Printf("Couldn't fetch actor: %s\n", err)
+			return
+		}
+		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
+			slog.Error("Failed to verify signature", "actorID", report.ActorID)
+			return
+		}
+
+		event := remarkingports.EventLegacyUnremark{
+			ActorID:    report.ActorID,
+			AnnounceID: report.AnnounceID,
+			ObjectID:   report.ObjectID,
+		}
+		if err = svcRemarking.ReceiveLegacyUnremark(rq.Context(), event); err != nil {
+			slog.Error("Failed to receive legacy unremark", "err", err, "event", event)
+		}
 
 	case activities.AnnounceReport:
-		log.Printf("%s reposted %s at %s\n", report.ReposterUsername, report.OriginalPage, report.RepostPage)
-		jobs.ScheduleJSON(jobtype.ReceiveAnnounce, report)
+		_, err := fediverse.RequestActorByID(report.ActorID)
+		if err != nil {
+			log.Printf("Couldn't fetch actor: %s\n", err)
+			return
+		}
+		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
+			slog.Error("Failed to verify signature", "actorID", report.ActorID)
+			return
+		}
+
+		event := remarkingports.EventLegacyRemark{
+			ActorID:    report.ActorID,
+			AnnounceID: report.AnnounceID,
+			ObjectID:   report.ObjectID,
+		}
+		if err = svcRemarking.ReceiveLegacyRemark(rq.Context(), event); err != nil {
+			slog.Error("Failed to receive legacy remark", "err", err, "event", event)
+		}
 
 	case activities.UndoFollowReport:
 		// We'll schedule no job because we are making no network request to handle this.
@@ -603,9 +646,9 @@ func postUnrepost(w http.ResponseWriter, rq *http.Request) {
 	if settings.FederationEnabled() {
 		jobs.ScheduleJSON(jobtype.SendUndoAnnounce, activities.UndoAnnounceReport{
 			AnnounceReport: activities.AnnounceReport{
-				ReposterUsername: settings.AdminUsername(),
-				RepostPage:       fmt.Sprintf("%s/%d", settings.SiteURL(), bookmark.ID),
-				OriginalPage:     originalPage,
+				ActorID:    settings.AdminUsername(),
+				AnnounceID: fmt.Sprintf("%s/%d", settings.SiteURL(), bookmark.ID),
+				ObjectID:   originalPage,
 			},
 		})
 	}
@@ -676,7 +719,7 @@ reposting:
 	id := db.InsertBookmark(*bookmark)
 
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
-	if settings.FederationEnabled() {
+	if settings.FederationEnabled() && formData.Visibility == types.Public {
 		jobs.ScheduleDatum(jobtype.SendAnnounce, id)
 	}
 }
