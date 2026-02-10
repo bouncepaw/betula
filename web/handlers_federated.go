@@ -18,6 +18,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"net/url"
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
@@ -29,7 +30,6 @@ import (
 	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
-	"git.sr.ht/~bouncepaw/betula/readpage"
 	"git.sr.ht/~bouncepaw/betula/search"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -514,7 +514,7 @@ func getWebFinger(w http.ResponseWriter, rq *http.Request) {
   ]
 }`, expected, settings.SiteURL(), adminUsername)
 	w.Header().Set("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
-	if _, err := fmt.Fprintf(w, doc); err != nil {
+	if _, err := fmt.Fprint(w, doc); err != nil {
 		log.Printf("Error when serving WebFinger: %s\n", err)
 	}
 }
@@ -610,7 +610,7 @@ func getWellKnownNodeInfo(w http.ResponseWriter, rq *http.Request) {
 		]
 	}`
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprintf(w, fmt.Sprintf(doc, settings.SiteURL())); err != nil {
+	if _, err := fmt.Fprint(w, fmt.Sprintf(doc, settings.SiteURL())); err != nil {
 		log.Printf("Error when serving /.well-known/nodeinfo: %s\n", err)
 	}
 }
@@ -663,7 +663,6 @@ type dataRepost struct {
 	ErrorTimeout bool
 	Err error
 
-	FoundData  readpage.FoundData
 	URL        string
 	Visibility types.Visibility
 	CopyTags   bool
@@ -700,10 +699,14 @@ fetchRemoteBookmark:
 	bookmark, err := fediverse.FetchBookmarkAsRepost(formData.URL)
 	if errors.Is(err, fediverse.ErrNotBookmark) {
 		formData.ErrorImpossible = true
-	} else if errors.Is(err, readpage.ErrTimeout) {
-		formData.ErrorTimeout = true
 	} else if err != nil {
-		formData.Err = err
+		// Check if it's a timeout error
+		var urlErr *url.Error
+		if errors.As(err, &urlErr) && urlErr.Timeout() {
+			formData.ErrorTimeout = true
+		} else {
+			formData.Err = err
+		}
 	} else {
 		goto reposting
 	}

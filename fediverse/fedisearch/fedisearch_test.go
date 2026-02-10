@@ -16,7 +16,7 @@ func TestState_RequestsToMake(t *testing.T) {
 	// NOTE(bouncepaw): this very special seed was used to pick
 	// test values very precisely. I pray nothing ever breaks,
 	// because changing the test values would be a chore.
-	rand.Seed(0b0111001101100001011011000110000101101101)
+	rand.New(rand.NewSource(0b0111001101100001011011000110000101101101))
 
 	type fields struct {
 		query    string

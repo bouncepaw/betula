@@ -30,7 +30,8 @@ test: clean betula
 	go test ./types
 	go test ./feeds
 	go test ./pkg/httpsig
-	go test ./readpage
+	go test ./web
+	go test ./gateways/www
 	go test ./fediverse/activities
 	sh test-web.sh
 	killall betula
