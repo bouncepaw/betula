@@ -6,10 +6,11 @@
 package myco
 
 import (
+	"html/template"
+
 	"git.sr.ht/~bouncepaw/mycomarkup/v5"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/options"
-	"html/template"
 )
 
 var opts = options.Options{

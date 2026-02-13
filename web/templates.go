@@ -13,11 +13,6 @@ package web
 
 import (
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/auth"
-	"git.sr.ht/~bouncepaw/betula/myco"
-	"git.sr.ht/~bouncepaw/betula/settings"
-	notiftypes "git.sr.ht/~bouncepaw/betula/svc/notif"
-	"git.sr.ht/~bouncepaw/betula/types"
 	"html/template"
 	"log"
 	"log/slog"
@@ -25,6 +20,12 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/auth"
+	"git.sr.ht/~bouncepaw/betula/pkg/myco"
+	"git.sr.ht/~bouncepaw/betula/settings"
+	notiftypes "git.sr.ht/~bouncepaw/betula/svc/notif"
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 /*

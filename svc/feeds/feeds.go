@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/myco"
+	"git.sr.ht/~bouncepaw/betula/pkg/myco"
 	"git.sr.ht/~bouncepaw/betula/pkg/rss"
 	feedsports "git.sr.ht/~bouncepaw/betula/ports/feeds"
 	"git.sr.ht/~bouncepaw/betula/settings"

@@ -8,7 +8,10 @@ package fediverse
 
 import (
 	"bytes"
+
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
+	"git.sr.ht/~bouncepaw/betula/pkg/myco"
+
 	"io"
 	"log"
 	"log/slog"
@@ -16,7 +19,6 @@ import (
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/myco"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )

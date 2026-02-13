@@ -14,10 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 	"golang.org/x/net/html"
 
-	"git.sr.ht/~bouncepaw/betula/myco"
+	"git.sr.ht/~bouncepaw/betula/pkg/myco"
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )

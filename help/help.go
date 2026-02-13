@@ -9,9 +9,10 @@ package help
 
 import (
 	"embed"
-	"git.sr.ht/~bouncepaw/betula/myco"
 	"html/template"
 	"log"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/myco"
 )
 
 type Topic struct {
