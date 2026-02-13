@@ -28,17 +28,18 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~bouncepaw/betula/feeds"
 	"git.sr.ht/~bouncepaw/betula/gateways/activitypub"
 	wwwgw "git.sr.ht/~bouncepaw/betula/gateways/www"
 	"git.sr.ht/~bouncepaw/betula/pkg/rss"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
+	feedsports "git.sr.ht/~bouncepaw/betula/ports/feeds"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/notif"
 	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
 	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	"git.sr.ht/~bouncepaw/betula/svc/archiving"
+	"git.sr.ht/~bouncepaw/betula/svc/feeds"
 	likingsvc "git.sr.ht/~bouncepaw/betula/svc/liking"
 	"git.sr.ht/~bouncepaw/betula/svc/notif"
 	remarkingsvc "git.sr.ht/~bouncepaw/betula/svc/remarking"
@@ -74,6 +75,7 @@ var (
 		repoNotif,
 		activityPub)
 	svcRemarking remarkingports.Service = remarkingsvc.New(activityPub)
+	svcFeeds     feedsports.Service     = feedssvc.New()
 
 	repoLike           = db.NewLikeRepo()
 	repoLikeCollection = db.NewLikeCollectionRepo()
@@ -97,8 +99,8 @@ func init() {
 	mux.HandleFunc("GET /help/en/", getEnglishHelp)
 	mux.HandleFunc("GET /help", getHelp)
 	mux.HandleFunc("GET /text/{id}", getText)
-	mux.HandleFunc("GET /digest-rss", getDigestRss)
-	mux.HandleFunc("GET /posts-rss", getPostsRss)
+	mux.HandleFunc("GET /digest-rss", getDigestRSS)
+	mux.HandleFunc("GET /posts-rss", getBookmarksRSS)
 	mux.HandleFunc("GET /go/{id}", getGo)
 	mux.HandleFunc("GET /about", getAbout)
 
@@ -621,20 +623,26 @@ func getText(w http.ResponseWriter, rq *http.Request) {
 	_, _ = io.WriteString(w, bookmark.Description)
 }
 
-func writeFeed(fd *rss.Feed, w http.ResponseWriter) {
-	err := fd.Write(w)
+func writeFeed(svcMethod func() (*rss.Feed, error), w http.ResponseWriter) {
+	feed, err := svcMethod()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = io.WriteString(w, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = feed.Write(w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
-func getPostsRss(w http.ResponseWriter, _ *http.Request) {
-	writeFeed(feeds.Posts(), w)
+func getBookmarksRSS(w http.ResponseWriter, _ *http.Request) {
+	writeFeed(svcFeeds.BookmarksFeed, w)
 }
 
-func getDigestRss(w http.ResponseWriter, _ *http.Request) {
-	writeFeed(feeds.Digest(), w)
+func getDigestRSS(w http.ResponseWriter, _ *http.Request) {
+	writeFeed(svcFeeds.DigestFeed, w)
 }
 
 var dayStampRegex = regexp.MustCompile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")

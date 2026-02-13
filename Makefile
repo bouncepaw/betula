@@ -28,7 +28,7 @@ clean:
 test: clean betula
 	go test ./db
 	go test ./types
-	go test ./feeds
+	go test ./svc/feeds
 	go test ./pkg/httpsig
 	go test ./web
 	go test ./gateways/www
