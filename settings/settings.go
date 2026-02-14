@@ -20,10 +20,10 @@ import (
 	"log"
 	"net/url"
 
+	"git.sr.ht/~bouncepaw/betula/pkg/myco"
 	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 
 	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/myco"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 

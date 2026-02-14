@@ -2,7 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package tools
+// Package slicks provides slice tricks.
+package slicks
 
 func insertElement[T any](array []T, value T, index int) []T {
 	return append(array[:index], append([]T{value}, array[index:]...)...)

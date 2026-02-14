@@ -30,7 +30,6 @@ import (
 	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
-	"git.sr.ht/~bouncepaw/betula/search"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -799,7 +798,7 @@ func postFediSearchAPI(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	var bookmarks, totalResults = search.ForFederated(req.Query, uint(req.Offset), uint(req.Limit))
+	var bookmarks, totalResults = svcSearching.ForFederated(req.Query, uint(req.Offset), uint(req.Limit))
 	var moreAvailable = int(totalResults) - len(bookmarks) - req.Offset
 	if moreAvailable < 0 {
 		moreAvailable = 0 // just in case
