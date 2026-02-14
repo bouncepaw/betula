@@ -42,11 +42,11 @@ import (
 	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	"git.sr.ht/~bouncepaw/betula/svc/archiving"
 	"git.sr.ht/~bouncepaw/betula/svc/feeds"
-	helpingsvc "git.sr.ht/~bouncepaw/betula/svc/help"
+	helpingsvc "git.sr.ht/~bouncepaw/betula/svc/helping"
 	likingsvc "git.sr.ht/~bouncepaw/betula/svc/liking"
 	"git.sr.ht/~bouncepaw/betula/svc/notif"
 	remarkingsvc "git.sr.ht/~bouncepaw/betula/svc/remarking"
-	searchsvc "git.sr.ht/~bouncepaw/betula/svc/search"
+	searchsvc "git.sr.ht/~bouncepaw/betula/svc/searching"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 
 	"git.sr.ht/~bouncepaw/betula/auth"
