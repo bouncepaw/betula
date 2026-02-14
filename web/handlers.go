@@ -37,12 +37,14 @@ import (
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/notif"
 	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
+	searchingports "git.sr.ht/~bouncepaw/betula/ports/searching"
 	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	"git.sr.ht/~bouncepaw/betula/svc/archiving"
 	"git.sr.ht/~bouncepaw/betula/svc/feeds"
 	likingsvc "git.sr.ht/~bouncepaw/betula/svc/liking"
 	"git.sr.ht/~bouncepaw/betula/svc/notif"
 	remarkingsvc "git.sr.ht/~bouncepaw/betula/svc/remarking"
+	"git.sr.ht/~bouncepaw/betula/svc/search"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 
 	"git.sr.ht/~bouncepaw/betula/auth"
@@ -52,7 +54,6 @@ import (
 	"git.sr.ht/~bouncepaw/betula/help"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
-	"git.sr.ht/~bouncepaw/betula/search"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -76,6 +77,7 @@ var (
 		activityPub)
 	svcRemarking remarkingports.Service = remarkingsvc.New(activityPub)
 	svcFeeds     feedsports.Service     = feedssvc.New()
+	svcSearching searchingports.Service = searchingsvc.New()
 
 	repoLike           = db.NewLikeRepo()
 	repoLikeCollection = db.NewLikeCollectionRepo()
@@ -591,7 +593,7 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 
 	authed := auth.AuthorizedFromRequest(rq)
 	currentPage := extractPage(rq)
-	bookmarks, totalBookmarks := search.For(query, authed, currentPage)
+	bookmarks, totalBookmarks := svcSearching.For(query, authed, currentPage)
 
 	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
 	if err := svcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
