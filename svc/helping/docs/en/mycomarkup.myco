@@ -75,7 +75,7 @@ As you can see, the markup examples are shown with quotes in this document as we
 You can quote any Mycomarkup text and nest quotes indefinitely.
 
 == Rocket links
-**Rocket links** are cooler links that are shown on a separate line. Usually used as a 'see also'-like thing. The linking rules are the same as for the inline links:
+**Rocket links** are cooler links that are shown on a separate line. Usually used as a “see also”-like thing. The linking rules are the same as for the inline links:
 
 ```myco
 => /4

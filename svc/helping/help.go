@@ -9,7 +9,6 @@ package helpingsvc
 
 import (
 	"embed"
-	"html/template"
 	"log"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
@@ -19,18 +18,6 @@ import (
 //go:embed docs/en/*
 var english embed.FS
 
-var topicDefs = []struct {
-	name         string
-	sidebarTitle string
-}{
-	{"index", "Betula introduction"},
-	{"meta", "Metainformation"},
-	{"mycomarkup", "Mycomarkup formatting"},
-	{"search", "Advanced search"},
-	{"errors", "Error codes"},
-	{"miniflux", "Miniflux integration"},
-}
-
 type Service struct {
 	topics []helpingports.Topic
 }
@@ -38,6 +25,18 @@ type Service struct {
 var _ helpingports.Service = &Service{}
 
 func New() *Service {
+	topicDefs := []struct {
+		name         string
+		sidebarTitle string
+	}{
+		{"index", "Betula introduction"},
+		{"meta", "Metainformation"},
+		{"mycomarkup", "Mycomarkup formatting"},
+		{"search", "Advanced search"},
+		{"errors", "Error codes"},
+		{"miniflux", "Miniflux integration"},
+	}
+
 	topics := make([]helpingports.Topic, len(topicDefs))
 	for i, def := range topicDefs {
 		raw, err := english.ReadFile("docs/en/" + def.name + ".myco")
@@ -47,7 +46,7 @@ func New() *Service {
 		topics[i] = helpingports.Topic{
 			Name:         def.name,
 			SidebarTitle: def.sidebarTitle,
-			Rendered:     template.HTML(myco.MarkupToHTML(string(raw))),
+			Rendered:     myco.MarkupToHTML(string(raw)),
 		}
 	}
 	return &Service{topics: topics}
