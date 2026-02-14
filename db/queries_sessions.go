@@ -7,9 +7,11 @@
 package db
 
 import (
-	"git.sr.ht/~bouncepaw/betula/tools"
-	ua "github.com/mileusna/useragent"
 	"time"
+
+	ua "github.com/mileusna/useragent"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/ticks"
 
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -60,7 +62,7 @@ func Sessions() (sessions []types.Session) {
 				continue
 			}
 		}
-		session.LastSeen = tools.LastSeen(creationTime, time.Now())
+		session.LastSeen = ticks.LastSeen(creationTime, time.Now())
 		sessions = append(sessions, session)
 	}
 	return sessions

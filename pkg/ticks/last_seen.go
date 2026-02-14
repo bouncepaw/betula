@@ -2,7 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package tools
+// Package ticks provises time tricks.
+package ticks
 
 import (
 	"fmt"
@@ -10,7 +11,6 @@ import (
 )
 
 func LastSeen(from, to time.Time) string {
-
 	format := func(s string, count int) string {
 		return fmt.Sprintf("%s ago", pluralize(s, count))
 	}

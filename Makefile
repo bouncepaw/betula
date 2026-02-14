@@ -30,6 +30,7 @@ test: clean betula
 	go test ./types
 	go test ./svc/feeds
 	go test ./pkg/httpsig
+	go test ./pkg/ticks
 	go test ./web
 	go test ./gateways/www
 	go test ./fediverse/activities
