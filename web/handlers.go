@@ -34,6 +34,7 @@ import (
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
 	feedsports "git.sr.ht/~bouncepaw/betula/ports/feeds"
+	helpingports "git.sr.ht/~bouncepaw/betula/ports/helping"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/notif"
 	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
@@ -41,17 +42,17 @@ import (
 	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	"git.sr.ht/~bouncepaw/betula/svc/archiving"
 	"git.sr.ht/~bouncepaw/betula/svc/feeds"
+	helpingsvc "git.sr.ht/~bouncepaw/betula/svc/help"
 	likingsvc "git.sr.ht/~bouncepaw/betula/svc/liking"
 	"git.sr.ht/~bouncepaw/betula/svc/notif"
 	remarkingsvc "git.sr.ht/~bouncepaw/betula/svc/remarking"
-	"git.sr.ht/~bouncepaw/betula/svc/search"
+	searchsvc "git.sr.ht/~bouncepaw/betula/svc/search"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
-	"git.sr.ht/~bouncepaw/betula/help"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/settings"
@@ -77,7 +78,8 @@ var (
 		activityPub)
 	svcRemarking remarkingports.Service = remarkingsvc.New(activityPub)
 	svcFeeds     feedsports.Service     = feedssvc.New()
-	svcSearching searchingports.Service = searchingsvc.New()
+	svcSearching searchingports.Service = searchsvc.New()
+	svcHelping   helpingports.Service   = helpingsvc.New()
 
 	repoLike           = db.NewLikeRepo()
 	repoLikeCollection = db.NewLikeCollectionRepo()
@@ -489,8 +491,8 @@ func getHelp(w http.ResponseWriter, rq *http.Request) {
 
 type dataHelp struct {
 	*dataCommon
-	This   help.Topic
-	Topics []help.Topic
+	This   helpingports.Topic
+	Topics []helpingports.Topic
 }
 
 func getEnglishHelp(w http.ResponseWriter, rq *http.Request) {
@@ -498,7 +500,7 @@ func getEnglishHelp(w http.ResponseWriter, rq *http.Request) {
 	if topicName == "/help/en" || topicName == "/" {
 		topicName = "index"
 	}
-	topic, found := help.GetEnglishHelp(topicName)
+	topic, found := svcHelping.GetEnglishHelp(topicName)
 	if !found {
 		handlerNotFound(w, rq)
 		return
@@ -507,7 +509,7 @@ func getEnglishHelp(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateHelp, dataHelp{
 		dataCommon: emptyCommon(),
 		This:       topic,
-		Topics:     help.Topics,
+		Topics:     svcHelping.AllTopics(),
 	})
 }
 
