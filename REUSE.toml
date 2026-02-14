@@ -1,4 +1,6 @@
 version = 1
+
+# TODO: make these strict and correct too.
 [[annotations]]
 path = [
     "LICENSE",
@@ -6,11 +8,18 @@ path = [
     "go.mod",
     "go.sum",
     "**/*.md",
-    "**/*.png",
-    "**/*.svg",
     "**/*.myco",
     "**/*.json",
     "**/*.gohtml",
 ]
-SPDX-FileCopyrightText = "2022-2025 Betula contributors"
+SPDX-FileCopyrightText = "2022-2026 Betula contributors"
 SPDX-License-Identifier = "AGPL-3.0-only"
+
+[[annotations]]
+path = [
+    "web/pix/favicon*",
+    "web/pix/icon*",
+    "web/pix/logo.svg",
+]
+SPDX-FileCopyrightText = "none"
+SPDX-License-Identifier = "CC0-1.0"

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Danila Gorelko
 // SPDX-FileCopyrightText: 2023 ninedraft
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
-// SPDX-FileCopyrightText: 2023 Umar Getagazov
+// SPDX-FileCopyrightText: 2023 Umar Getagazov <umar@handlerug.me>
 // SPDX-FileCopyrightText: 2024 Danila Gorelko
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Danila Gorelko

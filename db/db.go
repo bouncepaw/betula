@@ -1,4 +1,8 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2022 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2023 Danila Gorelko
+// SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2024 Danila Gorelko
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 

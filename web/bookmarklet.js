@@ -1,11 +1,6 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2023 Umar Getagazov <umar@handlerug.me>
 //
-// SPDX-License-Identifier: AGPL-3.0-only
-
-// Save link bookmarklet for Betula
-// 2023 Umar Getagazov <umar@handlerug.me>
-// Public domain, but attribution appreciated.
-// https://handlerug.me/betula-save-bookmarklet
+// SPDX-License-Identifier: LicenseRef-handlerug-0BSD
 
 (($) => {
     function getSelectionInMycomarkup() {

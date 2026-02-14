@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2025 Guilherme Puida Moreira
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
