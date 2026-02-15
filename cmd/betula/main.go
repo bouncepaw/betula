@@ -21,8 +21,6 @@ import (
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/web"
 	_ "git.sr.ht/~bouncepaw/betula/web" // For init()
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {

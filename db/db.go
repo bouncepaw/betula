@@ -17,14 +17,16 @@ import (
 	"database/sql"
 	"log"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/ncruces/go-sqlite3/driver"
+	_ "github.com/ncruces/go-sqlite3/embed"
 )
 
 // Initialize opens a SQLite3 database with the given filename. The connection is encapsulated, you cannot access the database directly, you are to use the functions provided by the package.
 func Initialize(filename string) {
 	var err error
 
-	db, err = sql.Open("sqlite3", filename+"?cache=shared")
+	// ncruces version does not support +"?cache=shared"
+	db, err = sql.Open("sqlite3", filename)
 	if err != nil {
 		log.Fatalln(err)
 	}

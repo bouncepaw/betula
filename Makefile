@@ -2,10 +2,9 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-export CGO_CFLAGS="-D_LARGEFILE64_SOURCE"
-export CGO_ENABLED=1
+export CGO_ENABLED=0
 
-.PHONY: betula debug-run run-with-port clean test
+.PHONY: betula debug-run run-with-port clean test lint lint-fix
 
 betula:
 	go build -o betula ./cmd/betula
