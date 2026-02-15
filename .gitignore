@@ -1,5 +1,6 @@
 betula
 *.betula
+dst
 .idea/
 **/.DS_Store
 coverage
