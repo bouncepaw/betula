@@ -6,6 +6,7 @@ package apports
 
 import (
 	"context"
+
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -16,6 +17,7 @@ type (
 		LocalBookmarkIDFromActivityPubID(id string) (int, error)
 		ActorByID(ctx context.Context, actorID string, opts GetActorsOpts) (Actor, error)
 		BroadcastToFollowers(ctx context.Context, activity []byte) error
+		RefetchAllActors(ctx context.Context) error
 	}
 
 	Actor interface {
@@ -35,8 +37,10 @@ type (
 		GetActorByID(ctx context.Context, id string, opts GetActorsOpts) (types.Actor, error)
 		StoreActor(ctx context.Context, actor types.Actor) error
 		GetFollowers(context.Context) ([]types.Actor, error)
+		AllActorIDs(context.Context) ([]string, error)
 	}
 	GetActorsOpts struct {
 		GetPublicKey bool
+		// FIXME: remove this thing, always get the key.
 	}
 )

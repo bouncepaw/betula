@@ -253,7 +253,13 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 	case activities.UpdateNoteReport:
-		if !db.RemoteBookmarkIsStored(report.Bookmark.ID) {
+		exists, err := repoRemoteBookmark.Exists(report.Bookmark.ID)
+		if err != nil {
+			slog.Error("Failed to check if bookmark exists", "err", err, "bookmarkID", report.Bookmark.ID)
+			return
+		}
+
+		if !exists {
 			// TODO: maybe store them?
 			slog.Info("Received update for unknown bookmark, ignoring", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
 			return
@@ -291,7 +297,10 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 		slog.Info("Deleted remote bookmark", "actorID", report.ActorID, "bookmarkID", report.BookmarkID)
-		db.DeleteRemoteBookmark(report.BookmarkID)
+		err = repoRemoteBookmark.Delete(rq.Context(), report.BookmarkID)
+		if err != nil {
+			slog.Error("Failed to delete remote bookmark", "err", err)
+		}
 
 	case activities.UndoAnnounceReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
@@ -825,4 +834,20 @@ func postFediSearchAPI(w http.ResponseWriter, rq *http.Request) {
 	if err != nil {
 		slog.Error("Failed to write response", "err", err)
 	}
+}
+
+func postRefetchActors(w http.ResponseWriter, rq *http.Request) {
+	err := activityPub.RefetchAllActors(rq.Context())
+	if err != nil {
+		slog.Error("Failed to refetch all actors", "err", err)
+		http.Error(
+			w,
+			fmt.Sprintf("Failed to refetch all actors: %s", err.Error()),
+			http.StatusInternalServerError,
+		)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	_, err = w.Write([]byte("OK"))
 }

@@ -62,6 +62,24 @@ limit 1`, id)
 	return actor, err
 }
 
+func (repo *ActorRepo) AllActorIDs(ctx context.Context) ([]string, error) {
+	rows, err := db.QueryContext(ctx, `select ID from Actors`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var actorIDs []string
+	for rows.Next() {
+		var actorID string
+		if err = rows.Scan(&actorID); err != nil {
+			return nil, err
+		}
+		actorIDs = append(actorIDs, actorID)
+	}
+	return actorIDs, nil
+}
+
 func (repo *ActorRepo) StoreActor(ctx context.Context, a types.Actor) error {
 	if !a.Valid() {
 		return fmt.Errorf("invalid actor")

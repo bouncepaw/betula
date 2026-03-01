@@ -42,9 +42,9 @@ func TestState_RequestsToMake(t *testing.T) {
 			},
 			[]Request{
 				{"v1", "A", 15, 0, "Betulizer", "Alice"},
-				{"v1", "A", 15, 0, "Betulizer", "Bob"},
+				{"v1", "A", 20, 0, "Betulizer", "Bob"},
 				{"v1", "A", 15, 0, "Betulizer", "Charlie"},
-				{"v1", "A", 20, 0, "Betulizer", "David"},
+				{"v1", "A", 15, 0, "Betulizer", "David"},
 			},
 		},
 		{

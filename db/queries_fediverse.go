@@ -79,17 +79,6 @@ offset (? * (? - 1))
 	return
 }
 
-func RemoteBookmarkIsStored(bid string) (isStored bool) {
-	rows := mustQuery(`select 1 from RemoteBookmarks where ID = ?`, bid)
-	isStored = rows.Next()
-	_ = rows.Close()
-	return
-}
-
-func DeleteRemoteBookmark(bid string) {
-	mustExec(`delete from RemoteBookmarks where ID = ?`, bid)
-}
-
 func InsertRemoteBookmark(b types.RemoteBookmark) {
 	mustExec(`
 insert into RemoteBookmarks

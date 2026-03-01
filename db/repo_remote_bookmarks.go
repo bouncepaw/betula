@@ -5,13 +5,19 @@
 package db
 
 import (
+	"context"
+
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
+	remotebookmarksports "git.sr.ht/~bouncepaw/betula/ports/remotebookmarks"
 )
 
 type RepoRemoteBookmarks struct {
 }
 
-var _ apports.RemoteBookmarkRepository = &RepoRemoteBookmarks{}
+var (
+	_ apports.RemoteBookmarkRepository              = &RepoRemoteBookmarks{}
+	_ remotebookmarksports.RemoteBookmarkRepository = &RepoRemoteBookmarks{}
+)
 
 func NewRemoteBookmarkRepo() *RepoRemoteBookmarks {
 	return &RepoRemoteBookmarks{}
@@ -34,6 +40,11 @@ func (repo *RepoRemoteBookmarks) GetActorIDFor(bookmarkID string) (string, error
 	var actorID string
 	err := row.Scan(&actorID)
 	return actorID, err
+}
+
+func (repo *RepoRemoteBookmarks) Delete(ctx context.Context, bookmarkID string) error {
+	_, err := db.ExecContext(ctx, `delete from RemoteBookmarks where ID = ?`, bookmarkID)
+	return err
 }
 
 // TODO: port old queries to this repo

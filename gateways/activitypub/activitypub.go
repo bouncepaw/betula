@@ -31,6 +31,23 @@ type ActivityPub struct {
 	httpClient *http.Client
 }
 
+var _ apports.ActivityPub = &ActivityPub{}
+
+func NewActivityPub(
+	actorRepo apports.ActorRepository,
+	remoteBookmarkRepo apports.RemoteBookmarkRepository,
+) *ActivityPub {
+	return &ActivityPub{
+		actorRepo:          actorRepo,
+		remoteBookmarkRepo: remoteBookmarkRepo,
+
+		logger: slog.Default(),
+		httpClient: &http.Client{
+			Timeout: time.Second * 5,
+		},
+	}
+}
+
 func (ap *ActivityPub) BroadcastToFollowers(
 	ctx context.Context,
 	activity []byte,
@@ -69,23 +86,6 @@ func (ap *ActivityPub) BroadcastToFollowers(
 	ap.logger.Info("Broadcasted to followers",
 		"success", succSends.Load(), "total", len(followers))
 	return nil
-}
-
-var _ apports.ActivityPub = &ActivityPub{}
-
-func NewActivityPub(
-	actorRepo apports.ActorRepository,
-	remoteBookmarkRepo apports.RemoteBookmarkRepository,
-) *ActivityPub {
-	return &ActivityPub{
-		actorRepo:          actorRepo,
-		remoteBookmarkRepo: remoteBookmarkRepo,
-
-		logger: slog.Default(),
-		httpClient: &http.Client{
-			Timeout: time.Second * 5,
-		},
-	}
 }
 
 func (ap *ActivityPub) AuthorOfRemoteBookmark(remoteBookmarkID string) (apports.Actor, error) {
@@ -142,4 +142,34 @@ func (ap *ActivityPub) ActorByID(
 	}
 
 	return newActor(actorDTO), nil
+}
+
+func (ap *ActivityPub) RefetchAllActors(ctx context.Context) error {
+	actorIDs, err := ap.actorRepo.AllActorIDs(ctx)
+	if err != nil {
+		return err
+	}
+
+	ap.logger.Info("Refetching all actors...", "count", len(actorIDs))
+
+	for _, actorID := range actorIDs {
+		actorDTO, derefErr := ap.dereferenceActorID(actorID)
+		if derefErr != nil {
+			ap.logger.Warn("Failed to dereference actor", "id", actorID, "err", derefErr)
+			err = errors.Join(err, derefErr)
+			continue
+		}
+
+		repoErr := ap.actorRepo.StoreActor(ctx, actorDTO)
+		if repoErr != nil {
+			ap.logger.Warn("Failed to store actor after dereferencing", "id", actorID, "err", repoErr)
+			err = errors.Join(err, repoErr)
+			continue
+		}
+
+		ap.logger.Info("Refetched actor", "actor", actorDTO)
+	}
+
+	ap.logger.Info("Done refetching", "count", len(actorIDs), "err", err)
+	return err
 }

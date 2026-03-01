@@ -192,6 +192,10 @@ func init() {
 	// The service worker needs to be served from the page root to be registered with the correct scope.
 	mux.HandleFunc("GET /service-worker.js", adminOnly(getServiceWorker))
 	mux.HandleFunc("GET /manifest.json", getManifest)
+
+	// Experimental. These endpoints will most likely be changed drastically
+	// or removed in future versions.
+	mux.HandleFunc("/experimental/refetch-actors", adminOnly(federatedOnly(postRefetchActors)))
 }
 
 // Handlers directly related to federation go to handlers_federated.go.
