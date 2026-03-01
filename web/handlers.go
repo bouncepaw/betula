@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -397,20 +397,20 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 
 	switch {
 	case isRemote && !authed:
-		log.Printf("Unauthorized request of remote profile @%s, rejecting\n", userAtHost)
+		slog.Warn("Unauthorized request of remote profile, rejecting", "userAtHost", userAtHost)
 		handlerUnauthorized(w, rq)
 
 	case isRemote && wantsActivity:
 		w.Header().Set("Content-Type", types.ActivityType)
-		log.Printf("Request remote user %s@%s as an activity, rejecting (HTML only)\n", user, host)
+		slog.Info("Request remote user as activity, rejecting (HTML only)", "user", user, "host", host)
 		handlerNotFound(w, rq)
 
 	case isRemote && !wantsActivity:
-		log.Printf("Request remote user @%s@%s as a page\n", user, host)
+		slog.Info("Request remote user as page", "user", user, "host", host)
 
 		actor, err := fediverse.RequestActorByNickname(fmt.Sprintf("%s@%s", user, host))
 		if err != nil {
-			log.Printf("While fetching %s@%s profile, got the error: %s\n", user, host, err)
+			slog.Error("While fetching remote profile", "user", user, "host", host, "err", err)
 			handlerNotFound(w, rq)
 			return
 		}
@@ -435,14 +435,14 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		})
 
 	case !isRemote && userAtHost != ourUsername:
-		log.Printf("Request local user @%s, not found\n", userAtHost)
+		slog.Info("Request local user, not found", "userAtHost", userAtHost)
 		handlerNotFound(w, rq)
 	case !isRemote && wantsActivity:
-		log.Printf("Request info about you as an activity\n")
+		slog.Info("Request info about you as an activity")
 		w.Header().Set("Content-Type", types.ActivityType)
 		handlerActor(w, rq)
 	case !isRemote && !wantsActivity:
-		log.Println("Viewing your profile")
+		slog.Info("Viewing your profile")
 		getMyProfile(w, rq)
 	}
 }
@@ -548,17 +548,20 @@ func getStyle(w http.ResponseWriter, rq *http.Request) {
 	file, err := fs.Open("style.css")
 	if err != nil {
 		// We sure have problems if we can't read something from the embedded fs.
-		log.Fatalln(fmt.Errorf("reading the built-in style: %w", err))
+		slog.Error("Failed to read built-in style", "err", err)
+		os.Exit(1)
 	}
 
 	_, err = io.Copy(w, file)
 	if err != nil {
-		log.Fatalln(fmt.Errorf("writing to response: %w", err))
+		slog.Error("Failed to write style to response", "err", err)
+		os.Exit(1)
 	}
 
 	_, err = io.WriteString(w, settings.CustomCSS())
 	if err != nil {
-		log.Fatalln(fmt.Errorf("writing custom CSS: %w", err))
+		slog.Error("Failed to write custom CSS", "err", err)
+		os.Exit(1)
 	}
 
 	// Look at how detailed my error messages are! In a function that will
@@ -606,7 +609,7 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 	common := emptyCommon()
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalBookmarks)
 	common.searchQuery = query
-	log.Printf("Searching ‘%s’. Authorized: %v\n", query, authed)
+	slog.Info("Searching", "query", query, "authorized", authed)
 	templateExec(w, rq, templateSearch, dataSearch{
 		dataCommon:           common,
 		Query:                query,
@@ -621,7 +624,7 @@ func getText(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	log.Printf("Fetching text for bookmark no. %d\n", bookmark.ID)
+	slog.Info("Fetching text for bookmark", "bookmarkID", bookmark.ID)
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = io.WriteString(w, bookmark.Description)
@@ -766,7 +769,7 @@ func postDeleteBookmark(w http.ResponseWriter, rq *http.Request) {
 	bookmark, found := db.GetBookmarkByID(id)
 
 	if !found {
-		log.Println("Trying to delete a non-existent bookmark.")
+		slog.Info("Trying to delete a non-existent bookmark")
 		handlerNotFound(w, rq)
 		return
 	}
@@ -781,7 +784,7 @@ func postDeleteBookmark(w http.ResponseWriter, rq *http.Request) {
 			}
 			data, err := activities.DeleteNote(bookmark.ID)
 			if err != nil {
-				log.Printf("When creating Delete{Note} activity for bookmark no. %d: %s\n", id, err)
+				slog.Error("Failed to create Delete{Note} activity for bookmark", "bookmarkID", id, "err", err)
 				return
 			}
 			jobs.ScheduleDatum(jobtype.SendDeleteNote, data)
@@ -834,7 +837,7 @@ func handlerBadRequest(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerNotFound(w http.ResponseWriter, rq *http.Request) {
-	log.Printf("404 Not found: %s\n", rq.URL.Path)
+	slog.Info("404 Not found", "path", rq.URL.Path)
 	w.WriteHeader(http.StatusNotFound)
 	templateExec(w, rq, templateStatus, dataAuthorized{
 		dataCommon: emptyCommon(),
@@ -843,7 +846,7 @@ func handlerNotFound(w http.ResponseWriter, rq *http.Request) {
 }
 
 func handlerUnauthorized(w http.ResponseWriter, rq *http.Request) {
-	log.Printf("401 Unauthorized: %s\n", rq.URL.Path)
+	slog.Info("401 Unauthorized", "path", rq.URL.Path)
 	w.WriteHeader(http.StatusUnauthorized)
 	templateExec(w, rq, templateStatus, dataAuthorized{
 		dataCommon: emptyCommon(),
@@ -853,7 +856,7 @@ func handlerUnauthorized(w http.ResponseWriter, rq *http.Request) {
 
 func handlerNotFederated(w http.ResponseWriter, rq *http.Request) {
 	// TODO: a proper separate error page!
-	log.Printf("404 Not found + Not federated: %s\n", rq.URL.Path)
+	slog.Info("404 Not found + Not federated", "path", rq.URL.Path)
 	w.WriteHeader(http.StatusNotFound)
 	templateExec(w, rq, templateStatus, dataAuthorized{
 		dataCommon: emptyCommon(),
@@ -913,10 +916,10 @@ func postLogin(w http.ResponseWriter, rq *http.Request) {
 }
 
 func postRegister(w http.ResponseWriter, rq *http.Request) {
-	log.Println("/register")
+	slog.Info("/register")
 	if auth.Ready() {
 		// TODO: Let admin change credentials.
-		log.Println("Cannot reregister")
+		slog.Info("Cannot reregister")
 		return
 	}
 	var (
@@ -1017,7 +1020,7 @@ func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 			// the handler never modifies the bookmark visibility, so we don't care about the past, so we only look at the current value
 			bookmark, found := db.GetBookmarkByID(id)
 			if !found {
-				log.Printf("When federating bookmark no. %d: bookmark not found\n", bookmark.ID)
+				slog.Error("Failed to federate bookmark: bookmark not found", "bookmarkID", bookmark.ID)
 				return
 			}
 			if bookmark.Visibility != types.Public {
@@ -1027,7 +1030,7 @@ func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 			// The bookmark remains public
 			data, err := activities.UpdateNote(bookmark)
 			if err != nil {
-				log.Printf("When creating Update{Note} activity for bookmark no. %d: %s\n", bookmark.ID, err)
+				slog.Error("Failed to create Update{Note} activity for bookmark", "bookmarkID", bookmark.ID, "err", err)
 				return
 			}
 			jobs.ScheduleDatum(jobtype.SendUpdateNote, data)
@@ -1129,7 +1132,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 		}
 		newTitle, err := www.TitleOfPage(bookmark.URL)
 		if err != nil {
-			log.Printf("Can't get HTML title from URL: %s\n", bookmark.URL)
+			slog.Warn("Failed to get HTML title from URL", "url", bookmark.URL, "err", err)
 			viewData.titleNotFound(*bookmark, common, w, rq)
 			return
 		}
@@ -1137,14 +1140,14 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if _, err := url.ParseRequestURI(bookmark.URL); err != nil {
-		log.Printf("Invalid URL was passed, asking again: %s\n", bookmark.URL)
+		slog.Info("Invalid URL was passed, asking again", "url", bookmark.URL, "err", err)
 		viewData.invalidUrl(*bookmark, common, w, rq)
 		return
 	}
 
 	db.EditBookmark(*bookmark)
 	http.Redirect(w, rq, fmt.Sprintf("/%d", bookmark.ID), http.StatusSeeOther)
-	log.Printf("Edited bookmark no. %d\n", bookmark.ID)
+	slog.Info("Edited bookmark", "bookmarkID", bookmark.ID)
 
 	if settings.FederationEnabled() {
 		go func(post types.Bookmark, oldVisibility types.Visibility) {
@@ -1160,7 +1163,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 			if wasPublic && !isPublic {
 				data, err := activities.DeleteNote(post.ID)
 				if err != nil {
-					log.Printf("When creating Delete{Note} activity for post no. %d: %s\n", post.ID, err)
+					slog.Error("Failed to create Delete{Note} activity for bookmark", "bookmarkID", post.ID, "err", err)
 					return
 				}
 				jobs.ScheduleDatum(jobtype.SendDeleteNote, data)
@@ -1173,7 +1176,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 			if !wasPublic && isPublic {
 				data, err := activities.CreateNote(post)
 				if err != nil {
-					log.Printf("When creating Create{Note} activity for post no. %d: %s\n", post.ID, err)
+					slog.Error("Failed to create Create{Note} activity for bookmark", "bookmarkID", post.ID, "err", err)
 					return
 				}
 				jobs.ScheduleDatum(jobtype.SendCreateNote, data)
@@ -1183,7 +1186,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 			// The post remains public
 			data, err := activities.UpdateNote(post)
 			if err != nil {
-				log.Printf("When creating Update{Note} activity for post no. %d: %s\n", post.ID, err)
+				slog.Error("Failed to create Update{Note} activity for bookmark", "bookmarkID", post.ID, "err", err)
 				return
 			}
 			jobs.ScheduleDatum(jobtype.SendUpdateNote, data)
@@ -1224,7 +1227,7 @@ func postEditTag(w http.ResponseWriter, rq *http.Request) {
 	oldTag := oldTag(rq)
 
 	if db.TagExists(newTag.Name) && merge != "true" && newTag.Name != oldTag.Name {
-		log.Printf("Trying to rename a tag %s to a taken name %s.\n", oldTag.Name, newTag.Name)
+		slog.Warn("Trying to rename a tag to a taken name", "oldTag", oldTag.Name, "newTag", newTag.Name)
 		templateExec(w, rq, templateEditTag, dataEditTag{
 			Tag:            oldTag,
 			ErrorTakenName: true,
@@ -1234,7 +1237,7 @@ func postEditTag(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if !db.TagExists(oldTag.Name) {
-		log.Printf("Trying to rename a non-existent tag %s.\n", oldTag.Name)
+		slog.Warn("Trying to rename a non-existent tag", "oldTag", oldTag.Name)
 		templateExec(w, rq, templateEditTag, dataEditTag{
 			Tag:              oldTag,
 			ErrorNonExistent: true,
@@ -1248,10 +1251,10 @@ func postEditTag(w http.ResponseWriter, rq *http.Request) {
 	db.SetTagDescription(newTag.Name, newTag.Description)
 	http.Redirect(w, rq, fmt.Sprintf("/tag/%s", newTag.Name), http.StatusSeeOther)
 	if oldTag.Name != newTag.Name {
-		log.Printf("Renamed tag %s to %s\n", oldTag.Name, newTag.Name)
+		slog.Info("Renamed tag", "oldName", oldTag.Name, "newName", newTag.Name)
 	}
 	if oldTag.Description != newTag.Description {
-		log.Printf("Set new description for tag %s\n", newTag.Name)
+		slog.Info("Set new description for tag", "tag", newTag.Name)
 	}
 }
 
@@ -1268,7 +1271,7 @@ func postDeleteTag(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if !db.TagExists(catName) {
-		log.Println("Trying to delete a non-existent tag.")
+		slog.Warn("Trying to delete a non-existent tag")
 		handlerNotFound(w, rq)
 		return
 	}
@@ -1406,7 +1409,7 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 			bookmark.CreationTime = time.Now().UTC().Format(types.TimeLayout) // It shall match the one generated in DB
 			data, err := activities.CreateNote(bookmark)
 			if err != nil {
-				log.Printf("When creating Create{Note} activity for post no. %d: %s\n", id, err)
+				slog.Error("Failed to create Create{Note} activity for bookmark", "bookmarkID", id, "err", err)
 				return
 			}
 			jobs.ScheduleDatum(jobtype.SendCreateNote, data)
@@ -1434,7 +1437,7 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 	if !ok {
 		return
 	}
-	log.Printf("Get bookmark page no. %d\n", bookmark.ID)
+	slog.Info("Get bookmark page", "bookmarkID", bookmark.ID)
 	var data = renderBookmark(*bookmark, w, rq, true)
 	templateExec(w, rq, templatePost, data)
 }
@@ -1603,14 +1606,14 @@ func getManifest(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		log.Printf("When marhalling manifest.json: %s", err)
+		slog.Error("Failed to marshal manifest.json", "err", err)
 		handlerNotFound(w, r)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := w.Write(manifest); err != nil {
-		log.Printf("When serving manifest.json: %s", err)
+		slog.Error("Failed to serve manifest.json", "err", err)
 	}
 }
 

@@ -14,7 +14,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -49,7 +49,7 @@ func ScheduleDatum(category jobtype.JobCategory, data any) {
 func ScheduleJSON(category jobtype.JobCategory, dataJSON any) {
 	data, err := json.Marshal(dataJSON)
 	if err != nil {
-		log.Printf("While scheduling a %s job: %s\n", category, err)
+		slog.Error("Failed to schedule a job", "category", category, "err", err)
 		return
 	}
 	ScheduleDatum(category, data)
@@ -59,7 +59,7 @@ func ListenAndWhisper() {
 	lateJobs := db.LoadAllJobs()
 	go func() {
 		for job := range jobch {
-			log.Printf("Received job no. %d ‘%s’\n", job.ID, job.Category)
+			slog.Info("Received job", "id", job.ID, "category", job.Category)
 			if jobber, ok := catmap[job.Category]; !ok {
 				fmt.Printf("An unhandled job category came in: %s\n", job.Category)
 			} else {
@@ -77,7 +77,7 @@ func ListenAndWhisper() {
 func SendActivityToInbox(activity []byte, inbox string) error {
 	rq, err := http.NewRequest(http.MethodPost, inbox, bytes.NewReader(activity))
 	if err != nil {
-		log.Println(err)
+		slog.Error("Failed to create request for SendActivityToInbox", "err", err)
 		return err
 	}
 
@@ -85,14 +85,14 @@ func SendActivityToInbox(activity []byte, inbox string) error {
 	rq.Header.Set("Content-Type", types.ActivityType)
 	signing.SignRequest(rq, activity)
 
-	log.Printf("Sending activity %s to %s\n", string(activity), inbox)
+	slog.Info("Sending activity to inbox", "inbox", inbox, "activity", string(activity))
 	resp, err := client.Do(rq)
 	if err != nil {
-		log.Println(err)
+		slog.Error("Failed to send activity to inbox", "err", err, "inbox", inbox)
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("Activity sent to %s returned %d status\n", inbox, resp.StatusCode)
+		slog.Warn("Sent activity returned non-OK status", "inbox", inbox, "status", resp.StatusCode)
 	}
 	return nil
 }
@@ -100,21 +100,21 @@ func SendActivityToInbox(activity []byte, inbox string) error {
 func SendQuietActivityToInbox(activity []byte, inbox string) error {
 	rq, err := http.NewRequest(http.MethodPost, inbox, bytes.NewReader(activity))
 	if err != nil {
-		log.Println(err)
+		slog.Error("Failed to create request for SendQuietActivityToInbox", "err", err)
 		return err
 	}
 
 	rq.Header.Set("Content-Type", types.ActivityType)
 	signing.SignRequest(rq, activity)
 
-	log.Printf("Sending activity to %s\n", inbox)
+	slog.Info("Sending activity to inbox", "inbox", inbox)
 	resp, err := client.Do(rq)
 	if err != nil {
-		log.Println(err)
+		slog.Error("Failed to send activity to inbox", "err", err, "inbox", inbox)
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("Activity sent to %s returned %d status\n", inbox, resp.StatusCode)
+		slog.Warn("Sent activity returned non-OK status", "inbox", inbox, "status", resp.StatusCode)
 	}
 	return nil
 }

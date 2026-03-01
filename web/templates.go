@@ -14,10 +14,10 @@ package web
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"log/slog"
 	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -135,7 +135,8 @@ var funcMapForBookmarks = template.FuncMap{
 		t, err := time.Parse(types.TimeLayout, stamp)
 		if err != nil {
 			// Sorry for party rocking...
-			log.Fatalln(err)
+			slog.Error("Failed to parse timestamp", "err", err)
+			os.Exit(1)
 		}
 		return t.Format("2006-01-02 15:04")
 	},

@@ -15,7 +15,8 @@ package db
 
 import (
 	"database/sql"
-	"log"
+	"log/slog"
+	"os"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
@@ -28,7 +29,8 @@ func Initialize(filename string) {
 	// ncruces version does not support +"?cache=shared"
 	db, err = sql.Open("sqlite3", filename)
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to open database", "err", err)
+		os.Exit(1)
 	}
 
 	db.SetMaxOpenConns(1)
@@ -39,7 +41,8 @@ func Initialize(filename string) {
 func Finalize() {
 	err := db.Close()
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to close database", "err", err)
+		os.Exit(1)
 	}
 }
 
@@ -52,14 +55,16 @@ var (
 func mustExec(query string, args ...any) {
 	_, err := db.Exec(query, args...)
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to exec query", "err", err)
+		os.Exit(1)
 	}
 }
 
 func mustQuery(query string, args ...any) *sql.Rows {
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to query database", "err", err)
+		os.Exit(1)
 	}
 	return rows
 }
@@ -67,7 +72,8 @@ func mustQuery(query string, args ...any) *sql.Rows {
 func mustScan(rows *sql.Rows, dest ...any) {
 	err := rows.Scan(dest...)
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to scan row", "err", err)
+		os.Exit(1)
 	}
 }
 

@@ -14,13 +14,14 @@ package web
 import (
 	"errors"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/types"
-	"log"
 	"log/slog"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+
+	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/types"
 
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/settings"
@@ -34,7 +35,7 @@ func StartServer() {
 	for range serverRestartChannel {
 		if err := srv.Close(); err != nil {
 			// Is it important? Does it matter?
-			log.Println("Closing server:", err)
+			slog.Info("Closing server", "err", err)
 		}
 		srv = &http.Server{
 			Addr:    listenAddr(),
@@ -43,7 +44,8 @@ func StartServer() {
 		slog.Info("Running HTTP server", "addr", srv.Addr)
 		go func() {
 			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				log.Fatalln(err)
+				slog.Error("HTTP server failed", "err", err)
+				os.Exit(1)
 			}
 		}()
 	}
@@ -110,14 +112,14 @@ func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, 
 
 	bookmark, found := db.GetBookmarkByID(id)
 	if !found {
-		log.Printf("%s: bookmark no. %d not found\n", rq.URL.Path, id)
+		slog.Info("Bookmark not found", "path", rq.URL.Path, "id", id)
 		handlerNotFound(w, rq)
 		return nil, false
 	}
 
 	authed := auth.AuthorizedFromRequest(rq)
 	if bookmark.Visibility == types.Private && !authed {
-		log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+		slog.Info("Unauthorized attempt to access", "path", rq.URL.Path, "status", http.StatusUnauthorized)
 		handlerUnauthorized(w, rq)
 		return nil, false
 	}
@@ -131,7 +133,7 @@ func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, 
 func extractBookmarkID(w http.ResponseWriter, rq *http.Request) (int, bool) {
 	id, err := strconv.Atoi(rq.PathValue("id"))
 	if err != nil {
-		log.Printf("Extracting bookmark no. from %s: wrong format\n", rq.URL.Path)
+		slog.Info("Extracting bookmark id: wrong format", "path", rq.URL.Path)
 		handlerNotFound(w, rq)
 		return 0, false
 	}
@@ -143,7 +145,7 @@ func adminOnly(next func(http.ResponseWriter, *http.Request)) func(http.Response
 	return func(w http.ResponseWriter, rq *http.Request) {
 		authed := auth.AuthorizedFromRequest(rq)
 		if !authed {
-			log.Printf("Unauthorized attempt to access %s. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+			slog.Info("Unauthorized attempt to access", "path", rq.URL.Path, "status", http.StatusUnauthorized)
 			handlerUnauthorized(w, rq)
 			return
 		}
@@ -155,7 +157,7 @@ func federatedOnly(next func(http.ResponseWriter, *http.Request)) func(http.Resp
 	return func(w http.ResponseWriter, rq *http.Request) {
 		federated := settings.FederationEnabled()
 		if !federated {
-			log.Printf("Attempt to access %s failed because Betula is not federated. %d.\n", rq.URL.Path, http.StatusUnauthorized)
+			slog.Info("Attempt to access failed: Betula is not federated", "path", rq.URL.Path, "status", http.StatusUnauthorized)
 			handlerNotFederated(w, rq)
 			return
 		}

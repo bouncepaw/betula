@@ -8,7 +8,8 @@ package db
 import (
 	"database/sql"
 	"git.sr.ht/~bouncepaw/betula/types"
-	"log"
+	"log/slog"
+	"os"
 	"time"
 )
 
@@ -32,7 +33,8 @@ where DeletionTime is null and (Visibility = 1 or ?);
 	if stamp.Valid {
 		val, err := time.Parse(types.TimeLayout, stamp.String)
 		if err != nil {
-			log.Fatalln(err)
+			slog.Error("Failed to parse oldest time", "err", err)
+			os.Exit(1)
 		}
 		return &val
 	}
@@ -49,7 +51,8 @@ where DeletionTime is null and (Visibility = 1 or ?);
 	if stamp.Valid {
 		val, err := time.Parse(types.TimeLayout, stamp.String)
 		if err != nil {
-			log.Fatalln(err)
+			slog.Error("Failed to parse newest time", "err", err)
+			os.Exit(1)
 		}
 		return &val
 	}

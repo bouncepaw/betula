@@ -13,7 +13,6 @@ import (
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
 
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 	"time"
@@ -84,7 +83,7 @@ func RenderRemoteBookmarks(raws []types.RemoteBookmark) (renders []types.Rendere
 	for _, raw := range raws {
 		actor, ok := actors[raw.ActorID]
 		if !ok {
-			log.Printf("When rendering remote bookmarks: actor %s not found\n", raw.ActorID)
+			slog.Error("Failed to find actor when rendering remote bookmarks", "actorID", raw.ActorID)
 			continue // whatever
 		}
 
@@ -100,7 +99,7 @@ func RenderRemoteBookmarks(raws []types.RemoteBookmark) (renders []types.Rendere
 
 		t, err := time.Parse(types.TimeLayout, raw.PublishedAt)
 		if err != nil {
-			log.Printf("When rendering remote bookmarks: %s\n", err)
+			slog.Error("Failed to parse time when rendering remote bookmarks", "err", err)
 			continue // whatever
 		}
 		render.PublishedAt = t

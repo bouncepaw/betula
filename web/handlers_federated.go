@@ -15,10 +15,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
@@ -150,25 +150,25 @@ func postUnfollow(w http.ResponseWriter, rq *http.Request) {
 	)
 
 	if account == "" || next == "" {
-		log.Println("/unfollow: required parameters were not passed")
+		slog.Warn("/unfollow: required parameters were not passed")
 		handlerNotFound(w, rq)
 		return
 	}
 
 	actor, err := fediverse.RequestActorByNickname(account)
 	if err != nil {
-		log.Printf("/unfollow: %s\n", err)
+		slog.Error("/unfollow: failed to get actor", "err", err)
 		handlerNotFound(w, rq)
 		return
 	}
 
 	activity, err := activities.NewUndoFollowFromUs(actor.ID)
 	if err != nil {
-		log.Printf("When creating Undo{Follow} activity: %s\n", err)
+		slog.Error("Failed to create Undo{Follow} activity", "err", err)
 		return
 	}
 	if err = jobs.SendActivityToInbox(activity, actor.Inbox); err != nil {
-		log.Printf("When sending activity: %s\n", err)
+		slog.Error("Failed to send activity", "err", err)
 		// Proceed with unfollowing even if sending failed
 	}
 	db.StopFollowing(actor.ID)
@@ -186,25 +186,25 @@ func postFollow(w http.ResponseWriter, rq *http.Request) {
 	)
 
 	if account == "" || next == "" {
-		log.Println("/follow: required parameters were not passed")
+		slog.Warn("/follow: required parameters were not passed")
 		handlerNotFound(w, rq)
 		return
 	}
 
 	actor, err := fediverse.RequestActorByNickname(account)
 	if err != nil {
-		log.Printf("/follow: %s\n", err)
+		slog.Error("/follow: failed to get actor", "err", err)
 		handlerNotFound(w, rq)
 		return
 	}
 
 	activity, err := activities.NewFollowFromUs(actor.ID)
 	if err != nil {
-		log.Printf("When creating Follow activity: %s\n", err)
+		slog.Error("Failed to create Follow activity", "err", err)
 		return
 	}
 	if err = jobs.SendActivityToInbox(activity, actor.Inbox); err != nil {
-		log.Printf("When sending activity: %s\n", err)
+		slog.Error("Failed to send activity", "err", err)
 		return
 	}
 	db.AddPendingFollowing(actor.ID)
@@ -214,7 +214,8 @@ func postFollow(w http.ResponseWriter, rq *http.Request) {
 func postInbox(w http.ResponseWriter, rq *http.Request) {
 	data, err := io.ReadAll(io.LimitReader(rq.Body, 32*1000*1000)) // Read no more than 32 KB.
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to read inbox body", "err", err)
+		os.Exit(1)
 	}
 
 	report, err := activities.Guess(data)
@@ -230,13 +231,11 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 	switch report := report.(type) {
 	case activities.CreateNoteReport:
 		if !db.SubscriptionStatus(report.Bookmark.ActorID).WeFollowThem() {
-			log.Printf("%s sent us a bookmark %s, but we don't follow them. Contents: %q. Ignoring.\n",
-				report.Bookmark.ActorID, report.Bookmark.ID, report.Bookmark.DescriptionHTML)
+			slog.Info("Received bookmark from non-follower, ignoring", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
 			return
 		}
 
-		log.Printf("%s sent us a bookmark %s. Contents: %q\n",
-			report.Bookmark.ActorID, report.Bookmark.ID, report.Bookmark.DescriptionMycomarkup.String)
+		slog.Info("Received bookmark from follower", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
 		db.InsertRemoteBookmark(report.Bookmark)
 
 		if report.LikesCollection != nil {
@@ -256,13 +255,11 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 	case activities.UpdateNoteReport:
 		if !db.RemoteBookmarkIsStored(report.Bookmark.ID) {
 			// TODO: maybe store them?
-			log.Printf("%s updated the bookmark %s, but we don't have it. Contents: %q. Ignoring.\n",
-				report.Bookmark.ActorID, report.Bookmark.ID, report.Bookmark.DescriptionHTML)
+			slog.Info("Received update for unknown bookmark, ignoring", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
 			return
 		}
 
-		log.Printf("%s updated the bookmark %s. Contents: %q\n",
-			report.Bookmark.ActorID, report.Bookmark.ID, report.Bookmark.DescriptionMycomarkup.String)
+		slog.Info("Updated remote bookmark", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
 		db.UpdateRemoteBookmark(report.Bookmark)
 
 		if report.LikesCollection != nil {
@@ -285,7 +282,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 	case activities.DeleteNoteReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
-			log.Printf("Couldn't fetch actor: %s\n", err)
+			slog.Error("Failed to fetch actor", "err", err)
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
@@ -293,13 +290,13 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 
-		log.Printf("%s deleted the bookmark %s.\n", report.ActorID, report.BookmarkID)
+		slog.Info("Deleted remote bookmark", "actorID", report.ActorID, "bookmarkID", report.BookmarkID)
 		db.DeleteRemoteBookmark(report.BookmarkID)
 
 	case activities.UndoAnnounceReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
-			log.Printf("Couldn't fetch actor: %s\n", err)
+			slog.Error("Failed to fetch actor", "err", err)
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
@@ -319,7 +316,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 	case activities.AnnounceReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
-			log.Printf("Couldn't fetch actor: %s\n", err)
+			slog.Error("Failed to fetch actor", "err", err)
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
@@ -339,20 +336,20 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 	case activities.UndoFollowReport:
 		// We'll schedule no job because we are making no network request to handle this.
 		if report.ObjectID != fediverse.OurID() {
-			log.Printf("%s asked to unfollow %s, and that's not us; ignoring.\n", report.ActorID, report.ObjectID)
+			slog.Info("Unfollow request for someone else, ignoring", "actorID", report.ActorID, "objectID", report.ObjectID)
 			return
 		}
 		if !db.SubscriptionStatus(report.ActorID).TheyFollowUs() {
-			log.Printf("%s asked to unfollow us, but they don't follow us; ignoring.\n", report.ActorID)
+			slog.Info("Unfollow from non-follower, ignoring", "actorID", report.ActorID)
 			return
 		}
-		log.Printf("%s asked to unfollow us. Thanks for being with us, goodbye!\n", report.ActorID)
+		slog.Info("Follower unfollowed us", "actorID", report.ActorID)
 		db.RemoveFollower(report.ActorID)
 
 	case activities.FollowReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
-			log.Printf("Couldn't fetch actor: %s\n", err)
+			slog.Error("Failed to fetch actor", "err", err)
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
@@ -361,17 +358,17 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 		if report.ObjectID == fediverse.OurID() {
-			log.Printf("%s asked to follow us\n", report.ActorID)
+			slog.Info("Someone asked to follow us", "actorID", report.ActorID)
 			jobs.ScheduleJSON(jobtype.SendAcceptFollow, report)
 		} else {
-			log.Printf("%s asked to follow %s, which is not us\n", report.ActorID, report.ObjectID)
+			slog.Info("Follow request for someone else", "actorID", report.ActorID, "objectID", report.ObjectID)
 			jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
 		}
 
 	case activities.AcceptReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
-			log.Printf("Couldn't fetch actor: %s\n", err)
+			slog.Error("Failed to fetch actor", "err", err)
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
@@ -392,7 +389,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 	case activities.RejectReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
-			log.Printf("Couldn't fetch actor: %s\n", err)
+			slog.Error("Failed to fetch actor", "err", err)
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
@@ -413,7 +410,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 	case activities.LikeReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
-			log.Printf("Couldn't fetch actor: %s\n", err)
+			slog.Error("Failed to fetch actor", "err", err)
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
@@ -438,7 +435,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 	case activities.UndoLikeReport:
 		_, err := fediverse.RequestActorByID(report.Object.ActorID)
 		if err != nil {
-			log.Printf("Couldn't fetch actor: %s\n", err)
+			slog.Error("Failed to fetch actor", "err", err)
 			return
 		}
 		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
@@ -473,21 +470,21 @@ func getBookmarkFedi(w http.ResponseWriter, rq *http.Request) {
 	}
 	if bookmark.RepostOf != nil {
 		// TODO: decide
-		log.Printf("Trying to get bookmark object of repost no. %d. Not implemented.\n", bookmark.ID)
+		slog.Warn("Get bookmark object of repost not implemented", "bookmarkID", bookmark.ID)
 		handlerNotFound(w, rq)
 		return
 	}
-	log.Printf("Get bookmark object no. %d\n", bookmark.ID)
+	slog.Info("Get bookmark object", "bookmarkID", bookmark.ID)
 
 	obj, err := activities.NoteFromBookmark(*bookmark)
 	if err != nil {
-		log.Printf("When making Note object for bookmark: %s\n", err)
+		slog.Error("Failed to make Note object for bookmark", "err", err)
 		handlerNotFound(w, rq)
 	}
 
 	w.Header().Set("Content-Type", types.OtherActivityType)
 	if err = json.NewEncoder(w).Encode(obj); err != nil {
-		log.Printf("When writing JSON: %s\n", err)
+		slog.Error("Failed to write JSON", "err", err)
 		handlerNotFound(w, rq)
 	}
 }
@@ -498,7 +495,7 @@ func getWebFinger(w http.ResponseWriter, rq *http.Request) {
 	resource := rq.FormValue("resource")
 	expected := fmt.Sprintf("acct:%s@%s", adminUsername, types.CleanerLink(settings.SiteURL()))
 	if resource != expected {
-		log.Printf("WebFinger: Unexpected resource %s\n", resource)
+		slog.Info("WebFinger: unexpected resource", "resource", resource)
 		handlerNotFound(w, rq)
 		return
 	}
@@ -514,7 +511,7 @@ func getWebFinger(w http.ResponseWriter, rq *http.Request) {
 }`, expected, settings.SiteURL(), adminUsername)
 	w.Header().Set("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
 	if _, err := fmt.Fprint(w, doc); err != nil {
-		log.Printf("Error when serving WebFinger: %s\n", err)
+		slog.Error("Error when serving WebFinger", "err", err)
 	}
 }
 
@@ -544,14 +541,14 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 		"icon":      siteURL + "/static/pix/favicon.png",
 	})
 	if err != nil {
-		log.Printf("When marshaling actor activity: %s\n", err)
+		slog.Error("Failed to marshal actor activity", "err", err)
 		handlerNotFound(w, rq)
 		return
 	}
 
 	w.Header().Set("Content-Type", types.OtherActivityType)
 	if _, err := w.Write(doc); err != nil {
-		log.Printf("Error when serving Actor: %s\n", err)
+		slog.Error("Error when serving Actor", "err", err)
 	}
 }
 
@@ -586,13 +583,13 @@ func getNodeInfo(w http.ResponseWriter, rq *http.Request) {
 		},
 	})
 	if err != nil {
-		log.Printf("When marshaling /nodeinfo/2.0: %s\n", err)
+		slog.Error("Failed to marshal /nodeinfo/2.0", "err", err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; profile=\"http://nodeinfo.diaspora.software/ns/schema/2.0#\"")
 
 	if _, err = w.Write(doc); err != nil {
-		log.Printf("Error when serving /nodeinfo/2.0: %s\n", err)
+		slog.Error("Error when serving /nodeinfo/2.0", "err", err)
 	}
 }
 
@@ -610,7 +607,7 @@ func getWellKnownNodeInfo(w http.ResponseWriter, rq *http.Request) {
 	}`
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := fmt.Fprint(w, fmt.Sprintf(doc, settings.SiteURL())); err != nil {
-		log.Printf("Error when serving /.well-known/nodeinfo: %s\n", err)
+		slog.Error("Error when serving /.well-known/nodeinfo", "err", err)
 	}
 }
 
@@ -627,12 +624,12 @@ func postUnrepost(w http.ResponseWriter, rq *http.Request) {
 
 	bookmark, found := db.GetBookmarkByID(id)
 	if !found {
-		log.Printf("Trying to unrepost non-existent post no. %d\n", id)
+		slog.Warn("Trying to unrepost non-existent bookmark", "id", id)
 		handlerNotFound(w, rq)
 		return
 	}
 	if bookmark.RepostOf == nil {
-		log.Printf("Trying to unrepost a non-repost post no. %d\n", id)
+		slog.Warn("Trying to unrepost a non-repost bookmark", "id", id)
 		handlerNotFound(w, rq)
 		return
 	}

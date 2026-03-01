@@ -11,8 +11,9 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"database/sql"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/pkg/httpsig"
@@ -39,12 +40,14 @@ func setKeys(privateKeyPEM string) {
 	var err error
 	privateKey, publicKey, err = httpsig.DecodeKey(privateKeyPEM)
 	if err != nil {
-		log.Fatalf("When decoding private key PEM: %s\n", err)
+		slog.Error("Failed to decode private key PEM", "err", err)
+		os.Exit(1)
 	}
 
 	publicKeyPEM, err = httpsig.EncodeKey(publicKey.Key)
 	if err != nil {
-		log.Fatalf("When encoding public key PEM: %s\n", err)
+		slog.Error("Failed to encode public key PEM", "err", err)
+		os.Exit(1)
 	}
 }
 
@@ -53,15 +56,17 @@ func EnsureKeysFromDatabase() {
 	var pem string
 	privKeyPEMMaybe := db.MetaEntry[sql.NullString](db.BetulaMetaPrivateKey)
 	if !privKeyPEMMaybe.Valid || privKeyPEMMaybe.String == "" {
-		log.Println("Generating a new pair of RSA keys")
+		slog.Info("Generating a new pair of RSA keys")
 		priv, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
-			log.Fatalf("When generating new keys: %s\n", err)
+			slog.Error("Failed to generate RSA keys", "err", err)
+			os.Exit(1)
 		}
 
 		pem, err = httpsig.EncodeKey(priv)
 		if err != nil {
-			log.Fatalf("When generating private key PEM: %s\n", err)
+			slog.Error("Failed to encode private key PEM", "err", err)
+			os.Exit(1)
 		}
 
 		db.SetMetaEntry(db.BetulaMetaPrivateKey, pem)
@@ -84,7 +89,7 @@ func VerifyRequestSignature(rq *http.Request, content []byte) bool {
 		return pub, err
 	})
 	if err != nil {
-		log.Printf("When verifying the signature of request to %s got error: %s\n", rq.URL.RequestURI(), err)
+		slog.Error("Failed to verify request signature", "uri", rq.URL.RequestURI(), "err", err)
 		return false
 	}
 	return true

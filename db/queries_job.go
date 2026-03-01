@@ -6,8 +6,10 @@
 package db
 
 import (
+	"log/slog"
+	"os"
+
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
-	"log"
 )
 
 // PlanJob puts a new job into the Jobs table and returns the id of the new job.
@@ -17,7 +19,8 @@ func PlanJob(job jobtype.Job) int64 {
 	// mustExec not used because res needed
 	res, err := db.Exec(q, job.Category, job.Payload)
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to plan job", "err", err)
+		os.Exit(1)
 	}
 
 	// It never fails

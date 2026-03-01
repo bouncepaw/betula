@@ -9,7 +9,8 @@ package helpingsvc
 
 import (
 	"embed"
-	"log"
+	"log/slog"
+	"os"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
 	helpingports "git.sr.ht/~bouncepaw/betula/ports/helping"
@@ -41,7 +42,8 @@ func New() *Service {
 	for i, def := range topicDefs {
 		raw, err := english.ReadFile("docs/en/" + def.name + ".myco")
 		if err != nil {
-			log.Fatalln(err)
+			slog.Error("Failed to read help topic", "name", def.name, "err", err)
+			os.Exit(1)
 		}
 		topics[i] = helpingports.Topic{
 			Name:         def.name,

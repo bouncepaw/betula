@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"html"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/url"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
@@ -44,7 +44,7 @@ func validatePortFromDB(port sql.NullInt64) uint {
 	}
 
 	if port.Valid && db.BookmarkCount(true) > 0 {
-		log.Printf("An invalid network port is provided: %d. Using %d instead.\n", port.Int64, defaultPort)
+		slog.Warn("Invalid network port from DB, using default", "port", port.Int64, "default", defaultPort)
 	}
 
 	return defaultPort
@@ -56,7 +56,7 @@ func validateHostFromDB(addr sql.NullString) string {
 	}
 
 	if addr.Valid && db.BookmarkCount(true) > 0 {
-		log.Printf("An invalid network host is provided: %s. Using %s instead.\n", addr.String, defaultHost)
+		slog.Warn("Invalid network host from DB, using default", "host", addr.String, "default", defaultHost)
 	}
 
 	return defaultHost
@@ -64,7 +64,7 @@ func validateHostFromDB(addr sql.NullString) string {
 
 func ValidatePortFromWeb[N ~int | uint](port N) uint {
 	if port <= 0 || port > biggestPort {
-		log.Printf("An invalid network port is provided: %d. Using %d instead.\n", port, defaultPort)
+		slog.Warn("Invalid network port from web, using default", "port", port, "default", defaultPort)
 		return defaultPort
 	}
 	return uint(port)

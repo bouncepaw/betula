@@ -11,7 +11,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"log/slog"
 
 	"git.sr.ht/~bouncepaw/betula/db"
@@ -30,14 +29,14 @@ func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.J
 	return func(job jobtype.Job) {
 		data, ok := job.Payload.([]byte)
 		if !ok {
-			log.Printf("Unexpected payload for %s job of type %T: %v\n", jobcat, job.Payload, job.Payload)
+			slog.Error("Unexpected payload for job", "category", jobcat, "payloadType", fmt.Sprintf("%T", job.Payload), "payload", job.Payload)
 			return
 		}
 
 		var report T
 		err := json.Unmarshal(data, &report)
 		if err != nil {
-			log.Printf("When unmarshaling payload for job %s: %s\n", jobcat, err)
+			slog.Error("Failed to unmarshal payload for job", "category", jobcat, "err", err)
 			return
 		}
 
@@ -61,17 +60,17 @@ func broadcastToFollowers(job jobtype.Job) {
 	// The payload is a []byte we have to send to every follower.
 	payload, ok := job.Payload.([]byte)
 	if !ok {
-		log.Printf("Unexpected payload of type %T for %s: %v\n", payload, job.Category, payload)
+		slog.Error("Unexpected payload for broadcast", "category", job.Category, "payloadType", fmt.Sprintf("%T", payload))
 		return
 	}
 
 	followers := db.GetFollowers()
 	if len(followers) == 0 {
-		log.Println("Nobody to broadcast to :-(")
+		slog.Info("Nobody to broadcast to :-(")
 		return
 	}
 
-	log.Printf("Broadcasting to followers: %s\n", job.Payload)
+	slog.Info("Broadcasting to followers", "payload", job.Payload)
 
 	succSends := len(followers)
 
@@ -80,22 +79,22 @@ func broadcastToFollowers(job jobtype.Job) {
 	for _, follower := range followers {
 		err := SendQuietActivityToInbox(payload, follower.Inbox)
 		if err != nil {
-			log.Printf("While sending to %s: %s\n", follower.Inbox, err)
+			slog.Error("Failed to send to a follower", "inbox", follower.Inbox, "err", err)
 			succSends--
 		}
 	}
 
-	log.Printf("Sent %s to %d out of %d followers.\n", job.Category, succSends, len(followers))
+	slog.Info("Sent to followers", "category", job.Category, "success", succSends, "total", len(followers))
 }
 
 func receiveAcceptFollow(report activities.FollowReport) {
 	// We assume that they are actually talking about us, because we filtered out wrong activities in the inbox.
 
 	if status := db.SubscriptionStatus(report.ObjectID); status.IsPending() {
-		log.Printf("Received Accept{Follow} to %s\n", report.ObjectID)
+		slog.Info("Received Accept{Follow}", "objectID", report.ObjectID)
 		db.MarkAsSurelyFollowing(report.ObjectID)
 	} else {
-		log.Printf("Received an invalid Accept{Follow}, status is %s. Ignoring. Activity: %s\n", status, report.OriginalActivity)
+		slog.Warn("Received invalid Accept{Follow}, ignoring", "status", status, "activity", report.OriginalActivity)
 	}
 }
 
@@ -103,21 +102,21 @@ func receiveRejectFollow(report activities.FollowReport) {
 	// We assume that they are actually talking about us, because we filtered out wrong activities in the inbox.
 
 	if status := db.SubscriptionStatus(report.ObjectID); status.IsPending() {
-		log.Printf("Received Reject{Follow} to %s\n", report.ObjectID)
+		slog.Info("Received Reject{Follow}", "objectID", report.ObjectID)
 		db.StopFollowing(report.ObjectID)
 	} else {
-		log.Printf("Received an invalid Reject{Follow}, status is %s. Ignoring. Activity: %s\n", status, report.OriginalActivity)
+		slog.Warn("Received invalid Reject{Follow}, ignoring", "status", status, "activity", report.OriginalActivity)
 	}
 }
 
 func sendRejectFollow(report activities.FollowReport) {
 	if !stricks.ValidURL(report.ActorID) {
-		log.Printf("Invaling actor ID: %s. Dropping activity.\n", report.ActorID)
+		slog.Error("Invalid actor ID, dropping activity", "actorID", report.ActorID)
 	}
 
 	activity, err := activities.NewReject(report.OriginalActivity)
 	if err = SendActivityToInbox(activity, fediverse.RequestActorInboxByID(report.ActorID)); err != nil {
-		log.Println(err)
+		slog.Error("Failed to send Reject activity", "err", err)
 	}
 }
 
@@ -148,23 +147,23 @@ func notifyAboutMyRepost(job jobtype.Job) {
 	case int64:
 		postId = int(v)
 	default:
-		log.Printf("Unexpected payload for notifyJob of type %T: %v\n", v, v)
+		slog.Error("Unexpected payload for notify job", "payloadType", fmt.Sprintf("%T", v), "payload", v)
 		return
 	}
 
 	post, found := db.GetBookmarkByID(postId)
 	if !found {
-		log.Printf("Can't notify about non-existent repost no. %d\n", postId)
+		slog.Error("Failed to notify about non-existent bookmark", "bookmarkID", postId)
 		return
 	}
 
 	if post.RepostOf == nil {
-		log.Printf("Post %d is not a repost\n", postId)
+		slog.Warn("Bookmark is not a repost, skipping notify", "bookmarkID", postId)
 		return
 	}
 
 	if post.Visibility != types.Public {
-		log.Printf("Repost %d is not public, not notifying\n", postId)
+		slog.Info("Bookmark (repost) is not public, not notifying", "bookmarkID", postId)
 		return
 	}
 
@@ -173,14 +172,14 @@ func notifyAboutMyRepost(job jobtype.Job) {
 		fmt.Sprintf("%s/%d", settings.SiteURL(), postId),
 	)
 	if err != nil {
-		log.Println(err)
+		slog.Error("Failed to create Announce activity", "err", err)
 		return
 	}
 
 	// TODO: this will have to change. Avoid sending twice if reposting a follower
 	err = sendActivity(*post.RepostOf, activity)
 	if err != nil {
-		log.Println(err)
+		slog.Error("Failed to send unrepost activity", "err", err)
 		return
 	}
 
@@ -196,21 +195,21 @@ func notifyAboutMyUnrepost(job jobtype.Job) {
 	switch v := job.Payload.(type) {
 	case []byte:
 		if err := json.Unmarshal(v, &report); err != nil {
-			log.Printf("While unmarshaling UndoAnnounceReport %v: %v\n", v, err)
+			slog.Error("Failed to unmarshal UndoAnnounceReport", "err", err, "payload", v)
 			return
 		}
 
 		// TODO: avoid sending twice if unreposted from follower
 		err := sendActivity(report.ObjectID, v)
 		if err != nil {
-			log.Printf("While sending unrepost notification: %s\n", err)
+			slog.Error("Failed to send unrepost notification", "err", err)
 		}
 		broadcastToFollowers(jobtype.Job{
 			Category: jobtype.SendUndoAnnounce,
 			Payload:  v,
 		})
 	default:
-		log.Printf("Bad payload for ReceiveUnrepost job: %v\n", v)
+		slog.Error("Bad payload for ReceiveUnrepost job", "payload", v)
 		return
 	}
 }

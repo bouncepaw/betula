@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
@@ -31,7 +31,7 @@ func requestIdByWebFingerAcct(user, host string) (id string, err error) {
 	requestURL := fmt.Sprintf("https://%s/.well-known/webfinger?resource=acct:%s@%s", host, user, host)
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
-		log.Printf("Failed to construct request from ‘%s’\n", requestURL)
+		slog.Error("Failed to construct WebFinger request", "url", requestURL, "err", err)
 		return "", err
 	}
 

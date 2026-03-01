@@ -8,12 +8,14 @@ package auth
 
 import (
 	"database/sql"
-	"log"
+	"log/slog"
+	"os"
 	"sync/atomic"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/settings"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -43,25 +45,26 @@ func Ready() bool {
 // CredentialsMatch checks if the credentials match.
 func CredentialsMatch(name, pass string) bool {
 	if name != settings.AdminUsername() {
-		log.Println("Matching credentials. Name mismatches.")
+		slog.Info("Matching credentials. Name mismatch")
 		return false
 	}
 	err := bcrypt.CompareHashAndPassword(db.MetaEntry[[]byte](db.BetulaMetaAdminPasswordHash), []byte(pass))
 	if err != nil {
-		log.Println("Matching credentials. Password mismatches.")
+		slog.Info("Matching credentials. Password mismatch")
 		return false
 	}
-	log.Println("Credentials match.")
+	slog.Info("Credentials match")
 	return true
 }
 
 // SetCredentials sets new credentials.
 func SetCredentials(name, pass string) {
-	log.Println("Setting new credentials")
+	slog.Info("Setting new credentials")
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
-		log.Fatalln("While hashing:", err)
+		slog.Error("Failed to hash password", "err", err)
+		os.Exit(1)
 	}
 
 	db.SetCredentials(name, string(hash))

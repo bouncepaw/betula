@@ -8,7 +8,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -47,12 +46,14 @@ func main() {
 	}
 
 	if len(flag.Args()) < 1 {
-		log.Fatalln("Pass a database file name!")
+		slog.Error("Pass a database file name!")
+		os.Exit(1)
 	}
 
 	filename, err := filepath.Abs(flag.Arg(0))
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to resolve database path", "err", err)
+		os.Exit(1)
 	}
 
 	fmt.Println("Hello Betula!")

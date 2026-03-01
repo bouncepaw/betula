@@ -11,7 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -113,7 +113,7 @@ func dereferenceActorID(actorID string) (*types.Actor, error) {
 func RequestActorInboxByID(actorID string) string {
 	actor, err := RequestActorByID(actorID)
 	if err != nil {
-		log.Printf("When requesting actor %s inbox: %s\n", actorID, err)
+		slog.Error("Failed to request actor inbox", "actorID", actorID, "err", err)
 		return ""
 	}
 	return actor.Inbox

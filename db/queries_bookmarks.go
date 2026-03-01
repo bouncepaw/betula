@@ -8,8 +8,10 @@
 package db
 
 import (
+	"log/slog"
+	"os"
+
 	"git.sr.ht/~bouncepaw/betula/types"
-	"log"
 )
 
 // BookmarksForDay returns bookmarks for the given dayStamp, which looks like this: 2023-03-14. The result might as well be nil, that means there are no bookmarks for the day.
@@ -134,11 +136,13 @@ values (?, ?, ?, ?, ?, ?);
 `
 	res, err := db.Exec(q, bookmark.URL, bookmark.Title, bookmark.Description, bookmark.Visibility, bookmark.RepostOf, bookmark.OriginalAuthor)
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to insert bookmark", "err", err)
+		os.Exit(1)
 	}
 	id, err := res.LastInsertId()
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to get last insert id", "err", err)
+		os.Exit(1)
 	}
 	bookmark.ID = int(id)
 	SetTagsFor(bookmark.ID, bookmark.Tags)

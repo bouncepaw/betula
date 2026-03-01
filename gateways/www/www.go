@@ -9,7 +9,7 @@ package wwwgw
 import (
 	"bytes"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -56,7 +56,7 @@ func (www *WWW) TitleOfPage(addr string) (string, error) {
 	}
 	defer func(Body io.ReadCloser) {
 		if err := Body.Close(); err != nil {
-			log.Printf("Can't close the body of the response from %s\n", addr)
+			slog.Warn("Failed to close response body", "addr", addr, "err", err)
 		}
 	}(resp.Body)
 

@@ -7,7 +7,7 @@
 package db
 
 import (
-	"log"
+	"log/slog"
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -22,7 +22,7 @@ func RepostsOf(id int) (reposts []types.RepostInfo, err error) {
 		mustScan(rows, &repost.URL, &repost.Name, &timestamp)
 		repost.Timestamp, err = time.Parse(types.TimeLayout, timestamp)
 		if err != nil {
-			log.Printf("When reading tags for bookmark no. %d: %s\n", id, err)
+			slog.Error("Failed to parse repost timestamp", "bookmarkID", id, "err", err)
 		}
 		reposts = append(reposts, repost)
 	}

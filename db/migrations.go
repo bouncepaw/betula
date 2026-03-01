@@ -12,7 +12,8 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"log"
+	"log/slog"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -31,7 +32,8 @@ func getExpectedVersion() int64 {
 
 	scriptsDir, err := scriptsFS.ReadDir("scripts")
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to read scripts directory", "err", err)
+		os.Exit(1)
 	}
 
 	scripts := make([]string, 0, len(scriptsDir))
@@ -47,7 +49,8 @@ func getExpectedVersion() int64 {
 		verNum1, err1 := getVersionNum(i)
 		verNum2, err2 := getVersionNum(j)
 		if err1 != nil || err2 != nil {
-			log.Fatalln(err1, err2)
+			slog.Error("Failed to parse script version numbers", "err1", err1, "err2", err2)
+			os.Exit(1)
 		}
 		return cmp.Compare(verNum1, verNum2)
 	})
@@ -55,7 +58,8 @@ func getExpectedVersion() int64 {
 	// Get last version
 	version, err = getVersionNum(scripts[len(scripts)-1])
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to get expected version from scripts", "err", err)
+		os.Exit(1)
 	}
 
 	return version
@@ -64,7 +68,8 @@ func getExpectedVersion() int64 {
 func getScript(name string) string {
 	data, err := scriptsFS.ReadFile("scripts/" + name + ".sql")
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("Failed to read script", "name", name, "err", err)
+		os.Exit(1)
 	}
 	return string(data)
 }
@@ -141,7 +146,8 @@ func handleMigrations() {
 
 	// Whoa, a db from a newer Betula? We better get out of here.
 	if curver > expectedVersion {
-		log.Fatalf("The database file specifies database version %d, but this version of Betula only supports database versions up to %d. Please update your Betula.\n", curver, expectedVersion)
+		slog.Error("Database version newer than supported. Please update your Betula.", "current", curver, "maxSupported", expectedVersion)
+		os.Exit(1)
 	}
 
 	// Here, curver < expectedVersion
@@ -150,7 +156,7 @@ func handleMigrations() {
 	if curver < 6 {
 		migrators := []func(){migrate0To1, migrate1To2, migrate2To3, migrate3To4, migrate4To5, migrate5To6}
 		for _, migrator := range migrators[curver:] {
-			log.Printf("Migrating from DB schema version %d to %d...\n", curver, curver+1)
+			slog.Info("Migrating DB schema", "from", curver, "to", curver+1)
 			migrator()
 			curver++
 		}
@@ -159,7 +165,7 @@ func handleMigrations() {
 past6:
 	for curver < expectedVersion {
 		if found {
-			log.Printf("Migrating from DB schema version %d to %d...\n", curver, curver+1)
+			slog.Info("Migrating DB schema", "from", curver, "to", curver+1)
 		}
 		mustExec(getScript(fmt.Sprintf("%d", curver+1)))
 		mustExec(fmt.Sprintf(`replace into BetulaMeta (Key, Value) values ('DB version', %d);`, curver+1))

@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 
@@ -45,7 +44,7 @@ func fetchFedi(uri string) (*types.Bookmark, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("tags %q\n%q\n", bookmark.Tags, object)
+	slog.Debug("Fetched remote bookmark tags", "tags", bookmark.Tags, "object", object)
 
 	return &types.Bookmark{
 		Tags:        bookmark.Tags,
