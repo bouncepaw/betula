@@ -39,21 +39,6 @@
 			</form>
 		</article>
 		{{end}}
-		{{if .RepostOf}}
-		<article>
-			<h2>Unrepost</h2>
-			<p>You can make this reposted bookmark yours and edit it fully afterwards.
-				The original bookmark author will be notified of the repost being removed.</p>
-			<form method="post" action="/unrepost/{{.ID}}">
-				<div>
-					<input type="checkbox" name="confirmed" id="unrepost-confirmed" value="true" required class="confirmation-tick">
-					<label for="unrepost-confirmed">Yes, unrepost this bookmark.</label>
-					<br>
-					<input type="submit" id="unrepost-btn" value="Unrepost" class="btn btn_confirmation-tick">
-				</div>
-			</form>
-		</article>
-		{{end}}
 		<article>
 			{{if .RepostOf}}
                 <h2>Delete repost</h2>

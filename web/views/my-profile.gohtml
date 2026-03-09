@@ -44,12 +44,6 @@
                     <dt>Followers</dt>
                     <dd>{{.FollowersCount}}</dd>
                 {{end}}
-                {{if .OldestTime}}
-                    <dt>Newest bookmark save time</dt>
-                    <dd>{{.NewestTime | timeToHuman}} UTC</dd>
-                    <dt>Oldest bookmark save time</dt>
-                    <dd>{{.OldestTime | timeToHuman}} UTC</dd>
-                {{end}}
             </dl>
         </article>
     </main>

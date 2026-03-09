@@ -28,8 +28,6 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~bouncepaw/betula/gateways/activitypub"
-	wwwgw "git.sr.ht/~bouncepaw/betula/gateways/www"
 	"git.sr.ht/~bouncepaw/betula/pkg/rss"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
@@ -38,15 +36,9 @@ import (
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/notif"
 	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
+	remotebookmarksports "git.sr.ht/~bouncepaw/betula/ports/remotebookmarks"
 	searchingports "git.sr.ht/~bouncepaw/betula/ports/searching"
 	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
-	"git.sr.ht/~bouncepaw/betula/svc/archiving"
-	"git.sr.ht/~bouncepaw/betula/svc/feeds"
-	helpingsvc "git.sr.ht/~bouncepaw/betula/svc/helping"
-	likingsvc "git.sr.ht/~bouncepaw/betula/svc/liking"
-	"git.sr.ht/~bouncepaw/betula/svc/notif"
-	remarkingsvc "git.sr.ht/~bouncepaw/betula/svc/remarking"
-	searchsvc "git.sr.ht/~bouncepaw/betula/svc/searching"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 
 	"git.sr.ht/~bouncepaw/betula/auth"
@@ -65,32 +57,25 @@ var (
 	//go:embed bookmarklet.js
 	bookmarkletScript string
 	mux               = http.NewServeMux()
-
-	// One day, all shall be in services!
-	svcNotif     notifports.Service     = notifsvc.New(repoNotif)
-	svcArchiving archivingports.Service = archivingsvc.New(
-		archivingsvc.NewObeliskFetcher(), db.NewArchivesRepo())
-	svcLiking likingports.Service = likingsvc.New(
-		repoLike,
-		repoLikeCollection,
-		repoLocalBookmark,
-		repoNotif,
-		activityPub)
-	svcRemarking remarkingports.Service = remarkingsvc.New(activityPub)
-	svcFeeds     feedsports.Service     = feedssvc.New()
-	svcSearching searchingports.Service = searchsvc.New()
-	svcHelping   helpingports.Service   = helpingsvc.New()
-
-	repoLike           = db.NewLikeRepo()
-	repoLikeCollection = db.NewLikeCollectionRepo()
-	repoNotif          = db.New()
-	repoActor          = db.NewActorRepo()
-	repoLocalBookmark  = db.NewLocalBookmarksRepo()
-	repoRemoteBookmark = db.NewRemoteBookmarkRepo()
-
-	activityPub apports.ActivityPub   = apgw.NewActivityPub(repoActor, repoRemoteBookmark)
-	www         wwwports.WorldWideWeb = wwwgw.New()
+	ctrl              Controller
 )
+
+type Controller struct {
+	SvcNotif     notifports.Service
+	SvcArchiving archivingports.Service
+	SvcLiking    likingports.Service
+	SvcRemarking remarkingports.Service
+	SvcFeeds     feedsports.Service
+	SvcSearching searchingports.Service
+	SvcHelping   helpingports.Service
+
+	ActivityPub apports.ActivityPub
+	WWW         wwwports.WorldWideWeb
+
+	// FIXME: Layer boundary violation.
+	RepoRemoteBookmark remotebookmarksports.RemoteBookmarkRepository
+	RepoActor          apports.ActorRepository
+}
 
 func init() {
 	mux.HandleFunc("/", handlerNotFound)
@@ -137,8 +122,6 @@ func init() {
 	// Create & Modify
 	mux.HandleFunc("GET /repost", adminOnly(getRepost))
 	mux.HandleFunc("POST /repost", adminOnly(postRepost))
-
-	mux.HandleFunc("POST /unrepost/{id}", adminOnly(postUnrepost))
 
 	mux.HandleFunc("GET /save-link", adminOnly(getSaveBookmark))
 	mux.HandleFunc("POST /save-link", adminOnly(postSaveBookmark))
@@ -202,7 +185,7 @@ func init() {
 // Others go to this file.
 
 func postAllNotificationsRead(w http.ResponseWriter, rq *http.Request) {
-	err := svcNotif.MarkAllAsRead()
+	err := ctrl.SvcNotif.MarkAllAsRead()
 	if err != nil {
 		slog.Error("Failed to mark all bookmarks as read", "err", err)
 		handlerBadRequest(w, rq)
@@ -219,7 +202,7 @@ type dataNotifications struct {
 }
 
 func getNotifications(w http.ResponseWriter, rq *http.Request) {
-	groups, err := svcNotif.GetAll()
+	groups, err := ctrl.SvcNotif.GetAll()
 	if err != nil {
 		slog.Error("Failed to get all notifications", "err", err)
 		handlerBadRequest(w, rq)
@@ -343,7 +326,7 @@ func postMakeNewArchive(w http.ResponseWriter, rq *http.Request) {
 	}
 	slog.Info("Requesting to make a new archive", "bookmarkID", bookmark.ID)
 
-	archiveID, err := svcArchiving.Archive(*bookmark)
+	archiveID, err := ctrl.SvcArchiving.Archive(*bookmark)
 	if err != nil {
 		handlerBadRequest(w, rq)
 		return
@@ -421,10 +404,10 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		actor.SubscriptionStatus = db.SubscriptionStatus(actor.ID)
 
 		currentPage := extractPage(rq)
-		bookmarks, total := repoRemoteBookmark.GetRemoteBookmarksBy(actor.ID, currentPage)
+		bookmarks, total := ctrl.RepoRemoteBookmark.GetRemoteBookmarksBy(actor.ID, currentPage)
 
 		renderedBookmarks := fediverse.RenderRemoteBookmarks(bookmarks)
-		if err := svcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
+		if err := ctrl.SvcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
 			slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 		}
 
@@ -458,7 +441,6 @@ type dataMyProfile struct {
 	Summary                        template.HTML
 	LinkCount, TagCount            uint
 	FollowingCount, FollowersCount uint
-	OldestTime, NewestTime         *time.Time
 }
 
 func getMyProfile(w http.ResponseWriter, rq *http.Request) {
@@ -472,8 +454,6 @@ func getMyProfile(w http.ResponseWriter, rq *http.Request) {
 		TagCount:       db.TagCount(authed),
 		FollowingCount: db.CountFollowing(),
 		FollowersCount: db.CountFollowers(),
-		OldestTime:     db.OldestTime(authed),
-		NewestTime:     db.NewestTime(authed),
 	})
 }
 
@@ -504,7 +484,7 @@ func getEnglishHelp(w http.ResponseWriter, rq *http.Request) {
 	if topicName == "/help/en" || topicName == "/" {
 		topicName = "index"
 	}
-	topic, found := svcHelping.GetEnglishHelp(topicName)
+	topic, found := ctrl.SvcHelping.GetEnglishHelp(topicName)
 	if !found {
 		handlerNotFound(w, rq)
 		return
@@ -513,7 +493,7 @@ func getEnglishHelp(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateHelp, dataHelp{
 		dataCommon: emptyCommon(),
 		This:       topic,
-		Topics:     svcHelping.AllTopics(),
+		Topics:     ctrl.SvcHelping.AllTopics(),
 	})
 }
 
@@ -602,10 +582,10 @@ func getSearch(w http.ResponseWriter, rq *http.Request) {
 
 	authed := auth.AuthorizedFromRequest(rq)
 	currentPage := extractPage(rq)
-	bookmarks, totalBookmarks := svcSearching.For(query, authed, currentPage)
+	bookmarks, totalBookmarks := ctrl.SvcSearching.For(query, authed, currentPage)
 
 	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
-	if err := svcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
+	if err := ctrl.SvcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)
 	}
 	groups := types.GroupLocalBookmarksByDate(renderedBookmarks)
@@ -649,11 +629,11 @@ func writeFeed(svcMethod func() (*rss.Feed, error), w http.ResponseWriter) {
 }
 
 func getBookmarksRSS(w http.ResponseWriter, _ *http.Request) {
-	writeFeed(svcFeeds.BookmarksFeed, w)
+	writeFeed(ctrl.SvcFeeds.BookmarksFeed, w)
 }
 
 func getDigestRSS(w http.ResponseWriter, _ *http.Request) {
-	writeFeed(svcFeeds.DigestFeed, w)
+	writeFeed(ctrl.SvcFeeds.DigestFeed, w)
 }
 
 var dayStampRegex = regexp.MustCompile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
@@ -677,7 +657,7 @@ func getDay(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	bookmarks := types.RenderLocalBookmarks(db.BookmarksForDay(authed, dayStamp))
-	if err := svcLiking.FillLikes(rq.Context(), bookmarks, nil); err != nil {
+	if err := ctrl.SvcLiking.FillLikes(rq.Context(), bookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)
 	}
 
@@ -963,7 +943,7 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 
 	bookmarks, totalBookmarks := db.BookmarksWithTag(authed, tagName, currentPage)
 	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
-	if err := svcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
+	if err := ctrl.SvcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)
 	}
 	groups := types.GroupLocalBookmarksByDate(renderedBookmarks)
@@ -1134,7 +1114,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 			viewData.invalidUrl(*bookmark, common, w, rq)
 			return
 		}
-		newTitle, err := www.TitleOfPage(bookmark.URL)
+		newTitle, err := ctrl.WWW.TitleOfPage(bookmark.URL)
 		if err != nil {
 			slog.Warn("Failed to get HTML title from URL", "url", bookmark.URL, "err", err)
 			viewData.titleNotFound(*bookmark, common, w, rq)
@@ -1355,7 +1335,7 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 			viewData.invalidUrl(bookmark, common, w, rq)
 			return
 		}
-		newTitle, err := www.TitleOfPage(bookmark.URL)
+		newTitle, err := ctrl.WWW.TitleOfPage(bookmark.URL)
 		if err != nil {
 			viewData.titleNotFound(bookmark, common, w, rq)
 			return
@@ -1511,7 +1491,7 @@ func renderBookmark(
 		likeCounter int
 	)
 	if includeLikes {
-		likes, likedByUs, err = svcLiking.ActorsThatLiked(rq.Context(), bookmark.ID)
+		likes, likedByUs, err = ctrl.SvcLiking.ActorsThatLiked(rq.Context(), bookmark.ID)
 		if err != nil {
 			slog.Warn("Failed to fetch likes for bookmark",
 				"bookmarkID", bookmark.ID, "err", err)
@@ -1562,7 +1542,7 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 	currentPage := extractPage(rq)
 	bookmarks, totalBookmarks := db.Bookmarks(authed, currentPage)
 	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
-	if err := svcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
+	if err := ctrl.SvcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)
 	}
 	groups := types.GroupLocalBookmarksByDate(renderedBookmarks)

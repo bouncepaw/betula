@@ -29,7 +29,8 @@ import (
 
 var serverRestartChannel = make(chan struct{})
 
-func StartServer() {
+func StartServer(c Controller) {
+	ctrl = c
 	go restartServer()
 	var srv = &http.Server{}
 	for range serverRestartChannel {

@@ -16,8 +16,17 @@ import (
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
+	apgw "git.sr.ht/~bouncepaw/betula/gateways/activitypub"
+	wwwgw "git.sr.ht/~bouncepaw/betula/gateways/www"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	archivingsvc "git.sr.ht/~bouncepaw/betula/svc/archiving"
+	feedssvc "git.sr.ht/~bouncepaw/betula/svc/feeds"
+	helpingsvc "git.sr.ht/~bouncepaw/betula/svc/helping"
+	likingsvc "git.sr.ht/~bouncepaw/betula/svc/liking"
+	notifsvc "git.sr.ht/~bouncepaw/betula/svc/notif"
+	remarkingsvc "git.sr.ht/~bouncepaw/betula/svc/remarking"
+	searchsvc "git.sr.ht/~bouncepaw/betula/svc/searching"
 	"git.sr.ht/~bouncepaw/betula/web"
 	_ "git.sr.ht/~bouncepaw/betula/web" // For init()
 )
@@ -69,5 +78,49 @@ func main() {
 	signing.EnsureKeysFromDatabase()
 	activities.GenerateBetulaActor()
 	go jobs.ListenAndWhisper()
-	web.StartServer()
+	web.StartServer(newController())
+}
+
+func newController() web.Controller {
+	var (
+		repoLike           = db.NewLikeRepo()
+		repoLikeCollection = db.NewLikeCollectionRepo()
+		repoNotif          = db.New()
+		repoActor          = db.NewActorRepo()
+		repoLocalBookmark  = db.NewLocalBookmarksRepo()
+		repoRemoteBookmark = db.NewRemoteBookmarkRepo()
+		repoArchives       = db.NewArchivesRepo()
+
+		obeliskFetcher = archivingsvc.NewObeliskFetcher()
+		activityPub    = apgw.NewActivityPub(repoActor, repoRemoteBookmark)
+		www            = wwwgw.New()
+
+		// One day, all shall be in services!
+		svcNotif     = notifsvc.New(repoNotif)
+		svcArchiving = archivingsvc.New(obeliskFetcher, repoArchives)
+		svcLiking    = likingsvc.New(
+			repoLike,
+			repoLikeCollection,
+			repoLocalBookmark,
+			repoNotif,
+			activityPub)
+		svcRemarking = remarkingsvc.New(activityPub)
+		svcFeeds     = feedssvc.New()
+		svcSearching = searchsvc.New()
+		svcHelping   = helpingsvc.New()
+	)
+
+	return web.Controller{
+		SvcNotif:           svcNotif,
+		SvcArchiving:       svcArchiving,
+		SvcLiking:          svcLiking,
+		SvcRemarking:       svcRemarking,
+		SvcFeeds:           svcFeeds,
+		SvcSearching:       svcSearching,
+		SvcHelping:         svcHelping,
+		ActivityPub:        activityPub,
+		WWW:                www,
+		RepoRemoteBookmark: repoRemoteBookmark,
+		RepoActor:          repoActor,
+	}
 }

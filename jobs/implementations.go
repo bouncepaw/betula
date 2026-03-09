@@ -46,7 +46,6 @@ func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.J
 
 var catmap = map[jobtype.JobCategory]func(job jobtype.Job){
 	jobtype.SendAnnounce:        notifyAboutMyRepost,
-	jobtype.SendUndoAnnounce:    notifyAboutMyUnrepost,
 	jobtype.SendAcceptFollow:    callForJSON[activities.FollowReport](jobtype.SendAcceptFollow, sendAcceptFollow),
 	jobtype.SendRejectFollow:    callForJSON[activities.FollowReport](jobtype.SendRejectFollow, sendRejectFollow),
 	jobtype.ReceiveAcceptFollow: callForJSON[activities.FollowReport](jobtype.ReceiveAcceptFollow, receiveAcceptFollow),
@@ -179,7 +178,7 @@ func notifyAboutMyRepost(job jobtype.Job) {
 	// TODO: this will have to change. Avoid sending twice if reposting a follower
 	err = sendActivity(*post.RepostOf, activity)
 	if err != nil {
-		slog.Error("Failed to send unrepost activity", "err", err)
+		slog.Error("Failed to send repost activity", "err", err)
 		return
 	}
 
@@ -187,29 +186,4 @@ func notifyAboutMyRepost(job jobtype.Job) {
 		Category: jobtype.SendAnnounce,
 		Payload:  activity,
 	})
-}
-
-func notifyAboutMyUnrepost(job jobtype.Job) {
-	var report activities.UndoAnnounceReport
-
-	switch v := job.Payload.(type) {
-	case []byte:
-		if err := json.Unmarshal(v, &report); err != nil {
-			slog.Error("Failed to unmarshal UndoAnnounceReport", "err", err, "payload", v)
-			return
-		}
-
-		// TODO: avoid sending twice if unreposted from follower
-		err := sendActivity(report.ObjectID, v)
-		if err != nil {
-			slog.Error("Failed to send unrepost notification", "err", err)
-		}
-		broadcastToFollowers(jobtype.Job{
-			Category: jobtype.SendUndoAnnounce,
-			Payload:  v,
-		})
-	default:
-		slog.Error("Bad payload for ReceiveUnrepost job", "payload", v)
-		return
-	}
 }

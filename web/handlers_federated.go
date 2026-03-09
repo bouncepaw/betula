@@ -50,7 +50,7 @@ func postLike(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	err := svcLiking.Like(rq.Context(), bookmarkID)
+	err := ctrl.SvcLiking.Like(rq.Context(), bookmarkID)
 	if err != nil {
 		slog.Error("Failed to like", "err", err,
 			"id", bookmarkID, "next", next)
@@ -79,7 +79,7 @@ func postUnlike(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	err := svcLiking.Unlike(rq.Context(), bookmarkID)
+	err := ctrl.SvcLiking.Unlike(rq.Context(), bookmarkID)
 	if err != nil {
 		slog.Error("Failed to unlike", "err", err,
 			"id", bookmarkID, "next", next)
@@ -106,11 +106,11 @@ func getTimeline(w http.ResponseWriter, rq *http.Request) {
 	common := emptyCommon()
 
 	currentPage := extractPage(rq)
-	bookmarks, total := repoRemoteBookmark.GetRemoteBookmarks(currentPage)
+	bookmarks, total := ctrl.RepoRemoteBookmark.GetRemoteBookmarks(currentPage)
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, total)
 
 	renderedBookmarks := fediverse.RenderRemoteBookmarks(bookmarks)
-	if err := svcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
+	if err := ctrl.SvcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
 		slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 	}
 
@@ -129,7 +129,7 @@ type dataActorList struct {
 }
 
 func getFollowersWeb(w http.ResponseWriter, rq *http.Request) {
-	actors, err := repoActor.GetFollowers(rq.Context())
+	actors, err := ctrl.RepoActor.GetFollowers(rq.Context())
 	if err != nil {
 		slog.Error("Failed to get followers", "err", err)
 		handlerBadRequest(w, rq)
@@ -243,7 +243,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 		slog.Info("Received bookmark from follower", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
-		repoRemoteBookmark.InsertRemoteBookmark(report.Bookmark)
+		ctrl.RepoRemoteBookmark.InsertRemoteBookmark(report.Bookmark)
 
 		if report.LikesCollection != nil {
 			event := likingports.EventLikeCollectionSeen{
@@ -253,14 +253,14 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 				LikedObjectID: report.Bookmark.ID,
 				SourceJSON:    data,
 			}
-			err = svcLiking.ReceiveLikeCollection(rq.Context(), event)
+			err = ctrl.SvcLiking.ReceiveLikeCollection(rq.Context(), event)
 			if err != nil {
 				slog.Error("Failed to receive like collection", "err", err)
 			}
 		}
 
 	case activities.UpdateNoteReport:
-		exists, err := repoRemoteBookmark.Exists(report.Bookmark.ID)
+		exists, err := ctrl.RepoRemoteBookmark.Exists(report.Bookmark.ID)
 		if err != nil {
 			slog.Error("Failed to check if bookmark exists", "err", err, "bookmarkID", report.Bookmark.ID)
 			return
@@ -273,7 +273,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 		slog.Info("Updated remote bookmark", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
-		repoRemoteBookmark.UpdateRemoteBookmark(report.Bookmark)
+		ctrl.RepoRemoteBookmark.UpdateRemoteBookmark(report.Bookmark)
 
 		if report.LikesCollection != nil {
 			event := likingports.EventLikeCollectionSeen{
@@ -286,7 +286,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 				"event", event)
 			event.SourceJSON = data // not including in logs
 
-			err = svcLiking.ReceiveLikeCollection(rq.Context(), event)
+			err = ctrl.SvcLiking.ReceiveLikeCollection(rq.Context(), event)
 			if err != nil {
 				slog.Error("Failed to receive like collection", "err", err)
 			}
@@ -304,7 +304,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 		slog.Info("Deleted remote bookmark", "actorID", report.ActorID, "bookmarkID", report.BookmarkID)
-		err = repoRemoteBookmark.Delete(rq.Context(), report.BookmarkID)
+		err = ctrl.RepoRemoteBookmark.Delete(rq.Context(), report.BookmarkID)
 		if err != nil {
 			slog.Error("Failed to delete remote bookmark", "err", err)
 		}
@@ -325,7 +325,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			AnnounceID: report.AnnounceID,
 			ObjectID:   report.ObjectID,
 		}
-		if err = svcRemarking.ReceiveLegacyUnremark(rq.Context(), event); err != nil {
+		if err = ctrl.SvcRemarking.ReceiveLegacyUnremark(rq.Context(), event); err != nil {
 			slog.Error("Failed to receive legacy unremark", "err", err, "event", event)
 		}
 
@@ -345,7 +345,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			AnnounceID: report.AnnounceID,
 			ObjectID:   report.ObjectID,
 		}
-		if err = svcRemarking.ReceiveLegacyRemark(rq.Context(), event); err != nil {
+		if err = ctrl.SvcRemarking.ReceiveLegacyRemark(rq.Context(), event); err != nil {
 			slog.Error("Failed to receive legacy remark", "err", err, "event", event)
 		}
 
@@ -440,7 +440,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			LikedObjectID: report.ObjectID,
 			Activity:      report.Activity,
 		}
-		err = svcLiking.ReceiveLike(rq.Context(), event)
+		err = ctrl.SvcLiking.ReceiveLike(rq.Context(), event)
 		if err != nil {
 			event.Activity = nil
 			slog.Error("Failed to receive Like",
@@ -465,7 +465,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			LikeID:     report.Object.ID,
 			Activity:   report.Activity,
 		}
-		err = svcLiking.ReceiveUndoLike(rq.Context(), event)
+		err = ctrl.SvcLiking.ReceiveUndoLike(rq.Context(), event)
 		if err != nil {
 			event.Activity = nil
 			slog.Error("Failed to receive Undo{Like}",
@@ -627,45 +627,6 @@ func getWellKnownNodeInfo(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-func postUnrepost(w http.ResponseWriter, rq *http.Request) {
-	id, ok := extractBookmarkID(w, rq)
-	if !ok {
-		return
-	}
-
-	if confirmed := rq.FormValue("confirmed"); confirmed != "true" {
-		http.Redirect(w, rq, fmt.Sprintf("/edit-link/%d", id), http.StatusSeeOther)
-		return
-	}
-
-	bookmark, found := db.GetBookmarkByID(id)
-	if !found {
-		slog.Warn("Trying to unrepost non-existent bookmark", "id", id)
-		handlerNotFound(w, rq)
-		return
-	}
-	if bookmark.RepostOf == nil {
-		slog.Warn("Trying to unrepost a non-repost bookmark", "id", id)
-		handlerNotFound(w, rq)
-		return
-	}
-
-	originalPage := *bookmark.RepostOf
-	bookmark.RepostOf = nil
-	db.EditBookmark(bookmark)
-	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
-
-	if settings.FederationEnabled() {
-		jobs.ScheduleJSON(jobtype.SendUndoAnnounce, activities.UndoAnnounceReport{
-			AnnounceReport: activities.AnnounceReport{
-				ActorID:    settings.AdminUsername(),
-				AnnounceID: fmt.Sprintf("%s/%d", settings.SiteURL(), bookmark.ID),
-				ObjectID:   originalPage,
-			},
-		})
-	}
-}
-
 type dataRepost struct {
 	*dataCommon
 
@@ -776,7 +737,7 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if err := svcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
+	if err := ctrl.SvcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
 		slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 	}
 
@@ -811,7 +772,7 @@ func postFediSearchAPI(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	var bookmarks, totalResults = svcSearching.ForFederated(req.Query, uint(req.Offset), uint(req.Limit))
+	var bookmarks, totalResults = ctrl.SvcSearching.ForFederated(req.Query, uint(req.Offset), uint(req.Limit))
 	var moreAvailable = int(totalResults) - len(bookmarks) - req.Offset
 	if moreAvailable < 0 {
 		moreAvailable = 0 // just in case
@@ -844,7 +805,7 @@ func postFediSearchAPI(w http.ResponseWriter, rq *http.Request) {
 }
 
 func postRefetchActors(w http.ResponseWriter, rq *http.Request) {
-	err := activityPub.RefetchAllActors(rq.Context())
+	err := ctrl.ActivityPub.RefetchAllActors(rq.Context())
 	if err != nil {
 		slog.Error("Failed to refetch all actors", "err", err)
 		http.Error(

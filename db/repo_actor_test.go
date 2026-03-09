@@ -36,9 +36,12 @@ func TestGetRemoteBookmarks(t *testing.T) {
 		URL:         "https://example.com/2",
 		PublishedAt: "2023-01-02T00:00:00Z",
 	}
-	InsertRemoteBookmark(bookmark1)
-	InsertRemoteBookmark(bookmark2)
-	bookmarks, total := GetRemoteBookmarks(1)
+
+	var repoRemoteBookmarks = NewRemoteBookmarkRepo()
+
+	repoRemoteBookmarks.InsertRemoteBookmark(bookmark1)
+	repoRemoteBookmarks.InsertRemoteBookmark(bookmark2)
+	bookmarks, total := repoRemoteBookmarks.GetRemoteBookmarks(1)
 	if total != 1 {
 		t.Errorf("Expected 1 bookmark from followed users, got %d", total)
 	}
@@ -50,7 +53,7 @@ func TestGetRemoteBookmarks(t *testing.T) {
 	}
 	AddPendingFollowing(actor2.ID)
 	MarkAsSurelyFollowing(actor2.ID)
-	bookmarks, total = GetRemoteBookmarks(1)
+	bookmarks, total = repoRemoteBookmarks.GetRemoteBookmarks(1)
 	if total != 2 {
 		t.Errorf("Expected 2 bookmarks after following second user, got %d", total)
 	}
@@ -58,7 +61,9 @@ func TestGetRemoteBookmarks(t *testing.T) {
 
 func TestGetRemoteBookmarks_Empty(t *testing.T) {
 	InitInMemoryDB()
-	bookmarks, total := GetRemoteBookmarks(1)
+
+	var repoRemoteBookmarks = NewRemoteBookmarkRepo()
+	bookmarks, total := repoRemoteBookmarks.GetRemoteBookmarks(1)
 	if total != 0 {
 		t.Errorf("Expected 0 bookmarks with no followed users, got %d", total)
 	}

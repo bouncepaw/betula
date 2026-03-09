@@ -6,15 +6,12 @@
 // Package jobtype holds types for jobs and their categories.
 package jobtype
 
-import "time"
-
 // If you make something drastic to this file, reflect the changes in Adding a new job.md
 
 type JobCategory string
 
 const (
-	SendAnnounce     JobCategory = "notify about my repost"
-	SendUndoAnnounce JobCategory = "notify about my unrepost"
+	SendAnnounce JobCategory = "notify about my repost"
 
 	/* I changed the style from now. The new style is below. */
 
@@ -32,7 +29,6 @@ type Job struct {
 	// ID is a unique identifier for the Job. You get it when reading from the database. Do not set it when issuing a new job.
 	ID       int64
 	Category JobCategory
-	Due      time.Time
 	// Payload is some data.
 	Payload any
 }
