@@ -554,7 +554,11 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 		"following": siteURL + "/following",
 		"outbox":    siteURL + "/outbox",
 		"url":       fediverse.OurID(),
-		"icon":      siteURL + "/static/pix/favicon.png",
+		"icon": map[string]string{
+			"type":      "Image",
+			"mediaType": "image/png",
+			"url":       siteURL + "/static/pix/favicon.png",
+		},
 	})
 	if err != nil {
 		slog.Error("Failed to marshal actor activity", "err", err)
