@@ -421,7 +421,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		actor.SubscriptionStatus = db.SubscriptionStatus(actor.ID)
 
 		currentPage := extractPage(rq)
-		bookmarks, total := db.GetRemoteBookmarksBy(actor.ID, currentPage)
+		bookmarks, total := repoRemoteBookmark.GetRemoteBookmarksBy(actor.ID, currentPage)
 
 		renderedBookmarks := fediverse.RenderRemoteBookmarks(bookmarks)
 		if err := svcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {

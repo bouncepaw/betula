@@ -8,6 +8,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 type (
@@ -15,6 +17,13 @@ type (
 		Exists(id string) (bool, error)
 		GetActorIDFor(bookmarkID string) (string, error)
 		Delete(ctx context.Context, bookmarkID string) error
+
+		// TODO: Add error to the signatures of the following methods.
+
+		GetRemoteBookmarksBy(authorID string, page uint) (bookmarks []types.RemoteBookmark, total uint)
+		GetRemoteBookmarks(page uint) (bookmarks []types.RemoteBookmark, total uint)
+		InsertRemoteBookmark(b types.RemoteBookmark)
+		UpdateRemoteBookmark(b types.RemoteBookmark)
 	}
 
 	// TODO: Finish

@@ -106,7 +106,7 @@ func getTimeline(w http.ResponseWriter, rq *http.Request) {
 	common := emptyCommon()
 
 	currentPage := extractPage(rq)
-	bookmarks, total := db.GetRemoteBookmarks(currentPage)
+	bookmarks, total := repoRemoteBookmark.GetRemoteBookmarks(currentPage)
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, total)
 
 	renderedBookmarks := fediverse.RenderRemoteBookmarks(bookmarks)
@@ -129,9 +129,16 @@ type dataActorList struct {
 }
 
 func getFollowersWeb(w http.ResponseWriter, rq *http.Request) {
+	actors, err := repoActor.GetFollowers(rq.Context())
+	if err != nil {
+		slog.Error("Failed to get followers", "err", err)
+		handlerBadRequest(w, rq)
+		return
+	}
+
 	templateExec(w, rq, templateFollowers, dataActorList{
 		dataCommon: emptyCommon(),
-		Actors:     db.GetFollowers(),
+		Actors:     actors,
 	})
 }
 
@@ -236,7 +243,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 		slog.Info("Received bookmark from follower", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
-		db.InsertRemoteBookmark(report.Bookmark)
+		repoRemoteBookmark.InsertRemoteBookmark(report.Bookmark)
 
 		if report.LikesCollection != nil {
 			event := likingports.EventLikeCollectionSeen{
@@ -266,7 +273,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 		slog.Info("Updated remote bookmark", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
-		db.UpdateRemoteBookmark(report.Bookmark)
+		repoRemoteBookmark.UpdateRemoteBookmark(report.Bookmark)
 
 		if report.LikesCollection != nil {
 			event := likingports.EventLikeCollectionSeen{
