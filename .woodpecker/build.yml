@@ -37,4 +37,4 @@ steps:
         - dist/*
       title: Betula release ${CI_COMMIT_TAG}
       note: "Automated release of binaries"
-      draft: false
+      draft: true
