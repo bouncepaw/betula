@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Danila Gorelko
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+when:
+  event: [tag]
+  branch: ${CI_REPO_DEFAULT_BRANCH}
+
+steps:
+  - name: build
+    image: golang:1.24.13
+    environment:
+      CGO_ENABLED: 0
+    commands:
+      - mkdir -p dist
+      - |
+        for platform in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do
+          GOOS=$(echo $platform | cut -d/ -f1)
+          GOARCH=$(echo $platform | cut -d/ -f2)
+
+          echo "building $GOOS/$GOARCH"
+
+          GOOS=$GOOS GOARCH=$GOARCH go build \
+            -ldflags "-s -w" \
+            -o dist/betula-$GOOS-$GOARCH \
+            ./cmd/betula
+        done
+
+  - name: release
+    image: woodpeckerci/plugin-release
+    depends_on:
+      - build
+    settings:
+      api_key:
+        from_secret: woodpecker-release
+      files:
+        - dist/*
+      title: Betula release ${CI_COMMIT_TAG}
+      note: "Automated release of binaries"
+      draft: false
