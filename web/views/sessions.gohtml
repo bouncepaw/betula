@@ -4,7 +4,7 @@
         <article>
             <h2 class="p-name">Sessions</h2>
             {{if .Sessions}}
-                <ui>
+                <ul>
                     {{range .Sessions}}
                         <li class="mv-session">
                             <p>
@@ -25,7 +25,7 @@
                             </form>
                         </li>
                     {{end}}
-                </ui>
+                </ul>
                 </article>
                 {{ $length := len .Sessions }}
                 {{ if gt $length 1 }}
