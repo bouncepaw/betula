@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -8,6 +9,8 @@ import (
 	"embed"
 	"io"
 	"testing"
+
+	"github.com/nalgeon/be"
 )
 
 //go:embed testdata/*
@@ -25,16 +28,8 @@ func TestGuessCreateNote(t *testing.T) {
 	}
 
 	report, err := Guess(raw)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	be.Err(t, err, nil)
 	r, ok := report.(CreateNoteReport)
-	if !ok {
-		t.Error("wrong type")
-	}
-
-	if len(r.Bookmark.Tags) != 1 {
-		t.Error("tag len mismatch")
-	}
+	be.True(t, ok)
+	be.Equal(t, len(r.Bookmark.Tags), 1)
 }

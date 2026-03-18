@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2023 Goldstein
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -8,19 +9,16 @@ package types
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
+
+	"github.com/nalgeon/be"
 )
 
 func TestCleanerLinkParts(t *testing.T) {
 	check := func(url string, expectedLeft string, expectedRight string) {
 		left, right := CleanerLinkParts(url)
-		if left != expectedLeft {
-			t.Errorf("Wrong left part for `%s`: expected `%s`, got `%s`", url, expectedLeft, left)
-		}
-		if right != expectedRight {
-			t.Errorf("Wrong right part for `%s`: expected `%s`, got `%s`", url, expectedRight, right)
-		}
+		be.Equal(t, left, expectedLeft)
+		be.Equal(t, right, expectedRight)
 	}
 
 	check("gopher://foo.bar/baz", "gopher://foo.bar", "/baz")
@@ -107,9 +105,7 @@ func TestGroupPostsByDate(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%d", i+1), func(t *testing.T) {
-			if gotGroupedPosts := GroupLocalBookmarksByDate(RenderLocalBookmarks(tt.args)); !reflect.DeepEqual(gotGroupedPosts, tt.wantGroupedPosts) {
-				t.Errorf("GroupPostsByDate() = %v, want %v", gotGroupedPosts, tt.wantGroupedPosts)
-			}
+			be.Equal(t, GroupLocalBookmarksByDate(RenderLocalBookmarks(tt.args)), tt.wantGroupedPosts)
 		})
 	}
 }

@@ -1,14 +1,16 @@
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
 package notifsvc
 
 import (
-	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
-	"reflect"
 	"testing"
 	"time"
+
+	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
+	"github.com/nalgeon/be"
 )
 
 func TestGroupNotificationsByDay(t *testing.T) {
@@ -50,18 +52,11 @@ func TestGroupNotificationsByDay(t *testing.T) {
 
 		actualGroups := GroupNotificationsByDay(notifications)
 
-		if len(actualGroups) != len(expectedGroups) {
-			t.Fatalf("Expected %d groups, but got %d", len(expectedGroups), len(actualGroups))
-		}
+		be.Equal(t, len(actualGroups), len(expectedGroups))
 
 		for i := range expectedGroups {
-			if actualGroups[i].Title != expectedGroups[i].Title {
-				t.Errorf("Group %d: Expected title %s, but got %s", i, expectedGroups[i].Title, actualGroups[i].Title)
-			}
-
-			if !reflect.DeepEqual(actualGroups[i].Notifications, expectedGroups[i].Notifications) {
-				t.Errorf("Group %d: Expected notifications %v, but got %v", i, expectedGroups[i].Notifications, actualGroups[i].Notifications)
-			}
+			be.Equal(t, actualGroups[i].Title, expectedGroups[i].Title)
+			be.Equal(t, actualGroups[i].Notifications, expectedGroups[i].Notifications)
 		}
 	})
 
@@ -70,8 +65,6 @@ func TestGroupNotificationsByDay(t *testing.T) {
 
 		actualGroups := GroupNotificationsByDay([]notiftypes.Notification{})
 
-		if len(actualGroups) != 0 {
-			t.Errorf("Expected empty slice, but got %v", actualGroups)
-		}
+		be.Equal(t, len(actualGroups), 0)
 	})
 }

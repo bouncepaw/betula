@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2024 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -7,6 +8,8 @@ package ticks
 import (
 	"testing"
 	"time"
+
+	"github.com/nalgeon/be"
 )
 
 func TestLastSeen(t *testing.T) {
@@ -76,10 +79,7 @@ func TestLastSeen(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := LastSeen(tc.fromTime, toTime)
-			if result != tc.expected {
-				t.Errorf("Expected %s, but got %s", tc.expected, result)
-			}
+			be.Equal(t, LastSeen(tc.fromTime, toTime), tc.expected)
 		})
 	}
 }

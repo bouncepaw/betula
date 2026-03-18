@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/nalgeon/be"
 	"golang.org/x/net/html"
 )
 
@@ -61,14 +62,10 @@ func TestFindTitle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			doc, err := html.Parse(strings.NewReader(tt.html))
-			if err != nil {
-				t.Fatalf("Failed to parse HTML: %v", err)
-			}
+			be.Err(t, err, nil)
 
 			result := www.findTitle(doc)
-			if result != tt.expected {
-				t.Errorf("Expected title '%s', got '%s'", tt.expected, result)
-			}
+			be.Equal(t, result, tt.expected)
 		})
 	}
 }
@@ -80,13 +77,8 @@ func TestTitleOfPageWithSmallLimit(t *testing.T) {
 	}))
 	defer server.Close()
 	title, err := NewWithLimit(10).TitleOfPage(server.URL)
-	if err != nil {
-		t.Fatalf("TitleOfPage failed: %v", err)
-	}
-	expected := "Late Title"
-	if title != expected {
-		t.Errorf("Expected title '%s', got '%s'", expected, title)
-	}
+	be.Err(t, err, nil)
+	be.Equal(t, title, "Late Title")
 }
 
 func TestTitleOfPageWithDefaultLimit(t *testing.T) {
@@ -96,11 +88,6 @@ func TestTitleOfPageWithDefaultLimit(t *testing.T) {
 	}))
 	defer server.Close()
 	title, err := New().TitleOfPage(server.URL)
-	if err != nil {
-		t.Fatalf("TitleOfPage failed: %v", err)
-	}
-	expected := "Late Title"
-	if title != expected {
-		t.Errorf("Expected title '%s', got '%s'", expected, title)
-	}
+	be.Err(t, err, nil)
+	be.Equal(t, title, "Late Title")
 }

@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -7,33 +8,22 @@ package activities
 import (
 	"fmt"
 	"io"
-	"reflect"
 	"testing"
-)
 
-func scream(t *testing.T, err error) {
-	if err != nil {
-		t.Fatal(err)
-	}
-}
+	"github.com/nalgeon/be"
+)
 
 func readParseGuess(t *testing.T, fileName string) (any, []byte) {
 	f, err := fs.Open(fmt.Sprintf("testdata/%s", fileName))
-	scream(t, err)
+	be.Err(t, err, nil)
 
 	bs, err := io.ReadAll(f)
-	scream(t, err)
+	be.Err(t, err, nil)
 
 	report, err := Guess(bs)
-	scream(t, err)
+	be.Err(t, err, nil)
 
 	return report, bs
-}
-
-func deepEqual(t *testing.T, got any, want any) {
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %v\nwant %v", got, want)
-	}
 }
 
 func TestGuessLike(t *testing.T) {
@@ -49,7 +39,7 @@ func TestGuessLike(t *testing.T) {
 			ObjectID: "https://activitypub.academy/users/difricus_koloddath/statuses/115833494550206707",
 			Activity: bs,
 		}
-		deepEqual(t, report, want)
+		be.Equal(t, report, any(want))
 	})
 
 	t.Run("Mastodon", func(t *testing.T) {
@@ -62,7 +52,7 @@ func TestGuessLike(t *testing.T) {
 			ObjectID: "https://alice.bouncepaw.com/8",
 			Activity: bs,
 		}
-		deepEqual(t, report, want)
+		be.Equal(t, report, any(want))
 	})
 }
 
@@ -81,7 +71,7 @@ func TestGuessUndoLike(t *testing.T) {
 				ObjectID: "https://activitypub.academy/users/difricus_koloddath/statuses/115833494550206707",
 			},
 			Activity: bs}
-		deepEqual(t, report, want)
+		be.Equal(t, report, any(want))
 	})
 
 	t.Run("Mastodon", func(t *testing.T) {
@@ -96,6 +86,6 @@ func TestGuessUndoLike(t *testing.T) {
 				ObjectID: "https://alice.bouncepaw.com/8",
 			},
 			Activity: bs}
-		deepEqual(t, report, want)
+		be.Equal(t, report, any(want))
 	})
 }

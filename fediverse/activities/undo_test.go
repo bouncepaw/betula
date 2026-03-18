@@ -1,10 +1,15 @@
 // SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
 package activities
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/nalgeon/be"
+)
 
 // This one was handled wrong at some point. Making a test here to fix it.
 var undoFollowJSON = []byte(`
@@ -23,21 +28,9 @@ var undoFollowJSON = []byte(`
 
 func TestGuessUndoFollow(t *testing.T) {
 	report, err := Guess(undoFollowJSON)
-	if err != nil {
-		t.Error(err)
-		t.Logf("%q", report)
-		return
-	}
+	be.Err(t, err, nil)
 	undoFollowReport, ok := report.(UndoFollowReport)
-	if !ok {
-		t.Error("wrong type")
-		t.Logf("%q", report)
-		return
-	}
+	be.True(t, ok)
 	// and just a little check
-	if undoFollowReport.ActorID != "https://bob.bouncepaw.com/@bob" {
-		t.Error("it's all messed up")
-		t.Logf("%q", report)
-		return
-	}
+	be.Equal(t, undoFollowReport.ActorID, "https://bob.bouncepaw.com/@bob")
 }

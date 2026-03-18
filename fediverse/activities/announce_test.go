@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -9,6 +10,8 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+
+	"github.com/nalgeon/be"
 )
 
 const json1 = `
@@ -102,23 +105,16 @@ var table = []struct {
 }
 
 func TestGuess(t *testing.T) {
-	for i, test := range table {
+	for _, test := range table {
 		report, err := Guess([]byte(test.json))
-		if test.err != nil && err.Error() != test.err.Error() {
-			t.Errorf("Error failed. Test %d: %q ≠ %q", i+1, err, test.err)
-		}
+		be.True(t, !(test.err != nil && err.Error() != test.err.Error()))
 		if report == nil && test.report == nil {
 			continue
 		}
-		if reflect.TypeOf(report) != reflect.TypeOf(test.report) {
-			t.Errorf("Report types mismatch. Test %d: %v ≠ %v", i+1, report, test.report)
-		}
+		be.Equal(t, reflect.TypeOf(report), reflect.TypeOf(test.report))
 		switch r := test.report.(type) {
 		case AnnounceReport:
-			R := report.(AnnounceReport)
-			if !reflect.DeepEqual(r, R) {
-				t.Errorf("Report failed. Test %d: %v ≠ %v", i+1, report, test.report)
-			}
+			be.Equal(t, r, report.(AnnounceReport))
 		default:
 			panic("how did this happen")
 		}

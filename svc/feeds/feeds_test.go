@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/db"
+	"github.com/nalgeon/be"
 )
 
 func TestFiveLastDays(t *testing.T) {
@@ -22,15 +24,11 @@ func TestFiveLastDays(t *testing.T) {
 
 	correctDayStamps := []string{"2023-03-20", "2023-03-19", "2023-03-18", "2023-03-17", "2023-03-16"}
 	for i, stamp := range dayStamps {
-		if correctDayStamps[i] != stamp {
-			t.Errorf("Incorrect day stamp generated. Got %s, expected %s.", stamp, correctDayStamps[i])
-		}
+		be.Equal(t, correctDayStamps[i], stamp)
 	}
 
 	correctBookmarkCounts := []int{2, 1, 0, 1, 0}
 	for i, posts := range dayPosts {
-		if correctBookmarkCounts[i] != len(posts) {
-			t.Errorf("Incorrect post count for %s. Got %d, expected %d. Data: %v.", dayStamps[i], len(posts), correctBookmarkCounts[i], posts)
-		}
+		be.Equal(t, correctBookmarkCounts[i], len(posts))
 	}
 }

@@ -7,10 +7,11 @@ package fedisearch
 
 import (
 	"math/rand"
-	"reflect"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/nalgeon/be"
 )
 
 func TestState_RequestsToMake(t *testing.T) {
@@ -99,9 +100,7 @@ func TestState_RequestsToMake(t *testing.T) {
 					return strings.Compare(e.To, e2.To)
 				},
 			)
-			if got := reqs; !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("\ngot  %v,\nwant %v", got, tt.want)
-			}
+			be.Equal(t, reqs, tt.want)
 		})
 	}
 }

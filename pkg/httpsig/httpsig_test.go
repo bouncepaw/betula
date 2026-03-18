@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Ted Unangst <tedu@tedunangst.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: LicenseRef-Tedu
 
@@ -10,6 +11,8 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/nalgeon/be"
 )
 
 var pubkey = PublicKey{}
@@ -27,15 +30,11 @@ func TestSignPost(t *testing.T) {
 	_, err := VerifyRequest(req, msg, func(s string) (PublicKey, error) {
 		return pubkey, nil
 	})
-	if err != nil {
-		t.Errorf("verify: %s", err)
-	}
+	be.Err(t, err, nil)
 	_, err = VerifyRequest(req, []byte("false"), func(s string) (PublicKey, error) {
 		return pubkey, nil
 	})
-	if err == nil {
-		t.Error("bad verify")
-	}
+	be.Err(t, err)
 }
 
 func TestSignGet(t *testing.T) {
@@ -48,16 +47,12 @@ func TestSignGet(t *testing.T) {
 	_, err := VerifyRequest(req, nil, func(s string) (PublicKey, error) {
 		return pubkey, nil
 	})
-	if err != nil {
-		t.Errorf("verify: %s", err)
-	}
+	be.Err(t, err, nil)
 	req.URL, _ = url.Parse("https://example.com/url?query=false")
 	_, err = VerifyRequest(req, nil, func(s string) (PublicKey, error) {
 		return pubkey, nil
 	})
-	if err == nil {
-		t.Error("bad verify")
-	}
+	be.Err(t, err)
 }
 
 func init() {

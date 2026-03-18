@@ -1,12 +1,15 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko 
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
 package db
 
 import (
-	"git.sr.ht/~bouncepaw/betula/types"
 	"testing"
+
+	"git.sr.ht/~bouncepaw/betula/types"
+	"github.com/nalgeon/be"
 )
 
 func initInMemoryTags() {
@@ -22,14 +25,9 @@ insert into TagsToPosts (TagName, PostID) values
 
 func TestTags(t *testing.T) {
 	initInMemoryTags()
-	tagsWithRights := Tags(true)
-	if len(tagsWithRights) != 2 {
-		t.Errorf("Wrong authorized categories count")
-	}
-	tagsWithoutRights := Tags(false)
-	if len(tagsWithoutRights) != 1 {
-		t.Errorf("Wrong unauthorized categories count")
-	}
+
+	be.Equal(t, len(Tags(true)), 2)
+	be.Equal(t, len(Tags(false)), 1)
 }
 
 func TestDescriptions(t *testing.T) {
@@ -37,13 +35,9 @@ func TestDescriptions(t *testing.T) {
 
 	desc := "Octopi have 8 legs."
 	SetTagDescription("octopus", desc)
-	if DescriptionForTag("octopus") != desc {
-		t.Errorf("Octopus has wrong description: %s", DescriptionForTag("octopus"))
-	}
 
-	if DescriptionForTag("flounder") != "" {
-		t.Errorf("Flound has a description: %s", DescriptionForTag("flounder"))
-	}
+	be.Equal(t, DescriptionForTag("octopus"), desc)
+	be.Equal(t, DescriptionForTag("flounder"), "")
 }
 
 func TestDeleteTagDescription(t *testing.T) {
@@ -53,9 +47,7 @@ func TestDeleteTagDescription(t *testing.T) {
 	SetTagDescription("octopus", desc)
 	deleteTagDescription("octopus")
 
-	if DescriptionForTag("octopus") != "" {
-		t.Errorf("Octopus has wrong description: %s", DescriptionForTag("octopus"))
-	}
+	be.Equal(t, DescriptionForTag("octopus"), "")
 }
 
 func TestDeleteTag(t *testing.T) {
@@ -65,23 +57,15 @@ func TestDeleteTag(t *testing.T) {
 	SetTagDescription("flounder", desc)
 	DeleteTag("flounder")
 
-	if TagExists("flounder") {
-		t.Errorf("Faulty deletion flounder")
-	}
-	if DescriptionForTag("flounder") != "" {
-		t.Errorf("Flounder has wrong description: %s", DescriptionForTag("flounder"))
-	}
+	be.True(t, !TagExists("flounder"))
+	be.Equal(t, DescriptionForTag("flounder"), "")
 }
 
 func TestTagExists(t *testing.T) {
 	initInMemoryTags()
 
-	if !TagExists("flounder") {
-		t.Errorf("Flounder does not exist")
-	}
-	if TagExists("orca") {
-		t.Errorf("Orca exists")
-	}
+	be.True(t, TagExists("flounder"))
+	be.True(t, !TagExists("orca"))
 }
 
 func TestRenameTag(t *testing.T) {
@@ -89,15 +73,11 @@ func TestRenameTag(t *testing.T) {
 
 	RenameTag("flounder", "orca")
 	cats := Tags(true)
-	if len(cats) != 2 {
-		t.Errorf("Faulty renaming from Flounder to Orca")
-	}
+	be.Equal(t, len(cats), 2)
 
 	RenameTag("orca", "octopus")
 	cats = Tags(true)
-	if len(cats) != 1 {
-		t.Errorf("Faulty merging orca into octopus")
-	}
+	be.Equal(t, len(cats), 1)
 }
 
 // tests SetTagsFor and TagsForBookmarkByID
@@ -110,17 +90,11 @@ func TestPostTags(t *testing.T) {
 	SetTagsFor(2, tags)
 
 	tags = TagsForBookmarkByID(2)
-	if len(tags) != 2 {
-		t.Errorf("Faulty tag saving")
-	}
+	be.Equal(t, len(tags), 2)
 }
 
 func TestTagCount(t *testing.T) {
 	initInMemoryTags()
-	if TagCount(true) != 2 {
-		t.Errorf("Wrong authorized categories count")
-	}
-	if TagCount(false) != 1 {
-		t.Errorf("Wrong unauthorized categories count")
-	}
+	be.Equal(t, TagCount(true), 2)
+	be.Equal(t, TagCount(false), 1)
 }

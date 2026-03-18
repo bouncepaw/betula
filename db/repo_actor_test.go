@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -8,6 +9,7 @@ import (
 	"testing"
 
 	"git.sr.ht/~bouncepaw/betula/types"
+	"github.com/nalgeon/be"
 )
 
 func TestGetRemoteBookmarks(t *testing.T) {
@@ -42,21 +44,13 @@ func TestGetRemoteBookmarks(t *testing.T) {
 	repoRemoteBookmarks.InsertRemoteBookmark(bookmark1)
 	repoRemoteBookmarks.InsertRemoteBookmark(bookmark2)
 	bookmarks, total := repoRemoteBookmarks.GetRemoteBookmarks(1)
-	if total != 1 {
-		t.Errorf("Expected 1 bookmark from followed users, got %d", total)
-	}
-	if len(bookmarks) != 1 {
-		t.Fatalf("Expected 1 bookmark in the result, got %d", len(bookmarks))
-	}
-	if bookmarks[0].ID != bookmark1.ID {
-		t.Errorf("Expected bookmark ID %s, got %s", bookmark1.ID, bookmarks[0].ID)
-	}
+	be.Equal(t, total, 1)
+	be.Equal(t, len(bookmarks), 1)
+	be.Equal(t, bookmarks[0].ID, bookmark1.ID)
 	AddPendingFollowing(actor2.ID)
 	MarkAsSurelyFollowing(actor2.ID)
 	bookmarks, total = repoRemoteBookmarks.GetRemoteBookmarks(1)
-	if total != 2 {
-		t.Errorf("Expected 2 bookmarks after following second user, got %d", total)
-	}
+	be.Equal(t, total, 2)
 }
 
 func TestGetRemoteBookmarks_Empty(t *testing.T) {
@@ -64,10 +58,6 @@ func TestGetRemoteBookmarks_Empty(t *testing.T) {
 
 	var repoRemoteBookmarks = NewRemoteBookmarkRepo()
 	bookmarks, total := repoRemoteBookmarks.GetRemoteBookmarks(1)
-	if total != 0 {
-		t.Errorf("Expected 0 bookmarks with no followed users, got %d", total)
-	}
-	if len(bookmarks) != 0 {
-		t.Errorf("Expected empty bookmarks slice, got %d items", len(bookmarks))
-	}
+	be.Equal(t, total, 0)
+	be.Equal(t, len(bookmarks), 0)
 }
