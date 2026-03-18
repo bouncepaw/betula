@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"math/rand"
 	"net/url"
+	"strings"
 	"time"
+	"unicode"
 )
 
 func ValidURL(s string) bool {
@@ -44,6 +46,10 @@ func RandomWhatever() string {
 	b := make([]byte, 20)
 	rand.Read(b)
 	return fmt.Sprintf("%x", b)[2:20]
+}
+
+func TrimRightSpace(s string) string {
+	return strings.TrimRightFunc(s, unicode.IsSpace)
 }
 
 func init() {

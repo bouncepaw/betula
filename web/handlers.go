@@ -7,6 +7,7 @@
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
 // SPDX-FileCopyrightText: 2025 Guilherme Puida Moreira
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -29,6 +30,7 @@ import (
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/rss"
+	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
 	feedsports "git.sr.ht/~bouncepaw/betula/ports/feeds"
@@ -1313,6 +1315,9 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 	bookmark.Title = rq.FormValue("title")
 	bookmark.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
 	bookmark.Description = rq.FormValue("description")
+	if stricks.TrimRightSpace(bookmark.Description) == ">" {
+		bookmark.Description = ""
+	}
 	bookmark.Tags = types.SplitTags(rq.FormValue("tags"))
 
 	// If this is true, a user can save a duplicate next time they click 'Save' button.
