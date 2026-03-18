@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2024 Danila Gorelko
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -9,18 +10,13 @@ import (
 	"testing"
 
 	"git.sr.ht/~bouncepaw/betula/types"
+	"github.com/nalgeon/be"
 )
 
 func TestBookmarkCount(t *testing.T) {
 	InitInMemoryDB()
-	resAuthed := BookmarkCount(true)
-	if resAuthed != 2 {
-		t.Errorf("Wrong authorized LinkCount, got %d", resAuthed)
-	}
-	resAnon := BookmarkCount(false)
-	if resAnon != 1 {
-		t.Errorf("Wrong unauthorized LinkCount, got %d", resAnon)
-	}
+	be.Equal(t, BookmarkCount(true), 2)
+	be.Equal(t, BookmarkCount(false), 1)
 }
 
 func TestAddPost(t *testing.T) {
@@ -37,9 +33,7 @@ func TestAddPost(t *testing.T) {
 		Visibility:  types.Public,
 	}
 	InsertBookmark(post)
-	if BookmarkCount(true) != 3 {
-		t.Errorf("Faulty AddPost")
-	}
+	be.Equal(t, BookmarkCount(true), 3)
 }
 
 func TestRandomBookmarks(t *testing.T) {
@@ -56,14 +50,10 @@ func TestRandomBookmarks(t *testing.T) {
 
 	for _, tc := range cases {
 		bookmarks, total := RandomBookmarks(tc.authorized, tc.n)
-		if len(bookmarks) != int(total) {
-			t.Errorf("Length of bookmarks does not match the total count")
-		}
+		be.Equal(t, len(bookmarks), int(total))
 		creationTime := bookmarks[0].CreationTime
 		for _, bookmark := range bookmarks[1:] {
-			if bookmark.CreationTime > creationTime {
-				t.Errorf("Bookmarks not in correct order")
-			}
+			be.True(t, bookmark.CreationTime <= creationTime)
 			creationTime = bookmark.CreationTime
 		}
 	}
