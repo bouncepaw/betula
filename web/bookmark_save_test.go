@@ -12,6 +12,7 @@ import (
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/types"
+	"github.com/nalgeon/be"
 )
 
 func TestPostSaveBookmarkStripsPlaceholderDescription(t *testing.T) {
@@ -56,36 +57,22 @@ func TestPostSaveBookmarkStripsPlaceholderDescription(t *testing.T) {
 			postSaveBookmark(w, r)
 
 			res := w.Result()
-			if res.StatusCode != 303 {
-				t.Fatalf("expected status 303, got %d", res.StatusCode)
-			}
+			be.Equal(t, res.StatusCode, 303)
 
 			bookmark, err := db.NewLocalBookmarksRepo().GetBookmarkByID(
 				t.Context(),
 				4, // TODO(d.gorelko): get rid of coupling to `InitInMemoryDB()`.
 			)
-			if err != nil {
-				t.Fatalf("bookmark not found after insert")
-			}
+			be.Err(t, err, nil)
 
 			if tc.wantEmptyDescr {
-				if bookmark.Description != "" {
-					t.Fatalf("expected empty description, got %q", bookmark.Description)
-				}
+				be.Equal(t, bookmark.Description, "")
 			} else {
-				if bookmark.Description != tc.description {
-					t.Fatalf("expected description %q to be preserved, got %q", tc.description, bookmark.Description)
-				}
+				be.Equal(t, bookmark.Description, tc.description)
 			}
-			if bookmark.URL != "https://example.com" {
-				t.Fatalf("unexpected URL: %q", bookmark.URL)
-			}
-			if bookmark.Title != "Example" {
-				t.Fatalf("unexpected title: %q", bookmark.Title)
-			}
-			if bookmark.Visibility != types.Public {
-				t.Fatalf("unexpected visibility: %v", bookmark.Visibility)
-			}
+			be.Equal(t, bookmark.URL, "https://example.com")
+			be.Equal(t, bookmark.Title, "Example")
+			be.Equal(t, bookmark.Visibility, types.Public)
 		})
 	}
 }

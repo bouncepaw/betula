@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -12,6 +13,7 @@ import (
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/types"
+	"github.com/nalgeon/be"
 )
 
 func TestRenderBookmarkIncludesReposts(t *testing.T) {
@@ -24,9 +26,7 @@ func TestRenderBookmarkIncludesReposts(t *testing.T) {
 	}
 	id := db.InsertBookmark(bm)
 	bookmark, found := db.GetBookmarkByID(int(id))
-	if !found {
-		t.Fatalf("bookmark not found after insert")
-	}
+	be.True(t, found)
 
 	db.SaveRepost(bookmark.ID, types.RepostInfo{URL: "https://links.alice/1", Name: "Alice", Timestamp: time.Now()})
 	db.SaveRepost(bookmark.ID, types.RepostInfo{URL: "https://links.bob/2", Name: "Bob", Timestamp: time.Now()})
@@ -35,7 +35,5 @@ func TestRenderBookmarkIncludesReposts(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	data := renderBookmark(bookmark, w, r, false)
-	if len(data.Reposts) != 2 {
-		t.Errorf("expected 2 reposts in render data, got %d", len(data.Reposts))
-	}
+	be.Equal(t, len(data.Reposts), 2)
 }

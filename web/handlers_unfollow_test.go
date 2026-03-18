@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -13,6 +14,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
+	"github.com/nalgeon/be"
 )
 
 func TestUnfollowRemovesFollowingOnSendError(t *testing.T) {
@@ -39,7 +41,5 @@ func TestUnfollowRemovesFollowingOnSendError(t *testing.T) {
 	rw := httptest.NewRecorder()
 	postUnfollow(rw, rq)
 
-	if db.SubscriptionStatus(actor.ID) != types.SubscriptionNone {
-		t.Errorf("Unfollow did not remove following when sending Undo failed")
-	}
+	be.Equal(t, db.SubscriptionStatus(actor.ID), types.SubscriptionNone)
 }
