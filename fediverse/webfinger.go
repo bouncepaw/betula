@@ -40,6 +40,7 @@ func requestIdByWebFingerAcct(user, host string) (id string, err error) {
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {

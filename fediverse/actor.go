@@ -83,6 +83,7 @@ func dereferenceActorID(actorID string) (*types.Actor, error) {
 	if err != nil {
 		return nil, fmt.Errorf("requesting actor: %w", err)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("requesting actor: status not 200, id est %d", resp.StatusCode)

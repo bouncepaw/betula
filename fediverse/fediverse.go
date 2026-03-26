@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -45,6 +46,7 @@ func PostSignedDocumentToAddress(doc []byte, contentType string, accept string, 
 			"err", err, "addr", addr)
 		return nil, 0, err
 	}
+	defer resp.Body.Close()
 
 	var (
 		bodyReader = io.LimitReader(resp.Body, 1024*1024*10)

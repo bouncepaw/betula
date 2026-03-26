@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -27,6 +28,7 @@ func (ap *ActivityPub) dereferenceActorID(actorID string) (types.Actor, error) {
 	if err != nil {
 		return types.Actor{}, fmt.Errorf("failed to request actor: %w", err)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return types.Actor{}, fmt.Errorf("failed to request actor: status %d", resp.StatusCode)

@@ -91,6 +91,7 @@ func SendActivityToInbox(activity []byte, inbox string) error {
 		slog.Error("Failed to send activity to inbox", "err", err, "inbox", inbox)
 		return err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		slog.Warn("Sent activity returned non-OK status", "inbox", inbox, "status", resp.StatusCode)
 	}
@@ -113,6 +114,7 @@ func SendQuietActivityToInbox(activity []byte, inbox string) error {
 		slog.Error("Failed to send activity to inbox", "err", err, "inbox", inbox)
 		return err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		slog.Warn("Sent activity returned non-OK status", "inbox", inbox, "status", resp.StatusCode)
 	}
