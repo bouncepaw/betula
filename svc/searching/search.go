@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -53,7 +54,6 @@ func (svc *Service) For(query string, authorized bool, page uint) (bookmarksInPa
 func (svc *Service) extractWithRegex(query string, regex *regexp.Regexp) (string, []string) {
 	var extracted []string
 	for _, result := range regex.FindAllStringSubmatch(query, -1) {
-		result := result
 		extracted = append(extracted, result[1])
 	}
 	query = regex.ReplaceAllString(query, "")
