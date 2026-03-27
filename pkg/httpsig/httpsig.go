@@ -35,7 +35,7 @@ const (
 
 type PublicKey struct {
 	Type KeyType
-	Key  interface{}
+	Key  any
 }
 
 func (pubkey PublicKey) Verify(msg []byte, sig []byte) error {
@@ -57,7 +57,7 @@ func (pubkey PublicKey) Verify(msg []byte, sig []byte) error {
 
 type PrivateKey struct {
 	Type KeyType
-	Key  interface{}
+	Key  any
 }
 
 func (privkey PrivateKey) Sign(msg []byte) []byte {
@@ -155,7 +155,7 @@ func VerifyRequest(req *http.Request, content []byte, lookupPubkey func(string) 
 	}
 
 	var keyname, algo, heads, bsig string
-	for _, v := range strings.Split(sighdr, ",") {
+	for v := range strings.SplitSeq(sighdr, ",") {
 		name, val, ok := strings.Cut(v, "=")
 		if !ok {
 			return "", fmt.Errorf("bad scan: %s from %s", v, sighdr)
@@ -254,7 +254,7 @@ func DecodeKey(s string) (pri PrivateKey, pub PublicKey, err error) {
 	}
 	switch block.Type {
 	case "PUBLIC KEY":
-		var k interface{}
+		var k any
 		k, err = x509.ParsePKIXPublicKey(block.Bytes)
 		if err == nil {
 			pub.Key = k
@@ -266,7 +266,7 @@ func DecodeKey(s string) (pri PrivateKey, pub PublicKey, err error) {
 			}
 		}
 	case "PRIVATE KEY":
-		var k interface{}
+		var k any
 		k, err = x509.ParsePKCS8PrivateKey(block.Bytes)
 		if err == nil {
 			pri.Key = k
@@ -298,7 +298,7 @@ func DecodeKey(s string) (pri PrivateKey, pub PublicKey, err error) {
 }
 
 // Marshall an RSA key into an ASCII string
-func EncodeKey(i interface{}) (string, error) {
+func EncodeKey(i any) (string, error) {
 	var b pem.Block
 	var err error
 	switch k := i.(type) {

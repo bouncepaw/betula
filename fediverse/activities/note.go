@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -11,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"slices"
 	"strings"
 	"time"
 
@@ -259,10 +261,8 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 
 	// Verify required fields.
 	mustBeNonEmpty := []string{bookmark.ID, bookmark.ActorID, bookmark.Title, bookmark.PublishedAt, bookmark.URL}
-	for _, field := range mustBeNonEmpty {
-		if field == "" {
-			return nil, ErrEmptyField
-		}
+	if slices.Contains(mustBeNonEmpty, "") {
+		return nil, ErrEmptyField
 	}
 
 	// Grabbing Mycomarkup

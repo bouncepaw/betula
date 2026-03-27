@@ -29,7 +29,7 @@ type Actor struct {
 		ID           string `json:"id"`
 		Owner        string `json:"owner"`
 		PublicKeyPEM string `json:"publicKeyPem"`
-	} `json:"publicKey,omitempty"`
+	} `json:"publicKey"`
 
 	SubscriptionStatus SubscriptionRelation `json:"-"` // Set manually
 	Domain             string               `json:"-"` // Set manually

@@ -1,12 +1,14 @@
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
 package db
 
 import (
+	"slices"
 	"sort"
 	"strings"
 
@@ -154,10 +156,5 @@ func tagsOK(postTags []types.Tag, includedTags, excludedTags []string) bool {
 		}
 	}
 
-	for _, marker := range includeMask {
-		if marker == false {
-			return false
-		}
-	}
-	return true
+	return !slices.Contains(includeMask, false)
 }

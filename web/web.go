@@ -5,6 +5,7 @@
 // SPDX-FileCopyrightText: 2024 Danila Gorelko
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -81,8 +82,8 @@ func (a *auther) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 	if !allowedMethod {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte(
-			fmt.Sprintf("Method %s is not supported by this server. Use POST and GET.", rq.Method)))
+		_, _ = w.Write(
+			fmt.Appendf(nil, "Method %s is not supported by this server. Use POST and GET.", rq.Method))
 		return
 	}
 
