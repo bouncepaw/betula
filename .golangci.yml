@@ -121,7 +121,7 @@ linters:
     - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
     - usetesting # reports uses of functions with replacement inside the testing package
 #    - wastedassign # finds wasted assignment statements
-#    - whitespace # detects leading and trailing whitespace
+    - whitespace # detects leading and trailing whitespace
 
     ## you may want to enable
     #- arangolint # opinionated best practices for arangodb client
