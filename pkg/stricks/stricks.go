@@ -6,7 +6,7 @@
 package stricks
 
 import (
-	"fmt"
+	"encoding/hex"
 	"math/rand"
 	"net/url"
 	"strings"
@@ -45,7 +45,7 @@ func StringifyAnything(o any) string {
 func RandomWhatever() string {
 	b := make([]byte, 20)
 	rand.Read(b)
-	return fmt.Sprintf("%x", b)[2:20]
+	return hex.EncodeToString(b)[2:20]
 }
 
 func TrimRightSpace(s string) string {

@@ -6,6 +6,7 @@
 // SPDX-FileCopyrightText: 2024 Danila Gorelko
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -19,6 +20,7 @@ import (
 	"html/template"
 	"math"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -221,7 +223,7 @@ func PaginatorFromURL(url *url.URL, currentPage uint, totalPosts uint) (pages []
 	var i uint = 0
 	for ; i < totalPages; i++ {
 		page := i + 1
-		values.Set("page", fmt.Sprintf("%d", page))
+		values.Set("page", strconv.FormatUint(uint64(page), 10))
 		url.RawQuery = values.Encode()
 
 		pages[i] = Page{

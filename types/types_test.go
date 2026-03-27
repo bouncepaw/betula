@@ -8,7 +8,7 @@
 package types
 
 import (
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/nalgeon/be"
@@ -104,7 +104,7 @@ func TestGroupPostsByDate(t *testing.T) {
 		},
 	}
 	for i, tt := range tests {
-		t.Run(fmt.Sprintf("%d", i+1), func(t *testing.T) {
+		t.Run(strconv.Itoa(i+1), func(t *testing.T) {
 			be.Equal(t, GroupLocalBookmarksByDate(RenderLocalBookmarks(tt.args)), tt.wantGroupedPosts)
 		})
 	}

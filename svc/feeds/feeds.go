@@ -42,7 +42,7 @@ func (svc *Service) DigestFeed() (*rss.Feed, error) {
 	feed := rss.Feed{
 		Title:       fmt.Sprintf("%s daily digest", settings.SiteName()),
 		Link:        settings.SiteURL(),
-		Description: fmt.Sprintf("Every day, a list of all bookmarks published that day is sent."),
+		Description: "Every day, a list of all bookmarks published that day is sent.",
 		PubDate:     now.Format(rssTimeFormat),
 		Items:       []*rss.Item{},
 	}
@@ -76,7 +76,7 @@ func (svc *Service) BookmarksFeed() (*rss.Feed, error) {
 	feed := rss.Feed{
 		Title:       fmt.Sprintf("%s bookmarks", settings.SiteName()),
 		Link:        settings.SiteURL(),
-		Description: fmt.Sprintf("All public bookmarks are sent to this feed."),
+		Description: "All public bookmarks are sent to this feed.",
 		PubDate:     now.Format(rssTimeFormat),
 		Items:       []*rss.Item{},
 	}

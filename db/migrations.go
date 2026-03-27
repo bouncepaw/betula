@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2024 Danila Gorelko
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -167,7 +168,7 @@ past6:
 		if found {
 			slog.Info("Migrating DB schema", "from", curver, "to", curver+1)
 		}
-		mustExec(getScript(fmt.Sprintf("%d", curver+1)))
+		mustExec(getScript(strconv.FormatInt(curver+1, 10)))
 		mustExec(fmt.Sprintf(`replace into BetulaMeta (Key, Value) values ('DB version', %d);`, curver+1))
 		curver++
 	}
