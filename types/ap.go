@@ -35,7 +35,7 @@ type Actor struct {
 	Domain             string               `json:"-"` // Set manually
 }
 
-func (a *Actor) Valid() bool {
+func (a Actor) Valid() bool {
 	urlsOK := stricks.ValidURL(a.ID) && stricks.ValidURL(a.Inbox) && stricks.ValidURL(a.PublicKey.Owner)
 	nonEmpty := a.PreferredUsername != "" && a.PublicKey.PublicKeyPEM != "" && a.Domain != ""
 	return urlsOK && nonEmpty
