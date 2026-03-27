@@ -115,7 +115,7 @@ linters:
 #    - testpackage # makes you use a separate _test package
     - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes
     - unconvert # removes unnecessary type conversions
-#    - unparam # reports unused function parameters
+    - unparam # reports unused function parameters
 #    - unqueryvet # detects SELECT * in SQL queries and SQL builders, encouraging explicit column selection
 #    - unused # checks for unused constants, variables, functions and types
 #    - usestdlibvars # detects the possibility to use variables/constants from the Go standard library

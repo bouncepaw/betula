@@ -1433,7 +1433,7 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 
 func renderBookmark(
 	bookmark types.Bookmark,
-	w http.ResponseWriter,
+	_ http.ResponseWriter,
 	rq *http.Request,
 	includeLikes bool,
 ) dataBookmark {
