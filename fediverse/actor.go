@@ -72,7 +72,7 @@ func RequestActorByID(actorID string) (*types.Actor, error) {
 }
 
 func dereferenceActorID(actorID string) (*types.Actor, error) {
-	req, err := http.NewRequest("GET", actorID, nil)
+	req, err := http.NewRequest(http.MethodGet, actorID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("requesting actor: %w", err)
 	}

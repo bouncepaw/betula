@@ -25,7 +25,7 @@ var (
 )
 
 func fetchFedi(uri string) (*types.Bookmark, error) {
-	req, err := http.NewRequest("GET", uri, nil)
+	req, err := http.NewRequest(http.MethodGet, uri, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@
 package web
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -31,7 +32,7 @@ func TestRenderBookmarkIncludesReposts(t *testing.T) {
 	db.SaveRepost(bookmark.ID, types.RepostInfo{URL: "https://links.alice/1", Name: "Alice", Timestamp: time.Now()})
 	db.SaveRepost(bookmark.ID, types.RepostInfo{URL: "https://links.bob/2", Name: "Bob", Timestamp: time.Now()})
 
-	r := httptest.NewRequest("GET", "/", nil)
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 
 	data := renderBookmark(bookmark, w, r, false)

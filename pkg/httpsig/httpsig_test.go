@@ -20,7 +20,7 @@ var privkey = PrivateKey{}
 
 func TestSignPost(t *testing.T) {
 	msg := []byte("hello")
-	req, _ := http.NewRequest("POST", "https://example.com/url", bytes.NewReader(msg))
+	req, _ := http.NewRequest(http.MethodPost, "https://example.com/url", bytes.NewReader(msg))
 	req.Header.Set("Content-Type", "text/plain")
 
 	SignRequest("nameofkey", privkey, req, msg)
@@ -38,7 +38,7 @@ func TestSignPost(t *testing.T) {
 }
 
 func TestSignGet(t *testing.T) {
-	req, _ := http.NewRequest("GET", "https://example.com/url?query=true", nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://example.com/url?query=true", nil)
 
 	SignRequest("nameofkey", privkey, req, nil)
 

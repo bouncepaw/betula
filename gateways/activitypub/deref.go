@@ -17,7 +17,7 @@ import (
 )
 
 func (ap *ActivityPub) dereferenceActorID(actorID string) (types.Actor, error) {
-	req, err := http.NewRequest("GET", actorID, nil)
+	req, err := http.NewRequest(http.MethodGet, actorID, nil)
 	if err != nil {
 		return types.Actor{}, fmt.Errorf("failed to request actor: %w", err)
 	}

@@ -5,6 +5,7 @@
 package web
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -50,7 +51,7 @@ func TestPostSaveBookmarkStripsPlaceholderDescription(t *testing.T) {
 			form.Set("visibility", "public")
 			form.Set("description", tc.description)
 
-			r := httptest.NewRequest("POST", "/save-link", strings.NewReader(form.Encode()))
+			r := httptest.NewRequest(http.MethodPost, "/save-link", strings.NewReader(form.Encode()))
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			w := httptest.NewRecorder()
 

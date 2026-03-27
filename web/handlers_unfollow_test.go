@@ -6,6 +6,7 @@
 package web
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -37,7 +38,7 @@ func TestUnfollowRemovesFollowingOnSendError(t *testing.T) {
 	db.StoreValidActor(actor)
 	db.AddPendingFollowing(actor.ID)
 
-	rq := httptest.NewRequest("POST", "/unfollow?account=@dan@betula.klava.wiki&next=/", nil)
+	rq := httptest.NewRequest(http.MethodPost, "/unfollow?account=@dan@betula.klava.wiki&next=/", nil)
 	rw := httptest.NewRecorder()
 	postUnfollow(rw, rq)
 

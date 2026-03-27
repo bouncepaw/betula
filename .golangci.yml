@@ -118,7 +118,7 @@ linters:
     - unparam # reports unused function parameters
 #    - unqueryvet # detects SELECT * in SQL queries and SQL builders, encouraging explicit column selection
 #    - unused # checks for unused constants, variables, functions and types
-#    - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
+    - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
     - usetesting # reports uses of functions with replacement inside the testing package
 #    - wastedassign # finds wasted assignment statements
 #    - whitespace # detects leading and trailing whitespace
