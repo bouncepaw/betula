@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2024 Danila Gorelko
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -111,7 +112,7 @@ func fiveLastDays(now time.Time) (days []time.Time, dayStamps []string, dayBookm
 	days = make([]time.Time, 5)
 	dayStamps = make([]string, 5)
 	dayBookmarks = make([][]types.Bookmark, 5)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		day := now.AddDate(0, 0, -i-1)
 		day = time.Date(day.Year(), day.Month(), day.Day(), 23, 59, 59, 0, time.UTC)
 		days[i] = day

@@ -81,7 +81,7 @@ linters:
 #    - govet # reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
     - iface # checks the incorrect use of interfaces, helping developers avoid interface pollution
 #    - ineffassign # detects when assignments to existing variables are not used
-#    - intrange # finds places where for loops could make use of an integer range
+    - intrange # finds places where for loops could make use of an integer range
     - iotamixing # checks if iotas are being used in const blocks with other non-iota declarations
     - loggercheck # checks key value pairs for common logger libraries (kitlog,klog,logr,zap)
     - makezero # finds slice declarations with non-zero initial length
