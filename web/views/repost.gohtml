@@ -24,7 +24,7 @@
 				<h2>Repost (experimental)</h2>
 				<p>Share bookmark from other Betulæ and compatible software quickly. Reposts link back the original bookmarks. You can edit the reposts' data freely.</p>
             {{end}}
-			<form method="post" action="/repost">
+			<form supports-ctrl-enter method="post" action="/repost">
 				<div>
 					<label for="link-url">URL</label>
 					<input type="text" id="link-url" name="url" value="{{.URL}}" autocomplete="off" placeholder="https://links.example.org/42">

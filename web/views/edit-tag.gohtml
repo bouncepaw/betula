@@ -1,5 +1,5 @@
 {{define "form"}}
-    <form method="post" action="/edit-tag/{{.Name}}">
+    <form supports-ctrl-enter method="post" action="/edit-tag/{{.Name}}">
         <div>
             <label for="cat-name">New name</label>
             <input type="text" id="cat-name" name="new-name" required value="{{.Name}}" autocomplete="off">

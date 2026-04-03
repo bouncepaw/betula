@@ -5,7 +5,7 @@
 		<article>
 			<h2>Edit repost</h2>
 
-			<form method="post" action="/edit-link-tags/{{.ID}}">
+			<form supports-ctrl-enter method="post" action="/edit-link-tags/{{.ID}}">
 				<div class="tags-field">
 					<label for="link-tags">Tags comma-separated</label>
 					<input type="text" id="link-tags" name="tags"
@@ -30,7 +30,7 @@
 			{{else}}
 				<h2>Edit bookmark</h2>
 			{{end}}
-			<form method="post" action="/edit-link/{{.ID}}">
+			<form supports-ctrl-enter method="post" action="/edit-link/{{.ID}}">
 	            {{template "form fragment" .}}
 				<input type="submit" class="btn" value="Save">
 				{{if ne .DuplicateBookmarkID 0}}
