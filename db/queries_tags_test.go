@@ -80,7 +80,7 @@ func TestRenameTag(t *testing.T) {
 	be.Equal(t, len(cats), 1)
 }
 
-// tests SetTagsFor and TagsForBookmarkByID
+// tests SetTagsFor and TagsForBookmarkByID.
 func TestPostTags(t *testing.T) {
 	initInMemoryTags()
 	tags := []types.Tag{

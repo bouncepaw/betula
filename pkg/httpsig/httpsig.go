@@ -98,7 +98,7 @@ func sb64sha256(content []byte) string {
 	return sb64(h.Sum(nil))
 }
 
-// Sign a request and add Signature header
+// Sign a request and add Signature header.
 func SignRequest(keyname string, key PrivateKey, req *http.Request, content []byte) {
 	headers := []string{"(request-target)", "date", "host"}
 	if strings.ToLower(req.Method) != "get" {
@@ -245,7 +245,7 @@ func VerifyRequest(req *http.Request, content []byte, lookupPubkey func(string) 
 	return keyname, nil
 }
 
-// Unmarshall an ASCII string into (optional) private and public keys
+// Unmarshall an ASCII string into (optional) private and public keys.
 func DecodeKey(s string) (pri PrivateKey, pub PublicKey, err error) {
 	block, _ := pem.Decode([]byte(s))
 	if block == nil {
@@ -297,7 +297,7 @@ func DecodeKey(s string) (pri PrivateKey, pub PublicKey, err error) {
 	return
 }
 
-// Marshall an RSA key into an ASCII string
+// Marshall an RSA key into an ASCII string.
 func EncodeKey(i any) (string, error) {
 	var b pem.Block
 	var err error

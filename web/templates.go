@@ -91,17 +91,17 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 	}
 }
 
-// Auth views:
+// Auth views.
 var templateRegisterForm = templateFrom(nil, "register-form")
 var templateLoginForm = templateFrom(nil, "login-form")
 var templateLogoutForm = templateFrom(nil, "logout-form")
 var templateSettings = templateFrom(nil, "settings")
 var templateSessions = templateFrom(funcMapForTime, "sessions")
 
-// Sad views:
+// Sad views.
 var templateStatus = templateFrom(nil, "status")
 
-// Meaningful views:
+// Meaningful views.
 var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment", "save-link")
 var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment", "edit-link")
 var templateRepost = templateFrom(funcMapForForm, "repost")
@@ -117,7 +117,7 @@ var templateAbout = templateFrom(funcMapForTime, "about")
 var templateBookmarklet = templateFrom(nil, "bookmarklet")
 var templateMyProfile = templateFrom(funcMapForTime, "my-profile")
 
-// Fedded verse views:
+// Fedded verse views.
 var (
 	templateRemoteProfile = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline", "remote-profile")
 	templateFollowing     = templateFrom(nil, "following")

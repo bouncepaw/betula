@@ -149,7 +149,7 @@ func getFollowingWeb(w http.ResponseWriter, rq *http.Request) {
 	})
 }
 
-// postUnfollow is similar to postFollow excepts it's unfollow
+// postUnfollow is similar to postFollow excepts it's unfollow.
 func postUnfollow(w http.ResponseWriter, rq *http.Request) {
 	var (
 		account = rq.FormValue("account")

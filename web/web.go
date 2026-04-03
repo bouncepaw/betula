@@ -131,7 +131,7 @@ func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, 
 	return &bookmark, true
 }
 
-// returns id, found
+// returns id, found.
 func extractBookmarkID(w http.ResponseWriter, rq *http.Request) (int, bool) {
 	id, err := strconv.Atoi(rq.PathValue("id"))
 	if err != nil {

@@ -13,7 +13,7 @@ import (
 	"github.com/nalgeon/be"
 )
 
-// testing AddSession, SessionExists, StopSession
+// testing AddSession, SessionExists, StopSession.
 func TestSessionOps(t *testing.T) {
 	InitInMemoryDB()
 	token := pufferfish

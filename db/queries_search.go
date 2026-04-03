@@ -124,7 +124,7 @@ order by CreationTime desc
 	return results, totalResults
 }
 
-// true if keep, false if discard
+// true if keep, false if discard.
 func textOK(post types.Bookmark, text string) bool {
 	return strings.Contains(strings.ToLower(post.Title), text) ||
 		strings.Contains(strings.ToLower(post.Description), text) ||

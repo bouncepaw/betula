@@ -54,7 +54,7 @@ func RequestActorByNickname(nickname string) (*types.Actor, error) {
 
 // RequestActorByID fetches the actor activity on the specified address. The returned value might be from the cache and perhaps stale.
 //
-// Deprecated: use apports.ActivityPub
+// Deprecated: use apports.ActivityPub.
 func RequestActorByID(actorID string) (*types.Actor, error) {
 	// get cached if possible
 	a, found := db.ActorByID(actorID)
