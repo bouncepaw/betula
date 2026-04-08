@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2026 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -15,11 +16,6 @@ import (
 )
 
 func TestState_RequestsToMake(t *testing.T) {
-	// NOTE(bouncepaw): this very special seed was used to pick
-	// test values very precisely. I pray nothing ever breaks,
-	// because changing the test values would be a chore.
-	rand.New(rand.NewSource(0b0111001101100001011011000110000101101101))
-
 	type fields struct {
 		query    string
 		seen     map[string]int
@@ -43,9 +39,9 @@ func TestState_RequestsToMake(t *testing.T) {
 			},
 			[]Request{
 				{"v1", "A", 15, 0, "Betulizer", "Alice"},
-				{"v1", "A", 20, 0, "Betulizer", "Bob"},
+				{"v1", "A", 15, 0, "Betulizer", "Bob"},
 				{"v1", "A", 15, 0, "Betulizer", "Charlie"},
-				{"v1", "A", 15, 0, "Betulizer", "David"},
+				{"v1", "A", 20, 0, "Betulizer", "David"},
 			},
 		},
 		{
@@ -93,6 +89,11 @@ func TestState_RequestsToMake(t *testing.T) {
 				Expected: tt.fields.expected,
 				Unseen:   tt.fields.unseen,
 				ourID:    tt.fields.ourID,
+
+				// NOTE(bouncepaw): this very special seed was used to pick
+				// test values very precisely. I pray nothing ever breaks,
+				// because changing the test values would be a chore.
+				random: rand.New(rand.NewSource(0b0111001101100001011011000110000101101101)),
 			}
 			reqs := slices.SortedFunc(
 				slices.Values(s.RequestsToMake()),

@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -8,10 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/fediverse"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
-	"git.sr.ht/~bouncepaw/betula/types"
 	"log/slog"
 	"maps"
 	"math"
@@ -20,6 +17,12 @@ import (
 	"net/url"
 	"slices"
 	"sync"
+	"time"
+
+	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/fediverse"
+	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 type Request struct {
@@ -41,10 +44,6 @@ type Provider interface {
 	// bookmark on the previous page. A nil cursor means we are
 	// asking for the first page.
 	QueryV1(query string, cursor *string) ([]types.RenderedRemoteBookmark, error)
-}
-
-func NewBetulaProvider(targetActor types.Actor) (*Provider, error) {
-	return nil, nil
 }
 
 type response struct {
@@ -71,7 +70,8 @@ type State struct {
 	// do they have.
 	Unseen []string
 
-	ourID string
+	ourID  string
+	random *rand.Rand
 }
 
 // StateFromFormParams fetches fields with serialized state
@@ -84,6 +84,7 @@ func StateFromFormParams(params url.Values, ourID string) (*State, error) {
 			Unseen:   make([]string, 0),
 			Expected: make(map[string]int),
 			ourID:    ourID,
+			random:   rand.New(rand.NewSource(time.Now().Unix())),
 		}
 		seenJSON     = []byte(params.Get("seen"))
 		unseenJSON   = []byte(params.Get("unseen"))
@@ -148,7 +149,7 @@ func (s *State) RequestsToMake() []Request {
 		choice   = Choice{}
 		requests []Request
 	)
-	choice.fillFor(maps.Clone(s.Expected), slices.Clone(s.Unseen))
+	choice.fillFor(maps.Clone(s.Expected), slices.Clone(s.Unseen), s.random)
 
 	for actorID, limit := range choice {
 		requests = append(requests, Request{
@@ -170,6 +171,7 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 		Expected: map[string]int{},
 		Unseen:   slices.Clone(s.Unseen),
 		ourID:    s.ourID,
+		random:   s.random,
 	}
 
 	var mutex sync.Mutex
@@ -268,7 +270,7 @@ func (s *State) doRequest(i int, req Request,
 
 type Choice map[string]int
 
-func (choice Choice) fillFor(expected map[string]int, unseen []string) {
+func (choice Choice) fillFor(expected map[string]int, unseen []string, random *rand.Rand) {
 	for choice.sum() < 65 {
 		if len(unseen) > 0 {
 			var (
@@ -277,7 +279,7 @@ func (choice Choice) fillFor(expected map[string]int, unseen []string) {
 				picking       = min(r, len(unseen))
 			)
 
-			rand.Shuffle(len(unseen), func(i, j int) {
+			random.Shuffle(len(unseen), func(i, j int) {
 				unseen[i], unseen[j] = unseen[j], unseen[i]
 			})
 			for i, actor := range unseen {
@@ -300,7 +302,7 @@ func (choice Choice) fillFor(expected map[string]int, unseen []string) {
 			keys          = slices.Collect(maps.Keys(expected))
 		)
 
-		rand.Shuffle(len(expected), func(i, j int) {
+		random.Shuffle(len(expected), func(i, j int) {
 			keys[i], keys[j] = keys[j], keys[i]
 		})
 		for i, actor := range keys {
