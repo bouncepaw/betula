@@ -5,6 +5,7 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -15,7 +16,6 @@ import (
 	"fmt"
 	"html/template"
 	"log/slog"
-	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -128,9 +128,6 @@ var (
 )
 
 var funcMapForBookmarks = template.FuncMap{
-	"randomGlobe": func() string {
-		return string([]rune{[]rune("🌍🌎🌏")[rand.Intn(3)]})
-	},
 	"timestampToHuman": func(stamp string) string {
 		t, err := time.Parse(types.TimeLayout, stamp)
 		if err != nil {
