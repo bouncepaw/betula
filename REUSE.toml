@@ -3,13 +3,8 @@ version = 1
 # TODO: make these strict and correct too.
 [[annotations]]
 path = [
-    "LICENSE",
-    ".gitignore",
-    "go.mod",
-    "go.sum",
     "**/*.md",
     "**/*.myco",
-    "**/*.json",
     "**/*.gohtml",
 ]
 SPDX-FileCopyrightText = "2022-2026 Betula contributors"
@@ -17,9 +12,18 @@ SPDX-License-Identifier = "AGPL-3.0-only"
 
 [[annotations]]
 path = [
+    # Waiving rights for these media files for its easier use in other projects:
     "web/pix/favicon*",
     "web/pix/icon*",
     "web/pix/logo.svg",
+
+    # Waiving rights for these technical files:
+    "pkg/imex/netscape/testdata/*",
+    "LICENSE",
+    "**/*.json",
+    ".gitignore",
+    "go.mod",
+    "go.sum",
 ]
 SPDX-FileCopyrightText = "none"
 SPDX-License-Identifier = "CC0-1.0"
