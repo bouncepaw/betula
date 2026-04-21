@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 # SPDX-FileCopyrightText: 2026 Vitaly Chekushkin
 #
 # SPDX-License-Identifier: AGPL-3.0-only
@@ -20,7 +19,5 @@ steps:
       tags:
         - ${CI_COMMIT_TAG}
         - latest
-      username:
-        from_secret: DOCKER_HUB_USERNAME
-      password:
-        from_secret: DOCKER_HUB_PASSWORD
+      docker-config-json:
+        from_secret: REPO_PUSH_CONFIG_JSON
