@@ -1,7 +1,7 @@
 codeberg.org/bouncepaw/obelisk-ng v0.10.2 h1:UqQG5yqrjU7kGEGrdLQGJOlkaeWma7O3IX8hu6+nnC8=
 codeberg.org/bouncepaw/obelisk-ng v0.10.2/go.mod h1:8pE4X4HUnnKWYny3bQs69WQZkHI1qHC57IYCcGYTiJQ=
-git.sr.ht/~bouncepaw/mycomarkup/v5 v5.6.0 h1:zAZwMF+6x8U/nunpqPRVYoDiqVUMBHI04PG8GsDrFOk=
-git.sr.ht/~bouncepaw/mycomarkup/v5 v5.6.0/go.mod h1:TCzFBqW11En4EjLfcQtJu8C/Ro7FIFR8vZ+nM9f6Q28=
+git.sr.ht/~bouncepaw/mycomarkup/v5 v5.6.1 h1:7nmMvoYHGAy84jRoPRIz/81IXeAhfs3RaSd9/V1tgSs=
+git.sr.ht/~bouncepaw/mycomarkup/v5 v5.6.1/go.mod h1:TCzFBqW11En4EjLfcQtJu8C/Ro7FIFR8vZ+nM9f6Q28=
 github.com/andybalholm/cascadia v1.3.3 h1:AG2YHrzJIm4BZ19iwJ/DAua6Btl3IwJX+VI4kktS1LM=
 github.com/andybalholm/cascadia v1.3.3/go.mod h1:xNd9bqTn98Ln4DwST8/nG+H0yuB8Hmgu1YHNnWw0GeA=
 github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK343L8=

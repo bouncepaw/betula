@@ -4,7 +4,7 @@ go 1.24.13
 
 require (
 	codeberg.org/bouncepaw/obelisk-ng v0.10.2
-	git.sr.ht/~bouncepaw/mycomarkup/v5 v5.6.0
+	git.sr.ht/~bouncepaw/mycomarkup/v5 v5.6.1
 	github.com/mileusna/useragent v1.3.5
 	github.com/nalgeon/be v0.3.0
 	github.com/ncruces/go-sqlite3 v0.32.0 // Newer versions use a different approach, refrain from updating for now.
