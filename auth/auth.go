@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"git.sr.ht/~bouncepaw/betula/db"
+	"git.sr.ht/~bouncepaw/betula/ports/settings"
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
@@ -26,8 +27,8 @@ var (
 func Initialize() {
 	ready.Store(false)
 	var (
-		name = db.MetaEntry[sql.NullString](db.BetulaMetaAdminUsername)
-		pass = db.MetaEntry[sql.NullString](db.BetulaMetaAdminPasswordHash)
+		name = db.MetaEntry[sql.NullString](settingsports.BetulaMetaAdminUsername)
+		pass = db.MetaEntry[sql.NullString](settingsports.BetulaMetaAdminPasswordHash)
 	)
 	ready.Store(name.Valid && pass.Valid)
 }
@@ -48,7 +49,7 @@ func CredentialsMatch(name, pass string) bool {
 		slog.Info("Matching credentials. Name mismatch")
 		return false
 	}
-	err := bcrypt.CompareHashAndPassword(db.MetaEntry[[]byte](db.BetulaMetaAdminPasswordHash), []byte(pass))
+	err := bcrypt.CompareHashAndPassword(db.MetaEntry[[]byte](settingsports.BetulaMetaAdminPasswordHash), []byte(pass))
 	if err != nil {
 		slog.Info("Matching credentials. Password mismatch")
 		return false

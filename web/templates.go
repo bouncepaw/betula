@@ -95,7 +95,8 @@ func templateExec(w http.ResponseWriter, rq *http.Request, temp *template.Templa
 var templateRegisterForm = templateFrom(nil, "register-form")
 var templateLoginForm = templateFrom(nil, "login-form")
 var templateLogoutForm = templateFrom(nil, "logout-form")
-var templateSettings = templateFrom(nil, "settings")
+var templateSettings = templateFrom(nil, "settings-tabs-fragment", "settings")
+var templateLoggingSettings = templateFrom(nil, "settings-tabs-fragment", "settings-logging")
 var templateSessions = templateFrom(funcMapForTime, "sessions")
 
 // Sad views.

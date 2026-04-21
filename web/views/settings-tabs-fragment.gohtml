@@ -1,0 +1,6 @@
+{{define "settings-tabs"}}
+<nav class="settings-tabs">
+	<a href="/settings" {{if eq .Endpoint "/settings"}}aria-current="page"{{end}}>General</a>
+	<a href="/settings/logging" {{if eq .Endpoint "/settings/logging"}}aria-current="page"{{end}}>Logging</a>
+</nav>
+{{end}}

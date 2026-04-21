@@ -40,6 +40,7 @@ import (
 	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
 	remotebookmarksports "git.sr.ht/~bouncepaw/betula/ports/remotebookmarks"
 	searchingports "git.sr.ht/~bouncepaw/betula/ports/searching"
+	settingsports "git.sr.ht/~bouncepaw/betula/ports/settings"
 	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 
@@ -70,6 +71,7 @@ type Controller struct {
 	SvcFeeds     feedsports.Service
 	SvcSearching searchingports.Service
 	SvcHelping   helpingports.Service
+	SvcSettings  settingsports.Service
 
 	ActivityPub apports.ActivityPub
 	WWW         wwwports.WorldWideWeb
@@ -114,6 +116,8 @@ func init() {
 
 	mux.HandleFunc("GET /settings", adminOnly(getSettings))
 	mux.HandleFunc("POST /settings", adminOnly(postSettings))
+	mux.HandleFunc("GET /settings/logging", adminOnly(getLoggingSettings))
+	mux.HandleFunc("POST /settings/logging", adminOnly(postLoggingSettings))
 
 	mux.HandleFunc("GET /sessions", adminOnly(getSessions))
 	mux.HandleFunc("POST /delete-session/{token}", adminOnly(deleteSession))

@@ -11,6 +11,8 @@ import (
 	"testing"
 
 	"github.com/nalgeon/be"
+
+	"git.sr.ht/~bouncepaw/betula/ports/settings"
 )
 
 // testing AddSession, SessionExists, StopSession.
@@ -26,6 +28,6 @@ func TestSessionOps(t *testing.T) {
 func TestSetCredentials(t *testing.T) {
 	InitInMemoryDB()
 	SetCredentials(pufferfish, tropicfish)
-	be.Equal(t, MetaEntry[string](BetulaMetaAdminUsername), pufferfish)
-	be.Equal(t, MetaEntry[string](BetulaMetaAdminPasswordHash), tropicfish)
+	be.Equal(t, MetaEntry[string](settingsports.BetulaMetaAdminUsername), pufferfish)
+	be.Equal(t, MetaEntry[string](settingsports.BetulaMetaAdminPasswordHash), tropicfish)
 }

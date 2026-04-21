@@ -1,0 +1,43 @@
+{{define "title"}}Logging Settings{{end}}
+{{define "body"}}
+	<main>
+		{{template "settings-tabs" .}}
+		<article>
+			<h2>Logging settings</h2>
+			<p>Configure sending structured JSON logs to systems like Victoria Logs (recommended) or ELK.</p>
+
+			<form supports-ctrl-enter method="post" action="/settings/logging">
+				<div>
+					<label for="method">Method</label>
+					<select id="method" name="method">
+						<option value="" {{if eq .Method ""}}selected {{end}}>Default (stdout)</option>
+						<option value="ECS + No Auth" {{if eq .Method "ECS + No Auth"}}selected {{end}}>ECS + No Auth</option>
+						<option value="ECS + Basic Auth" {{if eq .Method "ECS + Basic Auth"}}selected {{end}}>ECS + Basic Auth</option>
+						<option value="ECS + Bearer" {{if eq .Method "ECS + Bearer"}}selected {{end}}>ECS + Bearer</option>
+					</select>
+					<p class="input-caption">Default writes human-readable text to stdout. ECS methods follow the Elastic Common Schema.</p>
+				</div>
+
+				<div data-logging-show="ecs">
+					<label for="logging-url">Endpoint URL</label>
+					<input id="logging-url" name="url" type="url" value="{{.URL}}" placeholder="https://logs.example.org/ingest">
+					<p class="input-caption">Required for ECS methods. The URL that log entries are posted to. For Victoria Logs, use <code>http://localhost:9428/insert/jsonline?_msg_field=message&amp;_stream_fields=app,domain</code>.</p>
+				</div>
+
+				<div data-logging-show="basic-auth">
+					<label for="logging-username">Username</label>
+					<input id="logging-username" name="username" type="text" value="{{.Username}}" autocomplete="off">
+					<p class="input-caption">Required for ECS + Basic Auth.</p>
+				</div>
+
+				<div data-logging-show="auth">
+					<label for="logging-token">Password / Token</label>
+					<input id="logging-token" name="token" type="password" value="{{.Token}}" autocomplete="off">
+					<p class="input-caption">Password for ECS + Basic Auth; bearer token for ECS + Bearer.</p>
+				</div>
+
+				<input type="submit" class="btn" value="Save and send test log">
+			</form>
+		</article>
+	</main>
+{{end}}

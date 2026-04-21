@@ -17,6 +17,7 @@ import (
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/pkg/httpsig"
+	"git.sr.ht/~bouncepaw/betula/ports/settings"
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
@@ -54,7 +55,7 @@ func setKeys(privateKeyPEM string) {
 // EnsureKeysFromDatabase reads the keys from the database and remembers them. If they are not found, it comes up with new ones and saves them. This function might crash the application.
 func EnsureKeysFromDatabase() {
 	var pem string
-	privKeyPEMMaybe := db.MetaEntry[sql.NullString](db.BetulaMetaPrivateKey)
+	privKeyPEMMaybe := db.MetaEntry[sql.NullString](settingsports.BetulaMetaPrivateKey)
 	if !privKeyPEMMaybe.Valid || privKeyPEMMaybe.String == "" {
 		slog.Info("Generating a new pair of RSA keys")
 		priv, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -69,7 +70,7 @@ func EnsureKeysFromDatabase() {
 			os.Exit(1)
 		}
 
-		db.SetMetaEntry(db.BetulaMetaPrivateKey, pem)
+		db.SetMetaEntry(settingsports.BetulaMetaPrivateKey, pem)
 		setKeys(pem)
 	} else {
 		setKeys(privKeyPEMMaybe.String)

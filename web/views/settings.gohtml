@@ -1,6 +1,7 @@
 {{define "title"}}Settings{{end}}
 {{define "body"}}
 	<main>
+		{{template "settings-tabs" .}}
 		<article>
 			<h2>Settings</h2>
 			{{if .FirstRun}}

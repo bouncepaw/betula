@@ -2,10 +2,11 @@
 // SPDX-FileCopyrightText: 2023 ninedraft
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package db
+package settingsports
 
 // BetulaMetaKey is key from the BetulaMeta table.
 type BetulaMetaKey string
@@ -24,4 +25,9 @@ const (
 	BetulaMetaEnableFederation  BetulaMetaKey = "Federation enabled"
 	BetulaMetaPublicCustomJS    BetulaMetaKey = "Public custom JS"
 	BetulaMetaPrivateCustomJS   BetulaMetaKey = "Private custom JS"
+
+	BetulaMetaLoggingMethod   BetulaMetaKey = "Logging / Method"
+	BetulaMetaLoggingURL      BetulaMetaKey = "Logging / URL"
+	BetulaMetaLoggingUsername BetulaMetaKey = "Logging / Username"
+	BetulaMetaLoggingToken    BetulaMetaKey = "Logging / Token"
 )

@@ -299,6 +299,7 @@ form input[type="text"],
 form input[type="url"],
 form input[type="password"],
 form input[type="search"],
+form select,
 textarea {
     display: block;
     width: 100%;
@@ -306,6 +307,7 @@ textarea {
     line-height: 1.5rem;
     font-size: 1rem;
     font-family: sans-serif;
+    border-radius: 0;
 }
 form input[type="submit"] {
     min-width: 33%;
@@ -592,6 +594,22 @@ main .notif:last-of-type {
 .grayed-out {
     filter: opacity(.3) grayscale(.5);
 }
+
+.settings-tabs {
+    display: flex;
+    gap: .5rem;
+}
+.settings-tabs a {
+    display: inline-block;
+    padding: .3rem .75rem;
+    text-decoration: none;
+    margin-bottom: -2px;
+    border-top: 2px solid transparent;
+}
+.settings-tabs a[aria-current="page"] {
+    font-weight: bold;
+}
+
 /* Colors. Keep both sections in sync. */
 @media (prefers-color-scheme: dark) {
     a, .wikilink_external { color: #f1fa8c; }
@@ -602,7 +620,9 @@ main .notif:last-of-type {
 
     article code,
     article .codeblock,
-    table {
+    table,
+    .settings-tabs a[aria-current]
+    {
         border: 0;
         background-color: #444;
         color: #ddd;
@@ -626,6 +646,7 @@ main .notif:last-of-type {
     .confirmation-tick:checked ~ .btn_confirmation-tick,
     .autocompletion-list,
     .paginator,
+    form select,
     textarea {
         background: #444;
         color: #ddd;
@@ -635,8 +656,13 @@ main .notif:last-of-type {
     form input[type="text"],
     form input[type="url"],
     form input[type="password"],
+    form select,
     textarea {
         border: 2px inset black;
+    }
+
+    .settings-tabs a[aria-current] {
+        border-top-color: #ddd;
     }
 
     .edit-post-btn,
@@ -685,7 +711,8 @@ main .notif:last-of-type {
         background: rgb(251, 251, 251);
     }
     main > article,
-    .autocompletion-list {
+    .autocompletion-list,
+    .settings-tabs a[aria-current] {
         background: white;
     }
 
@@ -735,8 +762,13 @@ main .notif:last-of-type {
     form input[type="text"],
     form input[type="url"],
     form input[type="password"],
+    form select,
     textarea {
         border: 2px inset #eee;
+    }
+
+    .settings-tabs a[aria-current] {
+        border-top-color: black;
     }
 
     .notif[notif-cat="Host mismatch"] {

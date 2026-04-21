@@ -27,6 +27,7 @@ import (
 	notifsvc "git.sr.ht/~bouncepaw/betula/svc/notif"
 	remarkingsvc "git.sr.ht/~bouncepaw/betula/svc/remarking"
 	searchsvc "git.sr.ht/~bouncepaw/betula/svc/searching"
+	settingssvc "git.sr.ht/~bouncepaw/betula/svc/settings"
 	"git.sr.ht/~bouncepaw/betula/web"
 	_ "git.sr.ht/~bouncepaw/betula/web" // For init()
 )
@@ -90,12 +91,14 @@ func newController() web.Controller {
 		repoLocalBookmark  = db.NewLocalBookmarksRepo()
 		repoRemoteBookmark = db.NewRemoteBookmarkRepo()
 		repoArchives       = db.NewArchivesRepo()
+		repoSettings       = &db.SettingsRepo{}
 
 		obeliskFetcher = archivingsvc.NewObeliskFetcher()
 		activityPub    = apgw.NewActivityPub(repoActor, repoRemoteBookmark)
 		www            = wwwgw.New()
 
 		// One day, all shall be in services!
+		svcSettings  = settingssvc.New(repoSettings, "v1.6.0", settings.SiteDomain)
 		svcNotif     = notifsvc.New(repoNotif)
 		svcArchiving = archivingsvc.New(obeliskFetcher, repoArchives)
 		svcLiking    = likingsvc.New(
@@ -118,6 +121,7 @@ func newController() web.Controller {
 		SvcFeeds:           svcFeeds,
 		SvcSearching:       svcSearching,
 		SvcHelping:         svcHelping,
+		SvcSettings:        svcSettings,
 		ActivityPub:        activityPub,
 		WWW:                www,
 		RepoRemoteBookmark: repoRemoteBookmark,
