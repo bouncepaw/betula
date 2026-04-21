@@ -51,7 +51,7 @@ func main() {
 	flag.Parse()
 
 	if versionFlag {
-		fmt.Printf("Betula %s\n", "v1.6.0")
+		fmt.Printf("Betula %s\n", "v1.7.0")
 		return
 	}
 
@@ -98,7 +98,7 @@ func newController() web.Controller {
 		www            = wwwgw.New()
 
 		// One day, all shall be in services!
-		svcSettings  = settingssvc.New(repoSettings, "v1.6.0", settings.SiteDomain)
+		svcSettings  = settingssvc.New(repoSettings, "v1.7.0", settings.SiteDomain)
 		svcNotif     = notifsvc.New(repoNotif)
 		svcArchiving = archivingsvc.New(obeliskFetcher, repoArchives)
 		svcLiking    = likingsvc.New(
