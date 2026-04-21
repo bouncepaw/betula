@@ -1,0 +1,20 @@
+services:
+  betula:
+    image: bouncepaw/betula:latest
+    ports:
+      - "1738:1738"
+    volumes:
+      - betula-data:/data
+    restart: unless-stopped
+
+  victoria-logs:
+    image: victoriametrics/victoria-logs
+    ports:
+      - "9428:9428"
+    volumes:
+      - victoria-logs-data:/victoria-logs-data
+    restart: unless-stopped
+
+volumes:
+  betula-data:
+  victoria-logs-data:
