@@ -9,7 +9,8 @@ when:
 
 steps:
   build-publish:
-    image: woodpeckerci/plugin-kaniko
+    image: woodpeckerci/plugin-docker-buildx
+    privileged: true
     settings:
       repo: bouncepaw/betula
       platforms:
