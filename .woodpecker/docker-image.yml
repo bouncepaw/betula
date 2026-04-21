@@ -9,9 +9,9 @@ when:
 
 steps:
   build-publish:
-    image: woodpeckerci/plugin-docker-buildx
-    privileged: true
+    image: woodpeckerci/plugin-kaniko
     settings:
+      registry: index.docker.io
       repo: bouncepaw/betula
       platforms:
         - linux/arm/v7
