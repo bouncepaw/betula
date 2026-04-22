@@ -5,6 +5,7 @@
  * SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
  * SPDX-FileCopyrightText: 2025 Danila Gorelko
  * SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+ * SPDX-FileCopyrightText: 2026 Danila Gorelko
  * SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-only
@@ -27,6 +28,9 @@
         display: inline;
         line-height: 150%;
         margin-right: 4px;
+    }
+    nav li > a {
+        display: inline;
     }
     nav li {
         white-space: nowrap;
@@ -65,6 +69,10 @@
 }
 
 @media screen and (min-width: 40rem) {
+    nav ul {
+        display: inline-block;
+        width: max-content;
+    }
     body {
         grid-template-columns: 180px 1fr;
         grid-template-rows: auto auto 1fr;
@@ -75,6 +83,10 @@
         grid-column-gap: 8px;
     }
     nav li {
+        padding: 0;
+    }
+    nav li > a {
+        display: block;
         padding: 4px 8px;
     }
     h1 {
@@ -199,6 +211,9 @@ nav ul {
 }
 nav li {
     list-style-type: none;
+}
+nav li > a {
+    position: relative;
 }
 main {
     max-width: 40rem;
@@ -598,13 +613,24 @@ main .notif:last-of-type {
 .settings-tabs {
     display: flex;
     gap: .5rem;
+    margin-top: -.5rem;
+    padding-top: .5rem;
 }
 .settings-tabs a {
     display: inline-block;
+    position: relative;
     padding: .3rem .75rem;
     text-decoration: none;
     margin-bottom: -2px;
     border-top: 2px solid transparent;
+}
+.settings-tabs a::before {
+    content: "";
+    position: absolute;
+    top: -.5rem;
+    right: 0;
+    bottom: 0;
+    left: 0;
 }
 .settings-tabs a[aria-current="page"] {
     font-weight: bold;
