@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -34,6 +35,7 @@ func New() *Service {
 		{"meta", "Metainformation"},
 		{"mycomarkup", "Mycomarkup formatting"},
 		{"search", "Advanced search"},
+		{"archival", "Bookmark archival"},
 		{"errors", "Error codes"},
 		{"miniflux", "Miniflux integration"},
 	}

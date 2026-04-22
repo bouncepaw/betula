@@ -1,0 +1,22 @@
+= Bookmark archival
+
+You can keep archives of bookmarked pages inside your Betula. Use it when a link might move, change, or disappear, and you still want a copy you can open later.
+
+Archives are private only. Visitors cannot access them.
+
+== Making a copy
+Go to bookmark's page inside Betula. In //Archive copies// section press //Make a new archive copy// button.
+
+Betula downloads the page data, compresses and stores it in the database. When creation finishes, you return to the same bookmark and the newest archive is highlighted so you can spot it quickly.
+
+You can create several archives for the same bookmark over time. If archives are identical, they don't take extra space.
+
+== Opening and deleting
+Each archive appears as a timestamp link. Follow it to download the stored document or open it in your browser.
+
+Use //Delete// button to remove the archive completely.
+
+== Caveats
+Some sites block automated fetching, require login, or serve mostly JavaScript. In those cases archival may fail or produce an incomplete archive.
+
+If the page is too large, archive proccess may fail by timeout.
