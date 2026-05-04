@@ -1,4 +1,4 @@
-# 🌳 Betula, a federated personal link collection manager
+# 🌳 Betula, the federated bookmark manager
 ![A screenshot of Betula, featuring several bookmarks](https://betula.mycorrhiza.wiki/media/betula-v1.6.0.png)
 
 [![Hits-of-Code](https://hitsofcode.com/sourcehut/~bouncepaw/betula?branch=master)](https://hitsofcode.com/sourcehut/~bouncepaw/betula/view?branch=master)
@@ -22,13 +22,13 @@
 * Search locally or search your mutuals' Betula instances.
 * Bookmarklet.
 * RSS.
-* [Miniflux](https://miniflux.app) integration.
 * Bookmarks can be public or private. Share only what you want to share!
 * Simple user interface that does not require JavaScript.
-  * If you have JavaScript, you can use tag autocompletion.
 * [IndieWeb](https://indieweb.org) microformats are produced.
 * Simple installation: the program is one binary, the collection is one file, all configuration is done through the web interface.
 * Built-in documentation.
+* [Miniflux](https://miniflux.app) integration.
+* Log servers integration.
 
 ## Funding
 This project is funded through [Open Social Fund](https://nlnet.nl/opensocial), a fund established by [NLnet](https://nlnet.nl). Learn more at the [NLnet project page](https://nlnet.nl/project/Betula).
