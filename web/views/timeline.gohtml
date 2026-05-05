@@ -19,11 +19,13 @@
                 {{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
             </div>
             <div class="bookmark-controls">
+                {{if and .Authorized .FederationEnabled}}
                 <form method="POST" action="{{if .LikedByUs}}/unlike{{else}}/like{{end}}">
                     <input type="hidden" name="id" value="{{.ID}}">
                     <input type="hidden" name="next" value="{{$root.Endpoint}}?page={{$root.CurrentPage}}#{{.ID}}">
                     <input type="submit" class="btn" value="{{if .LikedByUs}}💔 Unlike {{.LikeCounter}}{{else}}❤️ Like {{if .LikeCounter}}{{.LikeCounter}}{{end}}{{end}}">
                 </form>
+                {{end}}
                 <a href="/repost?url={{.ID}}" class="btn" target="_blank">Repost</a>
                 <button class="btn" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
                 <a class="btn" style="margin-left:auto" href="{{.ID}}">View original</a>
