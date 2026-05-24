@@ -19,7 +19,7 @@
                 {{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
             </div>
             <div class="bookmark-controls">
-                {{if and .Authorized .FederationEnabled}}
+                {{if and $root.Authorized $root.FederationEnabled}}
                 <form method="POST" action="{{if .LikedByUs}}/unlike{{else}}/like{{end}}">
                     <input type="hidden" name="id" value="{{.ID}}">
                     <input type="hidden" name="next" value="{{$root.Endpoint}}?page={{$root.CurrentPage}}#{{.ID}}">

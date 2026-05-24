@@ -4,7 +4,7 @@
 
 export CGO_ENABLED=0
 
-ALL_FILES := $(shell find . -type f -name '*.go')
+ALL_FILES := $(shell find . -type f -name '*.go*')
 
 .PHONY: betula debug-run run-with-port clean test lint lint-fix crosscompile
 
