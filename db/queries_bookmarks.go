@@ -72,6 +72,8 @@ limit ? offset ?;
 }
 
 // Bookmarks returns all bookmarks stored in the database on the given page, along with their tags, but only if the viewer is authorized! Otherwise, only public bookmarks will be given.
+//
+// Deprecated: Use (*RepoLocalBookmarks).Bookmarks instead.
 func Bookmarks(authorized bool, page uint) (bookmarks []types.Bookmark, total uint) {
 	if page == 0 {
 		panic("page 0 makes 0 sense")
@@ -129,6 +131,8 @@ func DeleteBookmark(id int) {
 }
 
 // InsertBookmark adds a new local bookmark to the database. Creation time is set by this function, ID is set by the database. The ID is returned.
+//
+// Deprecated: Use (*RepoLocalBookmarks).InsertBookmark instead.
 func InsertBookmark(bookmark types.Bookmark) int64 {
 	const q = `
 insert into Bookmarks (URL, Title, Description, Visibility, RepostOf, OriginalAuthorID)
@@ -184,6 +188,8 @@ limit 1;
 }
 
 // GetBookmarkIDByURL returns the first bookmark ID with the given URL, if any.
+//
+// Deprecated: Use (*RepoLocalBookmarks).GetBookmarkIDByURL instead.
 func GetBookmarkIDByURL(url string) (id int, found bool) {
 	const q = `
 select ID 

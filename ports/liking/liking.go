@@ -39,6 +39,9 @@ type (
 	LocalBookmarkRepository interface {
 		Exists(context.Context, int) (bool, error)
 		GetBookmarkByID(context.Context, int) (types.Bookmark, error)
+		InsertBookmark(context.Context, types.Bookmark) (int64, error)
+		GetBookmarkIDByURL(context.Context, string) (int, error)
+		Bookmarks(ctx context.Context, authorized bool, page uint) ([]types.Bookmark, uint, error)
 	}
 )
 

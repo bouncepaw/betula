@@ -1,0 +1,42 @@
+{{define "title"}}Import{{end}}
+{{define "body"}}
+	<main>
+		<article>
+			<h2>Import bookmarks</h2>
+			<p>Upload a bookmark export file. The following formats are supported:</p>
+			<dl>
+				<dt>Netscape Bookmark File</dt>
+				<dd>Exported by all popular web browsers. Usually has <code>.html</code> or <code>.htm</code> extension.</dd>
+
+				<dt>Pinboard JSON</dt>
+				<dd>Exported by Pinboard and some other bookmark managers.</dd>
+
+				<dt>Plain text</dt>
+				<dd>Fallback format. URLs will be extracted from the file, everything else ignored.</dd>
+			</dl>
+			<hr>
+			<form supports-ctrl-enter method="post" action="/import" enctype="multipart/form-data">
+				<div>
+					<input id="import-file" name="file" type="file" accept=".html,.htm">
+					<p class="input-caption">Bookmark folders would be turned to tags. Invalid bookmarks will be ignored.</p>
+				</div>
+
+				<div>
+					<label for="assign-tags">Add tags</label>
+					<input type="text" id="add-tags" name="assign-tags" placeholder="to sort, from old computer">
+					<p class="input-caption">These tags will be added to all bookmarks imported from this file.</p>
+				</div>
+
+				<div>
+					<input type="checkbox" name="keep-duplicate" id="keep-duplicate" checked value="true">
+					<label for="keep-duplicate">Keep duplicate bookmarks</label>
+					<br>
+					<input type="checkbox" name="make-public" id="make-public" checked value="true">
+					<label for="make-public">Make imported bookmarks public</label>
+				</div>
+
+				<input type="submit" class="btn" value="Import">
+			</form>
+		</article>
+	</main>
+{{end}}

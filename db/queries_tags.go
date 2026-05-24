@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -116,6 +117,9 @@ func SetTagsFor(bookmarkID int, tags []types.Tag) {
 	}
 }
 
+// TagsForBookmarkByID returns the tags for the given bookmark ID.
+//
+// Deprecated: Use local bookmark repo.
 func TagsForBookmarkByID(id int) (tags []types.Tag) {
 	rows := mustQuery(`
 select distinct TagName

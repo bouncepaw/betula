@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022-2025 Betula contributors
+// SPDX-FileCopyrightText: 2022-2026 Betula contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -23,6 +23,7 @@ import (
 	archivingsvc "git.sr.ht/~bouncepaw/betula/svc/archiving"
 	feedssvc "git.sr.ht/~bouncepaw/betula/svc/feeds"
 	helpingsvc "git.sr.ht/~bouncepaw/betula/svc/helping"
+	imexsvc "git.sr.ht/~bouncepaw/betula/svc/imex"
 	likingsvc "git.sr.ht/~bouncepaw/betula/svc/liking"
 	notifsvc "git.sr.ht/~bouncepaw/betula/svc/notif"
 	remarkingsvc "git.sr.ht/~bouncepaw/betula/svc/remarking"
@@ -111,6 +112,7 @@ func newController() web.Controller {
 		svcFeeds     = feedssvc.New()
 		svcSearching = searchsvc.New()
 		svcHelping   = helpingsvc.New()
+		svcImEx      = imexsvc.New(repoLocalBookmark, settings.SiteName)
 	)
 
 	return web.Controller{
@@ -122,6 +124,7 @@ func newController() web.Controller {
 		SvcSearching:       svcSearching,
 		SvcHelping:         svcHelping,
 		SvcSettings:        svcSettings,
+		SvcImEx:            svcImEx,
 		ActivityPub:        activityPub,
 		WWW:                www,
 		RepoRemoteBookmark: repoRemoteBookmark,

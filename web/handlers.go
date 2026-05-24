@@ -35,6 +35,7 @@ import (
 	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
 	feedsports "git.sr.ht/~bouncepaw/betula/ports/feeds"
 	helpingports "git.sr.ht/~bouncepaw/betula/ports/helping"
+	imexports "git.sr.ht/~bouncepaw/betula/ports/imex"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/notif"
 	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
@@ -72,6 +73,7 @@ type Controller struct {
 	SvcSearching searchingports.Service
 	SvcHelping   helpingports.Service
 	SvcSettings  settingsports.Service
+	SvcImEx      imexports.Service
 
 	ActivityPub apports.ActivityPub
 	WWW         wwwports.WorldWideWeb
@@ -141,6 +143,12 @@ func init() {
 	mux.HandleFunc("GET /edit-tag/{name}", adminOnly(getEditTag))
 	mux.HandleFunc("POST /edit-tag/{name}", adminOnly(postEditTag))
 	mux.HandleFunc("POST /delete-tag/{name}", adminOnly(postDeleteTag))
+
+	// Import and Export
+	mux.HandleFunc("GET /import", adminOnly(getImport))
+	mux.HandleFunc("POST /import", adminOnly(postImport))
+	mux.HandleFunc("GET /export", adminOnly(getExport))
+	mux.HandleFunc("POST /export/netscape", adminOnly(postExportNetscape))
 
 	// Notifications
 	mux.HandleFunc("GET /notifications", adminOnly(federatedOnly(getNotifications)))
