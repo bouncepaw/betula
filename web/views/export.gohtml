@@ -3,18 +3,23 @@
 	<main>
 		<article>
 			<h2>Export bookmarks</h2>
-			<p>Choose format to export in.</p>
-			<form method="post" action="/export/netscape">
-				<div>
-					<input type="checkbox" name="include-private" id="include-private" checked value="true">
-					<label for="include-private">Include private bookmarks</label>
-				</div>
+			<form method="post" action="/export">
+				<label for="format">Format</label>
+				<select name="format" id="format">
+					<option value="pinboard">Pinboard JSON (recommended)</option>
+					<option value="netscape">Netscape Bookmark File (most popular)</option>
+					<option value="csv">Raindrop CSV</option>
+				</select>
 
-				<div><input type="submit" value="Netscape Bookmark File" class="btn"></div>
-				<p class="input-caption">
-					Supported by all popular web browsers for import.
-					Descriptions are lost when exported to this format.
-				</p>
+				<input type="checkbox" name="include-private" id="include-private" checked value="true">
+				<label for="include-private">Include private bookmarks</label>
+
+				<div>
+					<input type="submit" value="Export" class="btn">
+					<p class="input-caption">
+						Exports do not include information about archives, likes and reposts.
+					</p>
+				</div>
 			</form>
 		</article>
 	</main>

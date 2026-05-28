@@ -84,13 +84,16 @@ func getExport(w http.ResponseWriter, rq *http.Request) {
 	})
 }
 
-func postExportNetscape(w http.ResponseWriter, rq *http.Request) {
+func postExport(w http.ResponseWriter, rq *http.Request) {
 	params := imexports.ExportParams{
-		Format:         imexports.ExportFormatNetscape,
+		Format:         imexports.ExportFormat(rq.FormValue("format")),
 		IncludePrivate: rq.FormValue("include-private") == "true",
 	}
 
-	filename := fmt.Sprintf("%s Betula bookmarks.html", time.Now().UTC().Format(time.DateOnly))
+	filename := fmt.Sprintf(
+		"%s Betula bookmarks.%s",
+		time.Now().UTC().Format(time.DateOnly),
+		params.Format.FileExtension())
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 

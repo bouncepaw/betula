@@ -148,7 +148,7 @@ func init() {
 	mux.HandleFunc("GET /import", adminOnly(getImport))
 	mux.HandleFunc("POST /import", adminOnly(postImport))
 	mux.HandleFunc("GET /export", adminOnly(getExport))
-	mux.HandleFunc("POST /export/netscape", adminOnly(postExportNetscape))
+	mux.HandleFunc("POST /export", adminOnly(postExport))
 
 	// Notifications
 	mux.HandleFunc("GET /notifications", adminOnly(federatedOnly(getNotifications)))

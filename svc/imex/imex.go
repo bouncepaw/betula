@@ -41,10 +41,11 @@ func New(
 		bmRepo: bmRepo,
 		importers: []importer{
 			importers.NewNetscapeImporter(),
+			importers.NewPinboardImporter(),
 		},
 		exporters: map[imexports.ExportFormat]exporter{
 			imexports.ExportFormatNetscape: exporters.NewNetscapeExporter(siteNameFn),
-			imexports.ExportFormatPinboard: nil,
+			imexports.ExportFormatPinboard: exporters.NewPinboardExporter(),
 			imexports.ExportFormatCSV:      nil,
 		},
 	}

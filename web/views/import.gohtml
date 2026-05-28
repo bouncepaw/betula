@@ -11,13 +11,18 @@
 				<dt>Pinboard JSON</dt>
 				<dd>Exported by Pinboard and some other bookmark managers.</dd>
 
+				<del>
+				<dt>Raindrop CSV</dt>
+				<dd>Exported by Raindrop.</dd>
+
 				<dt>Plain text</dt>
-				<dd>Fallback format. URLs will be extracted from the file, everything else ignored.</dd>
+				<dd>Fallback format. URLs will be extracted from the file, everything else ignored. Titles will be fetched for every bookmark.</dd>
+				</del>
 			</dl>
 			<hr>
 			<form supports-ctrl-enter method="post" action="/import" enctype="multipart/form-data">
 				<div>
-					<input id="import-file" name="file" type="file" accept=".html,.htm">
+					<input id="import-file" name="file" type="file" accept=".html,.htm,.json,.csv,.txt">
 					<p class="input-caption">Bookmark folders would be turned to tags. Invalid bookmarks will be ignored.</p>
 				</div>
 

@@ -37,6 +37,18 @@ const (
 	ExportFormatCSV      ExportFormat = "csv"
 )
 
+func (f ExportFormat) FileExtension() string {
+	switch f {
+	case ExportFormatNetscape:
+		return "html"
+	case ExportFormatPinboard:
+		return "json"
+	case ExportFormatCSV:
+		return "csv"
+	}
+	return ""
+}
+
 func (ip ImportParams) TagsToAdd() []types.Tag {
 	var tagsToAdd []types.Tag
 	for _, tag := range ip.AddTags {

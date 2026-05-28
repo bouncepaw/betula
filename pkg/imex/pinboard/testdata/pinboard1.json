@@ -1,0 +1,57 @@
+[
+  {
+    "href": "https://codeberg.org",
+    "description": "Codeberg",
+    "extended": "",
+    "meta": "d4c2d25030c455849c7552b8beaa3977",
+    "hash": "38818f273c2685642430733af6682bca",
+    "time": "2024-01-10T08:00:00Z",
+    "shared": "yes",
+    "toread": "no",
+    "tags": ""
+  },
+  {
+    "href": "https://sourcehut.org/",
+    "description": "Sourcehut",
+    "extended": "This suite of open source tools is the software development platform you've been waiting for.",
+    "meta": "d1099c1307452db97396678c33e167ae",
+    "hash": "f76bae21f8ea04facdb544655745c924",
+    "time": "2024-02-20T12:30:00Z",
+    "shared": "yes",
+    "toread": "no",
+    "tags": "forge git"
+  },
+  {
+    "href": "https://bouncepaw.com/",
+    "description": "Bouncepaw",
+    "extended": "",
+    "meta": "3ce08fcc2449b4897902b666d8d641cf",
+    "hash": "9277a52452f0b9f3e935db1571fe1f53",
+    "time": "2024-03-05T17:45:00Z",
+    "shared": "no",
+    "toread": "no",
+    "tags": "tag1 tag2"
+  },
+  {
+    "href": "https://mycorrhiza.wiki/",
+    "description": "Mycorrhiza Wiki",
+    "extended": "A wiki engine.",
+    "meta": "435ec7b776bb7c720c5f2ae022fd8cf0",
+    "hash": "936227c82a3c5dc96350be2dda1292c8",
+    "time": "2024-04-15T09:00:00Z",
+    "shared": "no",
+    "toread": "yes",
+    "tags": "wiki software"
+  },
+  {
+    "href": "https://joinbetula.org/",
+    "description": "Betula",
+    "extended": "",
+    "meta": "e80b1810986113cbcb1a3a4f4d2b8334",
+    "hash": "de897a60bd6774c7ff1443b049f1700c",
+    "time": "2024-05-01T14:00:00Z",
+    "shared": "yes",
+    "toread": "no",
+    "tags": "bookmarks software"
+  }
+]
