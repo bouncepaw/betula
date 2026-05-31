@@ -61,6 +61,7 @@ func netscapeBookmarkToDomain(bookmark netscape.Bookmark, folderName string) typ
 		Tags:         append(tags, types.Tag{Name: folderName}),
 		URL:          bookmark.URL,
 		Title:        bookmark.Title,
+		Description:  bookmark.Description,
 		Visibility:   types.Private,
 	}
 }

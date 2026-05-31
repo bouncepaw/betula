@@ -20,11 +20,12 @@ import (
 
 type (
 	Bookmark struct {
-		URL      string
-		Title    string
-		Tags     []string
-		Added    time.Time
-		Modified time.Time
+		URL         string
+		Title       string
+		Description string
+		Tags        []string
+		Added       time.Time
+		Modified    time.Time
 	}
 	Folder struct {
 		Title         string
@@ -67,6 +68,7 @@ func Read(r io.Reader) (*Folder, error) {
 		stateRootTitle
 		stateFolderTitle
 		stateBookmarkTitle
+		stateDescription
 	)
 
 	var (
@@ -77,7 +79,28 @@ func Read(r io.Reader) (*Folder, error) {
 		textBuf       strings.Builder
 		state         = stateNormal
 		tokenizer     = html.NewTokenizer(r)
+
+		// A <DD> description has no closing tag; it runs until the next
+		// structural tag. descFolder and descIndex point at the bookmark the
+		// pending description belongs to (the last one appended).
+		descFolder *Folder
+		descIndex  = -1
 	)
+
+	// endDescription flushes the text accumulated since the last <DD> into the
+	// bookmark it describes. It is a no-op unless a description is in progress.
+	endDescription := func() {
+		if state != stateDescription {
+			return
+		}
+		if descFolder != nil && descIndex >= 0 {
+			if bm, ok := descFolder.Items[descIndex].(Bookmark); ok {
+				bm.Description = strings.TrimSpace(textBuf.String())
+				descFolder.Items[descIndex] = bm
+			}
+		}
+		state = stateNormal
+	}
 	for {
 		tokenType := tokenizer.Next()
 		switch tokenType {
@@ -88,6 +111,7 @@ func Read(r io.Reader) (*Folder, error) {
 			return nil, tokenizer.Err()
 
 		case html.StartTagToken:
+			endDescription()
 			tok := tokenizer.Token()
 			tag := strings.ToLower(tok.Data)
 			switch tag {
@@ -129,6 +153,9 @@ func Read(r io.Reader) (*Folder, error) {
 				}
 				state = stateBookmarkTitle
 				textBuf.Reset()
+			case "dd":
+				state = stateDescription
+				textBuf.Reset()
 			case "dl":
 				if pendingFolder != nil {
 					top := stack[len(stack)-1]
@@ -162,10 +189,12 @@ func Read(r io.Reader) (*Folder, error) {
 					curBookmark.Title = strings.TrimSpace(textBuf.String())
 					top := stack[len(stack)-1]
 					top.Items = append(top.Items, *curBookmark)
+					descFolder, descIndex = top, len(top.Items)-1
 					curBookmark = nil
 				}
 				state = stateNormal
 			case "dl":
+				endDescription()
 				if len(stack) > 1 {
 					stack = stack[:len(stack)-1]
 				}
@@ -208,6 +237,9 @@ func (b Bookmark) writeItem(w *bufio.Writer, indent string) {
 		tagsAttr,
 		sthtml.EscapeString(b.Title),
 	)
+	if b.Description != "" {
+		fmt.Fprintf(w, "%s<DD>%s\n", indent, sthtml.EscapeString(b.Description))
+	}
 }
 
 func (f *Folder) writeItems(w *bufio.Writer, depth int) {

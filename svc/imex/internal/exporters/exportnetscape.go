@@ -72,10 +72,11 @@ func domainBookmarkToNetscape(bookmark types.Bookmark, now time.Time) netscape.B
 	}
 
 	return netscape.Bookmark{
-		URL:      bookmark.URL,
-		Title:    bookmark.Title,
-		Tags:     tags,
-		Added:    createdAt,
-		Modified: now,
+		URL:         bookmark.URL,
+		Title:       bookmark.Title,
+		Description: bookmark.Description,
+		Tags:        tags,
+		Added:       createdAt,
+		Modified:    now,
 	}
 }

@@ -34,7 +34,7 @@ type (
 const (
 	ExportFormatNetscape ExportFormat = "netscape"
 	ExportFormatPinboard ExportFormat = "pinboard"
-	ExportFormatCSV      ExportFormat = "csv"
+	ExportFormatRaindrop ExportFormat = "raindrop"
 )
 
 func (f ExportFormat) FileExtension() string {
@@ -43,7 +43,7 @@ func (f ExportFormat) FileExtension() string {
 		return "html"
 	case ExportFormatPinboard:
 		return "json"
-	case ExportFormatCSV:
+	case ExportFormatRaindrop:
 		return "csv"
 	}
 	return ""

@@ -42,11 +42,12 @@ func New(
 		importers: []importer{
 			importers.NewNetscapeImporter(),
 			importers.NewPinboardImporter(),
+			importers.NewRaindropImporter(),
 		},
 		exporters: map[imexports.ExportFormat]exporter{
 			imexports.ExportFormatNetscape: exporters.NewNetscapeExporter(siteNameFn),
 			imexports.ExportFormatPinboard: exporters.NewPinboardExporter(),
-			imexports.ExportFormatCSV:      nil,
+			imexports.ExportFormatRaindrop: exporters.NewRaindropExporter(),
 		},
 	}
 }

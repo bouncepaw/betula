@@ -21,6 +21,7 @@ path = [
     "pkg/imex/netscape/testdata/*",
     "LICENSE",
     "**/*.json",
+    "**/*.csv",
     ".gitignore",
     "go.mod",
     "go.sum",

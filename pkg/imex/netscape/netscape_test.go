@@ -76,6 +76,55 @@ func TestRead(t *testing.T) {
 		be.Equal(t, len(otherFolder.Items), 1)
 	})
 
+	// Raindrop exports in Netscape format have descriptions!
+	t.Run("raindrop1", func(t *testing.T) {
+		t.Parallel()
+		f, err := os.Open("testdata/raindrop1.html")
+		be.Equal(t, err, nil)
+		defer f.Close()
+
+		root, err := Read(f)
+		be.Equal(t, err, nil)
+
+		be.Equal(t, root.Title, "Raindrop.io Bookmarks")
+		be.Equal(t, len(root.Items), 1)
+
+		folder, ok := root.Items[0].(*Folder)
+		be.True(t, ok)
+		be.Equal(t, folder.Title, "pinboard1")
+		be.Equal(t, len(folder.Items), 5)
+
+		betula, ok := folder.Items[0].(Bookmark)
+		be.True(t, ok)
+		be.Equal(t, betula.URL, "https://joinbetula.org/")
+		be.Equal(t, betula.Title, "Betula")
+		be.Equal(t, betula.Tags, []string{"bookmarks", "software"})
+		be.Equal(t, betula.Added, time.Unix(1714572000, 0))
+		be.Equal(t, betula.Description, "")
+
+		myco, ok := folder.Items[1].(Bookmark)
+		be.True(t, ok)
+		be.Equal(t, myco.URL, "https://mycorrhiza.wiki/")
+		be.Equal(t, myco.Description, "A wiki engine.")
+
+		bouncepaw, ok := folder.Items[2].(Bookmark)
+		be.True(t, ok)
+		be.Equal(t, bouncepaw.Title, "Bouncepaw")
+		be.Equal(t, bouncepaw.Tags, []string{"tag1", "tag2"})
+		be.Equal(t, bouncepaw.Description, "")
+
+		sourcehut, ok := folder.Items[3].(Bookmark)
+		be.True(t, ok)
+		be.Equal(t, sourcehut.URL, "https://sourcehut.org/")
+		be.Equal(t, sourcehut.Description, "This suite of open source tools is the software development platform you've been waiting for.")
+
+		codeberg, ok := folder.Items[4].(Bookmark)
+		be.True(t, ok)
+		be.Equal(t, codeberg.Title, "Codeberg")
+		be.Equal(t, codeberg.Tags, []string(nil))
+		be.Equal(t, codeberg.Description, "")
+	})
+
 	t.Run("safari1", func(t *testing.T) {
 		t.Parallel()
 		f, err := os.Open("testdata/safari1.html")
@@ -141,11 +190,12 @@ func TestWrite(t *testing.T) {
 					Modified: time.Unix(1200, 0),
 					Items: []Item{
 						Bookmark{
-							URL:      "https://example.com/?a=1&b=2",
-							Title:    "Example <Site>",
-							Tags:     []string{"work", "example"},
-							Added:    time.Unix(1300, 0),
-							Modified: time.Unix(1400, 0),
+							URL:         "https://example.com/?a=1&b=2",
+							Title:       "Example <Site>",
+							Description: "A <fine> example.",
+							Tags:        []string{"work", "example"},
+							Added:       time.Unix(1300, 0),
+							Modified:    time.Unix(1400, 0),
 						},
 					},
 				},
@@ -169,8 +219,10 @@ func TestWrite(t *testing.T) {
 		be.True(t, strings.Contains(out, `HREF="https://example.com/?a=1&amp;b=2"`))
 		be.True(t, strings.Contains(out, ">Example &lt;Site&gt;</A>"))
 		be.True(t, strings.Contains(out, `TAGS="work,example"`))
+		be.True(t, strings.Contains(out, "<DD>A &lt;fine&gt; example.\n"))
 		be.True(t, strings.Contains(out, `HREF="https://bare.example/"`))
 		be.Equal(t, strings.Count(out, "TAGS="), 1)
+		be.Equal(t, strings.Count(out, "<DD>"), 1)
 	})
 }
 
@@ -187,11 +239,12 @@ func TestRoundtrip(t *testing.T) {
 				Modified: time.Unix(400, 0).UTC(),
 				Items: []Item{
 					Bookmark{
-						URL:      "https://go.dev/",
-						Title:    "Go",
-						Tags:     []string{"lang", "tools"},
-						Added:    time.Unix(500, 0).UTC(),
-						Modified: time.Unix(600, 0).UTC(),
+						URL:         "https://go.dev/",
+						Title:       "Go",
+						Description: "The Go programming language.",
+						Tags:        []string{"lang", "tools"},
+						Added:       time.Unix(500, 0).UTC(),
+						Modified:    time.Unix(600, 0).UTC(),
 					},
 					Bookmark{
 						URL:      "https://example.org/",
@@ -224,6 +277,7 @@ func TestRoundtrip(t *testing.T) {
 	be.True(t, ok)
 	be.Equal(t, bm0.URL, "https://go.dev/")
 	be.Equal(t, bm0.Title, "Go")
+	be.Equal(t, bm0.Description, "The Go programming language.")
 	be.Equal(t, bm0.Tags, []string{"lang", "tools"})
 	be.Equal(t, bm0.Added, time.Unix(500, 0).UTC())
 	be.Equal(t, bm0.Modified, time.Unix(600, 0).UTC())
@@ -232,6 +286,7 @@ func TestRoundtrip(t *testing.T) {
 	be.True(t, ok)
 	be.Equal(t, bm1.URL, "https://example.org/")
 	be.Equal(t, bm1.Title, "Example")
+	be.Equal(t, bm1.Description, "")
 	be.Equal(t, bm1.Tags, []string(nil))
 }
 
