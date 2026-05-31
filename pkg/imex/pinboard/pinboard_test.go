@@ -13,7 +13,7 @@ import (
 
 	"github.com/nalgeon/be"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/ticks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxtime"
 )
 
 func TestRead(t *testing.T) {
@@ -32,7 +32,7 @@ func TestRead(t *testing.T) {
 	be.Equal(t, codeberg.Description, "Codeberg")
 	be.Equal(t, codeberg.Extended, "")
 	be.Equal(t, codeberg.Tags, Tags(nil))
-	be.Equal(t, codeberg.Time, ticks.TimeRFC3339(time.Date(2024, 1, 10, 8, 0, 0, 0, time.UTC)))
+	be.Equal(t, codeberg.Time, bxtime.TimeRFC3339(time.Date(2024, 1, 10, 8, 0, 0, 0, time.UTC)))
 	be.Equal(t, codeberg.Shared, "yes")
 	be.Equal(t, codeberg.ToRead, "no")
 
@@ -72,7 +72,7 @@ func TestWrite(t *testing.T) {
 			Extended:    "Some notes.",
 			Meta:        "aaaa",
 			Hash:        "bbbb",
-			Time:        ticks.TimeRFC3339(time.Date(2024, 6, 1, 10, 0, 0, 0, time.UTC)),
+			Time:        bxtime.TimeRFC3339(time.Date(2024, 6, 1, 10, 0, 0, 0, time.UTC)),
 			Shared:      "yes",
 			ToRead:      "no",
 			Tags:        Tags{"foo", "bar"},
@@ -83,7 +83,7 @@ func TestWrite(t *testing.T) {
 			Extended:    "",
 			Meta:        "cccc",
 			Hash:        "dddd",
-			Time:        ticks.TimeRFC3339(time.Date(2024, 7, 1, 12, 0, 0, 0, time.UTC)),
+			Time:        bxtime.TimeRFC3339(time.Date(2024, 7, 1, 12, 0, 0, 0, time.UTC)),
 			Shared:      "no",
 			ToRead:      "no",
 			Tags:        nil,
@@ -116,7 +116,7 @@ func TestRoundtrip(t *testing.T) {
 			Extended:    "The Go programming language.",
 			Meta:        "meta1",
 			Hash:        "hash1",
-			Time:        ticks.TimeRFC3339(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)),
+			Time:        bxtime.TimeRFC3339(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)),
 			Shared:      "yes",
 			ToRead:      "no",
 			Tags:        Tags{"lang", "tools"},
@@ -127,7 +127,7 @@ func TestRoundtrip(t *testing.T) {
 			Extended:    "",
 			Meta:        "meta2",
 			Hash:        "hash2",
-			Time:        ticks.TimeRFC3339(time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)),
+			Time:        bxtime.TimeRFC3339(time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)),
 			Shared:      "no",
 			ToRead:      "yes",
 			Tags:        nil,

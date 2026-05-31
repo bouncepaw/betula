@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 )
 
 type Bookmark struct {
@@ -75,7 +77,7 @@ func Read(r io.Reader) ([]Bookmark, error) {
 			Excerpt:    get(rec, "excerpt"),
 			URL:        get(rec, "url"),
 			Folder:     get(rec, "folder"),
-			Tags:       parseTags(get(rec, "tags")),
+			Tags:       bxstr.CommaSeparated(get(rec, "tags")),
 			Cover:      get(rec, "cover"),
 			Highlights: get(rec, "highlights"),
 			Favorite:   get(rec, "favorite") == "true",
@@ -123,16 +125,4 @@ func Write(bookmarks []Bookmark, w io.Writer) error {
 	}
 	cw.Flush()
 	return cw.Error()
-}
-
-// parseTags splits a comma-separated tags field into individual tags, trimming
-// surrounding whitespace and dropping empty entries.
-func parseTags(s string) []string {
-	var tags []string
-	for t := range strings.SplitSeq(s, ",") {
-		if t = strings.TrimSpace(t); t != "" {
-			tags = append(tags, t)
-		}
-	}
-	return tags
 }

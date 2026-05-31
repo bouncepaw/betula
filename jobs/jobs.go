@@ -21,7 +21,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -122,7 +122,7 @@ func SendQuietActivityToInbox(activity []byte, inbox string) error {
 }
 
 func sendActivity(uri string, activity []byte) error {
-	url := stricks.ParseValidURL(uri)
+	url := bxstr.ParseValidURL(uri)
 	inbox := fmt.Sprintf("%s://%s/inbox", url.Scheme, url.Host)
 	return SendActivityToInbox(activity, inbox)
 }

@@ -13,7 +13,7 @@ import (
 	"html/template"
 	"time"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 )
 
 const ActivityType = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""
@@ -36,7 +36,7 @@ type Actor struct {
 }
 
 func (a Actor) Valid() bool {
-	urlsOK := stricks.ValidURL(a.ID) && stricks.ValidURL(a.Inbox) && stricks.ValidURL(a.PublicKey.Owner)
+	urlsOK := bxstr.ValidURL(a.ID) && bxstr.ValidURL(a.Inbox) && bxstr.ValidURL(a.PublicKey.Owner)
 	nonEmpty := a.PreferredUsername != "" && a.PublicKey.PublicKeyPEM != "" && a.Domain != ""
 	return urlsOK && nonEmpty
 }

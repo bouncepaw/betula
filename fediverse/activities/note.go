@@ -18,9 +18,8 @@ import (
 
 	"golang.org/x/net/html"
 
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
-
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -247,7 +246,7 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 			continue
 		}
 		if getString(amnt, "type") == "Link" {
-			if href := getString(amnt, "href"); stricks.ValidURL(href) {
+			if href := getString(amnt, "href"); bxstr.ValidURL(href) {
 				bookmark.URL = href
 				break
 			}
@@ -255,7 +254,7 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 	}
 
 	// Lie detector
-	if !stricks.SameHost(bookmark.ActorID, bookmark.ID) {
+	if !bxstr.SameHost(bookmark.ActorID, bookmark.ID) {
 		return nil, ErrHostMismatch
 	}
 
@@ -365,7 +364,7 @@ func guessDeleteNote(activity Dict) (report any, err error) {
 		ActorID:    getIDSomehow(activity, "actor"),
 		BookmarkID: getIDSomehow(activity, "object"),
 	}
-	if !stricks.SameHost(deletion.ActorID, deletion.BookmarkID) {
+	if !bxstr.SameHost(deletion.ActorID, deletion.BookmarkID) {
 		return nil, ErrHostMismatch
 	}
 	return deletion, nil

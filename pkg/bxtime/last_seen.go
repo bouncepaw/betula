@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// Package ticks provises time tricks.
-package ticks
+// Package bxtime provides time tricks.
+package bxtime
 
 import (
 	"fmt"

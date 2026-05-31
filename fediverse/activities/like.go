@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"path"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
@@ -30,7 +30,7 @@ func NewUndoLike(likedObjectID, recipientID string) (json.RawMessage, error) {
 	encID := base64.URLEncoding.EncodeToString([]byte(likedObjectID))
 	activity := Dict{
 		"@context": atContext,
-		"id":       path.Join(settings.SiteURL(), "temp", stricks.RandomWhatever()),
+		"id":       path.Join(settings.SiteURL(), "temp", bxstr.RandomWhatever()),
 		"type":     "Undo",
 		"actor":    betulaActor,
 		"to":       recipientID,

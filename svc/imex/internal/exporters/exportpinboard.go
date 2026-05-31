@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~bouncepaw/betula/pkg/bxtime"
 	"git.sr.ht/~bouncepaw/betula/pkg/imex/pinboard"
-	"git.sr.ht/~bouncepaw/betula/pkg/ticks"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -54,7 +54,7 @@ func domainBookmarkToPinboard(bm types.Bookmark, now time.Time) pinboard.Bookmar
 		Extended:    bm.Description,
 		Meta:        fmt.Sprintf("%x", md5.Sum([]byte(bm.Title+bm.Description+tagsStr+shared+"no"))),
 		Hash:        fmt.Sprintf("%x", md5.Sum([]byte(bm.URL))),
-		Time:        ticks.TimeRFC3339(t.UTC()),
+		Time:        bxtime.TimeRFC3339(t.UTC()),
 		Shared:      shared,
 		ToRead:      "no",
 		Tags:        tagNames,

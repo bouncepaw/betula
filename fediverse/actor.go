@@ -17,7 +17,7 @@ import (
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -99,7 +99,7 @@ func dereferenceActorID(actorID string) (*types.Actor, error) {
 		return nil, fmt.Errorf("requesting actor: %w", err)
 	}
 
-	a.Domain = stricks.ParseValidURL(actorID).Host
+	a.Domain = bxstr.ParseValidURL(actorID).Host
 	if !a.Valid() {
 		fmt.Println(a)
 		return nil, errors.New("actor invalid")

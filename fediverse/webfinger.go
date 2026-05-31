@@ -13,7 +13,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
@@ -53,7 +53,7 @@ func requestIdByWebFingerAcct(user, host string) (id string, err error) {
 	}
 
 	for _, link := range obj.Links {
-		if link.Rel == "self" && link.Type == "application/activity+json" && stricks.ValidURL(link.Href) {
+		if link.Rel == "self" && link.Type == "application/activity+json" && bxstr.ValidURL(link.Href) {
 			// Found what we were looking for
 			return link.Href, nil
 		}

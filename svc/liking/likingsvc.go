@@ -12,7 +12,7 @@ import (
 	"log/slog"
 	"strconv"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	notifports "git.sr.ht/~bouncepaw/betula/ports/notif"
@@ -156,7 +156,7 @@ func (svc *Service) ReceiveLikeCollection(
 	event likingports.EventLikeCollectionSeen,
 ) error {
 	model := likingports.LikeCollectionModel{
-		ID:            stricks.NullStringFromPtr(event.ID),
+		ID:            bxstr.NullStringFromPtr(event.ID),
 		LikedObjectID: event.LikedObjectID,
 		TotalItems:    event.TotalItems,
 		SourceJSON:    event.SourceJSON,

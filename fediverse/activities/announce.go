@@ -9,7 +9,7 @@ package activities
 import (
 	"encoding/json"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
@@ -54,11 +54,11 @@ func guessAnnounce(activity Dict) (reportMaybe any, err error) {
 		ObjectID:   getIDSomehow(activity, "object"),
 	}
 
-	if !stricks.ValidURL(report.ObjectID) {
+	if !bxstr.ValidURL(report.ObjectID) {
 		return nil, ErrNoObject
 	}
 
-	if !stricks.ValidURL(report.AnnounceID) {
+	if !bxstr.ValidURL(report.AnnounceID) {
 		return nil, ErrNoId
 	}
 

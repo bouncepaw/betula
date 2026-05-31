@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 )
@@ -30,8 +30,8 @@ func (svc *Service) ReceiveLike(ctx context.Context, event likingports.EventLike
 	}
 
 	likeModel := likingports.LikeModel{
-		ID:         stricks.NullStringFromString(event.LikeID),
-		ActorID:    stricks.NullStringFromString(event.ActorID),
+		ID:         bxstr.NullStringFromString(event.LikeID),
+		ActorID:    bxstr.NullStringFromString(event.ActorID),
 		ObjectID:   strconv.Itoa(localBookmarkID),
 		SourceJSON: event.Activity,
 	}

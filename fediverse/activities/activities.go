@@ -13,7 +13,7 @@ import (
 	"errors"
 	"time"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -25,7 +25,7 @@ func getIDSomehow(activity Dict, field string) string {
 	}
 	switch v := m.(type) {
 	case string:
-		if stricks.ValidURL(v) {
+		if bxstr.ValidURL(v) {
 			return v
 		}
 		return ""

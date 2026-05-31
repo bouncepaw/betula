@@ -20,8 +20,8 @@ import (
 	"log/slog"
 	"net/url"
 
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 	"git.sr.ht/~bouncepaw/betula/ports/settings"
 
 	"git.sr.ht/~bouncepaw/betula/db"
@@ -149,7 +149,7 @@ func SiteDomain() string {
 	if SiteURL() == "" {
 		return ""
 	}
-	return stricks.ParseValidURL(SiteURL()).Host
+	return bxstr.ParseValidURL(SiteURL()).Host
 }
 
 func UserAgent() string {

@@ -15,7 +15,8 @@ import (
 
 	"golang.org/x/net/html"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/ticks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxtime"
 )
 
 type (
@@ -123,9 +124,9 @@ func Read(r io.Reader) (*Folder, error) {
 				for _, a := range tok.Attr {
 					switch strings.ToLower(a.Key) {
 					case "add_date":
-						pendingFolder.Added = ticks.ParseUnixTimestamp(a.Val)
+						pendingFolder.Added = bxtime.ParseUnixTimestamp(a.Val)
 					case "last_modified":
-						pendingFolder.Modified = ticks.ParseUnixTimestamp(a.Val)
+						pendingFolder.Modified = bxtime.ParseUnixTimestamp(a.Val)
 					case "id":
 						pendingFolder.IsReadingList = a.Val == "com.apple.ReadingList"
 					}
@@ -139,16 +140,11 @@ func Read(r io.Reader) (*Folder, error) {
 					case "href":
 						curBookmark.URL = a.Val
 					case "add_date":
-						curBookmark.Added = ticks.ParseUnixTimestamp(a.Val)
+						curBookmark.Added = bxtime.ParseUnixTimestamp(a.Val)
 					case "last_modified":
-						curBookmark.Modified = ticks.ParseUnixTimestamp(a.Val)
+						curBookmark.Modified = bxtime.ParseUnixTimestamp(a.Val)
 					case "tags":
-						for t := range strings.SplitSeq(a.Val, ",") {
-							t = strings.TrimSpace(t)
-							if t != "" {
-								curBookmark.Tags = append(curBookmark.Tags, t)
-							}
-						}
+						curBookmark.Tags = append(curBookmark.Tags, bxstr.CommaSeparated(a.Val)...)
 					}
 				}
 				state = stateBookmarkTitle
@@ -232,8 +228,8 @@ func (b Bookmark) writeItem(w *bufio.Writer, indent string) {
 `,
 		indent,
 		sthtml.EscapeString(b.URL),
-		ticks.FormatUnixTimestamp(b.Added),
-		ticks.FormatUnixTimestamp(b.Modified),
+		bxtime.FormatUnixTimestamp(b.Added),
+		bxtime.FormatUnixTimestamp(b.Modified),
 		tagsAttr,
 		sthtml.EscapeString(b.Title),
 	)
@@ -254,8 +250,8 @@ func (f *Folder) writeItems(w *bufio.Writer, depth int) {
 %s<DL><p>
 `,
 				indent,
-				ticks.FormatUnixTimestamp(v.Added),
-				ticks.FormatUnixTimestamp(v.Modified),
+				bxtime.FormatUnixTimestamp(v.Added),
+				bxtime.FormatUnixTimestamp(v.Modified),
 				sthtml.EscapeString(v.Title),
 				indent)
 			v.writeItems(w, depth+1)

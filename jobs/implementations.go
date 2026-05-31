@@ -17,7 +17,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
@@ -109,7 +109,7 @@ func receiveRejectFollow(report activities.FollowReport) {
 }
 
 func sendRejectFollow(report activities.FollowReport) {
-	if !stricks.ValidURL(report.ActorID) {
+	if !bxstr.ValidURL(report.ActorID) {
 		slog.Error("Invalid actor ID, dropping activity", "actorID", report.ActorID)
 	}
 
@@ -120,7 +120,7 @@ func sendRejectFollow(report activities.FollowReport) {
 }
 
 func sendAcceptFollow(report activities.FollowReport) {
-	if !stricks.ValidURL(report.ActorID) {
+	if !bxstr.ValidURL(report.ActorID) {
 		slog.Error("Dropping activity", "reason", "invalid actor ID", "actorID", report.ActorID)
 		return
 	}

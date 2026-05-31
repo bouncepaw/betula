@@ -18,7 +18,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
@@ -100,7 +100,7 @@ func (ap *ActivityPub) AuthorOfRemoteBookmark(remoteBookmarkID string) (apports.
 }
 
 func (ap *ActivityPub) KnowsRemoteBookmark(remoteBookmarkID string) (bool, error) {
-	if !stricks.ValidURL(remoteBookmarkID) {
+	if !bxstr.ValidURL(remoteBookmarkID) {
 		return false, fmt.Errorf("not url, thus not remote bookmark id: %s", remoteBookmarkID)
 	}
 

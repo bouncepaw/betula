@@ -29,8 +29,8 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/pkg/rss"
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	archivingports "git.sr.ht/~bouncepaw/betula/ports/archiving"
 	feedsports "git.sr.ht/~bouncepaw/betula/ports/feeds"
@@ -1327,7 +1327,7 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 	bookmark.Title = rq.FormValue("title")
 	bookmark.Visibility = types.VisibilityFromString(rq.FormValue("visibility"))
 	bookmark.Description = rq.FormValue("description")
-	if stricks.TrimRightSpace(bookmark.Description) == ">" {
+	if bxstr.TrimRightSpace(bookmark.Description) == ">" {
 		bookmark.Description = ""
 	}
 	bookmark.Tags = types.SplitTags(rq.FormValue("tags"))

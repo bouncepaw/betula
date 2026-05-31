@@ -10,7 +10,7 @@ import (
 	"io"
 	"strings"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/ticks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxtime"
 )
 
 // Tags is a slice of tag strings that marshals to/from a single
@@ -36,15 +36,15 @@ func (t *Tags) UnmarshalJSON(data []byte) error {
 
 // Bookmark represents a single Pinboard bookmark as it appears in a JSON export.
 type Bookmark struct {
-	Href        string            `json:"href"`
-	Description string            `json:"description"`
-	Extended    string            `json:"extended"`
-	Meta        string            `json:"meta"`
-	Hash        string            `json:"hash"`
-	Time        ticks.TimeRFC3339 `json:"time"`
-	Shared      string            `json:"shared"` // "yes" or "no"
-	ToRead      string            `json:"toread"` // "yes" or "no"
-	Tags        Tags              `json:"tags"`
+	Href        string             `json:"href"`
+	Description string             `json:"description"`
+	Extended    string             `json:"extended"`
+	Meta        string             `json:"meta"`
+	Hash        string             `json:"hash"`
+	Time        bxtime.TimeRFC3339 `json:"time"`
+	Shared      string             `json:"shared"` // "yes" or "no"
+	ToRead      string             `json:"toread"` // "yes" or "no"
+	Tags        Tags               `json:"tags"`
 }
 
 // Probe reports whether r contains a Pinboard JSON export by checking that it

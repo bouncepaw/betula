@@ -27,7 +27,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
 	"git.sr.ht/~bouncepaw/betula/settings"
@@ -395,8 +395,8 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		switch report.Object["type"] {
 		case "Follow":
 			report := activities.FollowReport{
-				ActorID:          stricks.StringifyAnything(report.Object["actor"]),
-				ObjectID:         stricks.StringifyAnything(report.Object["object"]),
+				ActorID:          bxstr.StringifyAnything(report.Object["actor"]),
+				ObjectID:         bxstr.StringifyAnything(report.Object["object"]),
 				OriginalActivity: report.Object,
 			}
 			jobs.ScheduleJSON(jobtype.ReceiveAcceptFollow, report)
@@ -416,8 +416,8 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		switch report.Object["type"] {
 		case "Follow":
 			report := activities.FollowReport{
-				ActorID:          stricks.StringifyAnything(report.Object["actor"]),
-				ObjectID:         stricks.StringifyAnything(report.Object["object"]),
+				ActorID:          bxstr.StringifyAnything(report.Object["actor"]),
+				ObjectID:         bxstr.StringifyAnything(report.Object["object"]),
 				OriginalActivity: report.Object,
 			}
 			jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
@@ -663,7 +663,7 @@ func postRepost(w http.ResponseWriter, rq *http.Request) {
 	// Input validation
 	if formData.URL == "" {
 		formData.ErrorEmptyURL = true
-	} else if !stricks.ValidURL(formData.URL) {
+	} else if !bxstr.ValidURL(formData.URL) {
 		formData.ErrorInvalidURL = true
 	} else {
 		goto fetchRemoteBookmark

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/pkg/slicks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxslices"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -30,7 +30,7 @@ func MarkCurrentSession(currentToken string, sessions []types.Session) []types.S
 	for i, session := range sessions {
 		if session.Token == currentToken {
 			sessions[i].Current = true
-			slicks.MoveElement(sessions, i, 0)
+			bxslices.MoveElement(sessions, i, 0)
 			return sessions
 		}
 	}

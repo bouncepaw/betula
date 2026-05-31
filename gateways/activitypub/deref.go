@@ -12,7 +12,7 @@ import (
 	"net/http"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
-	"git.sr.ht/~bouncepaw/betula/pkg/stricks"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -44,7 +44,7 @@ func (ap *ActivityPub) dereferenceActorID(actorID string) (types.Actor, error) {
 		return types.Actor{}, fmt.Errorf("failed to request actor: %w", err)
 	}
 
-	a.Domain = stricks.ParseValidURL(actorID).Host
+	a.Domain = bxstr.ParseValidURL(actorID).Host
 	if !a.Valid() {
 		ap.logger.Error("Invalid actor dereferenced",
 			"actorID", actorID, "actor", a)

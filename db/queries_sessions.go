@@ -11,8 +11,7 @@ import (
 
 	ua "github.com/mileusna/useragent"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/ticks"
-
+	"git.sr.ht/~bouncepaw/betula/pkg/bxtime"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -62,7 +61,7 @@ func Sessions() (sessions []types.Session) {
 				continue
 			}
 		}
-		session.LastSeen = ticks.LastSeen(creationTime, time.Now())
+		session.LastSeen = bxtime.LastSeen(creationTime, time.Now())
 		sessions = append(sessions, session)
 	}
 	return sessions

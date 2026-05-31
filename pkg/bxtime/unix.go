@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package ticks
+package bxtime
 
 import (
 	"strconv"
