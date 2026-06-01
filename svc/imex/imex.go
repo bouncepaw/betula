@@ -11,6 +11,7 @@ import (
 
 	imexports "git.sr.ht/~bouncepaw/betula/ports/imex"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
+	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	"git.sr.ht/~bouncepaw/betula/svc/imex/internal/exporters"
 	"git.sr.ht/~bouncepaw/betula/svc/imex/internal/importers"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -21,6 +22,7 @@ type (
 		importers []importer
 		exporters map[imexports.ExportFormat]exporter
 		bmRepo    likingports.LocalBookmarkRepository
+		www       wwwports.WorldWideWeb
 	}
 	importer interface {
 		Probe(io.ReadSeeker) (bool, error)
@@ -35,14 +37,17 @@ var _ imexports.Service = &Service{}
 
 func New(
 	bmRepo likingports.LocalBookmarkRepository,
+	www wwwports.WorldWideWeb,
 	siteNameFn func() string,
 ) *Service {
 	return &Service{
 		bmRepo: bmRepo,
+		www:    www,
 		importers: []importer{
 			importers.NewNetscapeImporter(),
 			importers.NewPinboardImporter(),
 			importers.NewRaindropImporter(),
+			importers.NewPlainImporter(10, www), // Fallback format, always matches.
 		},
 		exporters: map[imexports.ExportFormat]exporter{
 			imexports.ExportFormatNetscape: exporters.NewNetscapeExporter(siteNameFn),

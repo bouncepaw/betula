@@ -112,7 +112,7 @@ func newController() web.Controller {
 		svcFeeds     = feedssvc.New()
 		svcSearching = searchsvc.New()
 		svcHelping   = helpingsvc.New()
-		svcImEx      = imexsvc.New(repoLocalBookmark, settings.SiteName)
+		svcImEx      = imexsvc.New(repoLocalBookmark, www, settings.SiteName)
 	)
 
 	return web.Controller{
