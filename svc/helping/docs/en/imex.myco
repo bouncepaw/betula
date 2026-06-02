@@ -1,0 +1,25 @@
+= Bookmark import and export
+Betula can import and export bookmarks in multiple formats. Links to [[/import | Import]] and [[/export | Export]] are found in a sidebar or in a top menu. You can use that to import your bookmarks to migrate to and from other bookmark managers.
+
+== Supported formats
+Note that no existing bookmark export format can express Betula's bookmark model fully, so there's inevitably some information loss, such as number of likes, repost information, etc. Also, some formats have the notion of a ‘folder’ or a ‘collection’, which gets turned to a tag when imported to Betula.
+
+=== Pinboard JSON (`.json`)
+This is the format [[https://pinboard.in | Pinboard]], a hosted bookmark manager, exports. Some others, like [[https://github.com/jonschoning/espial | Espial]], support it too. This is the recommended format, as it can represent the most information about bookmarks, and is very easy to parse.
+
+=== Netscape Bookmark File (`.html`)
+This is the format all browsers, with some alterations, and some other systems, use. Raindrop's bookmark descriptions are supported too. This format is generally not recommended unless you are working with a system that has it due to high complexity.
+
+=== Raindrop CSV (`.csv`)
+This is the format [[https://raindrop.io | Raindrop]], a hosted bookmark manager, exports. It's a good choice if you want to import your bookmarks to a spreadsheet application too.
+
+=== Plain-text (`.txt`)
+This is not really a format. It's only available for import. When you try to import an unsupported format, Betula at least tries to find all URLs in it, and import them. Since Betula doesn't know where bookmark titles are, it figures them out anew, by fetching the web page title, if available, or putting the URL as the title.
+
+== Options
+When importing, you can:
+* Add some tags to all imported bookmarks. It could be the name of the system you are importing from.
+* You can mark that you want to keep duplicate bookmarks. For example, if, before importing, you had https://example.org bookmarked already, and there's another one (perhaps, with a different title or description), this option would keep both. If unchecked, the new one would be skipped and not imported.
+* You can make all imported bookmarks public. If not checked, their visibility is taken from the file (for Pinboard JSON) or is private by default.
+
+When exporting, you can choose if you want to keep private bookmarks in the export.

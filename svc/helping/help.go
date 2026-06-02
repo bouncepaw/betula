@@ -36,6 +36,7 @@ func New() *Service {
 		{"mycomarkup", "Mycomarkup formatting"},
 		{"search", "Advanced search"},
 		{"archival", "Bookmark archival"},
+		{"imex", "Bookmark import and export"},
 		{"errors", "Error codes"},
 		{"miniflux", "Miniflux integration"},
 	}
