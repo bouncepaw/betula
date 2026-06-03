@@ -1,9 +1,9 @@
 # 🌳 Betula, the federated bookmark manager
-![A screenshot of Betula, featuring several bookmarks](https://betula.mycorrhiza.wiki/media/betula-v1.6.0.png)
+![A screenshot of Betula, featuring several bookmarks](https://joinbetula.org/media/betula-v1.8.0.png)
 
 [![Hits-of-Code](https://hitsofcode.com/sourcehut/~bouncepaw/betula?branch=master)](https://hitsofcode.com/sourcehut/~bouncepaw/betula/view?branch=master)
 
-**Betula** is a single-user self-hosted federated bookmark manager with Fediverse support and archives.
+**Betula** is a single-user self-hosted federated bookmark manager for the Fediverse.
 
 * [Website](https://betula.mycorrhiza.wiki)
 * [Mastodon](https://fosstodon.org/@betula)
@@ -29,6 +29,7 @@
 * Built-in documentation.
 * [Miniflux](https://miniflux.app) integration.
 * Log servers integration.
+* Import and export in popular formats (Netscape Bookmark File, Pinboard JSON, Raindrop CSV).
 
 ## Funding
 This project is funded through [Open Social Fund](https://nlnet.nl/opensocial), a fund established by [NLnet](https://nlnet.nl). Learn more at the [NLnet project page](https://nlnet.nl/project/Betula).
