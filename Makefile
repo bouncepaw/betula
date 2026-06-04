@@ -5,30 +5,28 @@
 export CGO_ENABLED=0
 
 ALL_FILES := $(shell find . -type f -name '*.go*')
+HELP_SPACING := 25
 
-.PHONY: betula debug-run run-with-port clean test lint lint-fix crosscompile
+.PHONY: help betula debug-run clean test lint lint-fix crosscompile
 
-betula: $(ALL_FILES)
+betula: $(ALL_FILES) ## Build the betula binary
 	go build -o betula ./cmd/betula
 
-crosscompile: dst/linux-arm64/betula dst/linux-amd64/betula dst/darwin-arm64/betula dst/darwin-amd64/betula
+crosscompile: dst/linux-arm64/betula dst/linux-amd64/betula dst/darwin-arm64/betula dst/darwin-amd64/betula ## Cross-compile the betula binary for multiple platforms
 
-debug-run: clean betula
+debug-run: clean betula ## Run the betula binary
 	./betula db.betula
 
-run-with-port: betula
-	./betula -port 8081 db.betula
-
-lint:
+lint: ## Run the linter
 	golangci-lint run
 
-lint-fix:
+lint-fix: ## Fix lint issues
 	golangci-lint run --fix
 
-clean:
+clean: ## Clean up build artifacts
 	rm -rf betula dst
 
-test: clean betula
+test: clean betula ## Run tests
 	go test ./db
 	go test ./types
 	go test ./svc/feeds
@@ -39,6 +37,13 @@ test: clean betula
 	go test ./fediverse/activities
 	sh test-web.sh
 	killall betula
+
+# SPDX-SnippetBegin
+# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-SnippetCopyrightText: 2026 A Possible Space Ltd. <us@possible.space>
+help: ## Display this help message
+	@grep '^[a-zA-Z]' $(MAKEFILE_LIST) | sort | awk -F ':.*?## ' 'NF==2 {printf "  \033[36m%-$(HELP_SPACING)s\033[0m %s\n", $$1, $$2}'
+# SPDX-SnippetEnd
 
 dst:
 	mkdir -p dst/linux-arm64 dst/linux-amd64 dst/darwin-arm64 dst/darwin-amd64
