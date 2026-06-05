@@ -5,7 +5,7 @@
 
 **Betula** is a single-user self-hosted federated bookmark manager for the Fediverse.
 
-* [Website](https://betula.mycorrhiza.wiki)
+* [Website](https://joinbetula.org/)
 * [Mastodon](https://fosstodon.org/@betula)
 * [Source code (Codeberg)](https://codeberg.org/bouncepaw/betula)
   * Mirrors: [Sourcehut](https://sr.ht/~bouncepaw/betula), [Microsoft GitHub](https://github.com/bouncepaw/betula)
