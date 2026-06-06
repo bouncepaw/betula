@@ -34,7 +34,7 @@ This error is specific for federated instances only.
 
 The site address specified in Settings does not start with `https://`. In Fediverse, only HTTPS servers work, so you have to change the address so it uses the correct the protocol, even if you provide HTTP as well.
 
-You should also have HTTPS properly set up with a reverse proxy. See [[https://betula.mycorrhiza.wiki/https-domain.html | Setting up a domain and HTTPS]].
+You should also have HTTPS properly set up with a reverse proxy. See [[https://joinbetula.org/https-domain.html | Setting up a domain and HTTPS]].
 
 If you want to hide this error notification for any reason, use this custom CSS:
 

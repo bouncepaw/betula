@@ -9,8 +9,9 @@ package db
 import (
 	"testing"
 
-	"git.sr.ht/~bouncepaw/betula/types"
 	"github.com/nalgeon/be"
+
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 func TestBookmarkCount(t *testing.T) {
@@ -27,7 +28,7 @@ func TestAddPost(t *testing.T) {
 			{Name: "cat"},
 			{Name: "dog"},
 		},
-		URL:         "https://betula.mycorrhiza.wiki",
+		URL:         "https://joinbetula.org",
 		Title:       "Betula",
 		Description: "",
 		Visibility:  types.Public,
