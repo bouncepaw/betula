@@ -11,6 +11,11 @@ def guess_version() -> str:
         content = f.read()
     # Extract version.
     m = re.search(r'<dd>(\d+\.\d+[\.\d]*)</dd>', content)
+    if m is None:
+        sys.exit(
+            "Could not find the version in web/views/about.gohtml. "
+            "Make sure it contains a line like <dd>1.8.0</dd>."
+        )
     return 'v' + m.group(1)
 
 def pick_version() -> str:
