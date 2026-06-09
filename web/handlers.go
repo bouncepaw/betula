@@ -728,7 +728,7 @@ func postSettings(w http.ResponseWriter, rq *http.Request) {
 
 	// If the port ≤ 0 or not really numeric, show error.
 	if port, err := strconv.Atoi(rq.FormValue("network-port")); err != nil || port <= 0 {
-		newSettings.NetworkPort = uint(port)
+		newSettings.NetworkPort = settings.NetworkPort()
 		templateExec(w, rq, templateSettings, dataSettings{
 			Settings:   newSettings,
 			ErrBadPort: true,

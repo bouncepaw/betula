@@ -85,5 +85,9 @@ func querySingleValue[T any](query string, vals ...any) T {
 		break
 	}
 	_ = rows.Close()
+	if err := rows.Err(); err != nil {
+		slog.Error("Failed to iterate rows", "err", err)
+		os.Exit(1)
+	}
 	return res
 }

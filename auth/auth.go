@@ -35,12 +35,11 @@ func Initialize() {
 
 // Ready returns if the admin account is set up. If it is not, Betula should demand it and refuse to work until then.
 func Ready() bool {
-	ready := ready.Load()
-	if ready {
+	if ready.Load() {
 		return true
 	}
 	Initialize()
-	return ready
+	return ready.Load()
 }
 
 // CredentialsMatch checks if the credentials match.

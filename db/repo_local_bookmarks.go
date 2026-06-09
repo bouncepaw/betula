@@ -128,11 +128,11 @@ select count(ID) from Bookmarks where DeletionTime is null and (Visibility = 1 o
 	rows, err := db.QueryContext(ctx, `
 select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
 from Bookmarks
-where DeletionTime is null
+where DeletionTime is null and (Visibility = 1 or ?)
 order by CreationTime desc
 limit ?
 offset (? * (? - 1));
-`, types.BookmarksPerPage, types.BookmarksPerPage, page)
+`, authorized, types.BookmarksPerPage, types.BookmarksPerPage, page)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -142,9 +142,6 @@ offset (? * (? - 1));
 		var bm types.Bookmark
 		if err = rows.Scan(&bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf, &bm.OriginalAuthor); err != nil {
 			return nil, 0, err
-		}
-		if !authorized && bm.Visibility == types.Private {
-			continue
 		}
 		bookmarks = append(bookmarks, bm)
 	}

@@ -76,7 +76,7 @@ func getExport(w http.ResponseWriter, rq *http.Request) {
 	if errTxt := rq.FormValue("err"); errTxt != "" {
 		common.withSystemNotifications(SystemNotification{
 			Category: NotificationFailure,
-			Body:     template.HTML(fmt.Sprintf("Import failed: %s.", errTxt)),
+			Body:     template.HTML(fmt.Sprintf("Export failed: %s.", errTxt)),
 		})
 	}
 	templateExec(w, rq, templateExport, dataExport{

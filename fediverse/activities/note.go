@@ -55,7 +55,7 @@ func NoteFromBookmark(bookmark types.Bookmark) (Dict, error) {
 	var content strings.Builder
 	var tags []any
 
-	content.WriteString(fmt.Sprintf(`<h3><a href="%s"'>%s</a></h3>`, html.EscapeString(bookmark.URL), html.EscapeString(bookmark.Title)))
+	content.WriteString(fmt.Sprintf(`<h3><a href="%s">%s</a></h3>`, html.EscapeString(bookmark.URL), html.EscapeString(bookmark.Title)))
 	content.WriteString(string(myco.MarkupToHTML(bookmark.Description)))
 	if len(bookmark.Tags) > 0 {
 		content.WriteString("<p>")

@@ -7,11 +7,10 @@
 package bxstr
 
 import (
+	"crypto/rand"
 	"encoding/hex"
-	"math/rand"
 	"net/url"
 	"strings"
-	"time"
 	"unicode"
 )
 
@@ -65,8 +64,4 @@ func CommaSeparated(s string) []string {
 		}
 	}
 	return words
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
