@@ -17,8 +17,10 @@ import (
 func TestFiveLastDays(t *testing.T) {
 	db.InitInMemoryDB()
 	db.MoreTestingBookmarks()
-	days, dayStamps, dayPosts := fiveLastDays(
+	svc := New(db.NewLocalBookmarksRepo())
+	days, dayStamps, dayPosts, err := svc.fiveLastDays(
 		time.Date(2023, 3, 21, 0, 0, 0, 0, time.UTC))
+	be.Err(t, err, nil)
 
 	_ = days
 

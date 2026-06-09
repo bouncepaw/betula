@@ -110,7 +110,7 @@ func newController() web.Controller {
 			repoNotif,
 			activityPub)
 		svcRemarking = remarkingsvc.New(activityPub)
-		svcFeeds     = feedssvc.New()
+		svcFeeds     = feedssvc.New(repoLocalBookmark)
 		svcSearching = searchsvc.New()
 		svcHelping   = helpingsvc.New()
 		svcImEx      = imexsvc.New(repoLocalBookmark, www, settings.SiteName)

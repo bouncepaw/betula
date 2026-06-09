@@ -16,8 +16,15 @@ import (
 
 func TestBookmarkCount(t *testing.T) {
 	InitInMemoryDB()
-	be.Equal(t, BookmarkCount(true), 2)
-	be.Equal(t, BookmarkCount(false), 1)
+	repo := NewLocalBookmarksRepo()
+
+	count, err := repo.BookmarkCount(t.Context(), true)
+	be.Err(t, err, nil)
+	be.Equal(t, count, 2)
+
+	count, err = repo.BookmarkCount(t.Context(), false)
+	be.Err(t, err, nil)
+	be.Equal(t, count, 1)
 }
 
 func TestAddPost(t *testing.T) {
@@ -33,8 +40,12 @@ func TestAddPost(t *testing.T) {
 		Description: "",
 		Visibility:  types.Public,
 	}
-	InsertBookmark(post)
-	be.Equal(t, BookmarkCount(true), 3)
+	repo := NewLocalBookmarksRepo()
+	_, err := repo.InsertBookmark(t.Context(), post)
+	be.Err(t, err, nil)
+	count, err := repo.BookmarkCount(t.Context(), true)
+	be.Err(t, err, nil)
+	be.Equal(t, count, 3)
 }
 
 func TestRandomBookmarks(t *testing.T) {
@@ -49,8 +60,10 @@ func TestRandomBookmarks(t *testing.T) {
 		{false, 20},
 	}
 
+	repo := NewLocalBookmarksRepo()
 	for _, tc := range cases {
-		bookmarks, total := RandomBookmarks(tc.authorized, tc.n)
+		bookmarks, total, err := repo.RandomBookmarks(t.Context(), tc.authorized, tc.n)
+		be.Err(t, err, nil)
 		be.Equal(t, len(bookmarks), int(total))
 		creationTime := bookmarks[0].CreationTime
 		for _, bookmark := range bookmarks[1:] {

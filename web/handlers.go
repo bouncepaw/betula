@@ -15,8 +15,11 @@
 package web
 
 import (
+	"context"
+	"database/sql"
 	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -255,9 +258,9 @@ func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	var bookmark, found = db.GetBookmarkByID(int(bookmarkID))
-	if !found {
-		slog.Info("Bookmark not found", "bookmarkID", bookmarkID)
+	bookmark, err := localBookmarks.GetBookmarkByID(rq.Context(), int(bookmarkID))
+	if err != nil {
+		slog.Info("Bookmark not found", "bookmarkID", bookmarkID, "err", err)
 		handlerNotFound(w, rq)
 		return
 	}
@@ -354,7 +357,12 @@ func getRandom(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	common := emptyCommon()
 
-	bookmarks, totalBookmarks := db.RandomBookmarks(authed, 20)
+	bookmarks, totalBookmarks, err := localBookmarks.RandomBookmarks(rq.Context(), authed, 20)
+	if err != nil {
+		slog.Error("Failed to get random bookmarks", "err", err)
+		http.Error(w, "Failed to load bookmarks", http.StatusInternalServerError)
+		return
+	}
 	groups := types.GroupLocalBookmarksByDate(types.RenderLocalBookmarks(bookmarks))
 
 	templateExec(w, rq, templateFeed, dataFeed{
@@ -459,12 +467,18 @@ type dataMyProfile struct {
 
 func getMyProfile(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
+	bookmarkCount, err := localBookmarks.BookmarkCount(rq.Context(), authed)
+	if err != nil {
+		slog.Error("Failed to count bookmarks", "err", err)
+		http.Error(w, "Failed to load profile", http.StatusInternalServerError)
+		return
+	}
 	templateExec(w, rq, templateMyProfile, dataMyProfile{
 		dataCommon: emptyCommon(),
 
 		Nickname:       fmt.Sprintf("@%s@%s", settings.AdminUsername(), settings.SiteDomain()),
 		Summary:        settings.SiteDescriptionHTML(),
-		LinkCount:      db.BookmarkCount(authed),
+		LinkCount:      bookmarkCount,
 		TagCount:       db.TagCount(authed),
 		FollowingCount: db.CountFollowing(),
 		FollowersCount: db.CountFollowers(),
@@ -670,7 +684,13 @@ func getDay(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	bookmarks := types.RenderLocalBookmarks(db.BookmarksForDay(authed, dayStamp))
+	dayBookmarks, err := localBookmarks.BookmarksForDay(rq.Context(), authed, dayStamp)
+	if err != nil {
+		slog.Error("Failed to get bookmarks for day", "dayStamp", dayStamp, "err", err)
+		http.Error(w, "Failed to load bookmarks", http.StatusInternalServerError)
+		return
+	}
+	bookmarks := types.RenderLocalBookmarks(dayBookmarks)
 	if err := ctrl.SvcLiking.FillLikes(rq.Context(), bookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)
 	}
@@ -764,15 +784,18 @@ func postDeleteBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	bookmark, found := db.GetBookmarkByID(id)
-
-	if !found {
-		slog.Info("Trying to delete a non-existent bookmark")
+	bookmark, err := localBookmarks.GetBookmarkByID(rq.Context(), id)
+	if err != nil {
+		slog.Info("Trying to delete a non-existent bookmark", "err", err)
 		handlerNotFound(w, rq)
 		return
 	}
 
-	db.DeleteBookmark(id)
+	if err := localBookmarks.DeleteBookmark(rq.Context(), id); err != nil {
+		slog.Error("Failed to delete bookmark", "bookmarkID", id, "err", err)
+		http.Error(w, "Failed to delete bookmark", http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
 
 	if settings.FederationEnabled() {
@@ -955,7 +978,12 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 	currentPage := extractPage(rq)
 	authed := auth.AuthorizedFromRequest(rq)
 
-	bookmarks, totalBookmarks := db.BookmarksWithTag(authed, tagName, currentPage)
+	bookmarks, totalBookmarks, err := localBookmarks.BookmarksWithTag(rq.Context(), authed, tagName, currentPage)
+	if err != nil {
+		slog.Error("Failed to get bookmarks with tag", "tag", tagName, "err", err)
+		http.Error(w, "Failed to load bookmarks", http.StatusInternalServerError)
+		return
+	}
 	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
 	if err := ctrl.SvcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)
@@ -1016,9 +1044,9 @@ func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 	if settings.FederationEnabled() {
 		go func(id int) {
 			// the handler never modifies the bookmark visibility, so we don't care about the past, so we only look at the current value
-			bookmark, found := db.GetBookmarkByID(id)
-			if !found {
-				slog.Error("Failed to federate bookmark: bookmark not found", "bookmarkID", bookmark.ID)
+			bookmark, err := localBookmarks.GetBookmarkByID(context.Background(), id)
+			if err != nil {
+				slog.Error("Failed to federate bookmark", "bookmarkID", id, "err", err)
 				return
 			}
 			if bookmark.Visibility != types.Public {
@@ -1091,8 +1119,11 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 	saveDuplicate := rq.FormValue("duplicate") == "true"
 
 	if oldURL != newURL && !saveDuplicate {
-		existingBookmarkID, found := db.GetBookmarkIDByURL(newURL)
-		if found {
+		existingBookmarkID, err := localBookmarks.GetBookmarkIDByURL(rq.Context(), newURL)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			slog.Error("Failed to look up bookmark by URL", "url", newURL, "err", err)
+		}
+		if err == nil {
 			templateExec(w, rq, templateEditLink, dataEditLink{
 				Bookmark: *bookmark,
 				dataCommon: commonWithAutoCompletion().
@@ -1143,7 +1174,11 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	db.EditBookmark(*bookmark)
+	if err := localBookmarks.EditBookmark(rq.Context(), *bookmark); err != nil {
+		slog.Error("Failed to edit bookmark", "bookmarkID", bookmark.ID, "err", err)
+		http.Error(w, "Failed to edit bookmark", http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(w, rq, fmt.Sprintf("/%d", bookmark.ID), http.StatusSeeOther)
 	slog.Info("Edited bookmark", "bookmarkID", bookmark.ID)
 
@@ -1367,8 +1402,11 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 
 	// Check if a bookmark with this URL already exists.
 	if !saveDuplicate {
-		existingBookmarkID, found := db.GetBookmarkIDByURL(bookmark.URL)
-		if found {
+		existingBookmarkID, err := localBookmarks.GetBookmarkIDByURL(rq.Context(), bookmark.URL)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			slog.Error("Failed to look up bookmark by URL", "url", bookmark.URL, "err", err)
+		}
+		if err == nil {
 			bookmark.ID = existingBookmarkID
 			templateExec(w, rq, templateSaveLink, dataSaveLink{
 				Bookmark: bookmark,
@@ -1385,7 +1423,12 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// No duplicate found, insert a new bookmark
-	id := db.InsertBookmark(bookmark)
+	id, err := localBookmarks.InsertBookmark(rq.Context(), bookmark)
+	if err != nil {
+		slog.Error("Failed to insert bookmark", "err", err)
+		http.Error(w, "Failed to save bookmark", http.StatusInternalServerError)
+		return
+	}
 	bookmark.ID = int(id)
 
 	another := rq.FormValue("another")
@@ -1557,7 +1600,12 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 `
 
 	currentPage := extractPage(rq)
-	bookmarks, totalBookmarks := db.Bookmarks(authed, currentPage)
+	bookmarks, totalBookmarks, err := localBookmarks.Bookmarks(rq.Context(), authed, currentPage)
+	if err != nil {
+		slog.Error("Failed to get bookmarks", "err", err)
+		http.Error(w, "Failed to load bookmarks", http.StatusInternalServerError)
+		return
+	}
 	renderedBookmarks := types.RenderLocalBookmarks(bookmarks)
 	if err := ctrl.SvcLiking.FillLikes(rq.Context(), renderedBookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)

@@ -13,4 +13,5 @@ jobs:
     runs-on: codeberg-tiny
     steps:
       - uses: actions/checkout@v4
-      - uses: https://codeberg.org/umglurf/reuse-action@main
+      - run: pip install --break-system-packages 'reuse[charset-normalizer]'
+      - run: reuse lint

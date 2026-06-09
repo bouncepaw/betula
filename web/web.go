@@ -30,6 +30,8 @@ import (
 
 var serverRestartChannel = make(chan struct{})
 
+var localBookmarks = db.NewLocalBookmarksRepo()
+
 func StartServer(c Controller) {
 	ctrl = c
 	go restartServer()
@@ -112,9 +114,9 @@ func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, 
 		return nil, false
 	}
 
-	bookmark, found := db.GetBookmarkByID(id)
-	if !found {
-		slog.Info("Bookmark not found", "path", rq.URL.Path, "id", id)
+	bookmark, err := localBookmarks.GetBookmarkByID(rq.Context(), id)
+	if err != nil {
+		slog.Info("Bookmark not found", "path", rq.URL.Path, "id", id, "err", err)
 		handlerNotFound(w, rq)
 		return nil, false
 	}

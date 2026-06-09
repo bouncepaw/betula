@@ -12,6 +12,7 @@
 package settings
 
 import (
+	"context"
 	"database/sql"
 	_ "embed"
 	"fmt"
@@ -27,6 +28,8 @@ import (
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
+
+var localBookmarks = db.NewLocalBookmarksRepo()
 
 const defaultHost = "0.0.0.0"
 const biggestPort = 65535
@@ -44,7 +47,8 @@ func validatePortFromDB(port sql.NullInt64) uint {
 		return uint(port.Int64)
 	}
 
-	if port.Valid && db.BookmarkCount(true) > 0 {
+	count, _ := localBookmarks.BookmarkCount(context.Background(), true)
+	if port.Valid && count > 0 {
 		slog.Warn("Invalid network port from DB, using default", "port", port.Int64, "default", defaultPort)
 	}
 
@@ -56,7 +60,8 @@ func validateHostFromDB(addr sql.NullString) string {
 		return addr.String
 	}
 
-	if addr.Valid && db.BookmarkCount(true) > 0 {
+	count, _ := localBookmarks.BookmarkCount(context.Background(), true)
+	if addr.Valid && count > 0 {
 		slog.Warn("Invalid network host from DB, using default", "host", addr.String, "default", defaultHost)
 	}
 

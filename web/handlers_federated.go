@@ -576,6 +576,12 @@ func getNodeInfo(w http.ResponseWriter, rq *http.Request) {
 	// See:
 	// => https://github.com/jhass/nodeinfo/blob/main/schemas/2.0/example.json
 	// => https://mastodon.social/nodeinfo/2.0
+	bookmarkCount, err := localBookmarks.BookmarkCount(rq.Context(), false)
+	if err != nil {
+		slog.Error("Failed to count bookmarks for /nodeinfo/2.0", "err", err)
+		http.Error(w, "Failed to gather node info", http.StatusInternalServerError)
+		return
+	}
 	doc, err := json.Marshal(map[string]any{
 		"version": "2.0",
 		"software": map[string]string{
@@ -594,7 +600,7 @@ func getNodeInfo(w http.ResponseWriter, rq *http.Request) {
 				"activeHalfyear": 1,
 				"activeMonth":    1,
 			},
-			"localPosts":    db.BookmarkCount(false),
+			"localPosts":    bookmarkCount,
 			"localComments": 0,
 		},
 		"metadata": map[string]string{
@@ -696,7 +702,12 @@ reposting:
 		bookmark.Tags = nil // 🐸
 	}
 
-	id := db.InsertBookmark(*bookmark)
+	id, err := localBookmarks.InsertBookmark(rq.Context(), *bookmark)
+	if err != nil {
+		slog.Error("Failed to insert repost bookmark", "err", err)
+		http.Error(w, "Failed to save repost", http.StatusInternalServerError)
+		return
+	}
 
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
 	if settings.FederationEnabled() && formData.Visibility == types.Public {

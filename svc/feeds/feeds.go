@@ -10,26 +10,30 @@
 package feedssvc
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"strings"
 	"time"
 
-	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
 	"git.sr.ht/~bouncepaw/betula/pkg/rss"
 	feedsports "git.sr.ht/~bouncepaw/betula/ports/feeds"
+	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-type Service struct{}
+type Service struct {
+	bmRepo likingports.LocalBookmarkRepository
+}
 
 var _ feedsports.Service = &Service{}
 
-func New() *Service {
-	// TODO: feed repo https://codeberg.org/bouncepaw/betula/issues/138
-	return &Service{}
+func New(bmRepo likingports.LocalBookmarkRepository) *Service {
+	return &Service{
+		bmRepo: bmRepo,
+	}
 }
 
 func (svc *Service) DigestFeed() (*rss.Feed, error) {
@@ -37,7 +41,10 @@ func (svc *Service) DigestFeed() (*rss.Feed, error) {
 	author := settings.AdminUsername()
 
 	now := time.Now()
-	days, dayStamps, dayBookmarks := fiveLastDays(now)
+	days, dayStamps, dayBookmarks, err := svc.fiveLastDays(now)
+	if err != nil {
+		return nil, err
+	}
 
 	feed := rss.Feed{
 		Title:       fmt.Sprintf("%s daily digest", settings.SiteName()),
@@ -71,7 +78,10 @@ func (svc *Service) BookmarksFeed() (*rss.Feed, error) {
 	author := settings.AdminUsername()
 
 	now := time.Now().AddDate(0, 0, 1)
-	_, _, dayBookmarks := fiveLastDays(now)
+	_, _, dayBookmarks, err := svc.fiveLastDays(now)
+	if err != nil {
+		return nil, err
+	}
 
 	feed := rss.Feed{
 		Title:       fmt.Sprintf("%s bookmarks", settings.SiteName()),
@@ -108,7 +118,7 @@ func (svc *Service) BookmarksFeed() (*rss.Feed, error) {
 
 const rssTimeFormat = time.RFC822
 
-func fiveLastDays(now time.Time) (days []time.Time, dayStamps []string, dayBookmarks [][]types.Bookmark) {
+func (svc *Service) fiveLastDays(now time.Time) (days []time.Time, dayStamps []string, dayBookmarks [][]types.Bookmark, err error) {
 	days = make([]time.Time, 5)
 	dayStamps = make([]string, 5)
 	dayBookmarks = make([][]types.Bookmark, 5)
@@ -117,9 +127,12 @@ func fiveLastDays(now time.Time) (days []time.Time, dayStamps []string, dayBookm
 		day = time.Date(day.Year(), day.Month(), day.Day(), 23, 59, 59, 0, time.UTC)
 		days[i] = day
 		dayStamps[i] = day.Format(time.DateOnly)
-		dayBookmarks[i] = db.BookmarksForDay(false, dayStamps[i])
+		dayBookmarks[i], err = svc.bmRepo.BookmarksForDay(context.Background(), false, dayStamps[i])
+		if err != nil {
+			return nil, nil, nil, err
+		}
 	}
-	return days, dayStamps, dayBookmarks
+	return days, dayStamps, dayBookmarks, nil
 }
 
 const descriptionTemplate = `

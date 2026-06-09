@@ -24,6 +24,7 @@ import (
 )
 
 var repoNotif = db.New()
+var repoLocalBookmarks = db.NewLocalBookmarksRepo()
 
 func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.Job) {
 	return func(job jobtype.Job) {
@@ -150,9 +151,9 @@ func notifyAboutMyRepost(job jobtype.Job) {
 		return
 	}
 
-	post, found := db.GetBookmarkByID(postId)
-	if !found {
-		slog.Error("Failed to notify about non-existent bookmark", "bookmarkID", postId)
+	post, err := repoLocalBookmarks.GetBookmarkByID(context.Background(), postId)
+	if err != nil {
+		slog.Error("Failed to notify about bookmark", "bookmarkID", postId, "err", err)
 		return
 	}
 

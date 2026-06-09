@@ -25,9 +25,10 @@ func TestRenderBookmarkIncludesReposts(t *testing.T) {
 		Title:      "Example",
 		Visibility: types.Public,
 	}
-	id := db.InsertBookmark(bm)
-	bookmark, found := db.GetBookmarkByID(int(id))
-	be.True(t, found)
+	id, err := localBookmarks.InsertBookmark(t.Context(), bm)
+	be.Err(t, err, nil)
+	bookmark, err := localBookmarks.GetBookmarkByID(t.Context(), int(id))
+	be.Err(t, err, nil)
 
 	db.SaveRepost(bookmark.ID, types.RepostInfo{URL: "https://links.alice/1", Name: "Alice", Timestamp: time.Now()})
 	db.SaveRepost(bookmark.ID, types.RepostInfo{URL: "https://links.bob/2", Name: "Bob", Timestamp: time.Now()})

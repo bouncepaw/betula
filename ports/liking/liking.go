@@ -8,9 +8,10 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
+
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/types"
-	"time"
 )
 
 type (
@@ -36,12 +37,19 @@ type (
 		DecrementIfPresent(ctx context.Context, objectID string) error
 	}
 
+	//nolint:interfacebloat // Temporary measure while migrating to the Repository pattern.
 	LocalBookmarkRepository interface {
 		Exists(context.Context, int) (bool, error)
 		GetBookmarkByID(context.Context, int) (types.Bookmark, error)
 		InsertBookmark(context.Context, types.Bookmark) (int64, error)
 		GetBookmarkIDByURL(context.Context, string) (int, error)
 		Bookmarks(ctx context.Context, authorized bool, page uint) ([]types.Bookmark, uint, error)
+		BookmarksForDay(ctx context.Context, authorized bool, dayStamp string) ([]types.Bookmark, error)
+		BookmarksWithTag(ctx context.Context, authorized bool, tagName string, page uint) ([]types.Bookmark, uint, error)
+		RandomBookmarks(ctx context.Context, authorized bool, n uint) ([]types.Bookmark, uint, error)
+		DeleteBookmark(ctx context.Context, id int) error
+		EditBookmark(context.Context, types.Bookmark) error
+		BookmarkCount(ctx context.Context, authorized bool) (uint, error)
 	}
 )
 

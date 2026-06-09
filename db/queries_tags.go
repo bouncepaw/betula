@@ -134,11 +134,3 @@ order by TagName;
 	}
 	return tags
 }
-
-func getTagsForManyBookmarks(bookmarks []types.Bookmark) []types.Bookmark {
-	for i, post := range bookmarks {
-		post.Tags = TagsForBookmarkByID(post.ID)
-		bookmarks[i] = post
-	}
-	return bookmarks
-}
