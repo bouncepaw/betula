@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Iaroslav Angliuster <https://mysh.dev>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -39,6 +40,10 @@ func (svc *Service) SaveLoggingSettings(ctx context.Context, ls settingsports.Lo
 	if err := svc.repo.SetLoggingSettings(ctx, ls); err != nil {
 		return fmt.Errorf("failed to save logging settings: %w", err)
 	}
+	return svc.ApplyLoggingSettings(ctx)
+}
+
+func (svc *Service) ApplyLoggingSettings(ctx context.Context) error {
 	logger, err := svc.newLogger(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create logger: %w", err)

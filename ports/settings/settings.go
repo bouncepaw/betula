@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Iaroslav Angliuster <https://mysh.dev>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -14,6 +15,7 @@ type (
 	Service interface {
 		GetLoggingSettings(context.Context) (LoggingSettings, error)
 		SaveLoggingSettings(context.Context, LoggingSettings) error
+		ApplyLoggingSettings(context.Context) error
 	}
 )
 

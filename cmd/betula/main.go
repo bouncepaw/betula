@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -114,6 +115,10 @@ func newController() web.Controller {
 		svcHelping   = helpingsvc.New()
 		svcImEx      = imexsvc.New(repoLocalBookmark, www, settings.SiteName)
 	)
+
+	if err := svcSettings.ApplyLoggingSettings(context.Background()); err != nil {
+		slog.Error("Failed to apply logging settings", "err", err)
+	}
 
 	return web.Controller{
 		SvcNotif:           svcNotif,
