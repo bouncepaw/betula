@@ -84,6 +84,7 @@ type Controller struct {
 	// FIXME: Layer boundary violation.
 	RepoRemoteBookmark remotebookmarksports.RemoteBookmarkRepository
 	RepoActor          apports.ActorRepository
+	RepoRemarks        remarkingports.Repository
 }
 
 func init() {
@@ -834,7 +835,7 @@ func getSessions(w http.ResponseWriter, rq *http.Request) {
 
 func deleteSession(w http.ResponseWriter, rq *http.Request) {
 	token := rq.PathValue("token")
-	db.StopSession(token)
+	auth.StopSession(token)
 	http.Redirect(w, rq, "/sessions", http.StatusSeeOther)
 }
 
@@ -844,7 +845,7 @@ func deleteSessions(w http.ResponseWriter, rq *http.Request) {
 		handlerUnauthorized(w, rq)
 		return
 	}
-	db.StopAllSessions(token)
+	auth.StopAllSessions(token)
 	http.Redirect(w, rq, "/sessions", http.StatusSeeOther)
 }
 
@@ -1533,7 +1534,7 @@ func renderBookmark(
 	bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
 
 	var reposts []types.RepostInfo
-	if r, err := db.RepostsOf(bookmark.ID); err != nil {
+	if r, err := ctrl.RepoRemarks.RemarksOf(rq.Context(), bookmark.ID); err != nil {
 		slog.Warn("Failed to fetch reposts for bookmark", "bookmarkID", bookmark.ID, "err", err)
 		notifications = append(notifications,
 			SystemNotification{

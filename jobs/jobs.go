@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2024 arne
 // SPDX-FileCopyrightText: 2026 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -12,6 +13,7 @@ package jobs
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -28,6 +30,8 @@ import (
 
 var jobch = make(chan jobtype.Job)
 
+var jobsRepo = db.NewJobsRepo()
+
 var client = http.Client{
 	Timeout: time.Second * 5,
 }
@@ -40,7 +44,11 @@ func ScheduleDatum(category jobtype.JobCategory, data any) {
 		Category: category,
 		Payload:  data,
 	}
-	id := db.PlanJob(job)
+	id, err := jobsRepo.PlanJob(context.Background(), job)
+	if err != nil {
+		slog.Error("Failed to plan job", "category", category, "err", err)
+		return
+	}
 	job.ID = id
 	jobch <- job
 }
@@ -56,7 +64,10 @@ func ScheduleJSON(category jobtype.JobCategory, dataJSON any) {
 }
 
 func ListenAndWhisper() {
-	lateJobs := db.LoadAllJobs()
+	lateJobs, err := jobsRepo.LoadAllJobs(context.Background())
+	if err != nil {
+		slog.Error("Failed to load jobs", "err", err)
+	}
 	go func() {
 		for job := range jobch {
 			slog.Info("Received job", "id", job.ID, "category", job.Category)
@@ -65,7 +76,9 @@ func ListenAndWhisper() {
 			} else {
 				jobber(job)
 			}
-			db.DropJob(job.ID)
+			if err := jobsRepo.DropJob(context.Background(), job.ID); err != nil {
+				slog.Error("Failed to drop job", "id", job.ID, "err", err)
+			}
 		}
 	}()
 	for _, job := range lateJobs {

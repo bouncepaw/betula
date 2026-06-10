@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2024 Danila Gorelko
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2026 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -12,22 +13,13 @@ import (
 
 	"github.com/nalgeon/be"
 
-	"git.sr.ht/~bouncepaw/betula/ports/settings"
+	settingsports "git.sr.ht/~bouncepaw/betula/ports/settings"
 )
-
-// testing AddSession, SessionExists, StopSession.
-func TestSessionOps(t *testing.T) {
-	InitInMemoryDB()
-	token := pufferfish
-	AddSession(token, "")
-	be.True(t, SessionExists(token))
-	StopSession(token)
-	be.True(t, !SessionExists(token))
-}
 
 func TestSetCredentials(t *testing.T) {
 	InitInMemoryDB()
-	SetCredentials(pufferfish, tropicfish)
+	repo := &SettingsRepo{}
+	be.Err(t, repo.SetCredentials(t.Context(), pufferfish, tropicfish), nil)
 	be.Equal(t, MetaEntry[string](settingsports.BetulaMetaAdminUsername), pufferfish)
 	be.Equal(t, MetaEntry[string](settingsports.BetulaMetaAdminPasswordHash), tropicfish)
 }

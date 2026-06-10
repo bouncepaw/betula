@@ -93,6 +93,7 @@ func newController() web.Controller {
 		repoLocalBookmark  = db.NewLocalBookmarksRepo()
 		repoRemoteBookmark = db.NewRemoteBookmarkRepo()
 		repoArchives       = db.NewArchivesRepo()
+		repoRemarks        = db.NewRemarksRepo()
 		repoSettings       = &db.SettingsRepo{}
 
 		obeliskFetcher = archivingsvc.NewObeliskFetcher()
@@ -109,7 +110,7 @@ func newController() web.Controller {
 			repoLocalBookmark,
 			repoNotif,
 			activityPub)
-		svcRemarking = remarkingsvc.New(activityPub)
+		svcRemarking = remarkingsvc.New(activityPub, repoRemarks)
 		svcFeeds     = feedssvc.New(repoLocalBookmark)
 		svcSearching = searchsvc.New()
 		svcHelping   = helpingsvc.New()
@@ -134,5 +135,6 @@ func newController() web.Controller {
 		WWW:                www,
 		RepoRemoteBookmark: repoRemoteBookmark,
 		RepoActor:          repoActor,
+		RepoRemarks:        repoRemarks,
 	}
 }

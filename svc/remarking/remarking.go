@@ -8,7 +8,6 @@ import (
 	"context"
 	"log/slog"
 
-	"git.sr.ht/~bouncepaw/betula/db"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -16,15 +15,18 @@ import (
 
 type Service struct {
 	activityPub apports.ActivityPub
+	repo        remarkingports.Repository
 }
 
 var _ remarkingports.Service = &Service{}
 
 func New(
 	activityPub apports.ActivityPub,
+	repo remarkingports.Repository,
 ) *Service {
 	return &Service{
 		activityPub: activityPub,
+		repo:        repo,
 	}
 }
 
@@ -39,12 +41,10 @@ func (svc *Service) ReceiveLegacyRemark(
 
 	slog.Info("Received legacy remark",
 		"actorID", event.ActorID, "bookmarkID", localBookmarkID, "remarkURL", event.AnnounceID)
-	// TODO: make a repo.
-	db.SaveRepost(localBookmarkID, types.RepostInfo{
+	return svc.repo.SaveRemark(ctx, localBookmarkID, types.RepostInfo{
 		URL:  event.AnnounceID,
 		Name: event.ActorID,
 	})
-	return nil
 }
 
 func (svc *Service) ReceiveLegacyUnremark(
@@ -58,7 +58,5 @@ func (svc *Service) ReceiveLegacyUnremark(
 
 	slog.Info("Received legacy unremark",
 		"actorID", event.ActorID, "bookmarkID", localBookmarkID, "remarkURL", event.AnnounceID)
-	// TODO: make a repo.
-	db.DeleteRepost(localBookmarkID, event.AnnounceID)
-	return nil
+	return svc.repo.DeleteRemark(ctx, localBookmarkID, event.AnnounceID)
 }

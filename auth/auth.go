@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -7,6 +8,7 @@
 package auth
 
 import (
+	"context"
 	"database/sql"
 	"log/slog"
 	"os"
@@ -20,7 +22,8 @@ import (
 )
 
 var (
-	ready atomic.Bool
+	ready        atomic.Bool
+	settingsRepo = &db.SettingsRepo{}
 )
 
 // Initialize queries the database for auth information. Call on startup. The module handles all further invocations for you.
@@ -67,7 +70,10 @@ func SetCredentials(name, pass string) {
 		os.Exit(1)
 	}
 
-	db.SetCredentials(name, string(hash))
+	if err := settingsRepo.SetCredentials(context.Background(), name, string(hash)); err != nil {
+		slog.Error("Failed to set credentials", "err", err)
+		os.Exit(1)
+	}
 	Initialize()
 	settings.Index()
 }

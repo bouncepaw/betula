@@ -4,12 +4,23 @@
 
 package remarkingports
 
-import "context"
+import (
+	"context"
+
+	"git.sr.ht/~bouncepaw/betula/types"
+)
 
 type (
 	Service interface {
 		ReceiveLegacyRemark(context.Context, EventLegacyRemark) error
 		ReceiveLegacyUnremark(context.Context, EventLegacyUnremark) error
+	}
+
+	Repository interface {
+		// RemarksOf returns all remarks known about the specified bookmark.
+		RemarksOf(ctx context.Context, bookmarkID int) ([]types.RepostInfo, error)
+		SaveRemark(ctx context.Context, bookmarkID int, remark types.RepostInfo) error
+		DeleteRemark(ctx context.Context, bookmarkID int, remarkURL string) error
 	}
 
 	EventLegacyRemark struct {

@@ -1,0 +1,65 @@
+// SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2025 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
+package db
+
+import (
+	"context"
+	"log/slog"
+	"time"
+
+	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
+	"git.sr.ht/~bouncepaw/betula/types"
+)
+
+type RemarksRepo struct {
+}
+
+var _ remarkingports.Repository = (*RemarksRepo)(nil)
+
+func NewRemarksRepo() *RemarksRepo {
+	return &RemarksRepo{}
+}
+
+func (repo *RemarksRepo) RemarksOf(ctx context.Context, bookmarkID int) ([]types.RepostInfo, error) {
+	rows, err := db.QueryContext(ctx, `select RepostURL, ReposterName, RepostedAt from KnownReposts where PostID = ?`, bookmarkID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var remarks []types.RepostInfo
+	for rows.Next() {
+		var (
+			remark    types.RepostInfo
+			timestamp string
+		)
+		if err := rows.Scan(&remark.URL, &remark.Name, &timestamp); err != nil {
+			return nil, err
+		}
+		remark.Timestamp, err = time.Parse(types.TimeLayout, timestamp)
+		if err != nil {
+			slog.Error("Failed to parse remark timestamp", "bookmarkID", bookmarkID, "err", err)
+		}
+		remarks = append(remarks, remark)
+	}
+	return remarks, rows.Err()
+}
+
+func (repo *RemarksRepo) SaveRemark(ctx context.Context, bookmarkID int, remark types.RepostInfo) error {
+	const q = `
+insert into KnownReposts (RepostURL, PostID, ReposterName)
+values (?, ?, ?)
+on conflict do nothing`
+	_, err := db.ExecContext(ctx, q, remark.URL, bookmarkID, remark.Name)
+	return err
+}
+
+func (repo *RemarksRepo) DeleteRemark(ctx context.Context, bookmarkID int, remarkURL string) error {
+	_, err := db.ExecContext(ctx, `delete from KnownReposts where RepostURL = ? and PostID = ?`, remarkURL, bookmarkID)
+	return err
+}

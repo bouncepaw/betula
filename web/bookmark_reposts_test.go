@@ -12,9 +12,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/nalgeon/be"
+
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/types"
-	"github.com/nalgeon/be"
 )
 
 func TestRenderBookmarkIncludesReposts(t *testing.T) {
@@ -30,8 +31,13 @@ func TestRenderBookmarkIncludesReposts(t *testing.T) {
 	bookmark, err := localBookmarks.GetBookmarkByID(t.Context(), int(id))
 	be.Err(t, err, nil)
 
-	db.SaveRepost(bookmark.ID, types.RepostInfo{URL: "https://links.alice/1", Name: "Alice", Timestamp: time.Now()})
-	db.SaveRepost(bookmark.ID, types.RepostInfo{URL: "https://links.bob/2", Name: "Bob", Timestamp: time.Now()})
+	ctrl.RepoRemarks = db.NewRemarksRepo()
+	var (
+		re1 = types.RepostInfo{URL: "https://links.alice/1", Name: "Alice", Timestamp: time.Now()}
+		re2 = types.RepostInfo{URL: "https://links.bob/2", Name: "Bob", Timestamp: time.Now()}
+	)
+	be.Err(t, ctrl.RepoRemarks.SaveRemark(t.Context(), bookmark.ID, re1), nil)
+	be.Err(t, ctrl.RepoRemarks.SaveRemark(t.Context(), bookmark.ID, re2), nil)
 
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()

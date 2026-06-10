@@ -11,6 +11,7 @@ type (
 	Repository interface {
 		GetLoggingSettings(context.Context) (LoggingSettings, error)
 		SetLoggingSettings(context.Context, LoggingSettings) error
+		SetCredentials(ctx context.Context, name, hash string) error
 	}
 	Service interface {
 		GetLoggingSettings(context.Context) (LoggingSettings, error)
