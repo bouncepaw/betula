@@ -49,11 +49,11 @@ func Guess(raw []byte) (report any, err error) {
 
 		f, ok := guesserMap[v]
 		if !ok {
-			slog.Info("Ignoring unknown kind of activity", "raw", raw)
+			slog.Info("Ignoring unknown kind of activity", "raw", json.RawMessage(raw))
 			return nil, ErrUnknownType
 		}
 
-		slog.Info("Handling activity", "raw", raw)
+		slog.Info("Handling activity", "raw", json.RawMessage(raw))
 		return f(activity)
 	default:
 		return nil, ErrNoType
