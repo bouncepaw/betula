@@ -1,17 +1,19 @@
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Iaroslav Angliuster <https://mysh.dev>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
 package notifsvc
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/types/notif"
 	"html/template"
 	"log/slog"
+
+	"git.sr.ht/~bouncepaw/betula/db"
+	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 )
 
 // Render returns an HTML representation of the notification
@@ -29,6 +31,33 @@ func Render(notif notiftypes.Notification) template.HTML {
 var errActorNotFound = errors.New("actor not found")
 
 type renderedNotification notiftypes.Notification
+
+type notificationTemplateData struct {
+	Acct          string
+	DisplayedName string
+	RemarkURL     string
+	BookmarkID    int
+}
+
+var (
+	likeNotificationTemplate = template.Must(template.New("like notification").Parse(`<div class="notif" notif-cat="like">
+	<a href="/{{.Acct}}">{{.DisplayedName}}</a> liked bookmark <a href="/{{.BookmarkID}}">{{.BookmarkID}}.</a>
+</div>`))
+	followNotificationTemplate = template.Must(template.New("follow notification").Parse(`<div class="notif" notif-cat="follow">
+	<a href="/{{.Acct}}">{{.DisplayedName}}</a> followed you!
+</div>`))
+	remarkNotificationTemplate = template.Must(template.New("remark notification").Parse(`<div class="notif" notif-cat="remark">
+	<a href="/{{.Acct}}">{{.DisplayedName}}</a> <a href="{{.RemarkURL}}">reposted</a> <a href="/{{.BookmarkID}}">{{.BookmarkID}}.</a>
+</div>`))
+)
+
+func renderTemplate(tmpl *template.Template, data notificationTemplateData) (template.HTML, error) {
+	var html bytes.Buffer
+	if err := tmpl.Execute(&html, data); err != nil {
+		return "", err
+	}
+	return template.HTML(html.String()), nil
+}
 
 func (n *renderedNotification) AsHTML() template.HTML {
 	var (
@@ -62,12 +91,14 @@ func (n *renderedNotification) likeAsHTML() (template.HTML, error) {
 	if !found {
 		return "", errActorNotFound
 	}
-	return template.HTML(fmt.Sprintf(
-		`<div class="notif" notif-cat="like">
-	<a href="/%s">%s</a> liked bookmark <a href="/%d">%d.</a>
-</div>`,
-		actor.Acct(), actor.DisplayedName, payload.BookmarkID, payload.BookmarkID,
-	)), nil
+	return renderTemplate(
+		likeNotificationTemplate,
+		notificationTemplateData{
+			Acct:          actor.Acct(),
+			DisplayedName: actor.DisplayedName,
+			BookmarkID:    payload.BookmarkID,
+		},
+	)
 }
 
 func (n *renderedNotification) followAsHTML() (template.HTML, error) {
@@ -80,11 +111,13 @@ func (n *renderedNotification) followAsHTML() (template.HTML, error) {
 	if !found {
 		return "", errActorNotFound
 	}
-	return template.HTML(fmt.Sprintf(
-		`<div class="notif" notif-cat="follow">
-	<a href="/%s">%s</a> followed you!
-</div>`,
-		actor.Acct(), actor.DisplayedName)), nil
+	return renderTemplate(
+		followNotificationTemplate,
+		notificationTemplateData{
+			Acct:          actor.Acct(),
+			DisplayedName: actor.DisplayedName,
+		},
+	)
 }
 
 func (n *renderedNotification) remarkAsHTML() (template.HTML, error) {
@@ -101,10 +134,13 @@ func (n *renderedNotification) remarkAsHTML() (template.HTML, error) {
 	// TODO: s/repost/remark when the time comes
 	// TODO: link/show local representation of the remark after the big refac
 	// TODO: support the case with remark text
-	return template.HTML(fmt.Sprintf(
-		`<div class="notif" notif-cat="remark">
-	<a href="/%s">%s</a> <a href="%s">reposted</a> <a href="/%d">%d.</a>
-</div>`,
-		actor.Acct(), actor.DisplayedName, payload.RemarkURL, payload.BookmarkID, payload.BookmarkID,
-	)), nil
+	return renderTemplate(
+		remarkNotificationTemplate,
+		notificationTemplateData{
+			Acct:          actor.Acct(),
+			DisplayedName: actor.DisplayedName,
+			RemarkURL:     payload.RemarkURL,
+			BookmarkID:    payload.BookmarkID,
+		},
+	)
 }
