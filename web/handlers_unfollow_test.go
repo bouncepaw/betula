@@ -35,12 +35,17 @@ func TestUnfollowRemovesFollowingOnSendError(t *testing.T) {
 	actor.PublicKey.ID = actor.ID + "#main-key"
 	actor.PublicKey.Owner = actor.ID
 	actor.PublicKey.PublicKeyPEM = signing.PublicKey()
-	db.StoreValidActor(actor)
-	db.AddPendingFollowing(actor.ID)
+
+	ctx := t.Context()
+	ctrl.RepoActor = db.NewActorRepo()
+	be.Err(t, ctrl.RepoActor.StoreActor(ctx, actor), nil)
+	be.Err(t, ctrl.RepoActor.AddPendingFollowing(ctx, actor.ID), nil)
 
 	rq := httptest.NewRequest(http.MethodPost, "/unfollow?account=@dan@betula.klava.wiki&next=/", nil)
 	rw := httptest.NewRecorder()
 	postUnfollow(rw, rq)
 
-	be.Equal(t, db.SubscriptionStatus(actor.ID), types.SubscriptionNone)
+	status, err := ctrl.RepoActor.SubscriptionStatus(ctx, actor.ID)
+	be.Err(t, err, nil)
+	be.Equal(t, status, types.SubscriptionNone)
 }

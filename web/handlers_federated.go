@@ -20,7 +20,6 @@ import (
 	"net/url"
 	"os"
 
-	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/fedisearch"
@@ -114,10 +113,17 @@ func getTimeline(w http.ResponseWriter, rq *http.Request) {
 		slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 	}
 
+	followingCount, err := ctrl.RepoActor.CountFollowing(rq.Context())
+	if err != nil {
+		slog.Error("Failed to count following", "err", err)
+		handlerBadRequest(w, rq)
+		return
+	}
+
 	templateExec(w, rq, templateTimeline, dataTimeline{
 		dataCommon:           common,
 		TotalBookmarks:       total,
-		Following:            db.CountFollowing(),
+		Following:            followingCount,
 		BookmarkGroupsInPage: types.GroupRemoteBookmarksByDate(renderedBookmarks),
 	})
 }
@@ -143,9 +149,15 @@ func getFollowersWeb(w http.ResponseWriter, rq *http.Request) {
 }
 
 func getFollowingWeb(w http.ResponseWriter, rq *http.Request) {
+	actors, err := ctrl.RepoActor.GetFollowing(rq.Context())
+	if err != nil {
+		slog.Error("Failed to get following", "err", err)
+		handlerBadRequest(w, rq)
+		return
+	}
 	templateExec(w, rq, templateFollowing, dataActorList{
 		dataCommon: emptyCommon(),
-		Actors:     db.GetFollowing(),
+		Actors:     actors,
 	})
 }
 
@@ -178,7 +190,11 @@ func postUnfollow(w http.ResponseWriter, rq *http.Request) {
 		slog.Error("Failed to send activity", "err", err)
 		// Proceed with unfollowing even if sending failed
 	}
-	db.StopFollowing(actor.ID)
+	if err := ctrl.RepoActor.StopFollowing(rq.Context(), actor.ID); err != nil {
+		slog.Error("Failed to stop following", "actorID", actor.ID, "err", err)
+		handlerBadRequest(w, rq)
+		return
+	}
 	http.Redirect(w, rq, next, http.StatusSeeOther)
 }
 
@@ -214,7 +230,11 @@ func postFollow(w http.ResponseWriter, rq *http.Request) {
 		slog.Error("Failed to send activity", "err", err)
 		return
 	}
-	db.AddPendingFollowing(actor.ID)
+	if err := ctrl.RepoActor.AddPendingFollowing(rq.Context(), actor.ID); err != nil {
+		slog.Error("Failed to add pending following", "actorID", actor.ID, "err", err)
+		handlerBadRequest(w, rq)
+		return
+	}
 	http.Redirect(w, rq, next, http.StatusSeeOther)
 }
 
@@ -237,7 +257,12 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 
 	switch report := report.(type) {
 	case activities.CreateNoteReport:
-		if !db.SubscriptionStatus(report.Bookmark.ActorID).WeFollowThem() {
+		status, err := ctrl.RepoActor.SubscriptionStatus(rq.Context(), report.Bookmark.ActorID)
+		if err != nil {
+			slog.Error("Failed to get subscription status", "actorID", report.Bookmark.ActorID, "err", err)
+			return
+		}
+		if !status.WeFollowThem() {
 			slog.Info("Received bookmark from non-follower, ignoring", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
 			return
 		}
@@ -355,12 +380,20 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			slog.Info("Unfollow request for someone else, ignoring", "actorID", report.ActorID, "objectID", report.ObjectID)
 			return
 		}
-		if !db.SubscriptionStatus(report.ActorID).TheyFollowUs() {
+		status, err := ctrl.RepoActor.SubscriptionStatus(rq.Context(), report.ActorID)
+		if err != nil {
+			slog.Error("Failed to get subscription status", "actorID", report.ActorID, "err", err)
+			return
+		}
+		if !status.TheyFollowUs() {
 			slog.Info("Unfollow from non-follower, ignoring", "actorID", report.ActorID)
 			return
 		}
 		slog.Info("Follower unfollowed us", "actorID", report.ActorID)
-		db.RemoveFollower(report.ActorID)
+		if err := ctrl.RepoActor.RemoveFollower(rq.Context(), report.ActorID); err != nil {
+			slog.Error("Failed to remove follower", "actorID", report.ActorID, "err", err)
+			return
+		}
 
 	case activities.FollowReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
@@ -728,9 +761,15 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 	var query = rq.FormValue("query")
 	if query == "" {
 		slog.Info("Access empty fedisearch page")
+		mutuals, err := ctrl.RepoActor.GetMutuals(rq.Context())
+		if err != nil {
+			slog.Error("Failed to get mutuals", "err", err)
+			handlerNotFound(w, rq)
+			return
+		}
 		templateExec(w, rq, templateFedisearch, dataFedisearch{
 			dataCommon: emptyCommon(),
-			Mutuals:    db.GetMutuals(),
+			Mutuals:    mutuals,
 		})
 		return
 	}
@@ -756,11 +795,18 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 		slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 	}
 
+	mutuals, err := ctrl.RepoActor.GetMutuals(rq.Context())
+	if err != nil {
+		slog.Error("Failed to get mutuals", "err", err)
+		handlerNotFound(w, rq)
+		return
+	}
+
 	slog.Info("Showing federated search bookmarks",
 		"nextState", nextState, "prevState", prevState)
 	templateExec(w, rq, templateFedisearch, dataFedisearch{
 		dataCommon: emptyCommon(),
-		Mutuals:    db.GetMutuals(),
+		Mutuals:    mutuals,
 		Bookmarks:  renderedBookmarks,
 		State:      nextState,
 	})

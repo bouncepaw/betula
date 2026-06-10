@@ -9,9 +9,10 @@
 package searchingsvc
 
 import (
+	"context"
+	"log/slog"
 	"regexp"
 
-	"git.sr.ht/~bouncepaw/betula/db"
 	searchingports "git.sr.ht/~bouncepaw/betula/ports/searching"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -24,12 +25,14 @@ var (
 	includeRepostRe = regexp.MustCompile(`\brepost:()\s*`)
 )
 
-type Service struct{}
+type Service struct {
+	repo searchingports.Repository
+}
 
 var _ searchingports.Service = &Service{}
 
-func New() *Service {
-	return &Service{}
+func New(repo searchingports.Repository) *Service {
+	return &Service{repo: repo}
 }
 
 func (svc *Service) ForFederated(query string, offset, limit uint) (bookmarks []types.Bookmark, totalBookmarks uint) {
@@ -40,7 +43,18 @@ func (svc *Service) ForFederated(query string, offset, limit uint) (bookmarks []
 	query, excludedTags := svc.extractWithRegex(query, excludeTagRe)
 	query, includedTags := svc.extractWithRegex(query, includeTagRe)
 
-	return db.SearchOffset(query, includedTags, excludedTags, offset, limit)
+	bookmarks, totalBookmarks, err := svc.repo.SearchOffset(context.Background(), searchingports.OffsetQuery{
+		Text:         query,
+		IncludedTags: includedTags,
+		ExcludedTags: excludedTags,
+		Offset:       offset,
+		Limit:        limit,
+	})
+	if err != nil {
+		slog.Error("Failed to run federated search", "query", query, "err", err)
+		return nil, 0
+	}
+	return bookmarks, totalBookmarks
 }
 
 func (svc *Service) For(query string, authorized bool, page uint) (bookmarksInPage []types.Bookmark, totalBookmarks uint) {
@@ -48,7 +62,19 @@ func (svc *Service) For(query string, authorized bool, page uint) (bookmarksInPa
 	query, includedTags := svc.extractWithRegex(query, includeTagRe)
 	query, includedRepostMarkers := svc.extractWithRegex(query, includeRepostRe)
 
-	return db.Search(query, includedTags, excludedTags, len(includedRepostMarkers) != 0, authorized, page)
+	bookmarksInPage, totalBookmarks, err := svc.repo.Search(context.Background(), searchingports.Query{
+		Text:         query,
+		IncludedTags: includedTags,
+		ExcludedTags: excludedTags,
+		RepostsOnly:  len(includedRepostMarkers) != 0,
+		Authorized:   authorized,
+		Page:         page,
+	})
+	if err != nil {
+		slog.Error("Failed to run search", "query", query, "err", err)
+		return nil, 0
+	}
+	return bookmarksInPage, totalBookmarks
 }
 
 func (svc *Service) extractWithRegex(query string, regex *regexp.Regexp) (string, []string) {

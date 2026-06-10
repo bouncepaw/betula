@@ -18,8 +18,15 @@ import (
 
 func TestSetCredentials(t *testing.T) {
 	InitInMemoryDB()
+	ctx := t.Context()
 	repo := &SettingsRepo{}
-	be.Err(t, repo.SetCredentials(t.Context(), pufferfish, tropicfish), nil)
-	be.Equal(t, MetaEntry[string](settingsports.BetulaMetaAdminUsername), pufferfish)
-	be.Equal(t, MetaEntry[string](settingsports.BetulaMetaAdminPasswordHash), tropicfish)
+	be.Err(t, repo.SetCredentials(ctx, pufferfish, tropicfish), nil)
+
+	name, err := repo.MetaEntryString(ctx, settingsports.BetulaMetaAdminUsername)
+	be.Err(t, err, nil)
+	be.Equal(t, name, pufferfish)
+
+	hash, err := repo.MetaEntryString(ctx, settingsports.BetulaMetaAdminPasswordHash)
+	be.Err(t, err, nil)
+	be.Equal(t, hash, tropicfish)
 }

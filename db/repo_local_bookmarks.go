@@ -62,6 +62,7 @@ func (repo *RepoLocalBookmarks) Exists(
 	return exists, err
 }
 
+// GetBookmarkByID returns the bookmark by its ID. Tags are not populated.
 func (repo *RepoLocalBookmarks) GetBookmarkByID(
 	ctx context.Context,
 	id int,
@@ -370,37 +371,13 @@ where
 	return count, err
 }
 
-func (repo *RepoLocalBookmarks) tagsForBookmarkByID(
-	ctx context.Context,
-	q querier,
-	id int,
-) ([]types.Tag, error) {
-	rows, err := q.QueryContext(ctx, `
-select distinct TagName from TagsToPosts where PostID = ? order by TagName;
-`, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var tags []types.Tag
-	for rows.Next() {
-		var tag types.Tag
-		if err = rows.Scan(&tag.Name); err != nil {
-			return nil, err
-		}
-		tags = append(tags, tag)
-	}
-	return tags, rows.Err()
-}
-
 func (repo *RepoLocalBookmarks) tagsForManyBookmarks(
 	ctx context.Context,
 	q querier,
 	bookmarks []types.Bookmark,
 ) ([]types.Bookmark, error) {
 	for i, bm := range bookmarks {
-		tags, err := repo.tagsForBookmarkByID(ctx, q, bm.ID)
+		tags, err := tagsForBookmarkByID(ctx, q, bm.ID)
 		if err != nil {
 			return nil, err
 		}

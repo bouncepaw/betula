@@ -45,6 +45,7 @@ import (
 	remotebookmarksports "git.sr.ht/~bouncepaw/betula/ports/remotebookmarks"
 	searchingports "git.sr.ht/~bouncepaw/betula/ports/searching"
 	settingsports "git.sr.ht/~bouncepaw/betula/ports/settings"
+	taggingports "git.sr.ht/~bouncepaw/betula/ports/tagging"
 	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 
@@ -85,6 +86,7 @@ type Controller struct {
 	RepoRemoteBookmark remotebookmarksports.RemoteBookmarkRepository
 	RepoActor          apports.ActorRepository
 	RepoRemarks        remarkingports.Repository
+	RepoTags           taggingports.Repository
 }
 
 func init() {
@@ -424,7 +426,12 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 			handlerNotFound(w, rq)
 			return
 		}
-		actor.SubscriptionStatus = db.SubscriptionStatus(actor.ID)
+		actor.SubscriptionStatus, err = ctrl.RepoActor.SubscriptionStatus(rq.Context(), actor.ID)
+		if err != nil {
+			slog.Error("Failed to get subscription status", "actorID", actor.ID, "err", err)
+			handlerNotFound(w, rq)
+			return
+		}
 
 		currentPage := extractPage(rq)
 		bookmarks, total := ctrl.RepoRemoteBookmark.GetRemoteBookmarksBy(actor.ID, currentPage)
@@ -474,15 +481,33 @@ func getMyProfile(w http.ResponseWriter, rq *http.Request) {
 		http.Error(w, "Failed to load profile", http.StatusInternalServerError)
 		return
 	}
+	tagCount, err := ctrl.RepoTags.TagCount(rq.Context(), authed)
+	if err != nil {
+		slog.Error("Failed to count tags", "err", err)
+		http.Error(w, "Failed to load profile", http.StatusInternalServerError)
+		return
+	}
+	followingCount, err := ctrl.RepoActor.CountFollowing(rq.Context())
+	if err != nil {
+		slog.Error("Failed to count following", "err", err)
+		http.Error(w, "Failed to load profile", http.StatusInternalServerError)
+		return
+	}
+	followersCount, err := ctrl.RepoActor.CountFollowers(rq.Context())
+	if err != nil {
+		slog.Error("Failed to count followers", "err", err)
+		http.Error(w, "Failed to load profile", http.StatusInternalServerError)
+		return
+	}
 	templateExec(w, rq, templateMyProfile, dataMyProfile{
 		dataCommon: emptyCommon(),
 
 		Nickname:       fmt.Sprintf("@%s@%s", settings.AdminUsername(), settings.SiteDomain()),
 		Summary:        settings.SiteDescriptionHTML(),
 		LinkCount:      bookmarkCount,
-		TagCount:       db.TagCount(authed),
-		FollowingCount: db.CountFollowing(),
-		FollowersCount: db.CountFollowers(),
+		TagCount:       tagCount,
+		FollowingCount: followingCount,
+		FollowersCount: followersCount,
 	})
 }
 
@@ -961,8 +986,14 @@ type dataTags struct {
 
 func handlerTags(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
+	tags, err := ctrl.RepoTags.Tags(rq.Context(), authed)
+	if err != nil {
+		slog.Error("Failed to load tags", "err", err)
+		http.Error(w, "Failed to load tags", http.StatusInternalServerError)
+		return
+	}
 	templateExec(w, rq, templateTags, dataTags{
-		Tags:       db.Tags(authed),
+		Tags:       tags,
 		dataCommon: emptyCommon(),
 	})
 }
@@ -991,13 +1022,20 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 	}
 	groups := types.GroupLocalBookmarksByDate(renderedBookmarks)
 
+	description, err := ctrl.RepoTags.DescriptionForTag(rq.Context(), tagName)
+	if err != nil {
+		slog.Error("Failed to get tag description", "tag", tagName, "err", err)
+		http.Error(w, "Failed to load tag", http.StatusInternalServerError)
+		return
+	}
+
 	common := emptyCommon()
 	common.searchQuery = "#" + tagName
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalBookmarks)
 	templateExec(w, rq, templateTag, dataTag{
 		Tag: types.Tag{
 			Name:        tagName,
-			Description: db.DescriptionForTag(tagName),
+			Description: description,
 		},
 		BookmarkGroupsInPage: groups,
 		TotalBookmarks:       totalBookmarks,
@@ -1037,7 +1075,11 @@ func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	tags := types.SplitTags(rq.FormValue("tags"))
-	db.SetTagsFor(id, tags)
+	if err := ctrl.RepoTags.SetTagsFor(rq.Context(), id, tags); err != nil {
+		slog.Error("Failed to set tags for bookmark", "bookmarkID", id, "err", err)
+		http.Error(w, "Failed to set tags", http.StatusInternalServerError)
+		return
+	}
 
 	next := rq.FormValue("next")
 	http.Redirect(w, rq, next, http.StatusSeeOther)
@@ -1082,7 +1124,13 @@ func getEditBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
+	tags, err := ctrl.RepoTags.TagsForBookmarkByID(rq.Context(), bookmark.ID)
+	if err != nil {
+		slog.Error("Failed to get tags for bookmark", "bookmarkID", bookmark.ID, "err", err)
+		http.Error(w, "Failed to load bookmark", http.StatusInternalServerError)
+		return
+	}
+	bookmark.Tags = tags
 	templateExec(w, rq, templateEditLink, dataEditLink{
 		Bookmark:   *bookmark,
 		dataCommon: commonWithAutoCompletion(),
@@ -1101,7 +1149,13 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 	oldVisibility := bookmark.Visibility
 
 	if rq.Method == http.MethodGet {
-		bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
+		tags, err := ctrl.RepoTags.TagsForBookmarkByID(rq.Context(), bookmark.ID)
+		if err != nil {
+			slog.Error("Failed to get tags for bookmark", "bookmarkID", bookmark.ID, "err", err)
+			http.Error(w, "Failed to load bookmark", http.StatusInternalServerError)
+			return
+		}
+		bookmark.Tags = tags
 		templateExec(w, rq, templateEditLink, dataEditLink{
 			Bookmark:   *bookmark,
 			dataCommon: common,
@@ -1235,17 +1289,27 @@ type dataEditTag struct {
 	ErrorNonExistent bool
 }
 
-func oldTag(rq *http.Request) types.Tag {
+func oldTag(rq *http.Request) (types.Tag, error) {
 	oldName := rq.PathValue("name")
+	description, err := ctrl.RepoTags.DescriptionForTag(rq.Context(), oldName)
+	if err != nil {
+		return types.Tag{}, err
+	}
 	return types.Tag{
 		Name:        oldName,
-		Description: db.DescriptionForTag(oldName),
-	}
+		Description: description,
+	}, nil
 }
 
 func getEditTag(w http.ResponseWriter, rq *http.Request) {
+	tag, err := oldTag(rq)
+	if err != nil {
+		slog.Error("Failed to get tag", "err", err)
+		http.Error(w, "Failed to load tag", http.StatusInternalServerError)
+		return
+	}
 	templateExec(w, rq, templateEditTag, dataEditTag{
-		Tag:        oldTag(rq),
+		Tag:        tag,
 		dataCommon: emptyCommon(),
 	})
 }
@@ -1258,9 +1322,20 @@ func postEditTag(w http.ResponseWriter, rq *http.Request) {
 
 	merge := rq.FormValue("merge")
 
-	oldTag := oldTag(rq)
+	oldTag, err := oldTag(rq)
+	if err != nil {
+		slog.Error("Failed to get tag", "err", err)
+		http.Error(w, "Failed to load tag", http.StatusInternalServerError)
+		return
+	}
 
-	if db.TagExists(newTag.Name) && merge != "true" && newTag.Name != oldTag.Name {
+	newTagExists, err := ctrl.RepoTags.TagExists(rq.Context(), newTag.Name)
+	if err != nil {
+		slog.Error("Failed to check whether tag exists", "tag", newTag.Name, "err", err)
+		http.Error(w, "Failed to rename tag", http.StatusInternalServerError)
+		return
+	}
+	if newTagExists && merge != "true" && newTag.Name != oldTag.Name {
 		slog.Warn("Trying to rename a tag to a taken name", "oldTag", oldTag.Name, "newTag", newTag.Name)
 		templateExec(w, rq, templateEditTag, dataEditTag{
 			Tag:            oldTag,
@@ -1270,7 +1345,13 @@ func postEditTag(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if !db.TagExists(oldTag.Name) {
+	oldTagExists, err := ctrl.RepoTags.TagExists(rq.Context(), oldTag.Name)
+	if err != nil {
+		slog.Error("Failed to check whether tag exists", "tag", oldTag.Name, "err", err)
+		http.Error(w, "Failed to rename tag", http.StatusInternalServerError)
+		return
+	}
+	if !oldTagExists {
 		slog.Warn("Trying to rename a non-existent tag", "oldTag", oldTag.Name)
 		templateExec(w, rq, templateEditTag, dataEditTag{
 			Tag:              oldTag,
@@ -1280,9 +1361,15 @@ func postEditTag(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	db.RenameTag(oldTag.Name, newTag.Name)
-	db.SetTagDescription(oldTag.Name, "")
-	db.SetTagDescription(newTag.Name, newTag.Description)
+	if err := errors.Join(
+		ctrl.RepoTags.RenameTag(rq.Context(), oldTag.Name, newTag.Name),
+		ctrl.RepoTags.SetTagDescription(rq.Context(), oldTag.Name, ""),
+		ctrl.RepoTags.SetTagDescription(rq.Context(), newTag.Name, newTag.Description),
+	); err != nil {
+		slog.Error("Failed to rename tag", "oldTag", oldTag.Name, "newTag", newTag.Name, "err", err)
+		http.Error(w, "Failed to rename tag", http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(w, rq, fmt.Sprintf("/tag/%s", newTag.Name), http.StatusSeeOther)
 	if oldTag.Name != newTag.Name {
 		slog.Info("Renamed tag", "oldName", oldTag.Name, "newName", newTag.Name)
@@ -1304,12 +1391,22 @@ func postDeleteTag(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if !db.TagExists(catName) {
+	exists, err := ctrl.RepoTags.TagExists(rq.Context(), catName)
+	if err != nil {
+		slog.Error("Failed to check whether tag exists", "tag", catName, "err", err)
+		http.Error(w, "Failed to delete tag", http.StatusInternalServerError)
+		return
+	}
+	if !exists {
 		slog.Warn("Trying to delete a non-existent tag")
 		handlerNotFound(w, rq)
 		return
 	}
-	db.DeleteTag(catName)
+	if err := ctrl.RepoTags.DeleteTag(rq.Context(), catName); err != nil {
+		slog.Error("Failed to delete tag", "tag", catName, "err", err)
+		http.Error(w, "Failed to delete tag", http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(w, rq, "/", http.StatusSeeOther)
 }
 
@@ -1531,7 +1628,17 @@ func renderBookmark(
 		}
 	}
 
-	bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
+	if tags, err := ctrl.RepoTags.TagsForBookmarkByID(rq.Context(), bookmark.ID); err != nil {
+		slog.Warn("Failed to fetch tags for bookmark", "bookmarkID", bookmark.ID, "err", err)
+		notifications = append(notifications,
+			SystemNotification{
+				Category: NotificationFailure,
+				Body: template.HTML(fmt.Sprintf(
+					"Failed to fetch tags: %s", err)),
+			})
+	} else {
+		bookmark.Tags = tags
+	}
 
 	var reposts []types.RepostInfo
 	if r, err := ctrl.RepoRemarks.RemarksOf(rq.Context(), bookmark.ID); err != nil {

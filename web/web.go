@@ -128,7 +128,13 @@ func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, 
 		return nil, false
 	}
 
-	bookmark.Tags = db.TagsForBookmarkByID(bookmark.ID)
+	tags, err := ctrl.RepoTags.TagsForBookmarkByID(rq.Context(), bookmark.ID)
+	if err != nil {
+		slog.Error("Failed to fetch tags for bookmark", "path", rq.URL.Path, "id", id, "err", err)
+		handlerNotFound(w, rq)
+		return nil, false
+	}
+	bookmark.Tags = tags
 
 	return &bookmark, true
 }

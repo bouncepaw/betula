@@ -32,6 +32,7 @@ func TestRenderBookmarkIncludesReposts(t *testing.T) {
 	be.Err(t, err, nil)
 
 	ctrl.RepoRemarks = db.NewRemarksRepo()
+	ctrl.RepoTags = db.NewTagsRepo()
 	var (
 		re1 = types.RepostInfo{URL: "https://links.alice/1", Name: "Alice", Timestamp: time.Now()}
 		re2 = types.RepostInfo{URL: "https://links.bob/2", Name: "Bob", Timestamp: time.Now()}

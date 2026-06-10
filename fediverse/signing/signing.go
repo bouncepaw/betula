@@ -8,9 +8,9 @@
 package signing
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
-	"database/sql"
 	"log/slog"
 	"net/http"
 	"os"
@@ -20,6 +20,9 @@ import (
 	"git.sr.ht/~bouncepaw/betula/ports/settings"
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
+
+var settingsRepo = &db.SettingsRepo{}
+var actorRepo = db.NewActorRepo()
 
 // SignRequest signs the request.
 func SignRequest(rq *http.Request, content []byte) {
@@ -54,8 +57,13 @@ func setKeys(privateKeyPEM string) {
 
 // EnsureKeysFromDatabase reads the keys from the database and remembers them. If they are not found, it comes up with new ones and saves them. This function might crash the application.
 func EnsureKeysFromDatabase() {
+	ctx := context.Background()
 	var pem string
-	privKeyPEMMaybe := db.MetaEntry[sql.NullString](settingsports.BetulaMetaPrivateKey)
+	privKeyPEMMaybe, err := settingsRepo.MetaEntryNullString(ctx, settingsports.BetulaMetaPrivateKey)
+	if err != nil {
+		slog.Error("Failed to read private key PEM", "err", err)
+		os.Exit(1)
+	}
 	if !privKeyPEMMaybe.Valid || privKeyPEMMaybe.String == "" {
 		slog.Info("Generating a new pair of RSA keys")
 		priv, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -70,7 +78,10 @@ func EnsureKeysFromDatabase() {
 			os.Exit(1)
 		}
 
-		db.SetMetaEntry(settingsports.BetulaMetaPrivateKey, pem)
+		if err := settingsRepo.SetMetaEntryString(ctx, settingsports.BetulaMetaPrivateKey, pem); err != nil {
+			slog.Error("Failed to save private key PEM", "err", err)
+			os.Exit(1)
+		}
 		setKeys(pem)
 	} else {
 		setKeys(privKeyPEMMaybe.String)
@@ -80,7 +91,10 @@ func EnsureKeysFromDatabase() {
 // VerifyRequestSignature returns true if the request has correct signature. This function makes HTTP requests on your behalf to retrieve the public key.
 func VerifyRequestSignature(rq *http.Request, content []byte) bool {
 	_, err := httpsig.VerifyRequest(rq, content, func(keyID string) (httpsig.PublicKey, error) {
-		pem := db.KeyPemByID(keyID)
+		pem, err := actorRepo.KeyPemByID(context.Background(), keyID)
+		if err != nil {
+			return httpsig.PublicKey{}, err
+		}
 		if pem == "" {
 			// The zero PublicKey has a None key type, which the underlying VerifyRequest handles well.
 			return httpsig.PublicKey{}, nil

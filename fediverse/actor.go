@@ -7,6 +7,8 @@
 package fediverse
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,9 +17,9 @@ import (
 	"net/http"
 	"strings"
 
-	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -29,9 +31,12 @@ func RequestActorByNickname(nickname string) (*types.Actor, error) {
 	}
 
 	// get cached if possible
-	a, found := db.ActorByAcct(user, host)
-	if found {
-		return a, nil
+	a, err := actorRepo.ActorByAcct(context.Background(), user, host)
+	if err == nil {
+		return &a, nil
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
 	}
 
 	// find id
@@ -57,9 +62,12 @@ func RequestActorByNickname(nickname string) (*types.Actor, error) {
 // Deprecated: use apports.ActivityPub.
 func RequestActorByID(actorID string) (*types.Actor, error) {
 	// get cached if possible
-	a, found := db.ActorByID(actorID)
-	if found {
-		return a, nil
+	a, err := actorRepo.GetActorByID(context.Background(), actorID, apports.GetActorsOpts{GetPublicKey: true})
+	if err == nil {
+		return &a, nil
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
 	}
 
 	// make network request
@@ -107,7 +115,9 @@ func dereferenceActorID(actorID string) (*types.Actor, error) {
 	if a.DisplayedName == "" {
 		a.DisplayedName = a.PreferredUsername
 	}
-	db.StoreValidActor(a)
+	if err := actorRepo.StoreActor(context.Background(), a); err != nil {
+		return nil, fmt.Errorf("storing actor %s: %w", actorID, err)
+	}
 	return &a, nil
 }
 

@@ -6,6 +6,7 @@
 package fedisearch
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,6 +25,8 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
+
+var actorRepo = db.NewActorRepo()
 
 type Request struct {
 	Version string `json:"version"`
@@ -106,7 +109,10 @@ func StateFromFormParams(params url.Values, ourID string) (*State, error) {
 
 	// First page:
 	if len(seenJSON) == 0 && len(unseenJSON) == 0 && len(expectedJSON) == 0 {
-		var mutuals = db.GetMutuals()
+		mutuals, err := actorRepo.GetMutuals(context.Background())
+		if err != nil {
+			return nil, err
+		}
 		for _, m := range mutuals {
 			s.Unseen = append(s.Unseen, m.ID)
 		}

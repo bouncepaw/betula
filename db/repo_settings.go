@@ -69,6 +69,51 @@ insert or replace into BetulaMeta (Key, Value) values
 	return err
 }
 
+// metaEntry reads a single BetulaMeta value into a T. A missing key yields the
+// zero value and a nil error, matching the behaviour the typed reader methods
+// expose through the repository interface.
+func metaEntry[T any](ctx context.Context, key settingsports.BetulaMetaKey) (T, error) {
+	var val T
+	err := db.QueryRowContext(ctx, `select Value from BetulaMeta where Key = ? limit 1;`, key).Scan(&val)
+	if errors.Is(err, sql.ErrNoRows) {
+		return val, nil
+	}
+	return val, err
+}
+
+func setMetaEntry(ctx context.Context, key settingsports.BetulaMetaKey, val any) error {
+	_, err := db.ExecContext(ctx, `insert or replace into BetulaMeta values (?, ?);`, key, val)
+	return err
+}
+
+func (repo *SettingsRepo) MetaEntryNullString(ctx context.Context, key settingsports.BetulaMetaKey) (sql.NullString, error) {
+	return metaEntry[sql.NullString](ctx, key)
+}
+
+func (repo *SettingsRepo) MetaEntryNullInt64(ctx context.Context, key settingsports.BetulaMetaKey) (sql.NullInt64, error) {
+	return metaEntry[sql.NullInt64](ctx, key)
+}
+
+func (repo *SettingsRepo) MetaEntryString(ctx context.Context, key settingsports.BetulaMetaKey) (string, error) {
+	return metaEntry[string](ctx, key)
+}
+
+func (repo *SettingsRepo) MetaEntryBytes(ctx context.Context, key settingsports.BetulaMetaKey) ([]byte, error) {
+	return metaEntry[[]byte](ctx, key)
+}
+
+func (repo *SettingsRepo) SetMetaEntryString(ctx context.Context, key settingsports.BetulaMetaKey, val string) error {
+	return setMetaEntry(ctx, key, val)
+}
+
+func (repo *SettingsRepo) SetMetaEntryUint(ctx context.Context, key settingsports.BetulaMetaKey, val uint) error {
+	return setMetaEntry(ctx, key, val)
+}
+
+func (repo *SettingsRepo) SetMetaEntryBool(ctx context.Context, key settingsports.BetulaMetaKey, val bool) error {
+	return setMetaEntry(ctx, key, val)
+}
+
 func (repo *SettingsRepo) SetLoggingSettings(ctx context.Context, settings settingsports.LoggingSettings) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {

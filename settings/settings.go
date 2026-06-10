@@ -20,6 +20,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/url"
+	"os"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
@@ -29,7 +30,25 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-var localBookmarks = db.NewLocalBookmarksRepo()
+var (
+	localBookmarks = db.NewLocalBookmarksRepo()
+	settingsRepo   = &db.SettingsRepo{}
+)
+
+func mustRead[T any](v T, err error) T {
+	if err != nil {
+		slog.Error("Failed to read setting", "err", err)
+		os.Exit(1)
+	}
+	return v
+}
+
+func mustWrite(err error) {
+	if err != nil {
+		slog.Error("Failed to write setting", "err", err)
+		os.Exit(1)
+	}
+}
 
 const defaultHost = "0.0.0.0"
 const biggestPort = 65535
@@ -78,29 +97,30 @@ func ValidatePortFromWeb[N ~int | uint](port N) uint {
 
 // Index reads all settings from the db.
 func Index() {
-	adminUsername = db.MetaEntry[sql.NullString](settingsports.BetulaMetaAdminUsername).String
+	ctx := context.Background()
+	adminUsername = mustRead(settingsRepo.MetaEntryNullString(ctx, settingsports.BetulaMetaAdminUsername)).String
 
-	unvalidatedNetworkHost := db.MetaEntry[sql.NullString](settingsports.BetulaMetaNetworkHost)
+	unvalidatedNetworkHost := mustRead(settingsRepo.MetaEntryNullString(ctx, settingsports.BetulaMetaNetworkHost))
 	cache.NetworkHost = validateHostFromDB(unvalidatedNetworkHost)
 
-	unvalidatedNetworkPort := db.MetaEntry[sql.NullInt64](settingsports.BetulaMetaNetworkPort)
+	unvalidatedNetworkPort := mustRead(settingsRepo.MetaEntryNullInt64(ctx, settingsports.BetulaMetaNetworkPort))
 	cache.NetworkPort = validatePortFromDB(unvalidatedNetworkPort)
 
-	siteName := db.MetaEntry[sql.NullString](settingsports.BetulaMetaSiteName)
+	siteName := mustRead(settingsRepo.MetaEntryNullString(ctx, settingsports.BetulaMetaSiteName))
 	if siteName.Valid && siteName.String != "" {
 		cache.SiteName = siteName.String
 	} else {
 		cache.SiteName = "Betula"
 	}
 
-	siteTitle := db.MetaEntry[sql.NullString](settingsports.BetulaMetaSiteTitle)
+	siteTitle := mustRead(settingsRepo.MetaEntryNullString(ctx, settingsports.BetulaMetaSiteTitle))
 	if siteTitle.Valid && siteTitle.String != "" {
 		cache.SiteTitle = template.HTML(siteTitle.String)
 	} else {
 		cache.SiteTitle = template.HTML(html.EscapeString(cache.SiteName))
 	}
 
-	siteDescription := db.MetaEntry[sql.NullString](settingsports.BetulaMetaSiteDescription)
+	siteDescription := mustRead(settingsRepo.MetaEntryNullString(ctx, settingsports.BetulaMetaSiteDescription))
 	if siteDescription.Valid && siteDescription.String != "" {
 		cache.SiteDescriptionMycomarkup = siteDescription.String
 		cacheSiteDescription = myco.MarkupToHTML(siteDescription.String)
@@ -113,11 +133,11 @@ func Index() {
 	// the case when there is no entry for the setting. For these
 	// particular settings, we are perfectly fine with it just
 	// returning "" when it is not present.
-	cache.CustomCSS = db.MetaEntry[string](settingsports.BetulaMetaCustomCSS)
-	cache.PublicCustomJS = db.MetaEntry[string](settingsports.BetulaMetaPublicCustomJS)
-	cache.PrivateCustomJS = db.MetaEntry[string](settingsports.BetulaMetaPrivateCustomJS)
+	cache.CustomCSS = mustRead(settingsRepo.MetaEntryString(ctx, settingsports.BetulaMetaCustomCSS))
+	cache.PublicCustomJS = mustRead(settingsRepo.MetaEntryString(ctx, settingsports.BetulaMetaPublicCustomJS))
+	cache.PrivateCustomJS = mustRead(settingsRepo.MetaEntryString(ctx, settingsports.BetulaMetaPrivateCustomJS))
 
-	siteURL := db.MetaEntry[sql.NullString](settingsports.BetulaMetaSiteURL)
+	siteURL := mustRead(settingsRepo.MetaEntryNullString(ctx, settingsports.BetulaMetaSiteURL))
 	if !siteURL.Valid {
 		cache.SiteURL = fmt.Sprintf("http://localhost:%d", cache.NetworkPort)
 	} else {
@@ -129,7 +149,7 @@ func Index() {
 		}
 	}
 
-	enableFederation := db.MetaEntry[sql.NullInt64](settingsports.BetulaMetaEnableFederation)
+	enableFederation := mustRead(settingsRepo.MetaEntryNullInt64(ctx, settingsports.BetulaMetaEnableFederation))
 	if !enableFederation.Valid || enableFederation.Int64 != 0 {
 		cache.FederationEnabled = true
 	} else {
@@ -165,20 +185,21 @@ func SetSettings(settings types.Settings) {
 	if settings.SiteName == "" {
 		settings.SiteName = "Betula"
 	}
-	db.SetMetaEntry(settingsports.BetulaMetaNetworkHost, settings.NetworkHost)
-	db.SetMetaEntry(settingsports.BetulaMetaNetworkPort, ValidatePortFromWeb(settings.NetworkPort))
-	db.SetMetaEntry(settingsports.BetulaMetaSiteName, settings.SiteName)
-	db.SetMetaEntry(settingsports.BetulaMetaSiteTitle, string(settings.SiteTitle))
-	db.SetMetaEntry(settingsports.BetulaMetaSiteDescription, settings.SiteDescriptionMycomarkup)
-	db.SetMetaEntry(settingsports.BetulaMetaSiteURL, settings.SiteURL)
-	db.SetMetaEntry(settingsports.BetulaMetaCustomCSS, settings.CustomCSS)
-	db.SetMetaEntry(settingsports.BetulaMetaEnableFederation, settings.FederationEnabled)
-	db.SetMetaEntry(settingsports.BetulaMetaPublicCustomJS, settings.PublicCustomJS)
-	db.SetMetaEntry(settingsports.BetulaMetaPrivateCustomJS, settings.PrivateCustomJS)
+	ctx := context.Background()
+	mustWrite(settingsRepo.SetMetaEntryString(ctx, settingsports.BetulaMetaNetworkHost, settings.NetworkHost))
+	mustWrite(settingsRepo.SetMetaEntryUint(ctx, settingsports.BetulaMetaNetworkPort, ValidatePortFromWeb(settings.NetworkPort)))
+	mustWrite(settingsRepo.SetMetaEntryString(ctx, settingsports.BetulaMetaSiteName, settings.SiteName))
+	mustWrite(settingsRepo.SetMetaEntryString(ctx, settingsports.BetulaMetaSiteTitle, string(settings.SiteTitle)))
+	mustWrite(settingsRepo.SetMetaEntryString(ctx, settingsports.BetulaMetaSiteDescription, settings.SiteDescriptionMycomarkup))
+	mustWrite(settingsRepo.SetMetaEntryString(ctx, settingsports.BetulaMetaSiteURL, settings.SiteURL))
+	mustWrite(settingsRepo.SetMetaEntryString(ctx, settingsports.BetulaMetaCustomCSS, settings.CustomCSS))
+	mustWrite(settingsRepo.SetMetaEntryBool(ctx, settingsports.BetulaMetaEnableFederation, settings.FederationEnabled))
+	mustWrite(settingsRepo.SetMetaEntryString(ctx, settingsports.BetulaMetaPublicCustomJS, settings.PublicCustomJS))
+	mustWrite(settingsRepo.SetMetaEntryString(ctx, settingsports.BetulaMetaPrivateCustomJS, settings.PrivateCustomJS))
 	Index()
 }
 
 func WritePort(port uint) { // port must != 0
-	db.SetMetaEntry(settingsports.BetulaMetaNetworkPort, port)
+	mustWrite(settingsRepo.SetMetaEntryUint(context.Background(), settingsports.BetulaMetaNetworkPort, port))
 	Index()
 }

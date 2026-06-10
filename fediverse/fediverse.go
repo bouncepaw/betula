@@ -9,6 +9,7 @@ package fediverse
 
 import (
 	"bytes"
+	"context"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
@@ -19,6 +20,7 @@ import (
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/db"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -26,6 +28,8 @@ import (
 var client = http.Client{
 	Timeout: 2 * time.Second,
 }
+
+var actorRepo = db.NewActorRepo()
 
 func PostSignedDocumentToAddress(doc []byte, contentType string, accept string, addr string) ([]byte, int, error) {
 	rq, err := http.NewRequest(http.MethodPost, addr, bytes.NewReader(doc))
@@ -76,9 +80,13 @@ func RenderRemoteBookmarks(raws []types.RemoteBookmark) (renders []types.Rendere
 	for _, raw := range raws {
 		actors[raw.ActorID] = nil
 	}
-	for actorID, _ := range actors {
-		actor, _ := db.ActorByID(actorID)
-		actors[actorID] = actor // might be nil? I doubt it
+	for actorID := range actors {
+		actor, err := actorRepo.GetActorByID(context.Background(), actorID, apports.GetActorsOpts{GetPublicKey: true})
+		if err != nil {
+			slog.Error("Failed to find actor when gathering remote bookmark actors", "actorID", actorID, "err", err)
+			continue // leaves a nil entry, handled below
+		}
+		actors[actorID] = &actor
 	}
 
 	// Rendering

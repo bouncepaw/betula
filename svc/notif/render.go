@@ -7,14 +7,19 @@ package notifsvc
 
 import (
 	"bytes"
+	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"html/template"
 	"log/slog"
 
 	"git.sr.ht/~bouncepaw/betula/db"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 )
+
+var actorRepo = db.NewActorRepo()
 
 // Render returns an HTML representation of the notification
 // that is ready to be inserted on the notifications page.
@@ -87,9 +92,12 @@ func (n *renderedNotification) likeAsHTML() (template.HTML, error) {
 		return "", err
 	}
 
-	actor, found := db.ActorByID(payload.ActorID)
-	if !found {
+	actor, err := actorRepo.GetActorByID(context.Background(), payload.ActorID, apports.GetActorsOpts{GetPublicKey: true})
+	if errors.Is(err, sql.ErrNoRows) {
 		return "", errActorNotFound
+	}
+	if err != nil {
+		return "", err
 	}
 	return renderTemplate(
 		likeNotificationTemplate,
@@ -107,9 +115,12 @@ func (n *renderedNotification) followAsHTML() (template.HTML, error) {
 		return "", err
 	}
 
-	actor, found := db.ActorByID(payload.ActorID)
-	if !found {
+	actor, err := actorRepo.GetActorByID(context.Background(), payload.ActorID, apports.GetActorsOpts{GetPublicKey: true})
+	if errors.Is(err, sql.ErrNoRows) {
 		return "", errActorNotFound
+	}
+	if err != nil {
+		return "", err
 	}
 	return renderTemplate(
 		followNotificationTemplate,
@@ -126,9 +137,12 @@ func (n *renderedNotification) remarkAsHTML() (template.HTML, error) {
 		return "", err
 	}
 
-	actor, found := db.ActorByID(payload.ActorID)
-	if !found {
+	actor, err := actorRepo.GetActorByID(context.Background(), payload.ActorID, apports.GetActorsOpts{GetPublicKey: true})
+	if errors.Is(err, sql.ErrNoRows) {
 		return "", errActorNotFound
+	}
+	if err != nil {
+		return "", err
 	}
 
 	// TODO: s/repost/remark when the time comes

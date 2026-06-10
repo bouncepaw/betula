@@ -12,6 +12,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
+	"git.sr.ht/~bouncepaw/betula/types"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 )
 
@@ -21,12 +22,13 @@ func (svc *Service) ReceiveLike(ctx context.Context, event likingports.EventLike
 		return err
 	}
 
-	exists, err := svc.localBookmarkRepo.Exists(ctx, localBookmarkID)
+	bookmark, err := svc.localBookmarkRepo.GetBookmarkByID(ctx, localBookmarkID)
 	if err != nil {
 		return err
 	}
-	if !exists {
-		return fmt.Errorf("local bookmark %d does not exist", localBookmarkID)
+	// Only public bookmarks are to be liked.
+	if bookmark.Visibility != types.Public {
+		return fmt.Errorf("local bookmark %d is not public", localBookmarkID)
 	}
 
 	likeModel := likingports.LikeModel{
@@ -91,6 +93,9 @@ func (svc *Service) broadcastBookmarkAsUpdated(
 	bookmark, err := svc.localBookmarkRepo.GetBookmarkByID(ctx, localBookmarkID)
 	if err != nil {
 		return err
+	}
+	if bookmark.Visibility != types.Public {
+		return nil
 	}
 
 	strID := strconv.Itoa(localBookmarkID)

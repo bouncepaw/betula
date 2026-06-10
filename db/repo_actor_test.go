@@ -8,22 +8,21 @@ package db
 import (
 	"testing"
 
-	"git.sr.ht/~bouncepaw/betula/types"
 	"github.com/nalgeon/be"
+
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 func TestGetRemoteBookmarks(t *testing.T) {
 	InitInMemoryDB()
-	actor1 := types.Actor{
-		ID: "https://example.com/actor1",
-	}
-	actor2 := types.Actor{
-		ID: "https://example.com/actor2",
-	}
-	StoreValidActor(actor1)
-	StoreValidActor(actor2)
-	AddPendingFollowing(actor1.ID)
-	MarkAsSurelyFollowing(actor1.ID)
+	ctx := t.Context()
+	actorRepo := NewActorRepo()
+	actor1 := validActor("https://example.com/actor1", "actor1")
+	actor2 := validActor("https://example.com/actor2", "actor2")
+	be.Err(t, actorRepo.StoreActor(ctx, actor1), nil)
+	be.Err(t, actorRepo.StoreActor(ctx, actor2), nil)
+	be.Err(t, actorRepo.AddPendingFollowing(ctx, actor1.ID), nil)
+	be.Err(t, actorRepo.MarkAsSurelyFollowing(ctx, actor1.ID), nil)
 	bookmark1 := types.RemoteBookmark{
 		ID:          "https://example.com/bookmark1",
 		ActorID:     actor1.ID,
@@ -47,10 +46,24 @@ func TestGetRemoteBookmarks(t *testing.T) {
 	be.Equal(t, total, 1)
 	be.Equal(t, len(bookmarks), 1)
 	be.Equal(t, bookmarks[0].ID, bookmark1.ID)
-	AddPendingFollowing(actor2.ID)
-	MarkAsSurelyFollowing(actor2.ID)
+	be.Err(t, actorRepo.AddPendingFollowing(ctx, actor2.ID), nil)
+	be.Err(t, actorRepo.MarkAsSurelyFollowing(ctx, actor2.ID), nil)
 	bookmarks, total = repoRemoteBookmarks.GetRemoteBookmarks(1)
 	be.Equal(t, total, 2)
+}
+
+func validActor(id, username string) types.Actor {
+	a := types.Actor{
+		ID:                id,
+		Inbox:             id + "/inbox",
+		PreferredUsername: username,
+		DisplayedName:     username,
+		Domain:            "example.com",
+	}
+	a.PublicKey.ID = id + "#main-key"
+	a.PublicKey.Owner = id
+	a.PublicKey.PublicKeyPEM = "PEM"
+	return a
 }
 
 func TestGetRemoteBookmarks_Empty(t *testing.T) {

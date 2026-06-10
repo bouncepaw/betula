@@ -10,8 +10,10 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -126,59 +128,23 @@ func (repo *ActorRepo) GetFollowers(ctx context.Context) ([]types.Actor, error) 
 	if err != nil {
 		return nil, err
 	}
-
-	var actors []types.Actor
-	for rows.Next() {
-		var a types.Actor
-		err = rows.Scan(&a.ID, &a.PreferredUsername, &a.Inbox, &a.DisplayedName, &a.Summary, &a.Domain, &a.PublicKey.PublicKeyPEM)
-		if err != nil {
-			return nil, err
-		}
-		actors = append(actors, a)
-	}
-	return actors, nil
+	return scanActorsWithKey(rows)
 }
 
-// Below: old code, to be refactored to modern style.
-
-func KeyPemByID(keyID string) string {
-	return querySingleValue[string](`select PublicKeyPEM from PublicKeys where ID = ?`, keyID)
-}
-
-func GetFollowing() (actors []types.Actor) {
-	rows := mustQuery(`
+func (repo *ActorRepo) GetFollowing(ctx context.Context) ([]types.Actor, error) {
+	rows, err := db.QueryContext(ctx, `
 select ActorID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
 from Following
 join Actors on ActorID = Actors.ID
 join PublicKeys on Owner = ActorID;`)
-	for rows.Next() {
-		var a types.Actor
-		mustScan(rows, &a.ID, &a.PreferredUsername, &a.Inbox, &a.DisplayedName, &a.Summary, &a.Domain, &a.PublicKey.PublicKeyPEM)
-		actors = append(actors, a)
+	if err != nil {
+		return nil, err
 	}
-	return
+	return scanActorsWithKey(rows)
 }
 
-// GetFollowers
-//
-// Deprecated: Use (*ActorRepo).GetFollowers instead.
-func GetFollowers() (actors []types.Actor) {
-	rows := mustQuery(`
-select ActorID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
-from Followers
-join Actors on ActorID = Actors.ID
-join PublicKeys on Owner = ActorID;
-`)
-	for rows.Next() {
-		var a types.Actor
-		mustScan(rows, &a.ID, &a.PreferredUsername, &a.Inbox, &a.DisplayedName, &a.Summary, &a.Domain, &a.PublicKey.PublicKeyPEM)
-		actors = append(actors, a)
-	}
-	return
-}
-
-func GetMutuals() (actors []types.Actor) {
-	rows := mustQuery(`
+func (repo *ActorRepo) GetMutuals(ctx context.Context) ([]types.Actor, error) {
+	rows, err := db.QueryContext(ctx, `
 select Following.ActorID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
 from Following
 join Actors on Following.ActorID = Actors.ID
@@ -186,123 +152,118 @@ join PublicKeys on Owner = Following.ActorID
 where Following.ActorID in (
 	select Followers.ActorID from Followers
 );`)
-	for rows.Next() {
-		var a types.Actor
-		mustScan(rows, &a.ID, &a.PreferredUsername, &a.Inbox, &a.DisplayedName, &a.Summary, &a.Domain, &a.PublicKey.PublicKeyPEM)
-		actors = append(actors, a)
+	if err != nil {
+		return nil, err
 	}
-	return
+	return scanActorsWithKey(rows)
 }
 
-func ActorByAcct(user, host string) (a *types.Actor, found bool) {
-	rows := mustQuery(`
+// ActorByAcct returns the cached actor with the given handle. It returns
+// sql.ErrNoRows when no such actor is known.
+func (repo *ActorRepo) ActorByAcct(ctx context.Context, user, host string) (types.Actor, error) {
+	var actor types.Actor
+	err := db.QueryRowContext(ctx, `
 select Actors.ID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
 from Actors
 join PublicKeys on Owner = Actors.ID
 where PreferredUsername = ? and Domain = ?
-limit 1`, user, host)
-	for rows.Next() {
-		var actor types.Actor
-		mustScan(rows, &actor.ID, &actor.PreferredUsername, &actor.Inbox, &actor.DisplayedName, &actor.Summary, &actor.Domain, &actor.PublicKey.PublicKeyPEM)
-		found = true
-		a = &actor
+limit 1`, user, host).Scan(
+		&actor.ID, &actor.PreferredUsername, &actor.Inbox, &actor.DisplayedName, &actor.Summary, &actor.Domain, &actor.PublicKey.PublicKeyPEM)
+	return actor, err
+}
+
+func (repo *ActorRepo) KeyPemByID(ctx context.Context, keyID string) (string, error) {
+	var pem string
+	err := db.QueryRowContext(ctx, `select PublicKeyPEM from PublicKeys where ID = ?`, keyID).Scan(&pem)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
 	}
-	return
+	return pem, err
 }
 
-// ActorByID
-//
-// Deprecated: Use (*ActorRepo).GetActorByID instead.
-func ActorByID(actorID string) (a *types.Actor, found bool) {
-	rows := mustQuery(`
-select Actors.ID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, PublicKeyPEM
-from Actors
-join PublicKeys on Owner = Actors.ID
-where Actors.ID = ?
-limit 1`, actorID)
-	for rows.Next() {
-		var actor types.Actor
-		mustScan(rows, &actor.ID, &actor.PreferredUsername, &actor.Inbox, &actor.DisplayedName, &actor.Summary, &actor.Domain, &actor.PublicKey.PublicKeyPEM)
-		found = true
-		a = &actor
-	}
-	return
+func (repo *ActorRepo) AddFollower(ctx context.Context, id string) error {
+	_, err := db.ExecContext(ctx, `replace into Followers (ActorID) values (?)`, id)
+	return err
 }
 
-// StoreValidActor
-//
-// Deprecated: Use (*ActorRepo).StoreActor instead.
-func StoreValidActor(a types.Actor) {
-	// assume actor.Valid()
-	mustExec(`
-replace into Actors
-    (ID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, LastCheckedAt)
-values
-	(?, ?, ?, ?, ?, ?, current_timestamp)`,
-		a.ID, a.PreferredUsername, a.Inbox, a.DisplayedName, a.Summary, a.Domain)
-	mustExec(`
-replace into PublicKeys
-	(ID, Owner, PublicKeyPEM)
-values
-	(?, ?, ?)`, a.PublicKey.ID, a.PublicKey.Owner, a.PublicKey.PublicKeyPEM)
+func (repo *ActorRepo) RemoveFollower(ctx context.Context, id string) error {
+	_, err := db.ExecContext(ctx, `delete from Followers where ActorID = ?`, id)
+	return err
 }
 
-func AddFollower(id string) {
-	mustExec(`replace into Followers (ActorID) values (?)`, id)
+func (repo *ActorRepo) AddPendingFollowing(ctx context.Context, id string) error {
+	_, err := db.ExecContext(ctx, `replace into Following (ActorID) values (?)`, id)
+	return err
 }
 
-func RemoveFollower(id string) {
-	mustExec(`delete from Followers where ActorID = ?`, id)
+func (repo *ActorRepo) MarkAsSurelyFollowing(ctx context.Context, id string) error {
+	_, err := db.ExecContext(ctx, `update Following set AcceptedStatus = 1 where ActorID = ?`, id)
+	return err
 }
 
-func AddPendingFollowing(id string) {
-	mustExec(`replace into Following (ActorID) values (?)`, id)
+func (repo *ActorRepo) StopFollowing(ctx context.Context, id string) error {
+	_, err := db.ExecContext(ctx, `delete from Following where ActorID = ?`, id)
+	return err
 }
 
-func MarkAsSurelyFollowing(id string) {
-	mustExec(`update Following set AcceptedStatus = 1 where ActorID = ?`, id)
+func (repo *ActorRepo) CountFollowing(ctx context.Context) (uint, error) {
+	var count uint
+	err := db.QueryRowContext(ctx, `select count(*) from Following;`).Scan(&count)
+	return count, err
 }
 
-func StopFollowing(id string) {
-	mustExec(`delete from Following where ActorID = ?`, id)
+func (repo *ActorRepo) CountFollowers(ctx context.Context) (uint, error) {
+	var count uint
+	err := db.QueryRowContext(ctx, `select count(*) from Followers;`).Scan(&count)
+	return count, err
 }
 
-func CountFollowing() uint {
-	return querySingleValue[uint](`select count(*) from Following;`)
-}
-func CountFollowers() uint {
-	return querySingleValue[uint](`select count(*) from Followers;`)
-}
-
-func SubscriptionStatus(id string) types.SubscriptionRelation {
+func (repo *ActorRepo) SubscriptionStatus(ctx context.Context, id string) (types.SubscriptionRelation, error) {
 	// TODO: make it just 1 request.
-	var iFollow, theyFollow bool
 	var status int
-
-	rows := mustQuery(`select AcceptedStatus from Following where ActorID = ?`, id)
-	for rows.Next() {
-		iFollow = true
-		mustScan(rows, &status)
+	errFollowing := db.QueryRowContext(ctx, `select AcceptedStatus from Following where ActorID = ?`, id).Scan(&status)
+	if errFollowing != nil && !errors.Is(errFollowing, sql.ErrNoRows) {
+		return types.SubscriptionNone, errFollowing
 	}
+	iFollow := errFollowing == nil
 
-	rows = mustQuery(`select 1 from Followers where ActorID = ?`, id)
-	theyFollow = rows.Next()
-	_ = rows.Close()
+	var dummy int
+	errFollowers := db.QueryRowContext(ctx, `select 1 from Followers where ActorID = ?`, id).Scan(&dummy)
+	if errFollowers != nil && !errors.Is(errFollowers, sql.ErrNoRows) {
+		return types.SubscriptionNone, errFollowers
+	}
+	theyFollow := errFollowers == nil
 
 	pending := status == 0
 
 	switch {
 	case pending && iFollow && theyFollow:
-		return types.SubscriptionPendingMutual
+		return types.SubscriptionPendingMutual, nil
 	case pending && iFollow:
-		return types.SubscriptionPending
+		return types.SubscriptionPending, nil
 	case iFollow && theyFollow:
-		return types.SubscriptionMutual
+		return types.SubscriptionMutual, nil
 	case iFollow:
-		return types.SubscriptionIFollow
+		return types.SubscriptionIFollow, nil
 	case theyFollow:
-		return types.SubscriptionTheyFollow
+		return types.SubscriptionTheyFollow, nil
 	default:
-		return types.SubscriptionNone
+		return types.SubscriptionNone, nil
 	}
+}
+
+// scanActorsWithKey reads actors (each joined with its public key) from rows
+// and closes them.
+func scanActorsWithKey(rows *sql.Rows) ([]types.Actor, error) {
+	defer rows.Close()
+
+	var actors []types.Actor
+	for rows.Next() {
+		var a types.Actor
+		if err := rows.Scan(&a.ID, &a.PreferredUsername, &a.Inbox, &a.DisplayedName, &a.Summary, &a.Domain, &a.PublicKey.PublicKeyPEM); err != nil {
+			return nil, err
+		}
+		actors = append(actors, a)
+	}
+	return actors, rows.Err()
 }

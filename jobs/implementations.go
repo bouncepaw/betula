@@ -25,6 +25,7 @@ import (
 
 var repoNotif = db.New()
 var repoLocalBookmarks = db.NewLocalBookmarksRepo()
+var repoActor = db.NewActorRepo()
 
 func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.Job) {
 	return func(job jobtype.Job) {
@@ -64,7 +65,11 @@ func broadcastToFollowers(job jobtype.Job) {
 		return
 	}
 
-	followers := db.GetFollowers()
+	followers, err := repoActor.GetFollowers(context.Background())
+	if err != nil {
+		slog.Error("Failed to fetch followers for broadcast", "category", job.Category, "err", err)
+		return
+	}
 	if len(followers) == 0 {
 		slog.Info("Nobody to broadcast to :-(")
 		return
@@ -90,9 +95,17 @@ func broadcastToFollowers(job jobtype.Job) {
 func receiveAcceptFollow(report activities.FollowReport) {
 	// We assume that they are actually talking about us, because we filtered out wrong activities in the inbox.
 
-	if status := db.SubscriptionStatus(report.ObjectID); status.IsPending() {
+	ctx := context.Background()
+	status, err := repoActor.SubscriptionStatus(ctx, report.ObjectID)
+	if err != nil {
+		slog.Error("Failed to get subscription status", "objectID", report.ObjectID, "err", err)
+		return
+	}
+	if status.IsPending() {
 		slog.Info("Received Accept{Follow}", "objectID", report.ObjectID)
-		db.MarkAsSurelyFollowing(report.ObjectID)
+		if err := repoActor.MarkAsSurelyFollowing(ctx, report.ObjectID); err != nil {
+			slog.Error("Failed to mark as surely following", "objectID", report.ObjectID, "err", err)
+		}
 	} else {
 		slog.Warn("Received invalid Accept{Follow}, ignoring", "status", status, "activity", report.OriginalActivity)
 	}
@@ -101,9 +114,17 @@ func receiveAcceptFollow(report activities.FollowReport) {
 func receiveRejectFollow(report activities.FollowReport) {
 	// We assume that they are actually talking about us, because we filtered out wrong activities in the inbox.
 
-	if status := db.SubscriptionStatus(report.ObjectID); status.IsPending() {
+	ctx := context.Background()
+	status, err := repoActor.SubscriptionStatus(ctx, report.ObjectID)
+	if err != nil {
+		slog.Error("Failed to get subscription status", "objectID", report.ObjectID, "err", err)
+		return
+	}
+	if status.IsPending() {
 		slog.Info("Received Reject{Follow}", "objectID", report.ObjectID)
-		db.StopFollowing(report.ObjectID)
+		if err := repoActor.StopFollowing(ctx, report.ObjectID); err != nil {
+			slog.Error("Failed to stop following", "objectID", report.ObjectID, "err", err)
+		}
 	} else {
 		slog.Warn("Received invalid Reject{Follow}, ignoring", "status", status, "activity", report.OriginalActivity)
 	}
@@ -130,7 +151,9 @@ func sendAcceptFollow(report activities.FollowReport) {
 	if err = SendActivityToInbox(activity, fediverse.RequestActorInboxByID(report.ActorID)); err != nil {
 		slog.Error("Failed to send activity", "err", err, "recipient", report.ActorID)
 	} else {
-		db.AddFollower(report.ActorID)
+		if err := repoActor.AddFollower(context.Background(), report.ActorID); err != nil {
+			slog.Error("Failed to add follower", "actorID", report.ActorID, "err", err)
+		}
 
 		err = repoNotif.Store(context.Background(), notiftypes.KindFollow, notiftypes.FollowPayload{
 			ActorID: report.ActorID,

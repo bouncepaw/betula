@@ -5,13 +5,31 @@
 
 package settingsports
 
-import "context"
+import (
+	"context"
+	"database/sql"
+)
 
 type (
 	Repository interface {
 		GetLoggingSettings(context.Context) (LoggingSettings, error)
 		SetLoggingSettings(context.Context, LoggingSettings) error
 		SetCredentials(ctx context.Context, name, hash string) error
+
+		// MetaEntry* read a single BetulaMeta value. They return the zero value
+		// (an invalid sql.Null*, an empty string, a nil slice) when the key is
+		// absent. These are differently typed variants of one query because Go
+		// interfaces cannot carry generic methods.
+		MetaEntryNullString(ctx context.Context, key BetulaMetaKey) (sql.NullString, error)
+		MetaEntryNullInt64(ctx context.Context, key BetulaMetaKey) (sql.NullInt64, error)
+		MetaEntryString(ctx context.Context, key BetulaMetaKey) (string, error)
+		MetaEntryBytes(ctx context.Context, key BetulaMetaKey) ([]byte, error)
+
+		// SetMetaEntry* write a single BetulaMeta value. Differently typed
+		// variants for the same reason as the readers above.
+		SetMetaEntryString(ctx context.Context, key BetulaMetaKey, val string) error
+		SetMetaEntryUint(ctx context.Context, key BetulaMetaKey, val uint) error
+		SetMetaEntryBool(ctx context.Context, key BetulaMetaKey, val bool) error
 	}
 	Service interface {
 		GetLoggingSettings(context.Context) (LoggingSettings, error)

@@ -5,9 +5,10 @@
 package fedisearch
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"git.sr.ht/~bouncepaw/betula/db"
+
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -25,12 +26,17 @@ func ParseAPIRequest(bytes []byte) (*Request, error) {
 		return nil, err
 	}
 
+	status, err := actorRepo.SubscriptionStatus(context.Background(), req.From)
+	if err != nil {
+		return nil, err
+	}
+
 	switch {
 	case req.Version != "v1":
 		return nil, ErrUnsupportedVersion
 	case req.To != fediverse.OurID():
 		return nil, ErrWrongTo
-	case db.SubscriptionStatus(req.From) != types.SubscriptionMutual:
+	case status != types.SubscriptionMutual:
 		return nil, ErrNotMutual
 	}
 

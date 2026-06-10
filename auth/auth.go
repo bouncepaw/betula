@@ -9,7 +9,6 @@ package auth
 
 import (
 	"context"
-	"database/sql"
 	"log/slog"
 	"os"
 	"sync/atomic"
@@ -29,10 +28,17 @@ var (
 // Initialize queries the database for auth information. Call on startup. The module handles all further invocations for you.
 func Initialize() {
 	ready.Store(false)
-	var (
-		name = db.MetaEntry[sql.NullString](settingsports.BetulaMetaAdminUsername)
-		pass = db.MetaEntry[sql.NullString](settingsports.BetulaMetaAdminPasswordHash)
-	)
+	ctx := context.Background()
+	name, err := settingsRepo.MetaEntryNullString(ctx, settingsports.BetulaMetaAdminUsername)
+	if err != nil {
+		slog.Error("Failed to read admin username", "err", err)
+		os.Exit(1)
+	}
+	pass, err := settingsRepo.MetaEntryNullString(ctx, settingsports.BetulaMetaAdminPasswordHash)
+	if err != nil {
+		slog.Error("Failed to read admin password hash", "err", err)
+		os.Exit(1)
+	}
 	ready.Store(name.Valid && pass.Valid)
 }
 
@@ -51,8 +57,12 @@ func CredentialsMatch(name, pass string) bool {
 		slog.Info("Matching credentials. Name mismatch")
 		return false
 	}
-	err := bcrypt.CompareHashAndPassword(db.MetaEntry[[]byte](settingsports.BetulaMetaAdminPasswordHash), []byte(pass))
+	hash, err := settingsRepo.MetaEntryBytes(context.Background(), settingsports.BetulaMetaAdminPasswordHash)
 	if err != nil {
+		slog.Error("Failed to read admin password hash", "err", err)
+		return false
+	}
+	if err := bcrypt.CompareHashAndPassword(hash, []byte(pass)); err != nil {
 		slog.Info("Matching credentials. Password mismatch")
 		return false
 	}

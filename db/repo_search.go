@@ -2,50 +2,65 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2026 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
 package db
 
 import (
+	"context"
 	"slices"
 	"sort"
 	"strings"
 
+	searchingports "git.sr.ht/~bouncepaw/betula/ports/searching"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-func SearchOffset(text string, includedTags []string, excludedTags []string, offset, limit uint) (results []types.Bookmark, totalResults uint) {
-	text = strings.ToLower(text)
-	sort.Strings(includedTags)
-	sort.Strings(excludedTags)
+type SearchRepo struct {
+}
 
-	const q = `
-select ID, URL, Title, Description, Visibility, CreationTime, RepostOf
+var _ searchingports.Repository = (*SearchRepo)(nil)
+
+func NewSearchRepo() *SearchRepo {
+	return &SearchRepo{}
+}
+
+func (repo *SearchRepo) SearchOffset(ctx context.Context, query searchingports.OffsetQuery) (results []types.Bookmark, totalResults uint, err error) {
+	text := strings.ToLower(query.Text)
+	sort.Strings(query.IncludedTags)
+	sort.Strings(query.ExcludedTags)
+
+	rows, err := db.QueryContext(ctx, `
+select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
 from Bookmarks
 where DeletionTime is null and Visibility = 1
 order by CreationTime desc
-`
-	rows := mustQuery(q)
+`)
+	if err != nil {
+		return nil, 0, err
+	}
 
-	var unfilteredBookmarks []types.Bookmark
-	for rows.Next() {
-		var b types.Bookmark
-		mustScan(rows, &b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RepostOf)
-		unfilteredBookmarks = append(unfilteredBookmarks, b)
+	unfilteredBookmarks, err := scanBookmarks(rows)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	var i uint = 0
 	var ignoredBookmarks uint = 0
-	bookmarksToIgnore := offset
+	bookmarksToIgnore := query.Offset
 
 	for _, post := range unfilteredBookmarks {
 		if !textOK(post, text) {
 			continue
 		}
 
-		post.Tags = TagsForBookmarkByID(post.ID)
-		if !tagsOK(post.Tags, includedTags, excludedTags) {
+		post.Tags, err = tagsForBookmarkByID(ctx, db, post.ID)
+		if err != nil {
+			return nil, 0, err
+		}
+		if !tagsOK(post.Tags, query.IncludedTags, query.ExcludedTags) {
 			continue
 		}
 
@@ -55,39 +70,39 @@ order by CreationTime desc
 		}
 
 		totalResults++
-		if ignoredBookmarks >= bookmarksToIgnore && i < limit {
+		if ignoredBookmarks >= bookmarksToIgnore && i < query.Limit {
 			results = append(results, post)
 			i++
 		} else {
 			ignoredBookmarks++
 		}
 	}
-	return results, totalResults
+	return results, totalResults, nil
 }
 
-func Search(text string, includedTags []string, excludedTags []string, repostsOnly, authorized bool, page uint) (results []types.Bookmark, totalResults uint) {
-	text = strings.ToLower(text)
-	sort.Strings(includedTags)
-	sort.Strings(excludedTags)
+func (repo *SearchRepo) Search(ctx context.Context, query searchingports.Query) (results []types.Bookmark, totalResults uint, err error) {
+	text := strings.ToLower(query.Text)
+	sort.Strings(query.IncludedTags)
+	sort.Strings(query.ExcludedTags)
 
-	const q = `
-select ID, URL, Title, Description, Visibility, CreationTime, RepostOf
+	rows, err := db.QueryContext(ctx, `
+select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
 from Bookmarks
 where DeletionTime is null and (Visibility = 1 or ?)
 order by CreationTime desc
-`
-	rows := mustQuery(q, authorized)
+`, query.Authorized)
+	if err != nil {
+		return nil, 0, err
+	}
 
-	var unfilteredBookmarks []types.Bookmark
-	for rows.Next() {
-		var b types.Bookmark
-		mustScan(rows, &b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RepostOf)
-		unfilteredBookmarks = append(unfilteredBookmarks, b)
+	unfilteredBookmarks, err := scanBookmarks(rows)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	var i uint = 0
 	var ignoredBookmarks uint = 0
-	bookmarksToIgnore := (page - 1) * types.BookmarksPerPage
+	bookmarksToIgnore := (query.Page - 1) * types.BookmarksPerPage
 
 	// ‘Say, Bouncepaw, why did not you implement tag inclusion/exclusion
 	//  part in SQL directly?’, some may ask.
@@ -103,13 +118,16 @@ order by CreationTime desc
 			continue
 		}
 
-		post.Tags = TagsForBookmarkByID(post.ID)
-		if !tagsOK(post.Tags, includedTags, excludedTags) {
+		post.Tags, err = tagsForBookmarkByID(ctx, db, post.ID)
+		if err != nil {
+			return nil, 0, err
+		}
+		if !tagsOK(post.Tags, query.IncludedTags, query.ExcludedTags) {
 			continue
 		}
 
 		isRepost := post.RepostOf != nil
-		if !isRepost && repostsOnly {
+		if !isRepost && query.RepostsOnly {
 			continue
 		}
 
@@ -121,7 +139,7 @@ order by CreationTime desc
 			ignoredBookmarks++
 		}
 	}
-	return results, totalResults
+	return results, totalResults, nil
 }
 
 // true if keep, false if discard.

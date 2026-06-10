@@ -95,6 +95,8 @@ func newController() web.Controller {
 		repoArchives       = db.NewArchivesRepo()
 		repoRemarks        = db.NewRemarksRepo()
 		repoSettings       = &db.SettingsRepo{}
+		repoTags           = db.NewTagsRepo()
+		repoSearch         = db.NewSearchRepo()
 
 		obeliskFetcher = archivingsvc.NewObeliskFetcher()
 		activityPub    = apgw.NewActivityPub(repoActor, repoRemoteBookmark)
@@ -112,7 +114,7 @@ func newController() web.Controller {
 			activityPub)
 		svcRemarking = remarkingsvc.New(activityPub, repoRemarks)
 		svcFeeds     = feedssvc.New(repoLocalBookmark)
-		svcSearching = searchsvc.New()
+		svcSearching = searchsvc.New(repoSearch)
 		svcHelping   = helpingsvc.New()
 		svcImEx      = imexsvc.New(repoLocalBookmark, www, settings.SiteName)
 	)
@@ -122,19 +124,21 @@ func newController() web.Controller {
 	}
 
 	return web.Controller{
-		SvcNotif:           svcNotif,
-		SvcArchiving:       svcArchiving,
-		SvcLiking:          svcLiking,
-		SvcRemarking:       svcRemarking,
-		SvcFeeds:           svcFeeds,
-		SvcSearching:       svcSearching,
-		SvcHelping:         svcHelping,
-		SvcSettings:        svcSettings,
-		SvcImEx:            svcImEx,
-		ActivityPub:        activityPub,
-		WWW:                www,
+		SvcNotif:     svcNotif,
+		SvcArchiving: svcArchiving,
+		SvcLiking:    svcLiking,
+		SvcRemarking: svcRemarking,
+		SvcFeeds:     svcFeeds,
+		SvcSearching: svcSearching,
+		SvcHelping:   svcHelping,
+		SvcSettings:  svcSettings,
+		SvcImEx:      svcImEx,
+		ActivityPub:  activityPub,
+		WWW:          www,
+
 		RepoRemoteBookmark: repoRemoteBookmark,
 		RepoActor:          repoActor,
 		RepoRemarks:        repoRemarks,
+		RepoTags:           repoTags,
 	}
 }
