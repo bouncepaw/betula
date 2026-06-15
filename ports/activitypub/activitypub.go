@@ -33,6 +33,11 @@ type (
 		GetActorIDFor(bookmarkID string) (string, error)
 	}
 
+	FollowService interface {
+		Follow(ctx context.Context, nickname string) error
+		Unfollow(ctx context.Context, nickname string) error
+	}
+
 	//nolint:interfacebloat // Forgive me... It's not forever...
 	ActorRepository interface {
 		GetActorByID(ctx context.Context, id string, opts GetActorsOpts) (types.Actor, error)

@@ -21,6 +21,7 @@ import (
 	wwwgw "git.sr.ht/~bouncepaw/betula/gateways/www"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	apsvc "git.sr.ht/~bouncepaw/betula/svc/activitypub"
 	archivingsvc "git.sr.ht/~bouncepaw/betula/svc/archiving"
 	feedssvc "git.sr.ht/~bouncepaw/betula/svc/feeds"
 	helpingsvc "git.sr.ht/~bouncepaw/betula/svc/helping"
@@ -117,6 +118,7 @@ func newController() web.Controller {
 		svcSearching = searchsvc.New(repoSearch)
 		svcHelping   = helpingsvc.New()
 		svcImEx      = imexsvc.New(repoLocalBookmark, www, settings.SiteName)
+		svcFollow    = apsvc.NewFollowService(repoActor)
 	)
 
 	if err := svcSettings.ApplyLoggingSettings(context.Background()); err != nil {
@@ -133,8 +135,10 @@ func newController() web.Controller {
 		SvcHelping:   svcHelping,
 		SvcSettings:  svcSettings,
 		SvcImEx:      svcImEx,
-		ActivityPub:  activityPub,
-		WWW:          www,
+		SvcFollow:    svcFollow,
+
+		ActivityPub: activityPub,
+		WWW:         www,
 
 		RepoRemoteBookmark: repoRemoteBookmark,
 		RepoActor:          repoActor,

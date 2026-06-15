@@ -36,7 +36,7 @@ type Actor struct {
 }
 
 func (a Actor) Valid() bool {
-	urlsOK := bxstr.ValidURL(a.ID) && bxstr.ValidURL(a.Inbox) && bxstr.ValidURL(a.PublicKey.Owner)
+	urlsOK := bxstr.IsValidURL(a.ID) && bxstr.IsValidURL(a.Inbox) && bxstr.IsValidURL(a.PublicKey.Owner)
 	nonEmpty := a.PreferredUsername != "" && a.PublicKey.PublicKeyPEM != "" && a.Domain != ""
 	return urlsOK && nonEmpty
 }

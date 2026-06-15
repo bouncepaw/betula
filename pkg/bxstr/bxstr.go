@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
@@ -9,29 +10,9 @@ package bxstr
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"net/url"
 	"strings"
 	"unicode"
 )
-
-func ValidURL(s string) bool {
-	_, err := url.ParseRequestURI(s)
-	return err == nil
-}
-
-func ParseValidURL(s string) *url.URL {
-	u, err := url.ParseRequestURI(s)
-	if err != nil {
-		panic(err)
-	}
-	return u
-}
-
-func SameHost(s1, s2 string) bool {
-	u1, err1 := url.ParseRequestURI(s1)
-	u2, err2 := url.ParseRequestURI(s2)
-	return err1 == nil && err2 == nil && u1.Host == u2.Host
-}
 
 func StringifyAnything(o any) string {
 	switch s := o.(type) {

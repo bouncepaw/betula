@@ -135,7 +135,7 @@ func SendQuietActivityToInbox(activity []byte, inbox string) error {
 }
 
 func sendActivity(uri string, activity []byte) error {
-	url := bxstr.ParseValidURL(uri)
+	url := bxstr.MustParseURL(uri)
 	inbox := fmt.Sprintf("%s://%s/inbox", url.Scheme, url.Host)
 	return SendActivityToInbox(activity, inbox)
 }

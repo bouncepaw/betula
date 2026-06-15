@@ -25,7 +25,7 @@ func getIDSomehow(activity Dict, field string) string {
 	}
 	switch v := m.(type) {
 	case string:
-		if bxstr.ValidURL(v) {
+		if bxstr.IsValidURL(v) {
 			return v
 		}
 		return ""

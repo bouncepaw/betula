@@ -100,7 +100,7 @@ func (ap *ActivityPub) AuthorOfRemoteBookmark(remoteBookmarkID string) (apports.
 }
 
 func (ap *ActivityPub) KnowsRemoteBookmark(remoteBookmarkID string) (bool, error) {
-	if !bxstr.ValidURL(remoteBookmarkID) {
+	if !bxstr.IsValidURL(remoteBookmarkID) {
 		return false, fmt.Errorf("not url, thus not remote bookmark id: %s", remoteBookmarkID)
 	}
 

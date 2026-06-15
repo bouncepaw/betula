@@ -54,11 +54,11 @@ func guessAnnounce(activity Dict) (reportMaybe any, err error) {
 		ObjectID:   getIDSomehow(activity, "object"),
 	}
 
-	if !bxstr.ValidURL(report.ObjectID) {
+	if !bxstr.IsValidURL(report.ObjectID) {
 		return nil, ErrNoObject
 	}
 
-	if !bxstr.ValidURL(report.AnnounceID) {
+	if !bxstr.IsValidURL(report.AnnounceID) {
 		return nil, ErrNoId
 	}
 

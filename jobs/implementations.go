@@ -131,7 +131,7 @@ func receiveRejectFollow(report activities.FollowReport) {
 }
 
 func sendRejectFollow(report activities.FollowReport) {
-	if !bxstr.ValidURL(report.ActorID) {
+	if !bxstr.IsValidURL(report.ActorID) {
 		slog.Error("Invalid actor ID, dropping activity", "actorID", report.ActorID)
 	}
 
@@ -142,7 +142,7 @@ func sendRejectFollow(report activities.FollowReport) {
 }
 
 func sendAcceptFollow(report activities.FollowReport) {
-	if !bxstr.ValidURL(report.ActorID) {
+	if !bxstr.IsValidURL(report.ActorID) {
 		slog.Error("Dropping activity", "reason", "invalid actor ID", "actorID", report.ActorID)
 		return
 	}

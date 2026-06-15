@@ -53,7 +53,7 @@ func requestIdByWebFingerAcct(user, host string) (id string, err error) {
 	}
 
 	for _, link := range obj.Links {
-		if link.Rel == "self" && link.Type == "application/activity+json" && bxstr.ValidURL(link.Href) {
+		if link.Rel == "self" && link.Type == "application/activity+json" && bxstr.IsValidURL(link.Href) {
 			// Found what we were looking for
 			return link.Href, nil
 		}

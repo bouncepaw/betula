@@ -1,6 +1,9 @@
 {{define "title"}}{{.Account.DisplayedName}}{{end}}
 {{define "body"}}
     <main>
+    {{if .Notifications}}{{range .Notifications}}
+        <div class="notif" notif-cat="{{.Category}}">{{.Body}}</div>
+    {{end}}{{end}}
         <article class="profile-card">
             <h2>{{.Account.DisplayedName}}</h2>
             <div><a href="{{.Account.ID}}">{{.Account.Acct}}</a></div>

@@ -1,21 +1,21 @@
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package web
+package apsvc
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"testing"
+
+	"github.com/nalgeon/be"
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
-	"github.com/nalgeon/be"
 )
 
 func TestUnfollowRemovesFollowingOnSendError(t *testing.T) {
@@ -37,15 +37,14 @@ func TestUnfollowRemovesFollowingOnSendError(t *testing.T) {
 	actor.PublicKey.PublicKeyPEM = signing.PublicKey()
 
 	ctx := t.Context()
-	ctrl.RepoActor = db.NewActorRepo()
-	be.Err(t, ctrl.RepoActor.StoreActor(ctx, actor), nil)
-	be.Err(t, ctrl.RepoActor.AddPendingFollowing(ctx, actor.ID), nil)
+	repo := db.NewActorRepo()
+	be.Err(t, repo.StoreActor(ctx, actor), nil)
+	be.Err(t, repo.AddPendingFollowing(ctx, actor.ID), nil)
 
-	rq := httptest.NewRequest(http.MethodPost, "/unfollow?account=@dan@betula.klava.wiki&next=/", nil)
-	rw := httptest.NewRecorder()
-	postUnfollow(rw, rq)
+	svc := NewFollowService(repo)
+	be.Err(t, svc.Unfollow(ctx, "@dan@betula.klava.wiki"), nil)
 
-	status, err := ctrl.RepoActor.SubscriptionStatus(ctx, actor.ID)
+	status, err := repo.SubscriptionStatus(ctx, actor.ID)
 	be.Err(t, err, nil)
 	be.Equal(t, status, types.SubscriptionNone)
 }

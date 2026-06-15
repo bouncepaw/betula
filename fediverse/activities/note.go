@@ -246,7 +246,7 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 			continue
 		}
 		if getString(amnt, "type") == "Link" {
-			if href := getString(amnt, "href"); bxstr.ValidURL(href) {
+			if href := getString(amnt, "href"); bxstr.IsValidURL(href) {
 				bookmark.URL = href
 				break
 			}

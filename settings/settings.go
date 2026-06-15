@@ -174,7 +174,7 @@ func SiteDomain() string {
 	if SiteURL() == "" {
 		return ""
 	}
-	return bxstr.ParseValidURL(SiteURL()).Host
+	return bxstr.MustParseURL(SiteURL()).Host
 }
 
 func UserAgent() string {

@@ -44,7 +44,7 @@ func (ap *ActivityPub) dereferenceActorID(actorID string) (types.Actor, error) {
 		return types.Actor{}, fmt.Errorf("failed to request actor: %w", err)
 	}
 
-	a.Domain = bxstr.ParseValidURL(actorID).Host
+	a.Domain = bxstr.MustParseURL(actorID).Host
 	if !a.Valid() {
 		ap.logger.Error("Invalid actor dereferenced",
 			"actorID", actorID, "actor", a)

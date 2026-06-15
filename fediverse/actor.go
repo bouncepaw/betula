@@ -107,7 +107,7 @@ func dereferenceActorID(actorID string) (*types.Actor, error) {
 		return nil, fmt.Errorf("requesting actor: %w", err)
 	}
 
-	a.Domain = bxstr.ParseValidURL(actorID).Host
+	a.Domain = bxstr.MustParseURL(actorID).Host
 	if !a.Valid() {
 		fmt.Println(a)
 		return nil, errors.New("actor invalid")
