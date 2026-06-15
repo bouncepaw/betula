@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -219,27 +220,26 @@ func (repo *ActorRepo) CountFollowers(ctx context.Context) (uint, error) {
 }
 
 func (repo *ActorRepo) SubscriptionStatus(ctx context.Context, id string) (types.SubscriptionRelation, error) {
-	// TODO: make it just 1 request.
-	var status int
-	errFollowing := db.QueryRowContext(ctx, `select AcceptedStatus from Following where ActorID = ?`, id).Scan(&status)
-	if errFollowing != nil && !errors.Is(errFollowing, sql.ErrNoRows) {
-		return types.SubscriptionNone, errFollowing
+	var (
+		theyFollow      bool
+		followingStatus sql.NullInt64
+	)
+	err := db.QueryRowContext(ctx, `
+select f.AcceptedStatus, fr.ActorID is not null
+from (select 1)
+left join Following f on f.ActorID = ?
+left join Followers fr on fr.ActorID = ?`, id, id).Scan(&followingStatus, &theyFollow)
+	if err != nil {
+		return types.SubscriptionNone, err
 	}
-	iFollow := errFollowing == nil
 
-	var dummy int
-	errFollowers := db.QueryRowContext(ctx, `select 1 from Followers where ActorID = ?`, id).Scan(&dummy)
-	if errFollowers != nil && !errors.Is(errFollowers, sql.ErrNoRows) {
-		return types.SubscriptionNone, errFollowers
-	}
-	theyFollow := errFollowers == nil
-
-	pending := status == 0
+	iFollow := followingStatus.Valid
+	pending := iFollow && followingStatus.Int64 == 0
 
 	switch {
-	case pending && iFollow && theyFollow:
+	case pending && theyFollow:
 		return types.SubscriptionPendingMutual, nil
-	case pending && iFollow:
+	case pending:
 		return types.SubscriptionPending, nil
 	case iFollow && theyFollow:
 		return types.SubscriptionMutual, nil

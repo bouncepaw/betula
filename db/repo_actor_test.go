@@ -74,3 +74,68 @@ func TestGetRemoteBookmarks_Empty(t *testing.T) {
 	be.Equal(t, total, 0)
 	be.Equal(t, len(bookmarks), 0)
 }
+
+func TestSubscriptionStatus(t *testing.T) {
+	const id = "https://example.com/actor"
+	tests := []struct {
+		name  string
+		setup func(t *testing.T, repo *ActorRepo)
+		want  types.SubscriptionRelation
+	}{
+		{
+			name:  "none",
+			setup: func(t *testing.T, repo *ActorRepo) {},
+			want:  types.SubscriptionNone,
+		},
+		{
+			name: "pending",
+			setup: func(t *testing.T, repo *ActorRepo) {
+				be.Err(t, repo.AddPendingFollowing(t.Context(), id), nil)
+			},
+			want: types.SubscriptionPending,
+		},
+		{
+			name: "i follow",
+			setup: func(t *testing.T, repo *ActorRepo) {
+				be.Err(t, repo.AddPendingFollowing(t.Context(), id), nil)
+				be.Err(t, repo.MarkAsSurelyFollowing(t.Context(), id), nil)
+			},
+			want: types.SubscriptionIFollow,
+		},
+		{
+			name: "they follow",
+			setup: func(t *testing.T, repo *ActorRepo) {
+				be.Err(t, repo.AddFollower(t.Context(), id), nil)
+			},
+			want: types.SubscriptionTheyFollow,
+		},
+		{
+			name: "mutual",
+			setup: func(t *testing.T, repo *ActorRepo) {
+				be.Err(t, repo.AddPendingFollowing(t.Context(), id), nil)
+				be.Err(t, repo.MarkAsSurelyFollowing(t.Context(), id), nil)
+				be.Err(t, repo.AddFollower(t.Context(), id), nil)
+			},
+			want: types.SubscriptionMutual,
+		},
+		{
+			name: "pending mutual",
+			setup: func(t *testing.T, repo *ActorRepo) {
+				be.Err(t, repo.AddPendingFollowing(t.Context(), id), nil)
+				be.Err(t, repo.AddFollower(t.Context(), id), nil)
+			},
+			want: types.SubscriptionPendingMutual,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			InitInMemoryDB()
+			repo := NewActorRepo()
+			tt.setup(t, repo)
+			got, err := repo.SubscriptionStatus(t.Context(), id)
+			be.Err(t, err, nil)
+			be.Equal(t, got, tt.want)
+		})
+	}
+}
