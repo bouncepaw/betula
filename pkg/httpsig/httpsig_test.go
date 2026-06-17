@@ -55,6 +55,10 @@ func TestSignGet(t *testing.T) {
 	be.Err(t, err)
 }
 
+// This signature from Ties caused failures. It's a rabbit hole.
+// https://codeberg.org/bouncepaw/betula/issues/233
+const _ = `keyId="https://charli.bouncepaw.com/ap/user/fb5d39ff-efb8-4b42-b616-ff4b8cec8ef2#main-key",algorithm="hs2019",created="1781531577",expires="1781535177",headers="(request-target) (created) (expires) content-type date digest host",signature="lwFZiWwh7XkoQ+VFgbkJ5U3cIruGlSDZEK9tYA8TqYNTbQEqF1iKzON3cHxTA/MD9l8aC3jeQIQ5UGcoKVjTBqSktZ568tbU7MEPcmyX+dk/gbDTQXTVK0u/OjPYR4ibD5cKP1/dh8mTsDv5Whp7C7W3prci2A9OUUrKhvotqx5LTrS2PAcgolGhXeGw3UqI4T4KdoSUlE8vfn0Wjnk64urLa6VlHTc1fN55bpzHZQjddtZ8uCqu2Iza3PnaZ4szlNv8gxjNucjFdmwTJ5LAlhrhmRGHzNTvG5EavDxXUGTBvrOhINBphqn7e3g7ldmT9d58w3H0BKcgLKLDd049Bg=="`
+
 func init() {
 	var err error
 	privkey, pubkey, err = DecodeKey(privkeyString)

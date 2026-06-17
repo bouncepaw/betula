@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Ted Unangst <tedu@tedunangst.com>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: LicenseRef-Tedu
 //
@@ -154,7 +155,7 @@ func VerifyRequest(req *http.Request, content []byte, lookupPubkey func(string) 
 		return "", fmt.Errorf("no signature header")
 	}
 
-	var keyname, algo, heads, bsig string
+	var keyname, algo, heads, bsig, created, expires string
 	for v := range strings.SplitSeq(sighdr, ",") {
 		name, val, ok := strings.Cut(v, "=")
 		if !ok {
@@ -171,6 +172,10 @@ func VerifyRequest(req *http.Request, content []byte, lookupPubkey func(string) 
 			heads = val
 		case "signature":
 			bsig = val
+		case "created":
+			created = val
+		case "expires":
+			expires = val
 		default:
 			return "", fmt.Errorf("bad sig val: %s from %s", name, sighdr)
 		}
@@ -211,6 +216,12 @@ func VerifyRequest(req *http.Request, content []byte, lookupPubkey func(string) 
 			if s != expv {
 				return "", fmt.Errorf("digest header '%s' did not match content", s)
 			}
+		case "(created)":
+			s = created
+			// TODO: handle the time one day
+		case "(expires)":
+			s = expires
+			// TODO: handle the time one day
 		case "date":
 			s = req.Header.Get(h)
 			d, err := time.Parse(http.TimeFormat, s)
