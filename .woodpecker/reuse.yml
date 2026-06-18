@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Danila Gorelko
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+when:
+  event: [push, pull_request]
+  branch: ${CI_REPO_DEFAULT_BRANCH}
+
+steps:
+  - name: reuse
+    image: fsfe/reuse
+    commands:
+      - reuse lint

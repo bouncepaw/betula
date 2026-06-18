@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Danila Gorelko
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+when:
+  event: [push, pull_request]
+  branch: ${CI_REPO_DEFAULT_BRANCH}
+
+steps:
+  - name: build
+    image: golang:1.24.13
+    commands:
+      - go build -v ./...
+
+  - name: test
+    image: golang:1.24.13
+    depends_on:
+      - build
+    commands:
+      - go test -race -covermode=atomic -coverpkg=./... ./...
