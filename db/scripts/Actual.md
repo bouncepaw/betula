@@ -1,4 +1,4 @@
-Last checked: 2024-02-28
+Last checked: 2026-06-21
 
 | **Version** | **Description**                                                               |
 |-------------|-------------------------------------------------------------------------------|
@@ -9,12 +9,13 @@ Last checked: 2024-02-28
 | 10          | table PublicKeys                                                              |
 | 11          | dropped                                                                       |
 | 12          | tables Following, Followers, Actors                                           |
-| 13          | tables RemoteBookmarks, RemoteTags                                            |
-| 14          | changes RemoteBookmarks                                                       |
+| 13          | table RemoteTags                                                              |
+| 14          | dropped                                                                       |
 | 15          | table Bookmarks                                                               |
 | 16          | changes Sessions                                                              |
 | 17          | table Archives, new Artifacts                                                 |
 | 18          | table Notifications                                                           |
 | 19          | tables Likes, LikeCollections                                                 |
+| 20          | table Timeline                                                                |
 
 The code for DB versions 1 to 5 never gets executed.

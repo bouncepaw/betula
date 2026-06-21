@@ -2,8 +2,14 @@
 --
 -- SPDX-License-Identifier: AGPL-3.0-only
 
-drop table IncomingPosts;
+create table RemoteTags (
+	Name text not null,
+	BookmarkID text not null,
+	unique(Name, BookmarkID)
+);
 
+-- DROPPED IN 20: Remark, web url and non-Mycomarkup description support
+drop table IncomingPosts;
 -- RemoteBookmarks lists all known bookmarks that were sent from who we follow our way.
 -- These bookmarks can and will be deleted at some point.
 --
@@ -29,9 +35,4 @@ create table RemoteBookmarks (
     UpdatedAt             text,
     Activity              blob
 );
-
-create table RemoteTags (
-    Name text not null,
-    BookmarkID text not null,
-    unique(Name, BookmarkID)
-);
+-- END DROPPED

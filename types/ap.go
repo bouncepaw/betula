@@ -69,18 +69,40 @@ func (sr SubscriptionRelation) WeFollowThem() bool {
 	return sr == SubscriptionIFollow || sr == SubscriptionMutual || sr == SubscriptionPendingMutual || sr == SubscriptionPending
 }
 
+type SourceType string
+
+const (
+	SourceMycomarkup SourceType = "text/mycomarkup"
+	SourcePlainText  SourceType = "text/plain"
+)
+
+func SourceTypeFromDB(v sql.NullString) SourceType {
+	if v.Valid && v.String == "P" {
+		return SourcePlainText
+	}
+	return SourceMycomarkup
+}
+
+func (st SourceType) ToDB() sql.NullString {
+	if st == SourcePlainText {
+		return sql.NullString{String: "P", Valid: true}
+	}
+	return sql.NullString{}
+}
+
 type RemoteBookmark struct {
 	ID       string
 	RepostOf sql.NullString
 	ActorID  string
 
-	Title                 string
-	URL                   string
-	DescriptionHTML       template.HTML
-	DescriptionMycomarkup sql.NullString
-	PublishedAt           string
-	UpdatedAt             sql.NullString
-	Activity              []byte
+	Title           string
+	URL             string
+	DescriptionHTML template.HTML
+	Source          sql.NullString
+	SourceType      SourceType
+	PublishedAt     string
+	UpdatedAt       sql.NullString
+	Activity        []byte
 
 	Tags []Tag
 }

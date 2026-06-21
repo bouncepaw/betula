@@ -6,6 +6,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	remotebookmarksports "git.sr.ht/~bouncepaw/betula/ports/remotebookmarks"
@@ -26,7 +27,7 @@ func NewRemoteBookmarkRepo() *RepoRemoteBookmarks {
 
 func (repo *RepoRemoteBookmarks) Exists(bookmarkID string) (bool, error) {
 	row := db.QueryRow(
-		`select exists(select 1  from RemoteBookmarks where ID = ?)`,
+		`select exists(select 1 from Timeline where ID = ?)`,
 		bookmarkID,
 	)
 	var exists bool
@@ -36,7 +37,7 @@ func (repo *RepoRemoteBookmarks) Exists(bookmarkID string) (bool, error) {
 
 func (repo *RepoRemoteBookmarks) GetActorIDFor(bookmarkID string) (string, error) {
 	row := db.QueryRow(
-		`select ActorID from RemoteBookmarks where ID = ?`,
+		`select ActorID from Timeline where ID = ?`,
 		bookmarkID)
 	var actorID string
 	err := row.Scan(&actorID)
@@ -44,7 +45,7 @@ func (repo *RepoRemoteBookmarks) GetActorIDFor(bookmarkID string) (string, error
 }
 
 func (repo *RepoRemoteBookmarks) Delete(ctx context.Context, bookmarkID string) error {
-	_, err := db.ExecContext(ctx, `delete from RemoteBookmarks where ID = ?`, bookmarkID)
+	_, err := db.ExecContext(ctx, `delete from Timeline where ID = ?`, bookmarkID)
 	return err
 }
 
@@ -52,11 +53,11 @@ func (repo *RepoRemoteBookmarks) Delete(ctx context.Context, bookmarkID string) 
 // https://codeberg.org/bouncepaw/betula/issues/138
 
 func (repo *RepoRemoteBookmarks) GetRemoteBookmarksBy(authorID string, page uint) (bookmarks []types.RemoteBookmark, total uint) {
-	total = querySingleValue[uint](`select count(ID) from RemoteBookmarks where ActorID = ?`, authorID)
+	total = querySingleValue[uint](`select count(ID) from Timeline where ActorID = ?`, authorID)
 
 	rows := mustQuery(`
-select ID, RepostOf, ActorID, Title, DescriptionHTML, DescriptionMycomarkup, PublishedAt, UpdatedAt, URL
-from RemoteBookmarks
+select ID, RemarkedID, ActorID, BookmarkTitle, HTML, Source, SourceType, PublishedAt, UpdatedAt, BookmarkedURL
+from Timeline
 where ActorID = ?
 order by PublishedAt desc
 limit ?
@@ -64,8 +65,12 @@ offset (? * (? - 1))
 `, authorID, types.BookmarksPerPage, types.BookmarksPerPage, page) // same paging for local bookmarks
 
 	for rows.Next() {
-		var b types.RemoteBookmark
-		mustScan(rows, &b.ID, &b.RepostOf, &b.ActorID, &b.Title, &b.DescriptionHTML, &b.DescriptionMycomarkup, &b.PublishedAt, &b.UpdatedAt, &b.URL)
+		var (
+			b          types.RemoteBookmark
+			sourceType sql.NullString
+		)
+		mustScan(rows, &b.ID, &b.RepostOf, &b.ActorID, &b.Title, &b.DescriptionHTML, &b.Source, &sourceType, &b.PublishedAt, &b.UpdatedAt, &b.URL)
+		b.SourceType = types.SourceTypeFromDB(sourceType)
 		bookmarks = append(bookmarks, b)
 	}
 
@@ -84,14 +89,14 @@ offset (? * (? - 1))
 
 func (repo *RepoRemoteBookmarks) GetRemoteBookmarks(page uint) (bookmarks []types.RemoteBookmark, total uint) {
 	total = querySingleValue[uint](`
-select count(RB.ID) 
-from RemoteBookmarks RB
+select count(RB.ID)
+from Timeline RB
 inner join Following F on RB.ActorID = F.ActorID
 where F.AcceptedStatus = 1`)
 
 	rows := mustQuery(`
-select RB.ID, RB.RepostOf, RB.ActorID, RB.Title, RB.DescriptionHTML, RB.DescriptionMycomarkup, RB.PublishedAt, RB.UpdatedAt, RB.URL
-from RemoteBookmarks RB
+select RB.ID, RB.RemarkedID, RB.ActorID, RB.BookmarkTitle, RB.HTML, RB.Source, RB.SourceType, RB.PublishedAt, RB.UpdatedAt, RB.BookmarkedURL
+from Timeline RB
 inner join Following F on RB.ActorID = F.ActorID
 where F.AcceptedStatus = 1
 order by RB.PublishedAt desc
@@ -100,8 +105,12 @@ offset (? * (? - 1))
 `, types.BookmarksPerPage, types.BookmarksPerPage, page) // same paging for local bookmarks
 
 	for rows.Next() {
-		var b types.RemoteBookmark
-		mustScan(rows, &b.ID, &b.RepostOf, &b.ActorID, &b.Title, &b.DescriptionHTML, &b.DescriptionMycomarkup, &b.PublishedAt, &b.UpdatedAt, &b.URL)
+		var (
+			b          types.RemoteBookmark
+			sourceType sql.NullString
+		)
+		mustScan(rows, &b.ID, &b.RepostOf, &b.ActorID, &b.Title, &b.DescriptionHTML, &b.Source, &sourceType, &b.PublishedAt, &b.UpdatedAt, &b.URL)
+		b.SourceType = types.SourceTypeFromDB(sourceType)
 		bookmarks = append(bookmarks, b)
 	}
 
@@ -120,12 +129,12 @@ offset (? * (? - 1))
 
 func (repo *RepoRemoteBookmarks) InsertRemoteBookmark(b types.RemoteBookmark) {
 	mustExec(`
-insert into RemoteBookmarks
-    (ID,  RepostOf,   ActorID,   Title,   URL, DescriptionHTML,   DescriptionMycomarkup, PublishedAt,  UpdatedAt, Activity)
+insert into Timeline
+    (ID, RemarkedID, ActorID, BookmarkTitle, BookmarkedURL, HTML, Source, SourceType, PublishedAt, UpdatedAt, Activity)
 values
-	(?, ?, ?, ?, ?, ?, ?, ?, null, ?)
+	(?, ?, ?, ?, ?, ?, ?, ?, ?, null, ?)
 on conflict do nothing`,
-		b.ID, b.RepostOf, b.ActorID, b.Title, b.URL, b.DescriptionHTML, b.DescriptionMycomarkup, b.PublishedAt, b.Activity)
+		b.ID, b.RepostOf, b.ActorID, b.Title, b.URL, b.DescriptionHTML, b.Source, b.SourceType.ToDB(), b.PublishedAt, b.Activity)
 
 	for _, tag := range b.Tags {
 		mustExec(`insert or replace into RemoteTags (Name, BookmarkID) values (?, ?)`, tag.Name, b.ID)
@@ -135,10 +144,10 @@ on conflict do nothing`,
 func (repo *RepoRemoteBookmarks) UpdateRemoteBookmark(b types.RemoteBookmark) {
 	// Only own bookmarks can be updated. Ownership can't be changed this way. Publishing date too. The id remains.
 	mustExec(`
-update RemoteBookmarks
-set Title = ?, DescriptionHTML = ?, DescriptionMycomarkup = ?, UpdatedAt = ?, Activity = ?, URL = ?
+update Timeline
+set BookmarkTitle = ?, HTML = ?, Source = ?, SourceType = ?, UpdatedAt = ?, Activity = ?, BookmarkedURL = ?
 where ID = ?`,
-		b.Title, b.DescriptionHTML, b.DescriptionMycomarkup, b.UpdatedAt, b.Activity, b.URL, b.ID)
+		b.Title, b.DescriptionHTML, b.Source, b.SourceType.ToDB(), b.UpdatedAt, b.Activity, b.URL, b.ID)
 
 	mustExec(`delete from RemoteTags where BookmarkID = ?`, b.ID)
 

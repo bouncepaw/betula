@@ -52,7 +52,7 @@ func fetchFedi(uri string) (*types.Bookmark, error) {
 		Tags:        bookmark.Tags,
 		URL:         bookmark.URL,
 		Title:       bookmark.Title,
-		Description: bookmark.DescriptionMycomarkup.String,
+		Description: bookmark.Source.String,
 		Visibility:  types.Public,
 		RepostOf:    &uri,
 		OriginalAuthor: sql.NullString{

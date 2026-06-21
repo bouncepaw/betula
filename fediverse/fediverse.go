@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2026 Danila Gorelko
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -14,6 +15,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
 
+	"html/template"
 	"io"
 	"log/slog"
 	"net/http"
@@ -114,9 +116,12 @@ func RenderRemoteBookmarks(raws []types.RemoteBookmark) (renders []types.Rendere
 		}
 		render.PublishedAt = t
 
-		if raw.DescriptionMycomarkup.Valid {
-			render.Description = myco.MarkupToHTML(raw.DescriptionMycomarkup.String)
-		} else {
+		switch {
+		case raw.Source.Valid && raw.SourceType == types.SourcePlainText:
+			render.Description = template.HTML("<p>" + template.HTMLEscapeString(raw.Source.String) + "</p>")
+		case raw.Source.Valid:
+			render.Description = myco.MarkupToHTML(raw.Source.String)
+		default:
 			render.Description = raw.DescriptionHTML
 		}
 

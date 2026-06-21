@@ -223,9 +223,9 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 		PublishedAt:     getTime(object, "published"),
 
 		// Optional fields
-		UpdatedAt:             sql.NullString{},
-		DescriptionMycomarkup: sql.NullString{},
-		Tags:                  nil,
+		UpdatedAt: sql.NullString{},
+		Source:    sql.NullString{},
+		Tags:      nil,
 	}
 
 	if updated := getTime(object, "updated"); updated != "" {
@@ -264,13 +264,16 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 		return nil, ErrEmptyField
 	}
 
-	// Grabbing Mycomarkup
+	// Grabbing the source text
 	source, ok := object["source"].(Dict)
-	if ok && getString(source, "mediaType") == "text/mycomarkup" {
-		mycomarkup := getString(source, "content")
-		bookmark.DescriptionMycomarkup = sql.NullString{
-			String: mycomarkup,
-			Valid:  true,
+	if ok {
+		switch types.SourceType(getString(source, "mediaType")) {
+		case types.SourceMycomarkup:
+			bookmark.SourceType = types.SourceMycomarkup
+			bookmark.Source = sql.NullString{String: getString(source, "content"), Valid: true}
+		case types.SourcePlainText:
+			bookmark.SourceType = types.SourcePlainText
+			bookmark.Source = sql.NullString{String: getString(source, "content"), Valid: true}
 		}
 	}
 
