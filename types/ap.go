@@ -45,6 +45,10 @@ func (a Actor) Acct() string {
 	return fmt.Sprintf("@%s@%s", a.PreferredUsername, a.Domain)
 }
 
+func (a Actor) RenderedSummary() template.HTML {
+	return template.HTML(a.Summary)
+}
+
 type SubscriptionRelation string
 
 const (

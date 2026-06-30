@@ -7,7 +7,7 @@
         <article class="profile-card">
             <h2>{{.Account.DisplayedName}}</h2>
             <div><a href="{{.Account.ID}}">{{.Account.Acct}}</a></div>
-            <div>{{.Account.Summary}}</div>
+            <div>{{.Account.RenderedSummary}}</div>
             {{$status := .Account.SubscriptionStatus}}
             {{if eq $status "mutual"}}
                 <form action="/unfollow?account={{.Account.Acct}}&next=/{{.Account.Acct}}" method="post">
