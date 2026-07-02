@@ -64,3 +64,7 @@ If a repost is turned into a regular post or deleted, you will get a notificatio
 ```
 
 You are to verify the lack of repost yourself. We use microformats.
+
+## FEPs
+* [FEP-2c59](https://codeberg.org/fediverse/fep/src/branch/main/fep/2c59/fep-2c59.md)
+* and some more?

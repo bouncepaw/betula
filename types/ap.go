@@ -11,13 +11,20 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"strings"
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 )
 
-const ActivityType = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""
-const OtherActivityType = "application/activity+json"
+func ContainsActivityType(s string) bool {
+	return strings.Contains(s, ActivityType) || strings.Contains(s, OtherActivityType)
+}
+
+const (
+	ActivityType      = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""
+	OtherActivityType = "application/activity+json"
+)
 
 type Actor struct {
 	ID                string `json:"id"`

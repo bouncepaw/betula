@@ -184,7 +184,7 @@ func fediverseWebFork(
 			handlerAt(w, rq)
 			return
 		}
-		wantsActivity := strings.Contains(rq.Header.Get("Accept"), types.ActivityType) || strings.Contains(rq.Header.Get("Accept"), types.OtherActivityType)
+		wantsActivity := types.ContainsActivityType(rq.Header.Get("Accept"))
 		if wantsActivity && nextFedi != nil {
 			federatedOnly(nextFedi)(w, rq)
 		} else if nextWeb != nil {

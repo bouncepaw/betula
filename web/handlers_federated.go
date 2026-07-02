@@ -11,6 +11,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -177,14 +178,22 @@ func getWebFinger(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-func handlerActor(w http.ResponseWriter, rq *http.Request) {
+func getLocalActorObject(w http.ResponseWriter, rq *http.Request) {
 	var (
 		siteURL       = settings.SiteURL()
 		adminUsername = settings.AdminUsername()
+
+		b   bytes.Buffer
+		enc = json.NewEncoder(&b)
 	)
 
-	doc, err := json.Marshal(map[string]any{
-		"@context":          []string{"https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1"},
+	enc.SetIndent("", "\t")
+	err := enc.Encode(map[string]any{
+		"@context": []string{
+			"https://www.w3.org/ns/activitystreams",
+			"https://w3id.org/security/v1",
+			"https://purl.archive.org/socialweb/webfinger", // FEP-2c59
+		},
 		"type":              "Person",
 		"id":                fediverse.OurID(),
 		"preferredUsername": adminUsername,
@@ -205,6 +214,7 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 			"mediaType": "image/png",
 			"url":       siteURL + "/static/pix/favicon.png",
 		},
+		"webfinger": fmt.Sprintf("acct:%s@%s", adminUsername, settings.SiteDomain()),
 	})
 	if err != nil {
 		slog.Error("Failed to marshal actor activity", "err", err)
@@ -213,8 +223,8 @@ func handlerActor(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", types.OtherActivityType)
-	if _, err := w.Write(doc); err != nil {
-		slog.Error("Error when serving Actor", "err", err)
+	if _, err := w.Write(b.Bytes()); err != nil {
+		slog.Error("Failed to serve Actor", "err", err)
 	}
 }
 

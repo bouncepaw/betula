@@ -95,7 +95,7 @@ func init() {
 
 	mux.HandleFunc("GET /random", getRandom)
 
-	mux.HandleFunc("GET /{$}", getIndex)
+	mux.HandleFunc("GET /{$}", fediverseWebFork(getLocalActorObject, getIndex))
 	mux.HandleFunc("GET /{id}", fediverseWebFork(getBookmarkFedi, getBookmarkWeb))
 
 	mux.HandleFunc("GET /help/en/", getEnglishHelp)
@@ -401,8 +401,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 			* The Activity form shows the Actor object. Available for the local profile only.
 	*/
 	var (
-		accept               = rq.Header.Get("Accept")
-		wantsActivity        = strings.Contains(accept, types.ActivityType) || strings.Contains(accept, types.OtherActivityType)
+		wantsActivity        = types.ContainsActivityType(rq.Header.Get("Accept"))
 		userAtHost           = strings.TrimPrefix(rq.URL.Path, "/@")
 		user, host, isRemote = strings.Cut(userAtHost, "@")
 		authed               = auth.AuthorizedFromRequest(rq)
@@ -485,8 +484,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		handlerNotFound(w, rq)
 	case !isRemote && wantsActivity:
 		slog.Info("Request info about you as an activity")
-		w.Header().Set("Content-Type", types.ActivityType)
-		handlerActor(w, rq)
+		getLocalActorObject(w, rq)
 	case !isRemote && !wantsActivity:
 		slog.Info("Viewing your profile")
 		getMyProfile(w, rq)
@@ -528,8 +526,15 @@ func getMyProfile(w http.ResponseWriter, rq *http.Request) {
 		http.Error(w, "Failed to load profile", http.StatusInternalServerError)
 		return
 	}
+
+	common := emptyCommon()
+	common.head = template.HTML(fmt.Sprintf(`
+	<link rel="alternate" type='%[1]s' href="/@%[3]s">
+	<link rel="alternate" type='%[2]s' href="/@%[3]s">
+`, types.ActivityType, types.OtherActivityType, settings.AdminUsername()))
+
 	templateExec(w, rq, templateMyProfile, dataMyProfile{
-		dataCommon: emptyCommon(),
+		dataCommon: common,
 
 		Nickname:       fmt.Sprintf("@%s@%s", settings.AdminUsername(), settings.SiteDomain()),
 		Summary:        settings.SiteDescriptionHTML(),
@@ -1731,10 +1736,12 @@ type dataFeed struct {
 func getIndex(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	common := emptyCommon()
-	common.head = `
-	<link rel="alternate" type="application/rss+xml" title="Daily digest (recommended)" href="/digest-rss">
-	<link rel="alternate" type="application/rss+xml" title="Individual posts" href="/posts-rss">
-`
+	common.head = template.HTML(fmt.Sprintf(`
+	<link rel="alternate" type="application/rss+xml" title="Daily digest feed (recommended)" href="/digest-rss">
+	<link rel="alternate" type="application/rss+xml" title="Individual bookmarks feed" href="/posts-rss">
+	<link rel="alternate" type='%[1]s' href="/@%[3]s">
+	<link rel="alternate" type='%[2]s' href="/@%[3]s">
+`, types.ActivityType, types.OtherActivityType, settings.AdminUsername()))
 
 	currentPage := extractPage(rq)
 	bookmarks, totalBookmarks, err := localBookmarks.Bookmarks(rq.Context(), authed, currentPage)
