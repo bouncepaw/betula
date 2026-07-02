@@ -122,9 +122,9 @@ var templateMyProfile = templateFrom(funcMapForTime, "my-profile")
 
 // Fedded verse views.
 var (
-	templateRemoteProfile = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline", "remote-profile")
-	templateFollowing     = templateFrom(nil, "following")
-	templateFollowers     = templateFrom(nil, "followers")
+	templateRemoteProfile = templateFrom(funcMapForBookmarks, "follow-fragment", "paginator-fragment", "timeline", "remote-profile")
+	templateFollowing     = templateFrom(nil, "follow-fragment", "following")
+	templateFollowers     = templateFrom(nil, "follow-fragment", "followers")
 	templateTimeline      = templateFrom(funcMapForBookmarks, "paginator-fragment", "timeline")
 	templateFedisearch    = templateFrom(funcMapForBookmarks, "fedisearch")
 	templateNotifications = templateFrom(funcMapForNotifications, "notifications")

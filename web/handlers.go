@@ -381,7 +381,7 @@ func getRandom(w http.ResponseWriter, rq *http.Request) {
 type dataAt struct {
 	*dataCommon
 
-	Account              types.Actor
+	Account              renderedActor
 	BookmarkGroupsInPage []types.RemoteBookmarkGroup
 	TotalBookmarks       uint
 	Notifications        []SystemNotification
@@ -468,12 +468,17 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 			})
 		}
 
+		account := renderedActor{
+			Actor: *actor,
+			Next:  "/" + actor.Acct(),
+		}
+
 		common := emptyCommon()
 		common.searchQuery = actor.Acct()
 		common.paginator = types.PaginatorFromURL(rq.URL, currentPage, total)
 		templateExec(w, rq, templateRemoteProfile, dataAt{
 			dataCommon:           common,
-			Account:              *actor,
+			Account:              account,
 			BookmarkGroupsInPage: types.GroupRemoteBookmarksByDate(renderedBookmarks),
 			TotalBookmarks:       total,
 			Notifications:        notifs,

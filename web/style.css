@@ -113,6 +113,14 @@
     .tags-field {
         margin-top: 0;
     }
+
+    .actor-card {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+    }
+    .actor-card-actions {
+        justify-content: end;
+    }
 }
 
 @media screen and (min-width: calc(40rem + 360px)) {
@@ -634,6 +642,21 @@ main .notif:last-of-type {
 }
 .tabs a[aria-current="page"] {
     font-weight: bold;
+}
+
+.actor-card-info h3 {
+    font-size: 1rem;
+    margin: 0;
+}
+.actor-card-actions {
+    display: flex;
+    gap: .25rem;
+}
+.actor-card-actions .follow-status {
+    display: none;
+}
+.actor-card-actions .btn {
+    font-size: small;
 }
 
 /* Colors. Keep both sections in sync. */
