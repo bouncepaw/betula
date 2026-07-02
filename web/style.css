@@ -610,13 +610,13 @@ main .notif:last-of-type {
     filter: opacity(.3) grayscale(.5);
 }
 
-.settings-tabs {
+.tabs {
     display: flex;
     gap: .5rem;
     margin-top: -.5rem;
     padding-top: .5rem;
 }
-.settings-tabs a {
+.tabs a {
     display: inline-block;
     position: relative;
     padding: .3rem .75rem;
@@ -624,7 +624,7 @@ main .notif:last-of-type {
     margin-bottom: -2px;
     border-top: 2px solid transparent;
 }
-.settings-tabs a::before {
+.tabs a::before {
     content: "";
     position: absolute;
     top: -.5rem;
@@ -632,7 +632,7 @@ main .notif:last-of-type {
     bottom: 0;
     left: 0;
 }
-.settings-tabs a[aria-current="page"] {
+.tabs a[aria-current="page"] {
     font-weight: bold;
 }
 
@@ -647,7 +647,7 @@ main .notif:last-of-type {
     article code,
     article .codeblock,
     table,
-    .settings-tabs a[aria-current]
+    .tabs a[aria-current]
     {
         border: 0;
         background-color: #444;
@@ -687,7 +687,7 @@ main .notif:last-of-type {
         border: 2px inset black;
     }
 
-    .settings-tabs a[aria-current] {
+    .tabs a[aria-current] {
         border-top-color: #ddd;
     }
 
@@ -738,7 +738,7 @@ main .notif:last-of-type {
     }
     main > article,
     .autocompletion-list,
-    .settings-tabs a[aria-current] {
+    .tabs a[aria-current] {
         background: white;
     }
 
@@ -793,7 +793,7 @@ main .notif:last-of-type {
         border: 2px inset #eee;
     }
 
-    .settings-tabs a[aria-current] {
+    .tabs a[aria-current] {
         border-top-color: black;
     }
 
