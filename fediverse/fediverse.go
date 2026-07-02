@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
+	"git.sr.ht/~bouncepaw/betula/pkg/htmlesc"
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
 
 	"html/template"
@@ -127,7 +128,7 @@ func RenderRemoteBookmarks(raws []types.RemoteBookmark) (renders []types.Rendere
 		case raw.Source.Valid:
 			render.Description = myco.MarkupToHTML(raw.Source.String)
 		default:
-			render.Description = raw.DescriptionHTML
+			render.Description = htmlesc.Escape(raw.DescriptionHTML)
 		}
 
 		renders = append(renders, render)

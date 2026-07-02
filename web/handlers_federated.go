@@ -199,7 +199,7 @@ func getLocalActorObject(w http.ResponseWriter, rq *http.Request) {
 		"preferredUsername": adminUsername,
 		"name":              settings.SiteName(),
 		"inbox":             siteURL + "/inbox",
-		"summary":           settings.SiteDescriptionMycomarkup(), // TODO: Think about it
+		"summary":           settings.SiteDescriptionHTML(),
 		"publicKey": map[string]string{
 			"id":           fediverse.OurID() + "#main-key",
 			"owner":        fediverse.OurID(),
