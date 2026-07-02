@@ -11,6 +11,7 @@ package fediverse
 import (
 	"bytes"
 	"context"
+	"strings"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
@@ -118,7 +119,11 @@ func RenderRemoteBookmarks(raws []types.RemoteBookmark) (renders []types.Rendere
 
 		switch {
 		case raw.Source.Valid && raw.SourceType == types.SourcePlainText:
-			render.Description = template.HTML("<p>" + template.HTMLEscapeString(raw.Source.String) + "</p>")
+			var (
+				escaped        = template.HTMLEscapeString(raw.Source.String)
+				taggedNewlines = strings.ReplaceAll(escaped, "\n", "<br/>")
+			)
+			render.Description = template.HTML("<p>" + taggedNewlines + "</p>")
 		case raw.Source.Valid:
 			render.Description = myco.MarkupToHTML(raw.Source.String)
 		default:
