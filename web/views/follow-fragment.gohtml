@@ -1,0 +1,71 @@
+{{define "follow tabs"}}
+    <nav class="tabs">
+        <a href="/followers" {{if eq .Endpoint "/followers"}}aria-current="page"{{end}}>Followers</a>
+        <a href="/following" {{if eq .Endpoint "/following"}}aria-current="page"{{end}}>Following</a>
+    </nav>
+{{end}}
+
+{{define "actor card"}}
+    <article id="{{.Acct}}" class="actor-card">
+        <div class="actor-card-info">
+            <h3><a href="/{{.Acct}}">{{.DisplayedName}}</a></h3>
+            <a href="/{{.Acct}}">{{.Acct}}</a>
+        </div>
+        <div class="actor-card-actions">{{template "follow button" .}}</div>
+    </article>
+{{end}}
+
+{{define "follow button"}}
+    {{if eq .SubscriptionStatus "mutual"}}
+        <form action="/unfollow" method="post">
+            <input type="hidden" name="account" value="{{.Acct}}">
+            <input type="hidden" name="next" value="{{.Next}}">
+            <input type="submit" value="Unfollow" class="btn">
+            <span class="follow-status">You are mutuals!</span>
+        </form>
+    {{else if eq .SubscriptionStatus "following"}}
+        <form action="/unfollow" method="post">
+            <input type="hidden" name="account" value="{{.Acct}}">
+            <input type="hidden" name="next" value="{{.Next}}">
+            <input type="submit" value="Unfollow" class="btn">
+            <span class="follow-status">Following</span>
+        </form>
+    {{else if eq .SubscriptionStatus "follower"}}
+        <form action="/follow" method="post">
+            <input type="hidden" name="account" value="{{.Acct}}">
+            <input type="hidden" name="next" value="{{.Next}}">
+            <input type="submit" value="Follow back" class="btn">
+            <span class="follow-status">They follow you</span>
+        </form>
+    {{else if eq .SubscriptionStatus "pending"}}
+        <form action="/follow" method="post">
+            <input type="hidden" name="account" value="{{.Acct}}">
+            <input type="hidden" name="next" value="{{.Next}}">
+            <input type="submit" value="Try to follow again" class="btn">
+            <span class="follow-status">Requested to follow</span>
+        </form>
+        <form action="/unfollow" method="post">
+            <input type="hidden" name="account" value="{{.Acct}}">
+            <input type="hidden" name="next" value="{{.Next}}">
+            <input type="submit" value="Unfollow" class="btn">
+        </form>
+    {{else if eq .SubscriptionStatus "pending mutual"}}
+        <form action="/follow" method="post">
+            <input type="hidden" name="account" value="{{.Acct}}">
+            <input type="hidden" name="next" value="{{.Next}}">
+            <input type="submit" value="Try to follow again" class="btn">
+            <span class="follow-status">They follow you. Requested to follow back</span>
+        </form>
+        <form action="/unfollow" method="post">
+            <input type="hidden" name="account" value="{{.Acct}}">
+            <input type="hidden" name="next" value="{{.Next}}">
+            <input type="submit" value="Unfollow" class="btn">
+        </form>
+    {{else}}
+        <form action="/follow" method="post">
+            <input type="hidden" name="account" value="{{.Acct}}">
+            <input type="hidden" name="next" value="{{.Next}}">
+            <input type="submit" value="Follow" class="btn">
+        </form>
+    {{end}}
+{{end}}

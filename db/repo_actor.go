@@ -99,7 +99,7 @@ func (repo *ActorRepo) StoreActor(ctx context.Context, a types.Actor) error {
 
 	_, err = tx.ExecContext(ctx, `
 replace into Actors
-    (ID, PreferredUsername, Inbox, DisplayedName, Summary, Domain, LastCheckedAt)
+    (ID, PreferredUsername, Inbox, DisplayedName, summary, domain, LastCheckedAt)
 values
 	(?, ?, ?, ?, ?, ?, current_timestamp)`,
 		a.ID, a.PreferredUsername, a.Inbox, a.DisplayedName, a.Summary, a.Domain)
@@ -109,7 +109,7 @@ values
 
 	_, err = tx.ExecContext(ctx, `
 replace into PublicKeys
-	(ID, Owner, PublicKeyPEM)
+	(ID, owner, PublicKeyPEM)
 values
 	(?, ?, ?)`, a.PublicKey.ID, a.PublicKey.Owner, a.PublicKey.PublicKeyPEM)
 	if err != nil {
@@ -129,7 +129,12 @@ func (repo *ActorRepo) GetFollowers(ctx context.Context) ([]types.Actor, error) 
 	if err != nil {
 		return nil, err
 	}
-	return scanActorsWithKey(rows)
+
+	actors, err := scanActorsWithKey(rows)
+	if err != nil {
+		return nil, err
+	}
+	return repo.withSubscriptionStati(ctx, actors)
 }
 
 func (repo *ActorRepo) GetFollowing(ctx context.Context) ([]types.Actor, error) {
@@ -141,7 +146,12 @@ join PublicKeys on Owner = ActorID;`)
 	if err != nil {
 		return nil, err
 	}
-	return scanActorsWithKey(rows)
+
+	actors, err := scanActorsWithKey(rows)
+	if err != nil {
+		return nil, err
+	}
+	return repo.withSubscriptionStati(ctx, actors)
 }
 
 func (repo *ActorRepo) GetMutuals(ctx context.Context) ([]types.Actor, error) {
@@ -193,7 +203,7 @@ func (repo *ActorRepo) RemoveFollower(ctx context.Context, id string) error {
 }
 
 func (repo *ActorRepo) AddPendingFollowing(ctx context.Context, id string) error {
-	_, err := db.ExecContext(ctx, `replace into Following (ActorID) values (?)`, id)
+	_, err := db.ExecContext(ctx, `replace into following (ActorID) values (?)`, id)
 	return err
 }
 
@@ -266,4 +276,18 @@ func scanActorsWithKey(rows *sql.Rows) ([]types.Actor, error) {
 		actors = append(actors, a)
 	}
 	return actors, rows.Err()
+}
+
+func (repo *ActorRepo) withSubscriptionStati(
+	ctx context.Context,
+	actors []types.Actor,
+) ([]types.Actor, error) {
+	var err error
+	for i, actor := range actors {
+		actors[i].SubscriptionStatus, err = repo.SubscriptionStatus(ctx, actor.ID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return actors, nil
 }

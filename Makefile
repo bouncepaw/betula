@@ -4,7 +4,7 @@
 
 export CGO_ENABLED=0
 
-ALL_FILES := $(shell find . -type f -name '*.go*')
+ALL_FILES := $(shell find . -type f -name '*.go*') web/style.css
 HELP_SPACING := 25
 
 .PHONY: help betula debug-run clean test lint lint-fix crosscompile

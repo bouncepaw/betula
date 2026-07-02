@@ -8,15 +8,22 @@ package web
 import (
 	"log/slog"
 	"net/http"
+	"net/url"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
+type renderedActor struct {
+	types.Actor
+	// Redirected here after clicking the follow button.
+	Next string
+}
+
 type dataActorList struct {
 	*dataCommon
 
-	Actors []types.Actor
+	Actors []renderedActor
 }
 
 func getFollowersWeb(w http.ResponseWriter, rq *http.Request) {
@@ -27,9 +34,17 @@ func getFollowersWeb(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
+	renderedActors := make([]renderedActor, len(actors))
+	for i, actor := range actors {
+		renderedActors[i] = renderedActor{
+			Actor: actor,
+			Next:  "/followers#" + url.PathEscape(actor.Acct()),
+		}
+	}
+
 	templateExec(w, rq, templateFollowers, dataActorList{
 		dataCommon: emptyCommon(),
-		Actors:     actors,
+		Actors:     renderedActors,
 	})
 }
 
@@ -40,9 +55,18 @@ func getFollowingWeb(w http.ResponseWriter, rq *http.Request) {
 		handlerBadRequest(w, rq)
 		return
 	}
+
+	renderedActors := make([]renderedActor, len(actors))
+	for i, actor := range actors {
+		renderedActors[i] = renderedActor{
+			Actor: actor,
+			Next:  "/following#" + url.PathEscape(actor.Acct()),
+		}
+	}
+
 	templateExec(w, rq, templateFollowing, dataActorList{
 		dataCommon: emptyCommon(),
-		Actors:     actors,
+		Actors:     renderedActors,
 	})
 }
 
@@ -52,6 +76,7 @@ func postUnfollow(w http.ResponseWriter, rq *http.Request) {
 		nickname = rq.FormValue("account")
 		next     = rq.FormValue("next")
 	)
+	slog.Info("Next", "next", next)
 
 	if nickname == "" || next == "" {
 		slog.Warn("/unfollow: required parameters were not passed")
@@ -71,6 +96,7 @@ func postUnfollow(w http.ResponseWriter, rq *http.Request) {
 			"unfollow-ok": "true",
 		})
 	}
+	slog.Info("Next", "next", next)
 
 	http.Redirect(w, rq, next, http.StatusSeeOther)
 }
@@ -84,6 +110,7 @@ func postFollow(w http.ResponseWriter, rq *http.Request) {
 		nickname = rq.FormValue("account")
 		next     = rq.FormValue("next")
 	)
+	slog.Info("Next", "next", next)
 
 	if nickname == "" || next == "" {
 		slog.Warn("/follow: required parameters were not passed")
@@ -103,6 +130,7 @@ func postFollow(w http.ResponseWriter, rq *http.Request) {
 			"follow-ok": "true",
 		})
 	}
+	slog.Info("Next", "next", next)
 
 	http.Redirect(w, rq, next, http.StatusSeeOther)
 }

@@ -13,7 +13,7 @@ func IsValidURL(s string) bool {
 }
 
 func MustParseURL(s string) *url.URL {
-	u, err := url.ParseRequestURI(s)
+	u, err := url.Parse(s)
 	if err != nil {
 		panic(err)
 	}
