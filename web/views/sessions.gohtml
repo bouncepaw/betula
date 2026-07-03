@@ -1,6 +1,7 @@
 {{define "title"}}Sessions{{end}}
 {{define "body"}}
     <main class="mv-sessions">
+        {{template "settings tabs" .}}
         <article>
             <h2 class="p-name">Sessions</h2>
             {{if .Sessions}}

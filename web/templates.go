@@ -97,9 +97,14 @@ var templateLoginForm = templateFrom(nil, "login-form")
 var templateLogoutForm = templateFrom(nil, "logout-form")
 var templateImport = templateFrom(nil, "import")
 var templateExport = templateFrom(nil, "export")
-var templateSettings = templateFrom(nil, "settings-tabs-fragment", "settings")
-var templateLoggingSettings = templateFrom(nil, "settings-tabs-fragment", "settings-logging")
-var templateSessions = templateFrom(funcMapForTime, "sessions")
+
+// Settings views.
+var (
+	templateSettings        = templateFrom(nil, "settings-tabs-fragment", "settings")
+	templateLoggingSettings = templateFrom(nil, "settings-tabs-fragment", "settings-logging")
+	templateBookmarklet     = templateFrom(nil, "settings-tabs-fragment", "bookmarklet")
+	templateSessions        = templateFrom(funcMapForTime, "settings-tabs-fragment", "sessions")
+)
 
 // Sad views.
 var templateStatus = templateFrom(nil, "status")
@@ -117,7 +122,6 @@ var templateDay = templateFrom(funcMapForBookmarks, "post-fragment", "day")
 var templateEditTag = templateFrom(funcMapForForm, "edit-tag")
 var templateHelp = templateFrom(nil, "help")
 var templateAbout = templateFrom(funcMapForTime, "about")
-var templateBookmarklet = templateFrom(nil, "bookmarklet")
 var templateMyProfile = templateFrom(funcMapForTime, "my-profile")
 
 // Fedded verse views.

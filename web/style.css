@@ -659,6 +659,37 @@ main .notif:last-of-type {
     font-size: small;
 }
 
+.profile-card .follow {
+    padding: 0;
+}
+.profile-card .follow p {
+    display: block;
+    margin: 0;
+}
+.profile-card .follow .dashed-btn {
+    font-size: small;
+}
+.profile-card .mycomarkup-doc {
+    margin-bottom: 1rem;
+}
+
+.number-fields {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-auto-flow: column;
+    width: fit-content;
+    column-gap: 2rem;
+    margin: 1rem 0;
+}
+.number-fields dt {
+    margin: 0;
+    font-weight: normal;
+}
+.number-fields dd {
+    margin: 0;
+    font-weight: bold;
+}
+
 /* Colors. Keep both sections in sync. */
 @media (prefers-color-scheme: dark) {
     a, .wikilink_external { color: #f1fa8c; }
@@ -723,7 +754,10 @@ main .notif:last-of-type {
     nav a,
     nav a:hover,
     nav a:visited,
-    .paginator-entry {
+    .paginator-entry,
+    .number-fields a,
+    .number-fields a:hover,
+    .number-fields a:visited {
         color: #ddd;
         text-decoration: underline;
     }
@@ -780,7 +814,11 @@ main .notif:last-of-type {
     .card-line a,
     nav a,
     nav a:hover,
-    nav a:visited {
+    nav a:visited,
+    .paginator-entry,
+    .number-fields a,
+    .number-fields a:hover,
+    .number-fields a:visited {
         color: black;
         text-decoration: underline;
     }

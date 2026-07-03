@@ -499,6 +499,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 type dataMyProfile struct {
 	*dataCommon
 
+	SiteURL                        string
 	Nickname                       string
 	Summary                        template.HTML
 	LinkCount, TagCount            uint
@@ -541,6 +542,7 @@ func getMyProfile(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateMyProfile, dataMyProfile{
 		dataCommon: common,
 
+		SiteURL:        settings.SiteURL(),
 		Nickname:       fmt.Sprintf("@%s@%s", settings.AdminUsername(), settings.SiteDomain()),
 		Summary:        settings.SiteDescriptionHTML(),
 		LinkCount:      bookmarkCount,

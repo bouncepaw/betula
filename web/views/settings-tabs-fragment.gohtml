@@ -2,5 +2,7 @@
 <nav class="tabs">
 	<a href="/settings" {{if eq .Endpoint "/settings"}}aria-current="page"{{end}}>General</a>
 	<a href="/settings/logging" {{if eq .Endpoint "/settings/logging"}}aria-current="page"{{end}}>Logging</a>
+	<a href="/bookmarklet" {{if eq .Endpoint "/bookmarklet"}}aria-current="page"{{end}}>Bookmarklet</a>
+	<a href="/sessions" {{if eq .Endpoint "/sessions"}}aria-current="page"{{end}}>Sessions</a>
 </nav>
 {{end}}
