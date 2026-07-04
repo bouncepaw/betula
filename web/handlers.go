@@ -1088,13 +1088,11 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 
 type dataAbout struct {
 	*dataCommon
-	SiteDescription template.HTML
 }
 
 func getAbout(w http.ResponseWriter, rq *http.Request) {
 	templateExec(w, rq, templateAbout, dataAbout{
-		dataCommon:      emptyCommon(),
-		SiteDescription: settings.SiteDescriptionHTML(),
+		dataCommon: emptyCommon(),
 	})
 }
 
