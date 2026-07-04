@@ -6,18 +6,25 @@
 package web
 
 import (
+	"html/template"
 	"log/slog"
 	"net/http"
 	"net/url"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
+	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 type renderedActor struct {
 	types.Actor
 	// Redirected here after clicking the follow button.
-	Next string
+	Next          string
+	HTMLSanitizer wwwports.HTMLSanitizer
+}
+
+func (a renderedActor) RenderedSummary() template.HTML {
+	return a.HTMLSanitizer.Sanitize(template.HTML(a.Summary))
 }
 
 type dataActorList struct {

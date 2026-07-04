@@ -106,7 +106,7 @@ func getTimeline(w http.ResponseWriter, rq *http.Request) {
 	bookmarks, total := ctrl.RepoRemoteBookmark.GetRemoteBookmarks(currentPage)
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, total)
 
-	renderedBookmarks := fediverse.RenderRemoteBookmarks(bookmarks)
+	renderedBookmarks := fediverse.RenderRemoteBookmarks(ctrl.HTMLSanitizer, bookmarks)
 	if err := ctrl.SvcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
 		slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 	}
@@ -406,7 +406,7 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	renderedBookmarks, nextState, err := prevState.FetchPage()
+	renderedBookmarks, nextState, err := prevState.FetchPage(ctrl.HTMLSanitizer)
 	if err != nil {
 		slog.Error("Failed to fetch federated search bookmarks",
 			"query", query, "err", err)

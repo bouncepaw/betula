@@ -19,6 +19,7 @@ path = [
 
     # Waiving rights for these technical files:
     "pkg/imex/netscape/testdata/*",
+    "pkg/htmlesc/testdata/*",
     "LICENSE",
     "**/*.json",
     "**/*.csv",

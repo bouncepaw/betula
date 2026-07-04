@@ -4,7 +4,10 @@
 
 package wwwports
 
-import "errors"
+import (
+	"errors"
+	"html/template"
+)
 
 var (
 	ErrTimeout      = errors.New("request timed out")
@@ -15,4 +18,8 @@ var (
 type WorldWideWeb interface {
 	// TitleOfPage returns <title> value for the given web page.
 	TitleOfPage(addr string) (string, error)
+}
+
+type HTMLSanitizer interface {
+	Sanitize(html template.HTML) template.HTML
 }

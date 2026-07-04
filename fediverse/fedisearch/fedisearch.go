@@ -23,6 +23,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -170,7 +171,9 @@ func (s *State) RequestsToMake() []Request {
 	return requests
 }
 
-func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
+func (s *State) FetchPage(
+	sanitizer wwwports.HTMLSanitizer,
+) ([]types.RenderedRemoteBookmark, *State, error) {
 	var newState = &State{
 		Query:    s.Query,
 		Seen:     maps.Clone(s.Seen),
@@ -209,7 +212,7 @@ func (s *State) FetchPage() ([]types.RenderedRemoteBookmark, *State, error) {
 	newState.Unseen = slices.DeleteFunc(newState.Unseen, func(s string) bool {
 		return slices.Contains(requestedActors, s)
 	})
-	var rendered = fediverse.RenderRemoteBookmarks(bookmarks)
+	var rendered = fediverse.RenderRemoteBookmarks(sanitizer, bookmarks)
 	return rendered, newState, nil
 }
 

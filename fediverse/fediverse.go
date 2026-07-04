@@ -14,8 +14,8 @@ import (
 	"strings"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
-	"git.sr.ht/~bouncepaw/betula/pkg/htmlesc"
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
+	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 
 	"html/template"
 	"io"
@@ -78,7 +78,10 @@ func OurID() string {
 	return settings.SiteURL() + "/@" + settings.AdminUsername()
 }
 
-func RenderRemoteBookmarks(raws []types.RemoteBookmark) (renders []types.RenderedRemoteBookmark) {
+func RenderRemoteBookmarks(
+	sanitizer wwwports.HTMLSanitizer,
+	raws []types.RemoteBookmark,
+) (renders []types.RenderedRemoteBookmark) {
 	// Gather actor info to prevent duplicate fetches from db
 	actors := map[string]*types.Actor{}
 	for _, raw := range raws {
@@ -128,7 +131,7 @@ func RenderRemoteBookmarks(raws []types.RemoteBookmark) (renders []types.Rendere
 		case raw.Source.Valid:
 			render.Description = myco.MarkupToHTML(raw.Source.String)
 		default:
-			render.Description = htmlesc.Escape(raw.DescriptionHTML)
+			render.Description = sanitizer.Sanitize(raw.DescriptionHTML)
 		}
 
 		renders = append(renders, render)

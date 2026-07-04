@@ -80,8 +80,9 @@ type Controller struct {
 	SvcImEx      imexports.Service
 	SvcFollow    apports.FollowService
 
-	ActivityPub apports.ActivityPub
-	WWW         wwwports.WorldWideWeb
+	ActivityPub   apports.ActivityPub
+	WWW           wwwports.WorldWideWeb
+	HTMLSanitizer wwwports.HTMLSanitizer
 
 	// FIXME: Layer boundary violation.
 	RepoRemoteBookmark remotebookmarksports.RemoteBookmarkRepository
@@ -437,7 +438,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		currentPage := extractPage(rq)
 		bookmarks, total := ctrl.RepoRemoteBookmark.GetRemoteBookmarksBy(actor.ID, currentPage)
 
-		renderedBookmarks := fediverse.RenderRemoteBookmarks(bookmarks)
+		renderedBookmarks := fediverse.RenderRemoteBookmarks(ctrl.HTMLSanitizer, bookmarks)
 		if err := ctrl.SvcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
 			slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 		}
@@ -469,8 +470,9 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		}
 
 		account := renderedActor{
-			Actor: *actor,
-			Next:  "/" + actor.Acct(),
+			Actor:         *actor,
+			Next:          "/" + actor.Acct(),
+			HTMLSanitizer: ctrl.HTMLSanitizer,
 		}
 
 		common := emptyCommon()

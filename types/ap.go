@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
-	"git.sr.ht/~bouncepaw/betula/pkg/htmlesc"
 )
 
 func ContainsActivityType(s string) bool {
@@ -51,10 +50,6 @@ func (a Actor) Valid() bool {
 
 func (a Actor) Acct() string {
 	return fmt.Sprintf("@%s@%s", a.PreferredUsername, a.Domain)
-}
-
-func (a Actor) RenderedSummary() template.HTML {
-	return htmlesc.Escape(template.HTML(a.Summary))
 }
 
 type SubscriptionRelation string

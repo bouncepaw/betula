@@ -102,6 +102,7 @@ func newController() web.Controller {
 		obeliskFetcher = archivingsvc.NewObeliskFetcher()
 		activityPub    = apgw.NewActivityPub(repoActor, repoRemoteBookmark)
 		www            = wwwgw.New()
+		htmlSanitizer  = wwwgw.NewSanitizer()
 
 		// One day, all shall be in services!
 		svcSettings  = settingssvc.New(repoSettings, "v1.8.1-wip", settings.SiteDomain)
@@ -137,8 +138,9 @@ func newController() web.Controller {
 		SvcImEx:      svcImEx,
 		SvcFollow:    svcFollow,
 
-		ActivityPub: activityPub,
-		WWW:         www,
+		ActivityPub:   activityPub,
+		WWW:           www,
+		HTMLSanitizer: htmlSanitizer,
 
 		RepoRemoteBookmark: repoRemoteBookmark,
 		RepoActor:          repoActor,
