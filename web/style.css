@@ -673,7 +673,7 @@ main .notif:last-of-type {
     margin-bottom: 1rem;
 }
 
-.number-fields {
+.column-fields {
     display: grid;
     grid-template-rows: 1fr 1fr;
     grid-auto-flow: column;
@@ -681,11 +681,11 @@ main .notif:last-of-type {
     column-gap: 2rem;
     margin: 1rem 0;
 }
-.number-fields dt {
+.column-fields dt {
     margin: 0;
     font-weight: normal;
 }
-.number-fields dd {
+.column-fields dd {
     margin: 0;
     font-weight: bold;
 }
@@ -755,9 +755,9 @@ main .notif:last-of-type {
     nav a:hover,
     nav a:visited,
     .paginator-entry,
-    .number-fields a,
-    .number-fields a:hover,
-    .number-fields a:visited {
+    .column-fields a,
+    .column-fields a:hover,
+    .column-fields a:visited {
         color: #ddd;
         text-decoration: underline;
     }
@@ -816,9 +816,9 @@ main .notif:last-of-type {
     nav a:hover,
     nav a:visited,
     .paginator-entry,
-    .number-fields a,
-    .number-fields a:hover,
-    .number-fields a:visited {
+    .column-fields a,
+    .column-fields a:hover,
+    .column-fields a:visited {
         color: black;
         text-decoration: underline;
     }
