@@ -17,6 +17,8 @@ import (
 	"git.sr.ht/~bouncepaw/betula/settings"
 )
 
+// Deprecated: Use the new stuff.
+
 // https://docs.joinmastodon.org/spec/webfinger/
 
 type webfingerDocument struct {

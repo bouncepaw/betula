@@ -7,6 +7,7 @@ package wwwports
 import (
 	"errors"
 	"html/template"
+	"net/url"
 )
 
 var (
@@ -18,6 +19,23 @@ var (
 type WorldWideWeb interface {
 	// TitleOfPage returns <title> value for the given web page.
 	TitleOfPage(addr string) (string, error)
+	// RelAlternates returns all <link rel="alternate"> found on the web page.
+	RelAlternates(addr string) ([]RelAlternate, error)
+}
+
+type RelAlternate struct {
+	Type  string
+	Href  string
+	Title string
+}
+
+func (a RelAlternate) ResolveHref(base string) string {
+	b, bErr := url.Parse(base)
+	ref, refErr := url.Parse(a.Href)
+	if bErr != nil || refErr != nil {
+		return a.Href
+	}
+	return b.ResolveReference(ref).String()
 }
 
 type HTMLSanitizer interface {

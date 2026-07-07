@@ -14,9 +14,19 @@ import (
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
+	apgw "git.sr.ht/~bouncepaw/betula/gateways/activitypub"
+	webfingerports "git.sr.ht/~bouncepaw/betula/ports/webfinger"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
+
+type fakeWebFinger struct {
+	ids map[string]string
+}
+
+func (f fakeWebFinger) DereferenceAcct(acct webfingerports.Acct) (string, error) {
+	return f.ids[acct.String()], nil
+}
 
 func TestUnfollowRemovesFollowingOnSendError(t *testing.T) {
 	db.InitInMemoryDB()
@@ -41,7 +51,11 @@ func TestUnfollowRemovesFollowingOnSendError(t *testing.T) {
 	be.Err(t, repo.StoreActor(ctx, actor), nil)
 	be.Err(t, repo.AddPendingFollowing(ctx, actor.ID), nil)
 
-	svc := NewFollowService(repo)
+	webfinger := fakeWebFinger{ids: map[string]string{
+		"acct:dan@betula.klava.wiki": actor.ID,
+	}}
+	activityPub := apgw.NewActivityPub(repo, db.NewRemoteBookmarkRepo())
+	svc := NewFollowService(repo, nil, activityPub, webfinger)
 	be.Err(t, svc.Unfollow(ctx, "@dan@betula.klava.wiki"), nil)
 
 	status, err := repo.SubscriptionStatus(ctx, actor.ID)

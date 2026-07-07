@@ -18,6 +18,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	apgw "git.sr.ht/~bouncepaw/betula/gateways/activitypub"
+	webfingergw "git.sr.ht/~bouncepaw/betula/gateways/webfinger"
 	wwwgw "git.sr.ht/~bouncepaw/betula/gateways/www"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/settings"
@@ -101,8 +102,9 @@ func newController() web.Controller {
 
 		obeliskFetcher = archivingsvc.NewObeliskFetcher()
 		activityPub    = apgw.NewActivityPub(repoActor, repoRemoteBookmark)
-		www            = wwwgw.New()
+		www            = wwwgw.New(settings.UserAgent)
 		htmlSanitizer  = wwwgw.NewSanitizer()
+		webfinger      = webfingergw.New()
 
 		// One day, all shall be in services!
 		svcSettings  = settingssvc.New(repoSettings, "v1.8.1", settings.SiteDomain)
@@ -119,7 +121,7 @@ func newController() web.Controller {
 		svcSearching = searchsvc.New(repoSearch)
 		svcHelping   = helpingsvc.New()
 		svcImEx      = imexsvc.New(repoLocalBookmark, www, settings.SiteName)
-		svcFollow    = apsvc.NewFollowService(repoActor)
+		svcFollow    = apsvc.NewFollowService(repoActor, www, activityPub, webfinger)
 	)
 
 	if err := svcSettings.ApplyLoggingSettings(context.Background()); err != nil {

@@ -34,7 +34,10 @@ type (
 	}
 
 	FollowService interface {
-		Follow(ctx context.Context, nickname string) error
+		// Follow follows the actor with this nickname and returns its resolved
+		// acct. The nickname might also be a URL.
+		Follow(ctx context.Context, nickname string) (acct string, err error)
+		// Unfollow unfollows the actor wtih this nickname. Must not be a URL.
 		Unfollow(ctx context.Context, nickname string) error
 	}
 

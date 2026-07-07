@@ -14,6 +14,7 @@ import (
 
 	"github.com/nalgeon/be"
 
+	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -23,6 +24,10 @@ type fakeWWW struct {
 
 func (f fakeWWW) TitleOfPage(addr string) (string, error) {
 	return f.titles[addr], nil
+}
+
+func (f fakeWWW) RelAlternates(addr string) ([]wwwports.RelAlternate, error) {
+	return nil, nil
 }
 
 type fakeErringReader struct {

@@ -443,31 +443,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 			slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 		}
 
-		var notifs []SystemNotification
-		if followErr := rq.FormValue("follow-err"); followErr != "" {
-			notifs = append(notifs, SystemNotification{
-				Category: NotificationFailure,
-				Body:     template.HTML(fmt.Sprintf(`Failed to follow: %s.`, followErr)),
-			})
-		}
-		if followOK := rq.FormValue("follow-ok"); followOK == "true" {
-			notifs = append(notifs, SystemNotification{
-				Category: NotificationSuccess,
-				Body:     `Sent a follow request.`,
-			})
-		}
-		if unfollowErr := rq.FormValue("unfollow-err"); unfollowErr != "" {
-			notifs = append(notifs, SystemNotification{
-				Category: NotificationFailure,
-				Body:     template.HTML(fmt.Sprintf(`Failed to unfollow: %s.`, unfollowErr)),
-			})
-		}
-		if unfollowOK := rq.FormValue("unfollow-ok"); unfollowOK == "true" {
-			notifs = append(notifs, SystemNotification{
-				Category: NotificationSuccess,
-				Body:     `Unfollowed.`,
-			})
-		}
+		notifs := followNotifications(rq)
 
 		account := renderedActor{
 			Actor:         *actor,

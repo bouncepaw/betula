@@ -6,6 +6,7 @@
 package web
 
 import (
+	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -15,6 +16,35 @@ import (
 	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
+
+func followNotifications(rq *http.Request) []SystemNotification {
+	var notifs []SystemNotification
+	if followErr := rq.FormValue("follow-err"); followErr != "" {
+		notifs = append(notifs, SystemNotification{
+			Category: NotificationFailure,
+			Body:     template.HTML(fmt.Sprintf(`Failed to follow: %s.`, followErr)),
+		})
+	}
+	if rq.FormValue("follow-ok") == "true" {
+		notifs = append(notifs, SystemNotification{
+			Category: NotificationSuccess,
+			Body:     `Sent a follow request.`,
+		})
+	}
+	if unfollowErr := rq.FormValue("unfollow-err"); unfollowErr != "" {
+		notifs = append(notifs, SystemNotification{
+			Category: NotificationFailure,
+			Body:     template.HTML(fmt.Sprintf(`Failed to unfollow: %s.`, unfollowErr)),
+		})
+	}
+	if rq.FormValue("unfollow-ok") == "true" {
+		notifs = append(notifs, SystemNotification{
+			Category: NotificationSuccess,
+			Body:     `Unfollowed.`,
+		})
+	}
+	return notifs
+}
 
 type renderedActor struct {
 	types.Actor
@@ -30,7 +60,9 @@ func (a renderedActor) RenderedSummary() template.HTML {
 type dataActorList struct {
 	*dataCommon
 
-	Actors []renderedActor
+	Actors        []renderedActor
+	Focus         bool
+	Notifications []SystemNotification
 }
 
 func getFollowersWeb(w http.ResponseWriter, rq *http.Request) {
@@ -50,8 +82,9 @@ func getFollowersWeb(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	templateExec(w, rq, templateFollowers, dataActorList{
-		dataCommon: emptyCommon(),
-		Actors:     renderedActors,
+		dataCommon:    emptyCommon(),
+		Actors:        renderedActors,
+		Notifications: followNotifications(rq),
 	})
 }
 
@@ -72,12 +105,14 @@ func getFollowingWeb(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	templateExec(w, rq, templateFollowing, dataActorList{
-		dataCommon: emptyCommon(),
-		Actors:     renderedActors,
+		dataCommon:    emptyCommon(),
+		Actors:        renderedActors,
+		Focus:         rq.FormValue("focus") == "true",
+		Notifications: followNotifications(rq),
 	})
 }
 
-// postUnfollow is similar to postFollow excepts it's unfollow.
+// postUnfollow is similar to postFollow excepts it's unfollow and @user@domain only.
 func postUnfollow(w http.ResponseWriter, rq *http.Request) {
 	var (
 		nickname = rq.FormValue("account")
@@ -114,25 +149,34 @@ func postUnfollow(w http.ResponseWriter, rq *http.Request) {
 //	/follow?account=@bouncepaw@links.bouncepaw.com&next=/@bouncepaw@links.bouncepaw.com
 func postFollow(w http.ResponseWriter, rq *http.Request) {
 	var (
-		nickname = rq.FormValue("account")
+		account  = rq.FormValue("account")
 		next     = rq.FormValue("next")
+		fromForm = rq.FormValue("follow-form") == "true"
 	)
 	slog.Info("Next", "next", next)
 
-	if nickname == "" || next == "" {
+	if account == "" || next == "" {
 		slog.Warn("/follow: required parameters were not passed")
 		handlerNotFound(w, rq)
 		return
 	}
 
-	err := ctrl.SvcFollow.Follow(rq.Context(), nickname)
-	if err != nil {
-		slog.Error("/follow: failed to follow", "nickname", nickname, "err", err)
+	acct, err := ctrl.SvcFollow.Follow(rq.Context(), account)
+	switch {
+	case err != nil:
+		slog.Error("/follow: failed to follow", "account", account, "err", err)
 		next = bxstr.ValidURLWithQuery(next, map[string]string{
 			"follow-err": err.Error(),
 		})
-	} else {
-		slog.Info("/follow: followed successfully", "nickname", nickname)
+	case fromForm:
+		// The follow form does not know the actor's acct in advance.
+		// Special case. On success, we send the user to the resolved actor's profile.
+		slog.Info("/follow: followed successfully from the form", "account", account, "acct", acct)
+		next = bxstr.ValidURLWithQuery("/"+acct, map[string]string{
+			"follow-ok": "true",
+		})
+	default:
+		slog.Info("/follow: followed successfully", "account", account)
 		next = bxstr.ValidURLWithQuery(next, map[string]string{
 			"follow-ok": "true",
 		})

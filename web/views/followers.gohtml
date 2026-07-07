@@ -1,6 +1,9 @@
 {{define "title"}}Followers{{end}}
 {{define "body"}}
     <main>
+    {{if .Notifications}}{{range .Notifications}}
+        <div class="notif" notif-cat="{{.Category}}">{{.Body}}</div>
+    {{end}}{{end}}
         {{template "follow tabs" .}}
         <article>
             <h2>Followers {{len .Actors}}</h2>
