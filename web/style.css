@@ -170,13 +170,12 @@ p + form {
 .date-heading {
     font-size: 1rem;
     font-weight: normal;
-    padding-top: .25rem;
+    padding-top: .5rem;
 }
 .submit-another input {
     margin-top: 1rem;
 }
 main > article {
-    box-shadow: 0 4px 12px 0#0d234308;
     border-radius: .5rem;
 }
 
@@ -234,36 +233,42 @@ a.edit-post-btn {
     font-size: small;
     margin: 2px;
 }
-.post-tags {
-    font-size: small;
-    overflow: hidden;
-    clear: both;
-}
 .bookmark-controls {
     display: flex;
     flex-direction: row;
-    gap: .25rem;
+    align-items: center;
+    gap: 1rem;
+    padding: .25rem .75rem;
+    border-radius: 0 0 .25rem .25rem;
 }
 .bookmark-controls .btn,
 .bookmark-controls .post-visibility {
-    font-size: small;
     height: 1.625rem;
+    border: none;
+    background: transparent;
 }
 .bookmark-controls input[type="submit"] {
     margin: 0;
 }
-.post-page .post-tags {
-    font-size: 1rem;
+.bookmark-controls form {
+    display: flex;
+    align-items: center;
 }
-.post-page .bookmark-controls {
-    margin: .25rem 0;
+
+.actor-link,
+.bookmark-visibility {
+    border-radius: .25rem;
+    padding: 0 .25rem;
+    display: inline-block;
+    margin-left: -.25rem;
 }
-.post-tags > * {
-    display: inline;
+.actor-link .profile-link {
+    color: inherit;
+    text-decoration: none;
 }
+
 .u-bookmark-of {
     display: inline-block;
-    font-size: small;
     text-decoration: none;
 }
 .post-page .u-repost-of,
@@ -362,10 +367,40 @@ h3, h4 {
     margin-bottom: 4px;
     font-size: 1.2rem;
 }
+
+article.h-entry {
+    padding: 0;
+}
 .h-entry h4 {
     margin: 0;
     font-size: 1rem;
 }
+
+.bookmark-title {
+    padding: .5rem 1rem 0 1rem;
+}
+
+.e-content {
+    padding: .25rem 1rem;
+}
+
+.bookmark-tags,
+.bookmark-timestamp,
+.bookmark-remark {
+    padding: .25rem 1rem;
+    overflow: hidden;
+    clear: both;
+}
+.bookmark-remark {
+    border-radius: .25rem .25rem 0 0;
+}
+.bookmark-tags .p-category {
+    text-decoration: none;
+}
+.bookmark-tags .p-category + .p-category {
+    margin-left: .25rem;
+}
+
 article p:last-of-type:not(.h-entry p) {
     margin-bottom: 0;
 }
@@ -376,23 +411,14 @@ h3 + *:not(p, .u-bookmark-of) {
 article + article {
     margin-top: .5rem;
 }
-.post-tags .p-category + .p-category {
-    margin-left: .25rem;
+article.h-entry + article.h-entry {
+    margin-top: .75rem;
 }
 pre {
     white-space: pre-wrap;
 }
 .date-link .dt-published {
     text-decoration: underline;
-}
-.card-line {
-    border-radius: .25rem .25rem 0 0;
-    margin: -.5rem -1rem .25rem;
-    padding: 0 1rem;
-    font-size: small;
-}
-.post-page .card-line {
-    font-size: 1rem;
 }
 .edit-post-link {
     float: right;
@@ -409,6 +435,20 @@ pre {
     font-size: 1rem;
     margin: 0;
     background: #eee;
+}
+
+.btn-control {
+    color: inherit;
+    background: inherit;
+    font: inherit;
+    line-height: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    text-decoration: none;
+    padding: .1rem .25rem;
+    border-radius: .25rem;
+    cursor: pointer;
 }
 
 .btn:hover {
@@ -451,6 +491,24 @@ pre {
 }
 .float-right {
     float: right;
+}
+form.float-right,
+form.float-right input[type="submit"] {
+    margin-top: 0;
+}
+.bookmark-section h3 {
+    margin-top: 0;
+}
+.plain-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+.plain-list li + li {
+    margin-top: .25rem;
+}
+.plain-list .btn {
+    margin-top: 0;
 }
 .dashed-btn {
     text-decoration: underline;
@@ -716,6 +774,35 @@ main .notif:last-of-type {
     main > article {
         background: #343434;
     }
+    .bookmark-timestamp,
+    .bookmark-tags,
+    .bookmark-remark {
+        background: #2c2c2c;
+    }
+    .bookmark-controls {
+        background: #282828;
+    }
+    .bookmark-controls .btn-control,
+    .bookmark-controls .btn-control:hover,
+    .bookmark-controls .btn-control:visited {
+        color: #ddd;
+        background: transparent;
+    }
+    .bookmark-controls .btn-control:hover {
+        background: #3a3a3a;
+    }
+    .actor-link,
+    .bookmark-visibility {
+        background: #444;
+    }
+
+    img {
+        filter: brightness(.8);
+        transition: filter .15s;
+    }
+    img:hover {
+        filter: none;
+    }
 
     .btn,
     .btn:active,
@@ -745,9 +832,11 @@ main .notif:last-of-type {
         border-top-color: #ddd;
     }
 
+    .p-category,
+    .p-category:hover,
+    .p-category:visited,
     .edit-post-btn,
     .edit-post-btn:visited,
-    .post-tags a,
     .date-heading a,
     .date-link,
     .card-line a,
@@ -791,12 +880,15 @@ main .notif:last-of-type {
 
 @media (prefers-color-scheme: light) {
     html {
-        background: rgb(251, 251, 251);
+        background: #eee;
     }
     main > article,
     .autocompletion-list,
     .tabs a[aria-current] {
         background: white;
+    }
+    main > article {
+        box-shadow: 0 0 22px 0 #d1d1d145;
     }
 
     .btn,
@@ -806,9 +898,11 @@ main .notif:last-of-type {
         color: black;
     }
 
+    .p-category,
+    .p-category:hover,
+    .p-category:visited,
     .edit-post-btn,
     .edit-post-btn:visited,
-    .post-tags a,
     .date-heading a,
     .date-link,
     .card-line a,
@@ -822,9 +916,25 @@ main .notif:last-of-type {
         color: black;
         text-decoration: underline;
     }
-    .card-line {
+    .bookmark-controls {
+        background: #e0e0e0;
+    }
+    .bookmark-controls .btn-control:hover {
+        background: #cfcfcf;
+    }
+    .actor-link,
+    .bookmark-visibility {
         background: #efefef;
     }
+    .bookmark-remark .actor-link {
+        background: #dcdcdc;
+    }
+    .bookmark-timestamp,
+    .bookmark-tags,
+    .bookmark-remark {
+        background: #f0f0f0;
+    }
+
     a.btn_destructive,
     a.btn_destructive:visited,
     .btn_destructive {

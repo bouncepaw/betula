@@ -3,32 +3,49 @@
         <h3 class="date-heading">{{.Date}}</h3>
     {{range .Bookmarks}}
         <article class="h-entry remote-bookmark" id="{{.ID}}">
-            <div class="card-line">
-                <a href="/{{.AuthorAcct}}">{{.AuthorDisplayedName}}</a> {{if .RepostOf.Valid}}<a href="{{.ID}}" class="u-repost-of">reposted</a>{{else}}<a href="{{.ID}}">bookmarked</a>{{end}}
-            </div>
-
-            <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
-            <a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
-
-            {{if .Description}}
-                <div class="myco e-content">
-                    {{.Description}}
+        {{if .RepostOf.Valid}}
+            <div class="bookmark-remark">
+                <div class="actor-link">
+                    <a href="/{{.AuthorAcct}}" class="profile-link">{{.AuthorDisplayedName}}</a>
                 </div>
-            {{end}}
-            <div class="post-tags">
+            </div>
+        {{end}}
+            <div class="bookmark-title">
+                <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
+                <a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
+            </div>
+        {{if .RepostOf.Valid}}
+            <div class="myco e-content">
+                <div class="actor-link">
+                    TODO: original author
+                </div>
+                {{.Description}}
+            </div>
+        {{else}}
+            <div class="myco e-content">
+                <div class="actor-link">
+                    <a href="/{{.AuthorAcct}}" class="profile-link">{{.AuthorDisplayedName}}</a>
+                </div>
+                {{.Description}}
+            </div>
+        {{end}}
+        {{if .Tags}}
+            <div class="bookmark-tags">
+                <span class="tags-marker">#</span>
                 {{range $i, $cat := .Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
             </div>
+        {{end}}
             <div class="bookmark-controls">
-                {{if and $root.Authorized $root.FederationEnabled}}
+            {{if and $root.Authorized $root.FederationEnabled}}
                 <form method="POST" action="{{if .LikedByUs}}/unlike{{else}}/like{{end}}">
                     <input type="hidden" name="id" value="{{.ID}}">
                     <input type="hidden" name="next" value="{{$root.Endpoint}}?page={{$root.CurrentPage}}#{{.ID}}">
-                    <input type="submit" class="btn" value="{{if .LikedByUs}}💔 Unlike {{.LikeCounter}}{{else}}❤️ Like {{if .LikeCounter}}{{.LikeCounter}}{{end}}{{end}}">
+                    <input type="submit" class="btn-control" value="{{if .LikedByUs}}Unlike{{.LikeCounter}}{{else}}Like{{if .LikeCounter}} {{.LikeCounter}}{{end}}{{end}}">
                 </form>
-                {{end}}
-                <a href="/repost?url={{.ID}}" class="btn" target="_blank">Repost</a>
-                <button class="btn" onclick="copyTextElem({{.URL}}, this)">Copy link</button>
-                <a class="btn" style="margin-left:auto" href="{{.ID}}">View original</a>
+                <a href="/repost?url={{.ID}}" class="btn-control" target="_blank">Remark</a>
+            {{end}}
+                <button class="btn-control" onclick="copyTextElem({{.URL}}, this)">Copy</button>
+                <a class="btn-control" style="margin-left:auto" href="{{.ID}}">Open</a>
             </div>
         </article>
     {{end}}

@@ -5,67 +5,81 @@
 		<div class="notif" notif-cat="{{.Category}}">{{.Body}}</div>
 		{{end}}{{end}}
 		<article class="post-page h-entry">
-			<div class="card-line">
-				{{if .Bookmark.RepostOf}}<a href="{{.Bookmark.RepostOf}}" class="u-repost-of">Reposted</a>{{end}}
-				<a class="u-url" href="/{{.Bookmark.ID}}">{{.Bookmark.ID}}.</a>
-				{{if not .Authorized}}{{if .LikeCounter}}{{.LikeCounter}} like{{if ne .LikeCounter 1}}s{{end}}{{end}}
-				<button class="dashed-btn float-right" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy link</button>{{end}}
-				{{if .Authorized}}
-					{{if .Bookmark.Visibility}}
-						<span class="post-visibility post-visibility-public float-right">Public</span>
-					{{else}}
-						<span class="post-visibility post-visibility-private float-right">Private</span>
-					{{end}}
+		{{if .Bookmark.RepostOf}}
+			<div class="bookmark-remark">
+				<div class="actor-link">
+					<a href="/@{{$root.AdminUsername}}" class="profile-link">{{$root.AdminUsername}}</a>
+				</div>
+				remarked
+				{{if not .Bookmark.Visibility}}
+					<span class="bookmark-visibility" data-visibility="private">Private</span>
 				{{end}}
 			</div>
-
-			<h4 class="p-name"><a class="u-url" href="/go/{{.Bookmark.ID}}">{{.Bookmark.Title}}</a></h4>
-			<a class="u-bookmark-of h-cite" href="/go/{{.Bookmark.ID}}">{{shortenLink .Bookmark.URL}}</a>
-
-			{{if .Bookmark.Description}}
-				<div class="myco e-content">
-					{{mycomarkup .Bookmark.Description}}
-				</div>
-			{{end}}
-			<div class="post-tags">
-				{{range $i, $cat := .Bookmark.Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
-			</div>
-			<a href="/day/{{timestampToDayStamp .Bookmark.CreationTime}}" class="date-link">
-				<time class="dt-published" datetime="{{timestampToHuman .Bookmark.CreationTime}}">
-					{{timestampToHuman .Bookmark.CreationTime}} UTC
-				</time>
-			</a>
-
-			{{if $root.Authorized}}<div class="bookmark-controls">
-			    {{if $root.FederationEnabled}}
-    				<form method="POST" action="{{if .LikedByUs}}/unlike{{else}}/like{{end}}">
-    					<input type="hidden" name="id" value="{{.Bookmark.ID}}">
-    					<input type="hidden" name="next" value="{{$root.Endpoint}}?page={{$root.CurrentPage}}#{{.Bookmark.ID}}">
-    					<input type="submit" class="btn" value="{{if .LikedByUs}}💔 Unlike yourself {{.LikeCounter}}{{else}}❤️ Like yourself {{if .LikeCounter}}{{.LikeCounter}}{{end}}{{end}}">
-    				</form>
-			    {{end}}
-				<button class="btn" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy link</button>
-				<a class="btn" style="margin-left:auto"  href="/edit-link/{{.Bookmark.ID}}">Edit</a>
-			</div>{{end}}
-		</article>
-		{{if .Reposts}}
-		<article>
-			<h3>{{len .Reposts}} repost{{if gt (len .Reposts) 1}}s{{end}}</h3>
-			<ul>
-			{{range .Reposts}}
-				<li><a href="{{.URL}}">{{.Name}}</a> reposted at {{.Timestamp | timeToHuman}}</li>
-			{{end}}
-			</ul>
-		</article>
 		{{end}}
+			<div class="bookmark-title">
+				<h4 class="p-name"><a class="u-url" href="/go/{{.Bookmark.ID}}">{{.Bookmark.Title}}</a></h4>
+				<a class="u-bookmark-of h-cite" href="/go/{{.Bookmark.ID}}">{{shortenLink .Bookmark.URL}}</a>
+			</div>
+
+		{{if .Bookmark.RepostOf}}
+			<div class="myco e-content">
+				{{if .Bookmark.OriginalAuthor.Valid}}
+					<div class="actor-link">{{originalAuthor .Bookmark.OriginalAuthor.String}}</div>
+				{{else}}
+					<div class="actor-link"><i>Unnamed betulist</i></div>
+				{{end}}
+				{{mycomarkup .Bookmark.Description}}
+			</div>
+		{{else}}
+			<div class="myco e-content">
+				{{if not .Bookmark.Visibility}}
+					<span class="bookmark-visibility" data-visibility="private">Private</span>
+				{{end}}
+				{{mycomarkup .Bookmark.Description}}
+			</div>
+		{{end}}
+
+		{{if .Bookmark.Tags}}
+			<div class="bookmark-tags">
+				<span class="tags-marker">#</span>
+				{{range $i, $cat := .Bookmark.Tags}}{{if $i}},{{end}}<a class="p-category" href="/tag/{{$cat.Name}}">{{$cat.Name}}</a>{{end}}
+				<a href="/day/{{timestampToDayStamp .Bookmark.CreationTime}}" class="date-link float-right">
+					<time class="dt-published" datetime="{{timestampToHuman .Bookmark.CreationTime}}">
+						{{timestampToHuman .Bookmark.CreationTime}} UTC
+					</time>
+				</a>
+			</div>
+		{{end}}
+
+			<div class="bookmark-controls">
+			{{if $root.Authorized}}
+				{{if $root.FederationEnabled}}
+					<form method="POST" action="{{if .LikedByUs}}/unlike{{else}}/like{{end}}">
+						<input type="hidden" name="id" value="{{.Bookmark.ID}}">
+						<input type="hidden" name="next" value="{{$root.Endpoint}}?page={{$root.CurrentPage}}#{{.Bookmark.ID}}">
+						<input type="submit" class="btn-control" value="{{if .LikedByUs}}Unlike yourself{{.LikeCounter}}{{else}}Like yourself{{if .LikeCounter}} {{.LikeCounter}}{{end}}{{end}}">
+					</form>
+				{{end}}
+				<button class="btn-control" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy</button>
+				<a class="btn-control" style="margin-left:auto" href="/edit-link/{{.Bookmark.ID}}">Edit</a>
+				{{if .Bookmark.RepostOf}}<a class="btn-control" href="{{.Bookmark.RepostOf}}">Open original</a>{{end}}
+				<a class="btn-control" href="/{{.Bookmark.ID}}">{{.Bookmark.ID}}.</a>
+			{{else}}
+				<button class="btn-control" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy</button>
+				{{if .LikeCounter}}{{.LikeCounter}} like{{if ne .LikeCounter 1}}s{{end}}{{end}}
+				{{if .Bookmark.RepostOf}}<a class="btn-control" style="margin-left:auto" href="{{.Bookmark.RepostOf}}">Open original</a>{{end}}
+				<a class="btn-control" {{if not .Bookmark.RepostOf}}style="margin-left:auto"{{end}} href="/{{.Bookmark.ID}}">{{.Bookmark.ID}}.</a>
+			{{end}}
+			</div>
+		</article>
 		{{if .Authorized}}
-		<article>
-			<h3>Archive copies</h3>
-			<form method="post" action="/make-new-archive/{{.Bookmark.ID}}">
-				<input type="submit" value="Make a new archive copy" class="btn">
+		<article class="bookmark-section">
+			<form method="post" action="/make-new-archive/{{.Bookmark.ID}}" class="float-right">
+				<input type="submit" value="New" class="btn">
 			</form>
+			<h3>Archive copies</h3>
 			{{if len .Archives}}{{$bookmarkID := .Bookmark.ID}}
-				<ul>{{$highlight:=.HighlightArchive}}
+				<ul class="plain-list">{{$highlight:=.HighlightArchive}}
 				{{range .Archives}}
 					<li>
 						<a href="/artifact/{{.Artifact.ID}}">
@@ -81,10 +95,22 @@
 			{{end}}
 		</article>
 		{{end}}
+		{{if and .Reposts (not .Bookmark.RepostOf)}}
+		<article class="bookmark-section">
+			<h3>{{len .Reposts}} remark{{if gt (len .Reposts) 1}}s{{end}}</h3>
+			{{range .Reposts}}
+				<div class="remark-entry">
+					<span class="actor-link">{{originalAuthor .Name}}</span>
+					remarked at
+					{{if .URL}}<a href="{{.URL}}">{{.Timestamp.Format "2006-01-02 15:04"}}</a>{{else}}{{.Timestamp.Format "2006-01-02 15:04"}}{{end}}
+				</div>
+			{{end}}
+		</article>
+		{{end}}
 		{{if and .Authorized .FederationEnabled .LikeCounter}}
-		<article>
+		<article class="bookmark-section">
 			<h3>{{.LikeCounter}} like{{if ne .LikeCounter 1}}s{{end}}</h3>
-			<ul>
+			<ul class="plain-list">
 				{{if .LikedByUs}}<li>Yours</li>{{end}}
 				{{range .Likes}}<li><a href="/{{.Acct}}">{{.DisplayedName}}</a></li>{{end}}
 			</ul>
