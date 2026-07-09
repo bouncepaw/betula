@@ -56,3 +56,12 @@ dst/darwin-arm64/betula: dst $(ALL_FILES)
 	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o dst/darwin-arm64/betula ./cmd/betula
 dst/darwin-amd64/betula: dst $(ALL_FILES)
 	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o dst/darwin-amd64/betula ./cmd/betula
+
+INKSCAPE ?= /Applications/Inkscape.app/Contents/MacOS/inkscape --export-area-snap --export-png-antialias=1
+web/pix/favicon.png: web/pix/favicon.svg
+	$(INKSCAPE) -w 32 -h 32 $< -o $@
+web/pix/icon-192.png: web/pix/favicon.svg
+	$(INKSCAPE) -w 192 -h 192 $< -o $@
+web/pix/icon-512.png: web/pix/favicon.svg
+	$(INKSCAPE) -w 512 -h 512 $< -o $@
+
