@@ -1,0 +1,13 @@
+= Federated search
+**NB.** This article is only applicable to federated Betula servers.
+
+In addition to local search, you can search other Betula servers without leaving yours. This **federated search** is available for mutuals only. Mutuals are betulists who follow each other.
+
+To perform a federated search, first perform a regular local search, and then press //Search mutuals instead//. Alternatively, visit the [[/fedisearch | Federated search]] page and enter your query there.
+
+This is true federated search, i.e. requests are sent to remote servers rather than searched in local cache. No other Fediverse server has a system like this.
+
+Use the same search syntax as in local search.
+
+== See also
+=> /help/en/search | Search syntax

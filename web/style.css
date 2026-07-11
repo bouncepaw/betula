@@ -368,6 +368,9 @@ h3, h4 {
     font-size: 1.2rem;
 }
 
+.help-page article.h-entry {
+    padding: .25rem 1rem;
+}
 article.h-entry {
     padding: 0;
 }

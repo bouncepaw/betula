@@ -1,5 +1,5 @@
 = Betula
-**Betula** is a free self-hosted single-user bookmarking software for the independent web. Use it to organize bookmarks, references and linklogs.
+**Betula** is a free self-hosted single-user federated bookmark manager for the independent web. Use it to organize bookmarks, references and linklogs.
 
 Every Betula installation comes with a full copy of this documentation. Use the topic selector to read more about specific topics.
 
@@ -11,12 +11,12 @@ Press the [[/save-link | Save link]] link. There are multiple fields there:
 
 * **URL** is the URL (address) of a web page. This is the only required field.
 * **Title** is the title of the post that will be created when you save the link. If you leave it empty, Betula will do its best to quess a title.
-* **Description** is a place for excerpts and conclusion from the saved link. Express your opinion here. You can format the text with [[/help/en/mycomarkup | Mycomarkup]].
+* **Description** is a place for notes, excerpts and conclusions from the saved link. Express your opinion here. You can format the text with [[/help/en/mycomarkup | Mycomarkup]].
 * Set **visibility** for your post. Make posts with sensitive or too boring information visible only for you.
-* **Tags** are separated with commas. Keywords and topics make good tags. Try to add at least one tag.
+* **Tags** are separated with commas. Keywords and topics make good tags. Try to add at least one tag. For federated servers, prefer short English-language tags, that's what most servers do.
 
 == Tags
-On [[/tag | Tags]] page you can see all your tags. Unauthorized users only see tags that have public posts. Don't be scared if you end up having hundreds of tags with 1 to 3 posts each. This is pretty normal.
+On [[/tag | Tags]] page you can see all your tags. Unauthorized users only see tags that have public posts. Don't be scared if you end up having hundreds of tags with 1 to 3 bookmarks each. This is normal.
 
 == Settings
 You really should [[/settings | set up your settings]].
@@ -38,4 +38,4 @@ There is a searchbar on every page. Use it to retrieve information.
 It is highly recommended to use the [[/bookmarklet | bookmarklet]]. It lets you save any web page much quicker, bringing your Betula experience to the next level. It works in all desktop browsers and is known to work on iOS Safari. Android browser support remains unclear for now, but it probably works in some of them.
 
 == RSS feed
-You can subscribe to any Betula with any RSS reader. Some browsers also support RSS feeds out of the box. It is much more convenient than visiting the said Betulas manually. There are two kinds of feeds: post feed and digest feed. The latter is probably what you want.
+You can subscribe to any Betula with any RSS reader. Some browsers also support RSS feeds out of the box. It is much more convenient than visiting the said Betulas manually. There are two kinds of feeds: bookmark feed and digest feed. The latter is probably what you want. Both are linked on the profile page.

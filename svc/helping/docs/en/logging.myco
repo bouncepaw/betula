@@ -1,0 +1,35 @@
+= Logging
+Betula outputs logs about various actions happening. By default, these logs are written to stdout. You can also connect Betula to a log server that ingests JSON/ECS logs.
+
+== Setting up a log server
+We recommend and use ourselves [[https://victoriametrics.com/products/victorialogs/ | Victoria Logs]] as the log server. It's lightweight, relatively easy to setup and widely available. You can also use the Elastic Stack, or any other compatible system.
+
+In [[/settings/logging | Settings > Logging]], choose the logging method:
+
+* **Default (stdout).** Write non-JSON logs to stdout. If you are running Betula with a systemd service, the logs would end up in systemd's journal system.
+* **ECS + //auth method//.** Several authentication methods are supported. Once selected, logs will be sent to the specified endpoint. A suggested endpoint for Victoria Logs is shown in the tip. Stdout logs will continue to be written, but they will be in JSON as well.
+** **ECS + No Auth.** This is generally an unsecure solution, unless the log server is on the same machine as your Betula or it is on the local network that is not accessible from outside Betula.
+** **ECS + Basic Auth.** Enter your username and password. They are stored in Betula's database.
+** **ECS + Bearer.** Enter your token. It is stored in Betula's database.
+
+After choosing your method, click //Save and send test log//. Your log server should receive a //Hello Betula!// message. If the message does not arrive, something might be wrong with your setup, or you may have forgotten to update the log server's page.
+
+On the log server, you can filter out logs by `app` and `domain` fields. `app` is set to `betula`, `domain` is set to the domain from [[/settings | Settings]].
+
+Betula does not support syslog. If you need this, consider setting up journalctl-to-syslog relaying with [[https://rsyslog.com | rsyslog]] or an alternative, or make Victoria Logs relay logs.
+
+== Weird logs
+Some logs may raise suspicion.
+
+=== `Somebody got deleted, scroll further`
+This is normal for federated Betula servers. This is [[https://joinmastodon.org | Mastodon]] servers broadcasting notices about users being deleted. Every Fediverse server receives these. Consider it noise.
+
+=== `404 Not Found`
+See the `path` field. It is often a weird path not found on any Betula server. This is LLM scrappers or hackers snooping around. This is often malicious traffic, although sometimes these are genuine errors.
+
+== `write: broken pipe`
+This is a visitor's connection error.
+
+== `template: *.gohtml: ...`
+This is a bug. Please report to developers:
+=> https://codeberg.org/bouncepaw/betula/issues | Betula's ticket tracker on Codeberg

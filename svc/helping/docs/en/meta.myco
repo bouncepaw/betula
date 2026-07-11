@@ -9,14 +9,11 @@ See the installation guide on the official site.
 If you want to go live on the internet, you would probably need a server and a domain. For local usage, nothing is required.
 
 == Free?
-When we say that Betula is free, we mean freedom. The source code is disclosed and cannot be closed by anybody, the development is done in open. If you want to, feel free to participate in the development. We work on SourceHut but Codeberg pull requests and issues are also very welcome. If you want to request something from the developers, these are the places to go as well.
+When we say that Betula is free, we mean freedom. The source code is disclosed and cannot be closed by anybody, the development is done in open. If you want to, feel free to participate in the development. Betula is developed on Codeberg, with mirrors on Sourcehut and Microsoft GitHub. If you want to request something from the developers, these are the places to go as well.
 
-=> https://sr.ht/~bouncepaw/betula
 => https://codeberg.org/bouncepaw/betula
-
-Betula is also free as in no money asked. If you want to support the development financially, consider donating Bouncepaw on Boosty. The donations are used to pay for the infrastructure.
-
-=> https://boosty.to/bouncepaw
+=> https://sr.ht/~bouncepaw/betula
+=> https://github.com/bouncepaw/betula
 
 == How is Betula related to Mycorrhiza?
 **Mycorrhiza** is a free wiki engine, developed by mostly the same people.

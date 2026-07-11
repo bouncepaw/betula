@@ -35,10 +35,13 @@ func New() *Service {
 		{"meta", "Metainformation"},
 		{"mycomarkup", "Mycomarkup formatting"},
 		{"search", "Advanced search"},
+		{"fedisearch", "Federated search"},
 		{"archival", "Bookmark archival"},
 		{"imex", "Bookmark import and export"},
 		{"errors", "Error codes"},
 		{"miniflux", "Miniflux integration"},
+		{"logging", "Logging & log server integration"},
+		{"pwa", "Progressive Web App (PWA)"},
 	}
 
 	topics := make([]helpingports.Topic, len(topicDefs))

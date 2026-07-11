@@ -1,5 +1,5 @@
 = Bookmark import and export
-Betula can import and export bookmarks in multiple formats. Links to [[/import | Import]] and [[/export | Export]] are found in a sidebar or in a top menu. You can use that to import your bookmarks to migrate to and from other bookmark managers.
+Betula can import and export bookmarks in multiple formats. Links to [[/import | Import]] and [[/export | Export]] are found in the right sidebar or in the top menu. You can use that to import your bookmarks to migrate to and from other bookmark managers.
 
 == Supported formats
 Note that no existing bookmark export format can express Betula's bookmark model fully, so there's inevitably some information loss, such as number of likes, repost information, etc. Also, some formats have the notion of a ‘folder’ or a ‘collection’, which gets turned to a tag when imported to Betula.

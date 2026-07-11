@@ -1,0 +1,11 @@
+= Progressive Web App (PWA)
+**Progressive Web App** is a technology that lets you install specifically configured websites as applications to your device.
+
+Betula can be installed as a PWA. Once installed, it is found on the home screen, dock, or a different place where applications live. It is also registered as a share menu target. You can share any link from any app to Betula this way and open the bookmark creation form with URL and Title pre-filled. This can be used as an alternative to the bookmarklet.
+
+Betula PWA does not send notifications and does not work offline.
+
+== Installation
+No browser calls it PWA in the user interface, they usually opt for phrases like “Install and add to home screen”, “Add to Dock”, etc. Depending on your setup and environment, you might not find any button at all. Perhaps, the browser will tell you right away.
+
+**NB.** PWA is only supported for HTTPS-enabled servers. This is the way browsers work. Other than HTTPS and a supporting browser, no setup is needed from the administrator.
