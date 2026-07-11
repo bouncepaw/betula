@@ -4,7 +4,10 @@
 		<article>
 			<h2>About {{.SiteName}}</h2>
 			<a href="https://joinbetula.org" style="margin-top: 1rem; margin-bottom: -.5rem; display: block">
-				<img src="/static/pix/logo.svg" alt="Betula logo">
+				<picture>
+					<source srcset="/static/pix/logo-dark.svg" media="(prefers-color-scheme: dark)">
+					<img src="/static/pix/logo.svg" alt="Betula logo">
+				</picture>
 			</a>
 			<p>This website runs <b>Betula</b>, a self-hosted federated bookmark manager for the independent Web.</p>
 			<p>Host your own instance of Betula! See <a href="https://joinbetula.org">Betula's website</a> and the <a href="/help">the built-in documentation</a>.</p>

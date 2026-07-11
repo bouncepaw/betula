@@ -15,7 +15,7 @@ path = [
     # Waiving rights for these media files for its easier use in other projects:
     "web/pix/favicon*",
     "web/pix/icon*",
-    "web/pix/logo.svg",
+    "web/pix/logo*.svg",
 
     # Waiving rights for these technical files:
     "pkg/imex/netscape/testdata/*",

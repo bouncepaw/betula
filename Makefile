@@ -4,7 +4,7 @@
 
 export CGO_ENABLED=0
 
-ALL_FILES := $(shell find . -type f -name '*.go*') web/style.css
+ALL_FILES := $(shell find . -type f -name '*.go*') web/style.css web/pix/*
 HELP_SPACING := 25
 
 .PHONY: help betula debug-run clean test lint lint-fix crosscompile
@@ -64,4 +64,7 @@ web/pix/icon-192.png: web/pix/favicon.svg
 	$(INKSCAPE) -w 192 -h 192 $< -o $@
 web/pix/icon-512.png: web/pix/favicon.svg
 	$(INKSCAPE) -w 512 -h 512 $< -o $@
+
+web/pix/logo-dark.svg: web/pix/logo.svg
+	sed 's/id="betula-text"/id="betula-text" fill="#ffffff"/' $< > $@
 
