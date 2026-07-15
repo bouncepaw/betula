@@ -7,6 +7,7 @@
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Iaroslav Angliuster <https://mysh.dev>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -151,8 +152,8 @@ var funcMapForBookmarks = template.FuncMap{
 		return ti.Format("2006-01-02 15:04")
 	},
 	"shortenLink": func(a string) template.HTML {
-		result, pathPart := types.CleanerLinkParts(a)
-		result += fmt.Sprintf(`<span class="url-path">%s</span>`, pathPart)
+		hostPart, pathPart := types.CleanerLinkParts(a)
+		result := template.HTMLEscapeString(hostPart) + fmt.Sprintf(`<span class="url-path">%s</span>`, template.HTMLEscapeString(pathPart))
 		return template.HTML(result)
 	},
 	"mycomarkup": myco.MarkupToHTML,
