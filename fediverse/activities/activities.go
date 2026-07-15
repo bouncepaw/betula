@@ -4,9 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// Package activities provides generation of JSON activities and activity data extraction from JSON.
-//
-// JSON activities are made with New* functions. They all have the same actor. Call GenerateBetulaActor to regenerate the actor.
+// Package activities provides activity data extraction from JSON.
 package activities
 
 import (
@@ -14,7 +12,6 @@ import (
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
-	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -62,9 +59,6 @@ func getString(activity Dict, field string) string {
 	return ""
 }
 
-const atContext = "https://www.w3.org/ns/activitystreams"
-const publicAudience = "https://www.w3.org/ns/activitystreams#Public"
-
 type Dict = map[string]any
 
 var (
@@ -77,15 +71,3 @@ var (
 	ErrNotNote      = errors.New("activities: not a Note")
 	ErrHostMismatch = errors.New("activities: host mismatch")
 )
-
-var betulaActor string
-
-// GenerateBetulaActor updates what actor to use for outgoing activities.
-// It makes no validation.
-func GenerateBetulaActor() {
-	username := settings.AdminUsername()
-	if username == "" {
-		username = "betula"
-	}
-	betulaActor = settings.SiteURL() + "/@" + username
-}

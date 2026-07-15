@@ -6,7 +6,6 @@ package likingsvc
 
 import (
 	"context"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 )
 
 func (svc *Service) Unlike(ctx context.Context, bookmarkID string) error {
@@ -41,7 +40,7 @@ func (svc *Service) sendUndoLikeToRemoteActor(bookmarkID string) error {
 		return err
 	}
 
-	activity, err := activities.NewUndoLike(bookmarkID, actor.ID())
+	activity, err := svc.asm.NewUndoLike(bookmarkID, actor.ID())
 	if err != nil {
 		svc.logger.Error("Failed to make Undo{Like} activity",
 			"err", err, "bookmarkID", bookmarkID)

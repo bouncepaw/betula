@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -109,7 +108,7 @@ func (svc *Service) broadcastBookmarkAsUpdated(
 		return fmt.Errorf("like status not found for bookmark %s", strID)
 	}
 
-	activity, err := activities.UpdateNoteWithLikes(bookmark, status.Count)
+	activity, err := svc.asm.UpdateNoteWithLikes(bookmark, status.Count)
 	if err != nil {
 		return err
 	}

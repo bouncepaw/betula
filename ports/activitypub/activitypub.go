@@ -6,6 +6,7 @@ package apports
 
 import (
 	"context"
+	"encoding/json"
 
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -71,5 +72,22 @@ type (
 	GetActorsOpts struct {
 		GetPublicKey bool
 		// FIXME: remove this thing, always get the key.
+	}
+
+	Dict map[string]any
+	//nolint:interfacebloat // This is probably forever.
+	Assembly interface {
+		NewLike(likedObjectID, recipientID string) (json.RawMessage, error)
+		NewUndoLike(likedObjectID, recipientID string) (json.RawMessage, error)
+		NewAccept(acceptedActivity Dict) (json.RawMessage, error)
+		NewReject(rejectedActivity Dict) (json.RawMessage, error)
+		NewAnnounce(originalURL, repostURL string) (json.RawMessage, error)
+		NewFollowFromUs(objectID string) (json.RawMessage, error)
+		NewUndoFollowFromUs(objectID string) (json.RawMessage, error)
+		DeleteNote(postID int) (json.RawMessage, error)
+		CreateNote(post types.Bookmark) (json.RawMessage, error)
+		UpdateNote(post types.Bookmark) (json.RawMessage, error)
+		UpdateNoteWithLikes(post types.Bookmark, likeCounter int) (json.RawMessage, error)
+		NoteFromBookmark(bookmark types.Bookmark) (Dict, error)
 	}
 )

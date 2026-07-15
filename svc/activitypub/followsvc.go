@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	webfingerports "git.sr.ht/~bouncepaw/betula/ports/webfinger"
 	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
@@ -22,6 +21,7 @@ type FollowService struct {
 	www         wwwports.WorldWideWeb
 	activityPub apports.ActivityPub
 	webfinger   webfingerports.WebFinger
+	asm         apports.Assembly
 }
 
 var _ apports.FollowService = &FollowService{}
@@ -31,12 +31,14 @@ func NewFollowService(
 	www wwwports.WorldWideWeb,
 	activityPub apports.ActivityPub,
 	webfinger webfingerports.WebFinger,
+	asm apports.Assembly,
 ) *FollowService {
 	return &FollowService{
 		repo:        repo,
 		www:         www,
 		activityPub: activityPub,
 		webfinger:   webfinger,
+		asm:         asm,
 	}
 }
 
@@ -47,7 +49,7 @@ func (svc *FollowService) Follow(ctx context.Context, nickname string) (string, 
 		return "", fmt.Errorf("failed to get actor %s: %w", nickname, err)
 	}
 
-	activity, err := activities.NewFollowFromUs(actor.ID())
+	activity, err := svc.asm.NewFollowFromUs(actor.ID())
 	if err != nil {
 		slog.Error("Failed to create Follow activity", "err", err)
 		return "", fmt.Errorf("failed to create Follow activity: %w", err)
@@ -74,7 +76,7 @@ func (svc *FollowService) Unfollow(ctx context.Context, nickname string) error {
 		return fmt.Errorf("failed to get actor %s: %w", nickname, err)
 	}
 
-	activity, err := activities.NewUndoFollowFromUs(actor.ID())
+	activity, err := svc.asm.NewUndoFollowFromUs(actor.ID())
 	if err != nil {
 		slog.Error("Failed to create Undo{Follow} activity", "err", err)
 		return fmt.Errorf("failed to create Undo{Follow} activity: %w", err)

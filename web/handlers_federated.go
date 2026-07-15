@@ -21,12 +21,12 @@ import (
 	"net/url"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/fedisearch"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -139,7 +139,7 @@ func getBookmarkFedi(w http.ResponseWriter, rq *http.Request) {
 	}
 	slog.Info("Get bookmark object", "bookmarkID", bookmark.ID)
 
-	obj, err := activities.NoteFromBookmark(*bookmark)
+	obj, err := ctrl.Assembly.NoteFromBookmark(*bookmark)
 	if err != nil {
 		slog.Error("Failed to make Note object for bookmark", "err", err)
 		handlerNotFound(w, rq)
@@ -461,10 +461,10 @@ func postFediSearchAPI(w http.ResponseWriter, rq *http.Request) {
 	if moreAvailable < 0 {
 		moreAvailable = 0 // just in case
 	}
-	var bookmarkObjects = make([]activities.Dict, 0, len(bookmarks))
+	var bookmarkObjects = make([]apports.Dict, 0, len(bookmarks))
 
 	for _, bookmark := range bookmarks {
-		var dict, err = activities.NoteFromBookmark(bookmark)
+		var dict, err = ctrl.Assembly.NoteFromBookmark(bookmark)
 		if err != nil {
 			slog.Error("Failed to make a Note from bookmark", "bookmark", bookmark, "err", err)
 			continue

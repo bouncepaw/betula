@@ -5,45 +5,8 @@
 package activities
 
 import (
-	"encoding/base64"
 	"encoding/json"
-	"path"
-
-	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
-	"git.sr.ht/~bouncepaw/betula/settings"
 )
-
-func NewLike(likedObjectID, recipientID string) (json.RawMessage, error) {
-	encID := base64.URLEncoding.EncodeToString([]byte(likedObjectID))
-	activity := Dict{
-		"@context": atContext,
-		"id":       path.Join(settings.SiteURL(), "likes", encID),
-		"type":     "Like",
-		"actor":    betulaActor,
-		"object":   likedObjectID,
-		"to":       recipientID,
-	}
-	return json.Marshal(activity)
-}
-
-func NewUndoLike(likedObjectID, recipientID string) (json.RawMessage, error) {
-	encID := base64.URLEncoding.EncodeToString([]byte(likedObjectID))
-	activity := Dict{
-		"@context": atContext,
-		"id":       path.Join(settings.SiteURL(), "temp", bxstr.RandomWhatever()),
-		"type":     "Undo",
-		"actor":    betulaActor,
-		"to":       recipientID,
-		"object": Dict{
-			"actor":  betulaActor,
-			"id":     path.Join(settings.SiteURL(), "likes", encID),
-			"object": likedObjectID,
-			"to":     recipientID,
-			"type":   "Like",
-		},
-	}
-	return json.Marshal(activity)
-}
 
 // LikeReport reports that actor with ActorID liked the object with ObjectID.
 type LikeReport struct {

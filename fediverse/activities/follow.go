@@ -4,39 +4,6 @@
 
 package activities
 
-import (
-	"encoding/json"
-	"fmt"
-	"git.sr.ht/~bouncepaw/betula/settings"
-)
-
-func NewUndoFollowFromUs(objectID string) ([]byte, error) {
-	activity := Dict{
-		"@context": atContext,
-		"id":       fmt.Sprintf("%s/unfollow?account=%s", settings.SiteURL(), objectID),
-		"type":     "Undo",
-		"actor":    betulaActor,
-		"object": Dict{
-			"id":     fmt.Sprintf("%s/follow?account=%s", settings.SiteURL(), objectID),
-			"type":   "Follow",
-			"actor":  betulaActor,
-			"object": objectID,
-		},
-	}
-	return json.Marshal(activity)
-}
-
-func NewFollowFromUs(objectID string) ([]byte, error) {
-	activity := Dict{
-		"@context": atContext,
-		"id":       fmt.Sprintf("%s/follow?account=%s", settings.SiteURL(), objectID),
-		"type":     "Follow",
-		"actor":    betulaActor,
-		"object":   objectID,
-	}
-	return json.Marshal(activity)
-}
-
 type FollowReport struct {
 	ActorID          string
 	ObjectID         string

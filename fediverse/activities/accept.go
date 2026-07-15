@@ -5,27 +5,6 @@
 
 package activities
 
-import (
-	"encoding/json"
-	"fmt"
-
-	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
-	"git.sr.ht/~bouncepaw/betula/settings"
-)
-
-// NewAccept wraps the acceptedActivity in an Accept activity.
-// The @context of the wrapped activity is deleted.
-func NewAccept(acceptedActivity Dict) ([]byte, error) {
-	delete(acceptedActivity, "@context")
-	return json.Marshal(Dict{
-		"@context": atContext,
-		"id":       fmt.Sprintf("%s/temp/%s", settings.SiteURL(), bxstr.RandomWhatever()),
-		"type":     "Accept",
-		"actor":    betulaActor,
-		"object":   acceptedActivity,
-	})
-}
-
 type AcceptReport struct {
 	ActorID  string
 	ObjectID string

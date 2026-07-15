@@ -19,13 +19,18 @@ import (
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/svc/activitypub/assembly"
 	"git.sr.ht/~bouncepaw/betula/types"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 )
 
-var repoNotif = db.New()
-var repoLocalBookmarks = db.NewLocalBookmarksRepo()
-var repoActor = db.NewActorRepo()
+// TODO: all shall be in services one day...
+var (
+	repoNotif          = db.New()
+	repoLocalBookmarks = db.NewLocalBookmarksRepo()
+	repoActor          = db.NewActorRepo()
+	asm                = assembly.New(settings.SiteURL, settings.AdminUsername)
+)
 
 func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.Job) {
 	return func(job jobtype.Job) {
@@ -135,7 +140,7 @@ func sendRejectFollow(report activities.FollowReport) {
 		slog.Error("Invalid actor ID, dropping activity", "actorID", report.ActorID)
 	}
 
-	activity, err := activities.NewReject(report.OriginalActivity)
+	activity, err := asm.NewReject(report.OriginalActivity)
 	if err = SendActivityToInbox(activity, fediverse.RequestActorInboxByID(report.ActorID)); err != nil {
 		slog.Error("Failed to send Reject activity", "err", err)
 	}
@@ -147,7 +152,7 @@ func sendAcceptFollow(report activities.FollowReport) {
 		return
 	}
 
-	activity, err := activities.NewAccept(report.OriginalActivity)
+	activity, err := asm.NewAccept(report.OriginalActivity)
 	if err = SendActivityToInbox(activity, fediverse.RequestActorInboxByID(report.ActorID)); err != nil {
 		slog.Error("Failed to send activity", "err", err, "recipient", report.ActorID)
 	} else {
@@ -190,7 +195,7 @@ func notifyAboutMyRepost(job jobtype.Job) {
 		return
 	}
 
-	activity, err := activities.NewAnnounce(
+	activity, err := asm.NewAnnounce(
 		*post.RepostOf,
 		fmt.Sprintf("%s/%d", settings.SiteURL(), postId),
 	)

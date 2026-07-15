@@ -12,11 +12,11 @@ import (
 	"github.com/nalgeon/be"
 
 	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	apgw "git.sr.ht/~bouncepaw/betula/gateways/activitypub"
 	webfingerports "git.sr.ht/~bouncepaw/betula/ports/webfinger"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/svc/activitypub/assembly"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -32,7 +32,7 @@ func TestUnfollowRemovesFollowingOnSendError(t *testing.T) {
 	db.InitInMemoryDB()
 	settings.Index()
 	signing.EnsureKeysFromDatabase()
-	activities.GenerateBetulaActor()
+	asm := assembly.New(settings.SiteURL, settings.AdminUsername)
 
 	actor := types.Actor{
 		ID:                "https://betula.klava.wiki/@dan",
@@ -55,7 +55,7 @@ func TestUnfollowRemovesFollowingOnSendError(t *testing.T) {
 		"acct:dan@betula.klava.wiki": actor.ID,
 	}}
 	activityPub := apgw.NewActivityPub(repo, db.NewRemoteBookmarkRepo())
-	svc := NewFollowService(repo, nil, activityPub, webfinger)
+	svc := NewFollowService(repo, nil, activityPub, webfinger, asm)
 	be.Err(t, svc.Unfollow(ctx, "@dan@betula.klava.wiki"), nil)
 
 	status, err := repo.SubscriptionStatus(ctx, actor.ID)

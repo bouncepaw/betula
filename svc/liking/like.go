@@ -6,7 +6,6 @@ package likingsvc
 
 import (
 	"context"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 )
 
@@ -45,7 +44,7 @@ func (svc *Service) sendLikeToRemoteActor(bookmarkID string) error {
 		return err
 	}
 
-	activity, err := activities.NewLike(bookmarkID, actor.ID())
+	activity, err := svc.asm.NewLike(bookmarkID, actor.ID())
 	if err != nil {
 		svc.logger.Error("Failed to make Like activity",
 			"err", err, "bookmarkID", bookmarkID)

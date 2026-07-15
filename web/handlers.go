@@ -52,7 +52,6 @@ import (
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/settings"
@@ -80,6 +79,7 @@ type Controller struct {
 	SvcImEx      imexports.Service
 	SvcFollow    apports.FollowService
 
+	Assembly      apports.Assembly
 	ActivityPub   apports.ActivityPub
 	WWW           wwwports.WorldWideWeb
 	HTMLSanitizer wwwports.HTMLSanitizer
@@ -807,7 +807,6 @@ func postSettings(w http.ResponseWriter, rq *http.Request) {
 	oldPort := settings.NetworkPort()
 	oldHost := settings.NetworkHost()
 	settings.SetSettings(newSettings)
-	activities.GenerateBetulaActor()
 	if oldPort != settings.NetworkPort() || oldHost != settings.NetworkHost() {
 		restartServer()
 	}
@@ -848,7 +847,7 @@ func postDeleteBookmark(w http.ResponseWriter, rq *http.Request) {
 			if bookmark.Visibility != types.Public {
 				return
 			}
-			data, err := activities.DeleteNote(bookmark.ID)
+			data, err := ctrl.Assembly.DeleteNote(bookmark.ID)
 			if err != nil {
 				slog.Error("Failed to create Delete{Note} activity for bookmark", "bookmarkID", id, "err", err)
 				return
@@ -1114,7 +1113,7 @@ func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 			}
 
 			// The bookmark remains public
-			data, err := activities.UpdateNote(bookmark)
+			data, err := ctrl.Assembly.UpdateNote(bookmark)
 			if err != nil {
 				slog.Error("Failed to create Update{Note} activity for bookmark", "bookmarkID", bookmark.ID, "err", err)
 				return
@@ -1266,7 +1265,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 
 			// The post was hidden by the author. Let's broadcast Delete.
 			if wasPublic && !isPublic {
-				data, err := activities.DeleteNote(post.ID)
+				data, err := ctrl.Assembly.DeleteNote(post.ID)
 				if err != nil {
 					slog.Error("Failed to create Delete{Note} activity for bookmark", "bookmarkID", post.ID, "err", err)
 					return
@@ -1279,7 +1278,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 
 			// The post was unpublic, but became public. Let's broadcast Create.
 			if !wasPublic && isPublic {
-				data, err := activities.CreateNote(post)
+				data, err := ctrl.Assembly.CreateNote(post)
 				if err != nil {
 					slog.Error("Failed to create Create{Note} activity for bookmark", "bookmarkID", post.ID, "err", err)
 					return
@@ -1289,7 +1288,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 			}
 
 			// The post remains public
-			data, err := activities.UpdateNote(post)
+			data, err := ctrl.Assembly.UpdateNote(post)
 			if err != nil {
 				slog.Error("Failed to create Update{Note} activity for bookmark", "bookmarkID", post.ID, "err", err)
 				return
@@ -1566,7 +1565,7 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 				return
 			}
 			bookmark.CreationTime = time.Now().UTC().Format(types.TimeLayout) // It shall match the one generated in DB
-			data, err := activities.CreateNote(bookmark)
+			data, err := ctrl.Assembly.CreateNote(bookmark)
 			if err != nil {
 				slog.Error("Failed to create Create{Note} activity for bookmark", "bookmarkID", id, "err", err)
 				return

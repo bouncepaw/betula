@@ -15,7 +15,6 @@ import (
 
 	"git.sr.ht/~bouncepaw/betula/auth"
 	"git.sr.ht/~bouncepaw/betula/db"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	apgw "git.sr.ht/~bouncepaw/betula/gateways/activitypub"
 	webfingergw "git.sr.ht/~bouncepaw/betula/gateways/webfinger"
@@ -23,6 +22,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	apsvc "git.sr.ht/~bouncepaw/betula/svc/activitypub"
+	"git.sr.ht/~bouncepaw/betula/svc/activitypub/assembly"
 	archivingsvc "git.sr.ht/~bouncepaw/betula/svc/archiving"
 	feedssvc "git.sr.ht/~bouncepaw/betula/svc/feeds"
 	helpingsvc "git.sr.ht/~bouncepaw/betula/svc/helping"
@@ -81,7 +81,6 @@ func main() {
 		settings.WritePort(port)
 	}
 	signing.EnsureKeysFromDatabase()
-	activities.GenerateBetulaActor()
 	go jobs.ListenAndWhisper()
 	web.StartServer(newController())
 }
@@ -105,6 +104,7 @@ func newController() web.Controller {
 		www            = wwwgw.New(settings.UserAgent)
 		htmlSanitizer  = wwwgw.NewSanitizer()
 		webfinger      = webfingergw.New()
+		asm            = assembly.New(settings.SiteURL, settings.AdminUsername)
 
 		// One day, all shall be in services!
 		svcSettings  = settingssvc.New(repoSettings, "v1.8.1", settings.SiteDomain)
@@ -115,13 +115,14 @@ func newController() web.Controller {
 			repoLikeCollection,
 			repoLocalBookmark,
 			repoNotif,
-			activityPub)
+			activityPub,
+			asm)
 		svcRemarking = remarkingsvc.New(activityPub, repoRemarks)
 		svcFeeds     = feedssvc.New(repoLocalBookmark)
 		svcSearching = searchsvc.New(repoSearch)
 		svcHelping   = helpingsvc.New()
 		svcImEx      = imexsvc.New(repoLocalBookmark, www, settings.SiteName)
-		svcFollow    = apsvc.NewFollowService(repoActor, www, activityPub, webfinger)
+		svcFollow    = apsvc.NewFollowService(repoActor, www, activityPub, webfinger, asm)
 	)
 
 	if err := svcSettings.ApplyLoggingSettings(context.Background()); err != nil {
@@ -143,6 +144,7 @@ func newController() web.Controller {
 		ActivityPub:   activityPub,
 		WWW:           www,
 		HTMLSanitizer: htmlSanitizer,
+		Assembly:      asm,
 
 		RepoRemoteBookmark: repoRemoteBookmark,
 		RepoActor:          repoActor,

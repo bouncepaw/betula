@@ -27,6 +27,7 @@ type Service struct {
 	notifRepo          notifports.Repository
 
 	activityPub apports.ActivityPub
+	asm         apports.Assembly
 }
 
 var _ likingports.Service = &Service{}
@@ -38,6 +39,7 @@ func New(
 	notifRepo notifports.Repository,
 
 	activityPub apports.ActivityPub,
+	asm apports.Assembly,
 ) *Service {
 	return &Service{
 		logger:             slog.Default(),
@@ -47,6 +49,7 @@ func New(
 		notifRepo:          notifRepo,
 
 		activityPub: activityPub,
+		asm:         asm,
 	}
 }
 

@@ -6,26 +6,6 @@
 
 package activities
 
-import (
-	"encoding/json"
-	"fmt"
-
-	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
-	"git.sr.ht/~bouncepaw/betula/settings"
-)
-
-func NewReject(rejectedActivity Dict) ([]byte, error) {
-	delete(rejectedActivity, "@context")
-	activity := Dict{
-		"@context": atContext,
-		"id":       fmt.Sprintf("%s/temp/%s", settings.SiteURL(), bxstr.RandomWhatever()),
-		"type":     "Reject",
-		"actor":    betulaActor,
-		"object":   rejectedActivity,
-	}
-	return json.Marshal(activity)
-}
-
 type RejectReport struct {
 	ActorID  string
 	ObjectID string
