@@ -11,6 +11,7 @@ package fediverse
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"strings"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
@@ -33,7 +34,30 @@ var client = http.Client{
 	Timeout: 2 * time.Second,
 }
 
-var actorRepo = db.NewActorRepo()
+var (
+	actorRepo          = db.NewActorRepo()
+	remoteBookmarkRepo = db.NewRemoteBookmarkRepo()
+)
+
+func renderRemoteDescription(
+	sanitizer wwwports.HTMLSanitizer,
+	source sql.NullString,
+	sourceType types.SourceType,
+	descriptionHTML template.HTML,
+) template.HTML {
+	switch {
+	case source.Valid && sourceType == types.SourcePlainText:
+		var (
+			escaped        = template.HTMLEscapeString(source.String)
+			taggedNewlines = strings.ReplaceAll(escaped, "\n", "<br/>")
+		)
+		return template.HTML("<p>" + taggedNewlines + "</p>")
+	case source.Valid:
+		return myco.MarkupToHTML(source.String)
+	default:
+		return sanitizer.Sanitize(descriptionHTML)
+	}
+}
 
 func PostSignedDocumentToAddress(doc []byte, contentType string, accept string, addr string) ([]byte, int, error) {
 	rq, err := http.NewRequest(http.MethodPost, addr, bytes.NewReader(doc))
@@ -104,14 +128,40 @@ func RenderRemoteBookmarks(
 			continue // whatever
 		}
 
+		content := raw
+		var originalAuthorAcct, originalAuthorName, originalWebURL string
+		if raw.RemarkedID.Valid {
+			original, ok := remoteBookmarkRepo.GetRemoteBookmarkByID(raw.RemarkedID.String)
+			if !ok {
+				// TODO: dereference the original when we don't have it locally.
+				slog.Warn("Skipping remark: remarked original not found",
+					"remarkID", raw.ID, "remarkedID", raw.RemarkedID.String)
+				continue
+			}
+			originalWebURL = original.RepresentationURL()
+			content = original
+
+			if origActor, err := actorRepo.GetActorByID(context.Background(), original.ActorID, apports.GetActorsOpts{}); err == nil {
+				originalAuthorAcct = origActor.Acct()
+				originalAuthorName = origActor.PreferredUsername
+			} else {
+				slog.Warn("Failed to find original author actor when rendering remark",
+					"remarkID", raw.ID, "actorID", original.ActorID, "err", err)
+			}
+		}
+
 		render := types.RenderedRemoteBookmark{
-			ID:                  raw.ID,
-			AuthorAcct:          actor.Acct(),
-			AuthorDisplayedName: actor.PreferredUsername,
-			RepostOf:            raw.RepostOf,
-			Title:               raw.Title,
-			URL:                 raw.URL,
-			Tags:                raw.Tags,
+			ID:                          raw.ID,
+			AuthorAcct:                  actor.Acct(),
+			AuthorDisplayedName:         actor.PreferredUsername,
+			RemarkedID:                  raw.RemarkedID,
+			OriginalAuthorAcct:          originalAuthorAcct,
+			OriginalAuthorDisplayedName: originalAuthorName,
+			OriginalWebURL:              originalWebURL,
+			Title:                       content.Title,
+			URL:                         content.URL,
+			WebURL:                      raw.RepresentationURL(),
+			Tags:                        content.Tags,
 		}
 
 		t, err := time.Parse(types.TimeLayout, raw.PublishedAt)
@@ -121,18 +171,7 @@ func RenderRemoteBookmarks(
 		}
 		render.PublishedAt = t
 
-		switch {
-		case raw.Source.Valid && raw.SourceType == types.SourcePlainText:
-			var (
-				escaped        = template.HTMLEscapeString(raw.Source.String)
-				taggedNewlines = strings.ReplaceAll(escaped, "\n", "<br/>")
-			)
-			render.Description = template.HTML("<p>" + taggedNewlines + "</p>")
-		case raw.Source.Valid:
-			render.Description = myco.MarkupToHTML(raw.Source.String)
-		default:
-			render.Description = sanitizer.Sanitize(raw.DescriptionHTML)
-		}
+		render.Description = renderRemoteDescription(sanitizer, content.Source, content.SourceType, content.DescriptionHTML)
 
 		renders = append(renders, render)
 	}

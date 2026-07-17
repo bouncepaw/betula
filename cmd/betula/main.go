@@ -117,7 +117,7 @@ func newController() web.Controller {
 			repoNotif,
 			activityPub,
 			asm)
-		svcRemarking = remarkingsvc.New(activityPub, repoRemarks)
+		svcRemarking = remarkingsvc.New(activityPub, repoRemarks, repoRemoteBookmark, repoActor)
 		svcFeeds     = feedssvc.New(repoLocalBookmark)
 		svcSearching = searchsvc.New(repoSearch)
 		svcHelping   = helpingsvc.New()

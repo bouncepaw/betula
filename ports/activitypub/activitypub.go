@@ -7,8 +7,13 @@ package apports
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"git.sr.ht/~bouncepaw/betula/types"
+)
+
+var (
+	ErrNotLocal = fmt.Errorf("not local")
 )
 
 type (
@@ -19,6 +24,7 @@ type (
 		ActorByID(ctx context.Context, actorID string, opts GetActorsOpts) (Actor, error)
 		BroadcastToFollowers(ctx context.Context, activity []byte) error
 		RefetchAllActors(ctx context.Context) error
+		DerefRemoteBookmark(ctx context.Context, id string) (types.RemoteBookmark, error)
 	}
 
 	Actor interface {

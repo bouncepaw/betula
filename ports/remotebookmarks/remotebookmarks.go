@@ -6,8 +6,6 @@ package remotebookmarksports
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
 
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -22,26 +20,8 @@ type (
 
 		GetRemoteBookmarksBy(authorID string, page uint) (bookmarks []types.RemoteBookmark, total uint)
 		GetRemoteBookmarks(page uint) (bookmarks []types.RemoteBookmark, total uint)
+		GetRemoteBookmarkByID(bookmarkID string) (types.RemoteBookmark, bool)
 		InsertRemoteBookmark(b types.RemoteBookmark)
 		UpdateRemoteBookmark(b types.RemoteBookmark)
-	}
-
-	// TODO: Finish
-	RemoteBookmarkModel struct {
-		ID       string
-		RepostOf sql.NullString
-		ActorID  string
-
-		Title string
-		URL   sql.NullString
-
-		Tags []string
-
-		HTML       sql.NullString
-		Mycomarkup sql.NullString
-
-		PublishedAt string
-		UpdatedAt   sql.NullString
-		Activity    json.RawMessage
 	}
 )

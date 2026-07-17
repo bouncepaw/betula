@@ -8,8 +8,10 @@ package apgw
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -18,9 +20,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 type ActivityPub struct {
@@ -109,8 +114,8 @@ func (ap *ActivityPub) KnowsRemoteBookmark(remoteBookmarkID string) (bool, error
 
 func (ap *ActivityPub) LocalBookmarkIDFromActivityPubID(id string) (int, error) {
 	if !strings.HasPrefix(id, settings.SiteURL()) {
-		return 0, fmt.Errorf("url %s does not start with our address %s",
-			id, settings.SiteURL())
+		return 0, fmt.Errorf("url %s does not start with our address %s: %w",
+			id, settings.SiteURL(), apports.ErrNotLocal)
 	}
 
 	parts := strings.Split(id, "/")
@@ -172,4 +177,32 @@ func (ap *ActivityPub) RefetchAllActors(ctx context.Context) error {
 
 	ap.logger.Info("Done refetching", "count", len(actorIDs), "err", err)
 	return err
+}
+
+func (ap *ActivityPub) DerefRemoteBookmark(ctx context.Context, id string) (types.RemoteBookmark, error) {
+	req, err := http.NewRequest(http.MethodGet, id, nil)
+	if err != nil {
+		return types.RemoteBookmark{}, err
+	}
+	req.Header.Set("User-Agent", settings.UserAgent())
+	req.Header.Set("Accept", types.OtherActivityType)
+	req.Header.Add("Accept", types.ActivityType)
+
+	signing.SignRequest(req, nil)
+	resp, err := ap.httpClient.Do(req)
+	if err != nil {
+		return types.RemoteBookmark{}, err
+	}
+	defer resp.Body.Close()
+
+	var object activities.Dict
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 128_000)).Decode(&object); err != nil {
+		return types.RemoteBookmark{}, err
+	}
+
+	bookmark, err := activities.RemoteBookmarkFromDict(object)
+	if err != nil {
+		return types.RemoteBookmark{}, err
+	}
+	return *bookmark, nil
 }

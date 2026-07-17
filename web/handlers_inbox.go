@@ -149,9 +149,10 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 		event := remarkingports.EventLegacyRemark{
-			ActorID:    report.ActorID,
-			AnnounceID: report.AnnounceID,
-			ObjectID:   report.ObjectID,
+			ActorID:        report.ActorID,
+			AnnounceID:     report.AnnounceID,
+			ObjectID:       report.ObjectID,
+			SourceActivity: data,
 		}
 		if err = ctrl.SvcRemarking.ReceiveLegacyRemark(rq.Context(), event); err != nil {
 			slog.Error("Failed to receive legacy remark", "err", err, "event", event)

@@ -27,22 +27,25 @@
 
     {{range .Bookmarks}}
         <article class="h-entry remote-bookmark" id="{{.ID}}">
-        {{if .RepostOf.Valid}}
+        {{if .RemarkedID.Valid}}
             <div class="bookmark-remark">
                 <div class="actor-link">
                     <a href="/{{.AuthorAcct}}" class="profile-link">{{.AuthorDisplayedName}}</a>
                 </div>
+                remarked
             </div>
         {{end}}
             <div class="bookmark-title">
                 <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>
                 <a class="u-bookmark-of h-cite" href="{{.URL}}">{{shortenLink .URL}}</a>
             </div>
-        {{if .RepostOf.Valid}}
+        {{if .RemarkedID.Valid}}
             <div class="myco e-content">
+                {{if .OriginalAuthorDisplayedName}}
                 <div class="actor-link">
-                    TODO: original author
+                    <a href="/{{.OriginalAuthorAcct}}" class="profile-link">{{.OriginalAuthorDisplayedName}}</a>
                 </div>
+                {{end}}
                 {{.Description}}
             </div>
         {{else}}
@@ -64,12 +67,17 @@
                 <form method="POST" action="{{if .LikedByUs}}/unlike{{else}}/like{{end}}">
                     <input type="hidden" name="id" value="{{.ID}}">
                     <input type="hidden" name="next" value="{{$root.Endpoint}}?page={{$root.CurrentPage}}#{{.ID}}">
-                    <input type="submit" class="btn-control" value="{{if .LikedByUs}}Unlike{{.LikeCounter}}{{else}}Like{{if .LikeCounter}} {{.LikeCounter}}{{end}}{{end}}">
+                    <input type="submit" class="btn-control" value="{{if .LikedByUs}}Unlike {{.LikeCounter}}{{else}}Like{{if .LikeCounter}} {{.LikeCounter}}{{end}}{{end}}">
                 </form>
                 <a href="/repost?url={{.ID}}" class="btn-control" target="_blank">Remark</a>
             {{end}}
                 <button class="btn-control" onclick="copyTextElem({{.URL}}, this)">Copy</button>
-                <a class="btn-control" style="margin-left:auto" href="{{.ID}}">Open</a>
+            {{if .RemarkedID.Valid}}
+                <a class="btn-control u-repost-of h-cite" style="margin-left:auto" href="{{.OriginalWebURL}}">Original</a>
+                <a class="btn-control" href="{{.WebURL}}">Open</a>
+            {{else}}
+                <a class="btn-control" style="margin-left:auto" href="{{.WebURL}}">Open</a>
+            {{end}}
             </div>
         </article>
     {{end}}

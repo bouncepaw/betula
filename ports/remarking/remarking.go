@@ -24,9 +24,10 @@ type (
 	}
 
 	EventLegacyRemark struct {
-		ActorID    string
-		AnnounceID string // id of the repost
-		ObjectID   string // object that was reposted
+		ActorID        string
+		AnnounceID     string // id of the repost
+		ObjectID       string // object that was reposted
+		SourceActivity []byte // raw JSON of the Announce activity
 	}
 	EventLegacyUnremark struct {
 		ActorID    string

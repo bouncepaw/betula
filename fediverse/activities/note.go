@@ -40,7 +40,7 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 	}
 	bookmark := types.RemoteBookmark{
 		// Invariants
-		RepostOf: sql.NullString{},
+		RemarkedID: sql.NullString{},
 
 		// Required fields
 		ID:              getString(object, "id"),
@@ -58,6 +58,14 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 	if updated := getTime(object, "updated"); updated != "" {
 		bookmark.UpdatedAt = sql.NullString{
 			String: updated,
+			Valid:  true,
+		}
+	}
+
+	// The web representation of the note, if any. Falls back to ID downstream.
+	if webURL := getString(object, "url"); bxstr.IsValidURL(webURL) {
+		bookmark.WebURL = sql.NullString{
+			String: webURL,
 			Valid:  true,
 		}
 	}

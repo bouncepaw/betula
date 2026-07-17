@@ -62,11 +62,25 @@ var catmap = map[jobtype.JobCategory]func(job jobtype.Job){
 	jobtype.SendUpdateNote:      broadcastToFollowers,
 }
 
+func byteCast(raw any) ([]byte, error) {
+	bytes, ok := raw.([]byte)
+	if ok {
+		return bytes, nil
+	}
+
+	jsonBytes, ok := raw.(json.RawMessage)
+	if ok {
+		return jsonBytes, nil
+	}
+	return nil, fmt.Errorf("unexpected type for byte cast: %T", raw)
+}
+
 func broadcastToFollowers(job jobtype.Job) {
 	// The payload is a []byte we have to send to every follower.
-	payload, ok := job.Payload.([]byte)
-	if !ok {
-		slog.Error("Unexpected payload for broadcast", "category", job.Category, "payloadType", fmt.Sprintf("%T", payload))
+	payload, err := byteCast(job.Payload)
+	if err != nil {
+		slog.Error("Unexpected payload for broadcast",
+			"category", job.Category, "payloadType", fmt.Sprintf("%T", payload), "err", err)
 		return
 	}
 

@@ -98,12 +98,13 @@ func (st SourceType) ToDB() sql.NullString {
 }
 
 type RemoteBookmark struct {
-	ID       string
-	RepostOf sql.NullString
-	ActorID  string
+	ID         string
+	RemarkedID sql.NullString
+	ActorID    string
 
 	Title           string
 	URL             string
+	WebURL          sql.NullString
 	DescriptionHTML template.HTML
 	Source          sql.NullString
 	SourceType      SourceType
@@ -114,15 +115,29 @@ type RemoteBookmark struct {
 	Tags []Tag
 }
 
+func (rb RemoteBookmark) RepresentationURL() string {
+	if rb.WebURL.Valid {
+		return rb.WebURL.String
+	}
+	return rb.ID
+}
+
 type RenderedRemoteBookmark struct {
 	ID string
 
 	AuthorAcct          string
 	AuthorDisplayedName string
-	RepostOf            sql.NullString
+	RemarkedID          sql.NullString
+
+	// For a remark, the author of the original, remarked bookmark. Empty for
+	// plain bookmarks and when the original author's actor is unknown.
+	OriginalAuthorAcct          string
+	OriginalAuthorDisplayedName string
+	OriginalWebURL              string
 
 	Title       string
 	URL         string
+	WebURL      string
 	Description template.HTML
 	Tags        []Tag
 	PublishedAt time.Time

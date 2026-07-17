@@ -44,6 +44,23 @@ func (repo *RepoRemoteBookmarks) GetActorIDFor(bookmarkID string) (string, error
 	return actorID, err
 }
 
+func (repo *RepoRemoteBookmarks) GetRemoteBookmarkByID(bookmarkID string) (types.RemoteBookmark, bool) {
+	row := db.QueryRow(`
+select ID, RemarkedID, ActorID, BookmarkTitle, HTML, Source, SourceType, PublishedAt, UpdatedAt, BookmarkedURL, WebURL
+from Timeline
+where ID = ?`, bookmarkID)
+
+	var (
+		b          types.RemoteBookmark
+		sourceType sql.NullString
+	)
+	if err := row.Scan(&b.ID, &b.RemarkedID, &b.ActorID, &b.Title, &b.DescriptionHTML, &b.Source, &sourceType, &b.PublishedAt, &b.UpdatedAt, &b.URL, &b.WebURL); err != nil {
+		return types.RemoteBookmark{}, false
+	}
+	b.SourceType = types.SourceTypeFromDB(sourceType)
+	return b, true
+}
+
 func (repo *RepoRemoteBookmarks) Delete(ctx context.Context, bookmarkID string) error {
 	_, err := db.ExecContext(ctx, `delete from Timeline where ID = ?`, bookmarkID)
 	return err
@@ -56,7 +73,7 @@ func (repo *RepoRemoteBookmarks) GetRemoteBookmarksBy(authorID string, page uint
 	total = querySingleValue[uint](`select count(ID) from Timeline where ActorID = ?`, authorID)
 
 	rows := mustQuery(`
-select ID, RemarkedID, ActorID, BookmarkTitle, HTML, Source, SourceType, PublishedAt, UpdatedAt, BookmarkedURL
+select ID, RemarkedID, ActorID, BookmarkTitle, HTML, Source, SourceType, PublishedAt, UpdatedAt, BookmarkedURL, WebURL
 from Timeline
 where ActorID = ?
 order by PublishedAt desc
@@ -69,7 +86,7 @@ offset (? * (? - 1))
 			b          types.RemoteBookmark
 			sourceType sql.NullString
 		)
-		mustScan(rows, &b.ID, &b.RepostOf, &b.ActorID, &b.Title, &b.DescriptionHTML, &b.Source, &sourceType, &b.PublishedAt, &b.UpdatedAt, &b.URL)
+		mustScan(rows, &b.ID, &b.RemarkedID, &b.ActorID, &b.Title, &b.DescriptionHTML, &b.Source, &sourceType, &b.PublishedAt, &b.UpdatedAt, &b.URL, &b.WebURL)
 		b.SourceType = types.SourceTypeFromDB(sourceType)
 		bookmarks = append(bookmarks, b)
 	}
@@ -95,7 +112,7 @@ inner join Following F on RB.ActorID = F.ActorID
 where F.AcceptedStatus = 1`)
 
 	rows := mustQuery(`
-select RB.ID, RB.RemarkedID, RB.ActorID, RB.BookmarkTitle, RB.HTML, RB.Source, RB.SourceType, RB.PublishedAt, RB.UpdatedAt, RB.BookmarkedURL
+select RB.ID, RB.RemarkedID, RB.ActorID, RB.BookmarkTitle, RB.HTML, RB.Source, RB.SourceType, RB.PublishedAt, RB.UpdatedAt, RB.BookmarkedURL, RB.WebURL
 from Timeline RB
 inner join Following F on RB.ActorID = F.ActorID
 where F.AcceptedStatus = 1
@@ -109,7 +126,7 @@ offset (? * (? - 1))
 			b          types.RemoteBookmark
 			sourceType sql.NullString
 		)
-		mustScan(rows, &b.ID, &b.RepostOf, &b.ActorID, &b.Title, &b.DescriptionHTML, &b.Source, &sourceType, &b.PublishedAt, &b.UpdatedAt, &b.URL)
+		mustScan(rows, &b.ID, &b.RemarkedID, &b.ActorID, &b.Title, &b.DescriptionHTML, &b.Source, &sourceType, &b.PublishedAt, &b.UpdatedAt, &b.URL, &b.WebURL)
 		b.SourceType = types.SourceTypeFromDB(sourceType)
 		bookmarks = append(bookmarks, b)
 	}
@@ -130,11 +147,11 @@ offset (? * (? - 1))
 func (repo *RepoRemoteBookmarks) InsertRemoteBookmark(b types.RemoteBookmark) {
 	mustExec(`
 insert into Timeline
-    (ID, RemarkedID, ActorID, BookmarkTitle, BookmarkedURL, HTML, Source, SourceType, PublishedAt, UpdatedAt, Activity)
+    (ID, RemarkedID, ActorID, BookmarkTitle, BookmarkedURL, WebURL, HTML, Source, SourceType, PublishedAt, UpdatedAt, Activity)
 values
-	(?, ?, ?, ?, ?, ?, ?, ?, ?, null, ?)
+	(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null, ?)
 on conflict do nothing`,
-		b.ID, b.RepostOf, b.ActorID, b.Title, b.URL, b.DescriptionHTML, b.Source, b.SourceType.ToDB(), b.PublishedAt, b.Activity)
+		b.ID, b.RemarkedID, b.ActorID, b.Title, b.URL, b.WebURL, b.DescriptionHTML, b.Source, b.SourceType.ToDB(), b.PublishedAt, b.Activity)
 
 	for _, tag := range b.Tags {
 		mustExec(`insert or replace into RemoteTags (Name, BookmarkID) values (?, ?)`, tag.Name, b.ID)
@@ -145,9 +162,9 @@ func (repo *RepoRemoteBookmarks) UpdateRemoteBookmark(b types.RemoteBookmark) {
 	// Only own bookmarks can be updated. Ownership can't be changed this way. Publishing date too. The id remains.
 	mustExec(`
 update Timeline
-set BookmarkTitle = ?, HTML = ?, Source = ?, SourceType = ?, UpdatedAt = ?, Activity = ?, BookmarkedURL = ?
+set BookmarkTitle = ?, HTML = ?, Source = ?, SourceType = ?, UpdatedAt = ?, Activity = ?, BookmarkedURL = ?, WebURL = ?
 where ID = ?`,
-		b.Title, b.DescriptionHTML, b.Source, b.SourceType.ToDB(), b.UpdatedAt, b.Activity, b.URL, b.ID)
+		b.Title, b.DescriptionHTML, b.Source, b.SourceType.ToDB(), b.UpdatedAt, b.Activity, b.URL, b.WebURL, b.ID)
 
 	mustExec(`delete from RemoteTags where BookmarkID = ?`, b.ID)
 
