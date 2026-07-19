@@ -22,12 +22,14 @@ import (
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
+	"git.sr.ht/~bouncepaw/betula/svc/activitypub/parsing"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 var actorRepo = db.NewActorRepo()
+var noteParser = parsing.NewNoteParser()
 
 type Request struct {
 	Version string `json:"version"`
@@ -51,8 +53,8 @@ type Provider interface {
 }
 
 type response struct {
-	MoreAvailable int               `json:"more_available"`
-	Bookmarks     []activities.Dict `json:"bookmarks"`
+	MoreAvailable int            `json:"more_available"`
+	Bookmarks     []apports.Dict `json:"bookmarks"`
 }
 
 // State is the current state of a federated search request from
@@ -258,7 +260,7 @@ func (s *State) doRequest(i int, req Request,
 
 	var foundBookmarks []types.RemoteBookmark
 	for _, bookmark := range resp.Bookmarks {
-		bm, err := activities.RemoteBookmarkFromDict(bookmark)
+		bm, err := noteParser.BookmarkFromNote(bookmark)
 		if err != nil {
 			slog.Error("Failed to unmarshal bookmark", "err", err, "bookmark", bm, "i", i)
 			continue

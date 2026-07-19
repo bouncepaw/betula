@@ -80,7 +80,7 @@ type (
 		// FIXME: remove this thing, always get the key.
 	}
 
-	Dict map[string]any
+	Dict = map[string]any
 	//nolint:interfacebloat // This is probably forever.
 	Assembly interface {
 		NewLike(likedObjectID, recipientID string) (json.RawMessage, error)
@@ -95,5 +95,29 @@ type (
 		UpdateNote(post types.Bookmark) (json.RawMessage, error)
 		UpdateNoteWithLikes(post types.Bookmark, likeCounter int) (json.RawMessage, error)
 		NoteFromBookmark(bookmark types.Bookmark) (Dict, error)
+	}
+
+	NoteParser interface {
+		BookmarkFromNote(object Dict) (*types.RemoteBookmark, error)
+		GuessCreateNote(activity Dict) (any, error)
+		GuessUpdateNote(activity Dict) (any, error)
+		GuessDeleteNote(activity Dict) (any, error)
+	}
+
+	FollowParser interface {
+		GuessFollow(activity Dict) (any, error)
+		GuessAccept(activity Dict) (any, error)
+		GuessReject(activity Dict) (any, error)
+		GuessUndoFollow(object Dict) (any, error)
+	}
+
+	LikeParser interface {
+		GuessLike(activity Dict) (any, error)
+		GuessUndoLike(activity, object Dict) (any, error)
+	}
+
+	AnnounceParser interface {
+		GuessAnnounce(activity Dict) (any, error)
+		GuessUndoAnnounce(object Dict) (any, error)
 	}
 )

@@ -15,7 +15,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -37,12 +37,12 @@ func fetchFedi(uri string) (*types.Bookmark, error) {
 	}
 	defer resp.Body.Close()
 
-	var object activities.Dict
+	var object apports.Dict
 	if err := json.NewDecoder(io.LimitReader(resp.Body, 128_000)).Decode(&object); err != nil {
 		return nil, err
 	}
 
-	bookmark, err := activities.RemoteBookmarkFromDict(object)
+	bookmark, err := noteParser.BookmarkFromNote(object)
 	if err != nil {
 		return nil, err
 	}

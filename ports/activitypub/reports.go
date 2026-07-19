@@ -14,9 +14,6 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-// Reports are the results of parsing incoming ActivityPub activities. They are
-// produced by the activity parsers and consumed by the inbox handler.
-
 type (
 	AcceptReport struct {
 		ActorID  string
@@ -100,8 +97,6 @@ func (lr LikeReport) Valid() error {
 	}
 }
 
-// Collection is a shrunk ActivityPub collection. It carries only the counters,
-// not the items themselves.
 type Collection struct {
 	ID         *string `json:"id"`
 	Type       string  `json:"type"`

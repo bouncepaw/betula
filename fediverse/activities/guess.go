@@ -9,18 +9,45 @@ package activities
 import (
 	"encoding/json"
 	"log/slog"
+
+	"git.sr.ht/~bouncepaw/betula/svc/activitypub/parsing"
+)
+
+var (
+	noteParser     = parsing.NewNoteParser()
+	followParser   = parsing.NewFollowParser()
+	likeParser     = parsing.NewLikeParser()
+	announceParser = parsing.NewAnnounceParser()
 )
 
 var guesserMap = map[string]func(Dict) (any, error){
-	"Announce": guessAnnounce,
+	"Announce": announceParser.GuessAnnounce,
 	"Undo":     guessUndo,
-	"Follow":   guessFollow,
-	"Accept":   guessAccept,
-	"Reject":   guessReject,
-	"Create":   guessCreateNote,
-	"Update":   guessUpdateNote,
-	"Delete":   guessDeleteNote,
-	"Like":     guessLike,
+	"Follow":   followParser.GuessFollow,
+	"Accept":   followParser.GuessAccept,
+	"Reject":   followParser.GuessReject,
+	"Create":   noteParser.GuessCreateNote,
+	"Update":   noteParser.GuessUpdateNote,
+	"Delete":   noteParser.GuessDeleteNote,
+	"Like":     likeParser.GuessLike,
+}
+
+func guessUndo(activity Dict) (any, error) {
+	objectMap, ok := activity["object"].(Dict)
+	if !ok {
+		return nil, ErrNoObject
+	}
+
+	switch objectMap["type"] {
+	case "Announce":
+		return announceParser.GuessUndoAnnounce(objectMap)
+	case "Follow":
+		return followParser.GuessUndoFollow(objectMap)
+	case "Like":
+		return likeParser.GuessUndoLike(activity, objectMap)
+	default:
+		return nil, ErrUnknownType
+	}
 }
 
 func Guess(raw []byte) (report any, err error) {

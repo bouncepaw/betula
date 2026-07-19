@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
+	"git.sr.ht/~bouncepaw/betula/svc/activitypub/parsing"
 	"github.com/nalgeon/be"
 )
 
@@ -98,8 +99,8 @@ var table = []struct {
 		AnnounceID: "https://links.alice/84",
 		ObjectID:   "https://links.bob/42",
 	}},
-	{jsonNoId, ErrNoId, nil},
-	{jsonBadId, ErrNoId, nil},
+	{jsonNoId, parsing.ErrNoId, nil},
+	{jsonBadId, parsing.ErrNoId, nil},
 	{badJson, errors.New("invalid character 'L' looking for beginning of value"), nil},
 	{jsonSallyOffered, ErrUnknownType, nil},
 	// one might want to write many more tests

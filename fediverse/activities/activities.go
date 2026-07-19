@@ -9,46 +9,9 @@ package activities
 
 import (
 	"errors"
-	"time"
 
-	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
-	"git.sr.ht/~bouncepaw/betula/types"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 )
-
-func getIDSomehow(activity Dict, field string) string {
-	m, ok := activity[field]
-	if !ok {
-		return ""
-	}
-	switch v := m.(type) {
-	case string:
-		if bxstr.IsValidURL(v) {
-			return v
-		}
-		return ""
-	}
-	for k, v := range m.(Dict) {
-		if k != "id" {
-			continue
-		}
-		switch v := v.(type) {
-		case string:
-			return v
-		default:
-			return ""
-		}
-	}
-	return ""
-}
-
-func getTime(object Dict, field string) string {
-	rfc3339 := getString(object, field)
-	t, err := time.Parse(time.RFC3339, rfc3339)
-	if err != nil {
-		return ""
-	}
-	return t.Format(types.TimeLayout)
-}
 
 func getString(activity Dict, field string) string {
 	m := activity[field]
@@ -59,15 +22,10 @@ func getString(activity Dict, field string) string {
 	return ""
 }
 
-type Dict = map[string]any
+type Dict = apports.Dict
 
 var (
-	ErrNoType       = errors.New("activities: type absent or invalid")
-	ErrNoActor      = errors.New("activities: actor absent or invalid")
-	ErrUnknownType  = errors.New("activities: unknown activity type")
-	ErrNoId         = errors.New("activities: id absent or invalid")
-	ErrNoObject     = errors.New("activities: object absent or invalid")
-	ErrEmptyField   = errors.New("activities: empty field")
-	ErrNotNote      = errors.New("activities: not a Note")
-	ErrHostMismatch = errors.New("activities: host mismatch")
+	ErrNoType      = errors.New("activities: type absent or invalid")
+	ErrUnknownType = errors.New("activities: unknown activity type")
+	ErrNoObject    = errors.New("activities: object absent or invalid")
 )
