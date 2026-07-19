@@ -7,6 +7,7 @@ package assembly
 import (
 	"encoding/base64"
 	"encoding/json"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"path"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
@@ -14,7 +15,7 @@ import (
 
 func (asm *Assembler) NewLike(likedObjectID, recipientID string) (json.RawMessage, error) {
 	encID := base64.URLEncoding.EncodeToString([]byte(likedObjectID))
-	activity := Dict{
+	activity := apports.Dict{
 		"@context": atContext,
 		"id":       path.Join(asm.siteURLFn(), "likes", encID),
 		"type":     "Like",
@@ -27,13 +28,13 @@ func (asm *Assembler) NewLike(likedObjectID, recipientID string) (json.RawMessag
 
 func (asm *Assembler) NewUndoLike(likedObjectID, recipientID string) (json.RawMessage, error) {
 	encID := base64.URLEncoding.EncodeToString([]byte(likedObjectID))
-	activity := Dict{
+	activity := apports.Dict{
 		"@context": atContext,
 		"id":       path.Join(asm.siteURLFn(), "temp", bxstr.RandomWhatever()),
 		"type":     "Undo",
 		"actor":    asm.actor(),
 		"to":       recipientID,
-		"object": Dict{
+		"object": apports.Dict{
 			"actor":  asm.actor(),
 			"id":     path.Join(asm.siteURLFn(), "likes", encID),
 			"object": likedObjectID,

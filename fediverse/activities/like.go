@@ -5,32 +5,11 @@
 package activities
 
 import (
-	"encoding/json"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 )
 
-// LikeReport reports that actor with ActorID liked the object with ObjectID.
-type LikeReport struct {
-	ID       string
-	ActorID  string
-	ObjectID string
-	Activity json.RawMessage
-}
-
-func (lr LikeReport) Valid() error {
-	switch {
-	case lr.ID == "":
-		return ErrNoId
-	case lr.ActorID == "":
-		return ErrNoActor
-	case lr.ObjectID == "":
-		return ErrNoObject
-	default:
-		return nil
-	}
-}
-
 func guessLike(activity Dict) (any, error) {
-	report := LikeReport{
+	report := apports.LikeReport{
 		ID:       getIDSomehow(activity, "id"),
 		ActorID:  getIDSomehow(activity, "actor"),
 		ObjectID: getIDSomehow(activity, "object"),

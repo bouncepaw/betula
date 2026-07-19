@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"strings"
 	"time"
 
@@ -20,7 +21,7 @@ import (
 
 func (asm *Assembler) DeleteNote(postID int) (json.RawMessage, error) {
 	id := fmt.Sprintf("%s/%d", asm.siteURLFn(), postID)
-	activity := Dict{
+	activity := apports.Dict{
 		"@context": atContext,
 		"type":     "Delete",
 		"actor":    asm.actor(),
@@ -34,7 +35,7 @@ func (asm *Assembler) DeleteNote(postID int) (json.RawMessage, error) {
 	return json.Marshal(activity)
 }
 
-func (asm *Assembler) NoteFromBookmark(bookmark types.Bookmark) (Dict, error) {
+func (asm *Assembler) NoteFromBookmark(bookmark types.Bookmark) (apports.Dict, error) {
 	if bookmark.ID == 0 {
 		return nil, errors.New("an empty ID was passed")
 	}
@@ -75,7 +76,7 @@ func (asm *Assembler) NoteFromBookmark(bookmark types.Bookmark) (Dict, error) {
 				))
 
 			// https://docs.joinmastodon.org/spec/activitypub/#Hashtag
-			tags = append(tags, Dict{
+			tags = append(tags, apports.Dict{
 				"type": "Hashtag",
 				"name": "#" + tag.Name, // The # is needed
 				"href": fmt.Sprintf("%s/tag/%s", asm.siteURLFn(), tag.Name),
@@ -84,10 +85,10 @@ func (asm *Assembler) NoteFromBookmark(bookmark types.Bookmark) (Dict, error) {
 		content.WriteString("</p>")
 	}
 
-	object := Dict{
+	object := apports.Dict{
 		"@context": []any{
 			atContext,
-			Dict{
+			apports.Dict{
 				"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
 			},
 		},
@@ -103,7 +104,7 @@ func (asm *Assembler) NoteFromBookmark(bookmark types.Bookmark) (Dict, error) {
 			strings.ReplaceAll(content.String(), "\t", ""),
 			">\n", ">"),
 		"name": bookmark.Title,
-		"attachment": []Dict{
+		"attachment": []apports.Dict{
 			{ // Lemmy-style.
 				"href": bookmark.URL,
 				"type": "Link",
@@ -123,7 +124,7 @@ func (asm *Assembler) NoteFromBookmark(bookmark types.Bookmark) (Dict, error) {
 	return object, nil
 }
 
-func (asm *Assembler) makeNoteAction(bookmark types.Bookmark) (Dict, error) {
+func (asm *Assembler) makeNoteAction(bookmark types.Bookmark) (apports.Dict, error) {
 	object, err := asm.NoteFromBookmark(bookmark)
 	if err != nil {
 		return nil, err
@@ -131,10 +132,10 @@ func (asm *Assembler) makeNoteAction(bookmark types.Bookmark) (Dict, error) {
 
 	delete(object, "@context")
 
-	activity := Dict{
+	activity := apports.Dict{
 		"@context": []any{
 			atContext,
-			Dict{
+			apports.Dict{
 				"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
 			},
 		},
@@ -161,7 +162,7 @@ func (asm *Assembler) UpdateNote(post types.Bookmark) (json.RawMessage, error) {
 	}
 	activity["type"] = "Update"
 	activity["id"] = fmt.Sprintf("%s/%d?update", asm.siteURLFn(), post.ID)
-	activity["object"].(Dict)["updated"] = time.Now().UTC().Format(time.RFC3339)
+	activity["object"].(apports.Dict)["updated"] = time.Now().UTC().Format(time.RFC3339)
 	return json.Marshal(activity)
 }
 
@@ -172,10 +173,10 @@ func (asm *Assembler) UpdateNoteWithLikes(post types.Bookmark, likeCounter int) 
 	}
 	activity["type"] = "Update"
 	activity["id"] = fmt.Sprintf("%s/%d?update", asm.siteURLFn(), post.ID)
-	activity["object"].(Dict)["updated"] = time.Now().UTC().Format(time.RFC3339)
+	activity["object"].(apports.Dict)["updated"] = time.Now().UTC().Format(time.RFC3339)
 
 	likeCollectionID := fmt.Sprintf("%s/%d?likes", asm.siteURLFn(), post.ID)
-	activity["object"].(Dict)["likes"] = Collection{
+	activity["object"].(apports.Dict)["likes"] = apports.Collection{
 		ID:         &likeCollectionID,
 		Type:       "Collection",
 		TotalItems: likeCounter,

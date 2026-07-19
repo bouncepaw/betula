@@ -16,6 +16,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/remarking"
 )
@@ -39,7 +40,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	switch report := report.(type) {
-	case activities.CreateNoteReport:
+	case apports.CreateNoteReport:
 		status, err := ctrl.RepoActor.SubscriptionStatus(rq.Context(), report.Bookmark.ActorID)
 		if err != nil {
 			slog.Error("Failed to get subscription status", "actorID", report.Bookmark.ActorID, "err", err)
@@ -67,7 +68,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			}
 		}
 
-	case activities.UpdateNoteReport:
+	case apports.UpdateNoteReport:
 		exists, err := ctrl.RepoRemoteBookmark.Exists(report.Bookmark.ID)
 		if err != nil {
 			slog.Error("Failed to check if bookmark exists", "err", err, "bookmarkID", report.Bookmark.ID)
@@ -100,7 +101,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			}
 		}
 
-	case activities.DeleteNoteReport:
+	case apports.DeleteNoteReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
 			slog.Error("Failed to fetch actor", "err", err)
@@ -117,7 +118,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			slog.Error("Failed to delete remote bookmark", "err", err)
 		}
 
-	case activities.UndoAnnounceReport:
+	case apports.UndoAnnounceReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
 			slog.Error("Failed to fetch actor", "err", err)
@@ -137,7 +138,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			slog.Error("Failed to receive legacy unremark", "err", err, "event", event)
 		}
 
-	case activities.AnnounceReport:
+	case apports.AnnounceReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
 			slog.Error("Failed to fetch actor", "err", err)
@@ -158,7 +159,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			slog.Error("Failed to receive legacy remark", "err", err, "event", event)
 		}
 
-	case activities.UndoFollowReport:
+	case apports.UndoFollowReport:
 		// We'll schedule no job because we are making no network request to handle this.
 		if report.ObjectID != fediverse.OurID() {
 			slog.Info("Unfollow request for someone else, ignoring", "actorID", report.ActorID, "objectID", report.ObjectID)
@@ -179,7 +180,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 
-	case activities.FollowReport:
+	case apports.FollowReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
 			slog.Error("Failed to fetch actor", "err", err)
@@ -198,7 +199,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
 		}
 
-	case activities.AcceptReport:
+	case apports.AcceptReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
 			slog.Error("Failed to fetch actor", "err", err)
@@ -211,7 +212,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 
 		switch report.Object["type"] {
 		case "Follow":
-			report := activities.FollowReport{
+			report := apports.FollowReport{
 				ActorID:          bxstr.StringifyAnything(report.Object["actor"]),
 				ObjectID:         bxstr.StringifyAnything(report.Object["object"]),
 				OriginalActivity: report.Object,
@@ -219,7 +220,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			jobs.ScheduleJSON(jobtype.ReceiveAcceptFollow, report)
 		}
 
-	case activities.RejectReport:
+	case apports.RejectReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
 			slog.Error("Failed to fetch actor", "err", err)
@@ -232,7 +233,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 
 		switch report.Object["type"] {
 		case "Follow":
-			report := activities.FollowReport{
+			report := apports.FollowReport{
 				ActorID:          bxstr.StringifyAnything(report.Object["actor"]),
 				ObjectID:         bxstr.StringifyAnything(report.Object["object"]),
 				OriginalActivity: report.Object,
@@ -240,7 +241,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			jobs.ScheduleJSON(jobtype.ReceiveRejectFollow, report)
 		}
 
-	case activities.LikeReport:
+	case apports.LikeReport:
 		_, err := fediverse.RequestActorByID(report.ActorID)
 		if err != nil {
 			slog.Error("Failed to fetch actor", "err", err)
@@ -265,7 +266,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			return
 		}
 
-	case activities.UndoLikeReport:
+	case apports.UndoLikeReport:
 		_, err := fediverse.RequestActorByID(report.Object.ActorID)
 		if err != nil {
 			slog.Error("Failed to fetch actor", "err", err)

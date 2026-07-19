@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"testing"
 
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"github.com/nalgeon/be"
 )
 
@@ -92,7 +93,7 @@ var table = []struct {
 	err    error
 	report any
 }{
-	{json1, nil, AnnounceReport{
+	{json1, nil, apports.AnnounceReport{
 		ActorID:    "https://links.alice",
 		AnnounceID: "https://links.alice/84",
 		ObjectID:   "https://links.bob/42",
@@ -113,8 +114,8 @@ func TestGuess(t *testing.T) {
 		}
 		be.Equal(t, reflect.TypeOf(report), reflect.TypeOf(test.report))
 		switch r := test.report.(type) {
-		case AnnounceReport:
-			be.Equal(t, r, report.(AnnounceReport))
+		case apports.AnnounceReport:
+			be.Equal(t, r, report.(apports.AnnounceReport))
 		default:
 			panic("how did this happen")
 		}

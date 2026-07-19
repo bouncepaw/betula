@@ -9,15 +9,16 @@ package assembly
 import (
 	"encoding/json"
 	"fmt"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 )
 
 func (asm *Assembler) NewUndoFollowFromUs(objectID string) (json.RawMessage, error) {
-	activity := Dict{
+	activity := apports.Dict{
 		"@context": atContext,
 		"id":       fmt.Sprintf("%s/unfollow?account=%s", asm.siteURLFn(), objectID),
 		"type":     "Undo",
 		"actor":    asm.actor(),
-		"object": Dict{
+		"object": apports.Dict{
 			"id":     fmt.Sprintf("%s/follow?account=%s", asm.siteURLFn(), objectID),
 			"type":   "Follow",
 			"actor":  asm.actor(),
@@ -28,7 +29,7 @@ func (asm *Assembler) NewUndoFollowFromUs(objectID string) (json.RawMessage, err
 }
 
 func (asm *Assembler) NewFollowFromUs(objectID string) (json.RawMessage, error) {
-	activity := Dict{
+	activity := apports.Dict{
 		"@context": atContext,
 		"id":       fmt.Sprintf("%s/follow?account=%s", asm.siteURLFn(), objectID),
 		"type":     "Follow",

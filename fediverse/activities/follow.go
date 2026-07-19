@@ -4,14 +4,12 @@
 
 package activities
 
-type FollowReport struct {
-	ActorID          string
-	ObjectID         string
-	OriginalActivity Dict
-}
+import (
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
+)
 
 func guessFollow(activity Dict) (any, error) {
-	report := FollowReport{
+	report := apports.FollowReport{
 		ActorID:          getIDSomehow(activity, "actor"),
 		ObjectID:         getIDSomehow(activity, "object"),
 		OriginalActivity: activity,

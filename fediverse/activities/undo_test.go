@@ -8,6 +8,7 @@ package activities
 import (
 	"testing"
 
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"github.com/nalgeon/be"
 )
 
@@ -29,7 +30,7 @@ var undoFollowJSON = []byte(`
 func TestGuessUndoFollow(t *testing.T) {
 	report, err := Guess(undoFollowJSON)
 	be.Err(t, err, nil)
-	undoFollowReport, ok := report.(UndoFollowReport)
+	undoFollowReport, ok := report.(apports.UndoFollowReport)
 	be.True(t, ok)
 	// and just a little check
 	be.Equal(t, undoFollowReport.ActorID, "https://bob.bouncepaw.com/@bob")

@@ -5,14 +5,12 @@
 
 package activities
 
-type AcceptReport struct {
-	ActorID  string
-	ObjectID string
-	Object   Dict
-}
+import (
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
+)
 
 func guessAccept(activity Dict) (any, error) {
-	report := AcceptReport{
+	report := apports.AcceptReport{
 		ActorID:  getIDSomehow(activity, "actor"),
 		ObjectID: getIDSomehow(activity, "object"),
 	}

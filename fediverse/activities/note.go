@@ -13,25 +13,8 @@ import (
 	"strings"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/types"
-)
-
-type (
-	CreateNoteReport struct {
-		Bookmark        types.RemoteBookmark
-		LikesCollection *Collection
-	}
-
-	UpdateNoteReport struct {
-		Bookmark        types.RemoteBookmark
-		ActorID         string
-		LikesCollection *Collection
-	}
-
-	DeleteNoteReport struct {
-		ActorID    string
-		BookmarkID string
-	}
 )
 
 func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error) {
@@ -146,7 +129,7 @@ func guessCreateNote(activity Dict) (report any, err error) {
 	}
 	bookmark.Activity = activity["original activity"].([]byte)
 
-	cnr := CreateNoteReport{
+	cnr := apports.CreateNoteReport{
 		Bookmark: *bookmark,
 	}
 
@@ -175,7 +158,7 @@ func guessUpdateNote(activity Dict) (report any, err error) {
 	}
 	bookmark.Activity = activity["original activity"].([]byte)
 
-	unr := UpdateNoteReport{
+	unr := apports.UpdateNoteReport{
 		ActorID:  getIDSomehow(activity, "actor"),
 		Bookmark: *bookmark,
 	}
@@ -198,7 +181,7 @@ func guessUpdateNote(activity Dict) (report any, err error) {
 }
 
 func guessDeleteNote(activity Dict) (report any, err error) {
-	deletion := DeleteNoteReport{
+	deletion := apports.DeleteNoteReport{
 		ActorID:    getIDSomehow(activity, "actor"),
 		BookmarkID: getIDSomehow(activity, "object"),
 	}

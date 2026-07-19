@@ -7,26 +7,12 @@
 package activities
 
 import (
-	"encoding/json"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 )
-
-type UndoAnnounceReport struct {
-	AnnounceReport
-}
-
-type UndoFollowReport struct {
-	FollowReport
-}
-
-type UndoLikeReport struct {
-	ID       string
-	Object   LikeReport
-	Activity json.RawMessage
-}
 
 func guessUndo(activity Dict) (reportMaybe any, err error) {
 	var (
-		report    UndoAnnounceReport
+		report    apports.UndoAnnounceReport
 		objectMap Dict
 	)
 
@@ -66,7 +52,7 @@ func guessUndo(activity Dict) (reportMaybe any, err error) {
 		if err != nil {
 			return nil, err
 		}
-		return UndoFollowReport{followReport.(FollowReport)}, nil
+		return apports.UndoFollowReport{FollowReport: followReport.(apports.FollowReport)}, nil
 
 	case "Like":
 		if objectMap == nil {
@@ -76,9 +62,9 @@ func guessUndo(activity Dict) (reportMaybe any, err error) {
 		if err != nil {
 			return nil, err
 		}
-		return UndoLikeReport{
+		return apports.UndoLikeReport{
 			ID:       getIDSomehow(activity, "id"),
-			Object:   likeReport.(LikeReport),
+			Object:   likeReport.(apports.LikeReport),
 			Activity: activity["original activity"].([]byte),
 		}, nil
 

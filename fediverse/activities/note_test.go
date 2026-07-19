@@ -10,6 +10,7 @@ import (
 	"io"
 	"testing"
 
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"github.com/nalgeon/be"
 )
 
@@ -29,7 +30,7 @@ func TestGuessCreateNote(t *testing.T) {
 
 	report, err := Guess(raw)
 	be.Err(t, err, nil)
-	r, ok := report.(CreateNoteReport)
+	r, ok := report.(apports.CreateNoteReport)
 	be.True(t, ok)
 	be.Equal(t, len(r.Bookmark.Tags), 1)
 }

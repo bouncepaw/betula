@@ -9,13 +9,14 @@ package assembly
 import (
 	"encoding/json"
 	"fmt"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 )
 
-func (asm *Assembler) NewReject(rejectedActivity Dict) (json.RawMessage, error) {
+func (asm *Assembler) NewReject(rejectedActivity apports.Dict) (json.RawMessage, error) {
 	delete(rejectedActivity, "@context")
-	activity := Dict{
+	activity := apports.Dict{
 		"@context": atContext,
 		"id":       fmt.Sprintf("%s/temp/%s", asm.siteURLFn(), bxstr.RandomWhatever()),
 		"type":     "Reject",

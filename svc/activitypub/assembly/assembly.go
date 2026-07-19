@@ -15,8 +15,6 @@ import (
 const atContext = "https://www.w3.org/ns/activitystreams"
 const publicAudience = "https://www.w3.org/ns/activitystreams#Public"
 
-type Dict = apports.Dict
-
 type Assembler struct {
 	siteURLFn       func() string
 	adminUsernameFn func() string

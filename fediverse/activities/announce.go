@@ -8,13 +8,8 @@ package activities
 
 import (
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 )
-
-type AnnounceReport struct {
-	ActorID    string
-	AnnounceID string // id of the repost
-	ObjectID   string // object that was reposted
-}
 
 func mustHaveSuchField[T any](activity Dict, field string, errOnLack error, lambdaOnPresence func(T)) error {
 	if val, ok := activity[field]; !ok {
@@ -31,7 +26,7 @@ func mustHaveSuchField[T any](activity Dict, field string, errOnLack error, lamb
 }
 
 func guessAnnounce(activity Dict) (reportMaybe any, err error) {
-	report := AnnounceReport{
+	report := apports.AnnounceReport{
 		ActorID:    getIDSomehow(activity, "actor"),
 		AnnounceID: getIDSomehow(activity, "id"),
 		ObjectID:   getIDSomehow(activity, "object"),
