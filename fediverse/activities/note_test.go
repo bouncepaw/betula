@@ -28,7 +28,7 @@ func TestGuessCreateNote(t *testing.T) {
 		panic(err)
 	}
 
-	report, err := Guess(raw)
+	report, err := testGuesser.Guess(raw)
 	be.Err(t, err, nil)
 	r, ok := report.(apports.CreateNoteReport)
 	be.True(t, ok)

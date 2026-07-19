@@ -28,7 +28,7 @@ var undoFollowJSON = []byte(`
 }`)
 
 func TestGuessUndoFollow(t *testing.T) {
-	report, err := Guess(undoFollowJSON)
+	report, err := testGuesser.Guess(undoFollowJSON)
 	be.Err(t, err, nil)
 	undoFollowReport, ok := report.(apports.UndoFollowReport)
 	be.True(t, ok)

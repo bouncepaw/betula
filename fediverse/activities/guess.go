@@ -10,29 +10,43 @@ import (
 	"encoding/json"
 	"log/slog"
 
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/svc/activitypub/parsing"
 )
 
-var (
-	noteParser     = parsing.NewNoteParser()
-	followParser   = parsing.NewFollowParser()
-	likeParser     = parsing.NewLikeParser()
-	announceParser = parsing.NewAnnounceParser()
-)
+type Guesser struct {
+	guesserMap map[string]func(Dict) (any, error)
 
-var guesserMap = map[string]func(Dict) (any, error){
-	"Announce": announceParser.GuessAnnounce,
-	"Undo":     guessUndo,
-	"Follow":   followParser.GuessFollow,
-	"Accept":   followParser.GuessAccept,
-	"Reject":   followParser.GuessReject,
-	"Create":   noteParser.GuessCreateNote,
-	"Update":   noteParser.GuessUpdateNote,
-	"Delete":   noteParser.GuessDeleteNote,
-	"Like":     likeParser.GuessLike,
+	noteParser     apports.NoteParser
+	followParser   apports.FollowParser
+	likeParser     apports.LikeParser
+	announceParser apports.AnnounceParser
 }
 
-func guessUndo(activity Dict) (any, error) {
+var _ apports.Guesser = (*Guesser)(nil)
+
+func NewGuesser() *Guesser {
+	g := &Guesser{
+		noteParser:     parsing.NewNoteParser(),
+		followParser:   parsing.NewFollowParser(),
+		likeParser:     parsing.NewLikeParser(),
+		announceParser: parsing.NewAnnounceParser(),
+	}
+	g.guesserMap = map[string]func(Dict) (any, error){
+		"Announce": g.announceParser.GuessAnnounce,
+		"Undo":     g.guessUndo,
+		"Follow":   g.followParser.GuessFollow,
+		"Accept":   g.followParser.GuessAccept,
+		"Reject":   g.followParser.GuessReject,
+		"Create":   g.noteParser.GuessCreateNote,
+		"Update":   g.noteParser.GuessUpdateNote,
+		"Delete":   g.noteParser.GuessDeleteNote,
+		"Like":     g.likeParser.GuessLike,
+	}
+	return g
+}
+
+func (g *Guesser) guessUndo(activity Dict) (any, error) {
 	objectMap, ok := activity["object"].(Dict)
 	if !ok {
 		return nil, ErrNoObject
@@ -40,17 +54,17 @@ func guessUndo(activity Dict) (any, error) {
 
 	switch objectMap["type"] {
 	case "Announce":
-		return announceParser.GuessUndoAnnounce(objectMap)
+		return g.announceParser.GuessUndoAnnounce(objectMap)
 	case "Follow":
-		return followParser.GuessUndoFollow(objectMap)
+		return g.followParser.GuessUndoFollow(objectMap)
 	case "Like":
-		return likeParser.GuessUndoLike(activity, objectMap)
+		return g.likeParser.GuessUndoLike(activity, objectMap)
 	default:
 		return nil, ErrUnknownType
 	}
 }
 
-func Guess(raw []byte) (report any, err error) {
+func (g *Guesser) Guess(raw []byte) (report any, err error) {
 	var (
 		activity = Dict{
 			"original activity": raw,
@@ -74,7 +88,7 @@ func Guess(raw []byte) (report any, err error) {
 			return nil, nil
 		}
 
-		f, ok := guesserMap[v]
+		f, ok := g.guesserMap[v]
 		if !ok {
 			slog.Info("Ignoring unknown kind of activity", "raw", json.RawMessage(raw))
 			return nil, ErrUnknownType

@@ -11,7 +11,6 @@ import (
 	"net/http"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
@@ -29,7 +28,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	report, err := activities.Guess(data)
+	report, err := ctrl.Guesser.Guess(data)
 	if err != nil {
 		slog.Error("Failed to parse incoming activity", "err", err)
 		return

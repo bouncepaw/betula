@@ -14,6 +14,8 @@ import (
 	"github.com/nalgeon/be"
 )
 
+var testGuesser = NewGuesser()
+
 func readParseGuess(t *testing.T, fileName string) (any, []byte) {
 	f, err := fs.Open(fmt.Sprintf("testdata/%s", fileName))
 	be.Err(t, err, nil)
@@ -21,7 +23,7 @@ func readParseGuess(t *testing.T, fileName string) (any, []byte) {
 	bs, err := io.ReadAll(f)
 	be.Err(t, err, nil)
 
-	report, err := Guess(bs)
+	report, err := testGuesser.Guess(bs)
 	be.Err(t, err, nil)
 
 	return report, bs

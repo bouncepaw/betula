@@ -108,7 +108,7 @@ var table = []struct {
 
 func TestGuess(t *testing.T) {
 	for _, test := range table {
-		report, err := Guess([]byte(test.json))
+		report, err := testGuesser.Guess([]byte(test.json))
 		be.True(t, !(test.err != nil && err.Error() != test.err.Error()))
 		if report == nil && test.report == nil {
 			continue

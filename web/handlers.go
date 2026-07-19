@@ -80,6 +80,7 @@ type Controller struct {
 	SvcFollow    apports.FollowService
 
 	Assembly      apports.Assembly
+	Guesser       apports.Guesser
 	ActivityPub   apports.ActivityPub
 	WWW           wwwports.WorldWideWeb
 	HTMLSanitizer wwwports.HTMLSanitizer
