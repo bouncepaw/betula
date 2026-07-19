@@ -3,13 +3,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package activities
+package parsing
 
 import (
 	"fmt"
 	"io"
 	"testing"
 
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"github.com/nalgeon/be"
 )
 
@@ -20,7 +21,7 @@ func readParseGuess(t *testing.T, fileName string) (any, []byte) {
 	bs, err := io.ReadAll(f)
 	be.Err(t, err, nil)
 
-	report, err := Guess(bs)
+	report, err := testGuesser.Guess(bs)
 	be.Err(t, err, nil)
 
 	return report, bs
@@ -33,7 +34,7 @@ func TestGuessLike(t *testing.T) {
 		t.Parallel()
 
 		report, bs := readParseGuess(t, "Like from GTS.json")
-		want := LikeReport{
+		want := apports.LikeReport{
 			ID:       "https://social.agor.ai/users/fish/liked/01KE2Z6HTKFHN4Z5S27JNTJNSG",
 			ActorID:  "https://social.agor.ai/users/fish",
 			ObjectID: "https://activitypub.academy/users/difricus_koloddath/statuses/115833494550206707",
@@ -46,7 +47,7 @@ func TestGuessLike(t *testing.T) {
 		t.Parallel()
 
 		report, bs := readParseGuess(t, "Like from Mastodon.json")
-		want := LikeReport{
+		want := apports.LikeReport{
 			ID:       "https://activitypub.academy/users/difricus_koloddath#likes/1374",
 			ActorID:  "https://activitypub.academy/users/difricus_koloddath",
 			ObjectID: "https://alice.bouncepaw.com/8",
@@ -63,9 +64,9 @@ func TestGuessUndoLike(t *testing.T) {
 		t.Parallel()
 
 		report, bs := readParseGuess(t, "Undo{Like} from GTS.json")
-		want := UndoLikeReport{
+		want := apports.UndoLikeReport{
 			ID: "https://social.agor.ai/01PHQBF5739JVDHNJTE14SSAB8",
-			Object: LikeReport{
+			Object: apports.LikeReport{
 				ID:       "https://social.agor.ai/users/fish/liked/01KE2Z6HTKFHN4Z5S27JNTJNSG",
 				ActorID:  "https://social.agor.ai/users/fish",
 				ObjectID: "https://activitypub.academy/users/difricus_koloddath/statuses/115833494550206707",
@@ -78,9 +79,9 @@ func TestGuessUndoLike(t *testing.T) {
 		t.Parallel()
 
 		report, bs := readParseGuess(t, "Undo{Like} from Mastodon.json")
-		want := UndoLikeReport{
+		want := apports.UndoLikeReport{
 			ID: "https://activitypub.academy/users/difricus_koloddath#likes/1374/undo",
-			Object: LikeReport{
+			Object: apports.LikeReport{
 				ID:       "https://activitypub.academy/users/difricus_koloddath#likes/1374",
 				ActorID:  "https://activitypub.academy/users/difricus_koloddath",
 				ObjectID: "https://alice.bouncepaw.com/8",

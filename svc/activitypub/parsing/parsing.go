@@ -4,18 +4,31 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// Package activities provides activity data extraction from JSON.
-package activities
+// Package parsing parses incoming ActivityPub objects and activities into
+// Betula's domain types. It is the inbound counterpart to package assembly.
+package parsing
 
 import (
 	"errors"
 	"time"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-func getIDSomehow(activity Dict, field string) string {
+var (
+	ErrNoType       = errors.New("type absent or invalid")
+	ErrUnknownType  = errors.New("unknown activity type")
+	ErrNotNote      = errors.New("not a Note")
+	ErrEmptyField   = errors.New("empty field")
+	ErrHostMismatch = errors.New("host mismatch")
+	ErrNoObject     = errors.New("object absent or invalid")
+	ErrNoActor      = errors.New("actor absent or invalid")
+	ErrNoId         = errors.New("id absent or invalid")
+)
+
+func getIDSomehow(activity apports.Dict, field string) string {
 	m, ok := activity[field]
 	if !ok {
 		return ""
@@ -27,7 +40,7 @@ func getIDSomehow(activity Dict, field string) string {
 		}
 		return ""
 	}
-	for k, v := range m.(Dict) {
+	for k, v := range m.(apports.Dict) {
 		if k != "id" {
 			continue
 		}
@@ -41,7 +54,7 @@ func getIDSomehow(activity Dict, field string) string {
 	return ""
 }
 
-func getTime(object Dict, field string) string {
+func getTime(object apports.Dict, field string) string {
 	rfc3339 := getString(object, field)
 	t, err := time.Parse(time.RFC3339, rfc3339)
 	if err != nil {
@@ -50,7 +63,7 @@ func getTime(object Dict, field string) string {
 	return t.Format(types.TimeLayout)
 }
 
-func getString(activity Dict, field string) string {
+func getString(activity apports.Dict, field string) string {
 	m := activity[field]
 	switch v := m.(type) {
 	case string:
@@ -58,16 +71,3 @@ func getString(activity Dict, field string) string {
 	}
 	return ""
 }
-
-type Dict = map[string]any
-
-var (
-	ErrNoType       = errors.New("activities: type absent or invalid")
-	ErrNoActor      = errors.New("activities: actor absent or invalid")
-	ErrUnknownType  = errors.New("activities: unknown activity type")
-	ErrNoId         = errors.New("activities: id absent or invalid")
-	ErrNoObject     = errors.New("activities: object absent or invalid")
-	ErrEmptyField   = errors.New("activities: empty field")
-	ErrNotNote      = errors.New("activities: not a Note")
-	ErrHostMismatch = errors.New("activities: host mismatch")
-)

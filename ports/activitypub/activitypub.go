@@ -80,7 +80,7 @@ type (
 		// FIXME: remove this thing, always get the key.
 	}
 
-	Dict map[string]any
+	Dict = map[string]any
 	//nolint:interfacebloat // This is probably forever.
 	Assembly interface {
 		NewLike(likedObjectID, recipientID string) (json.RawMessage, error)

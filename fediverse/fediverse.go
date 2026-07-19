@@ -27,6 +27,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/db"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/svc/activitypub/parsing"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -37,6 +38,7 @@ var client = http.Client{
 var (
 	actorRepo          = db.NewActorRepo()
 	remoteBookmarkRepo = db.NewRemoteBookmarkRepo()
+	noteParser         = parsing.NewNoteParser()
 )
 
 func renderRemoteDescription(

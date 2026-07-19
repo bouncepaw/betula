@@ -4,15 +4,22 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package activities
+package parsing
 
 import (
+	"embed"
 	"errors"
 	"reflect"
 	"testing"
 
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"github.com/nalgeon/be"
 )
+
+//go:embed testdata/*
+var fs embed.FS
+
+var testGuesser = NewGuesser()
 
 const json1 = `
 {
@@ -92,7 +99,7 @@ var table = []struct {
 	err    error
 	report any
 }{
-	{json1, nil, AnnounceReport{
+	{json1, nil, apports.AnnounceReport{
 		ActorID:    "https://links.alice",
 		AnnounceID: "https://links.alice/84",
 		ObjectID:   "https://links.bob/42",
@@ -106,15 +113,15 @@ var table = []struct {
 
 func TestGuess(t *testing.T) {
 	for _, test := range table {
-		report, err := Guess([]byte(test.json))
+		report, err := testGuesser.Guess([]byte(test.json))
 		be.True(t, !(test.err != nil && err.Error() != test.err.Error()))
 		if report == nil && test.report == nil {
 			continue
 		}
 		be.Equal(t, reflect.TypeOf(report), reflect.TypeOf(test.report))
 		switch r := test.report.(type) {
-		case AnnounceReport:
-			be.Equal(t, r, report.(AnnounceReport))
+		case apports.AnnounceReport:
+			be.Equal(t, r, report.(apports.AnnounceReport))
 		default:
 			panic("how did this happen")
 		}

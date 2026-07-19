@@ -15,9 +15,9 @@ import (
 
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/svc/activitypub/assembly"
 	"git.sr.ht/~bouncepaw/betula/types"
@@ -53,10 +53,10 @@ func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.J
 
 var catmap = map[jobtype.JobCategory]func(job jobtype.Job){
 	jobtype.SendAnnounce:        notifyAboutMyRepost,
-	jobtype.SendAcceptFollow:    callForJSON[activities.FollowReport](jobtype.SendAcceptFollow, sendAcceptFollow),
-	jobtype.SendRejectFollow:    callForJSON[activities.FollowReport](jobtype.SendRejectFollow, sendRejectFollow),
-	jobtype.ReceiveAcceptFollow: callForJSON[activities.FollowReport](jobtype.ReceiveAcceptFollow, receiveAcceptFollow),
-	jobtype.ReceiveRejectFollow: callForJSON[activities.FollowReport](jobtype.ReceiveRejectFollow, receiveRejectFollow),
+	jobtype.SendAcceptFollow:    callForJSON[apports.FollowReport](jobtype.SendAcceptFollow, sendAcceptFollow),
+	jobtype.SendRejectFollow:    callForJSON[apports.FollowReport](jobtype.SendRejectFollow, sendRejectFollow),
+	jobtype.ReceiveAcceptFollow: callForJSON[apports.FollowReport](jobtype.ReceiveAcceptFollow, receiveAcceptFollow),
+	jobtype.ReceiveRejectFollow: callForJSON[apports.FollowReport](jobtype.ReceiveRejectFollow, receiveRejectFollow),
 	jobtype.SendCreateNote:      broadcastToFollowers,
 	jobtype.SendDeleteNote:      broadcastToFollowers,
 	jobtype.SendUpdateNote:      broadcastToFollowers,
@@ -111,7 +111,7 @@ func broadcastToFollowers(job jobtype.Job) {
 	slog.Info("Sent to followers", "category", job.Category, "success", succSends, "total", len(followers))
 }
 
-func receiveAcceptFollow(report activities.FollowReport) {
+func receiveAcceptFollow(report apports.FollowReport) {
 	// We assume that they are actually talking about us, because we filtered out wrong activities in the inbox.
 
 	ctx := context.Background()
@@ -130,7 +130,7 @@ func receiveAcceptFollow(report activities.FollowReport) {
 	}
 }
 
-func receiveRejectFollow(report activities.FollowReport) {
+func receiveRejectFollow(report apports.FollowReport) {
 	// We assume that they are actually talking about us, because we filtered out wrong activities in the inbox.
 
 	ctx := context.Background()
@@ -149,7 +149,7 @@ func receiveRejectFollow(report activities.FollowReport) {
 	}
 }
 
-func sendRejectFollow(report activities.FollowReport) {
+func sendRejectFollow(report apports.FollowReport) {
 	if !bxstr.IsValidURL(report.ActorID) {
 		slog.Error("Invalid actor ID, dropping activity", "actorID", report.ActorID)
 	}
@@ -160,7 +160,7 @@ func sendRejectFollow(report activities.FollowReport) {
 	}
 }
 
-func sendAcceptFollow(report activities.FollowReport) {
+func sendAcceptFollow(report apports.FollowReport) {
 	if !bxstr.IsValidURL(report.ActorID) {
 		slog.Error("Dropping activity", "reason", "invalid actor ID", "actorID", report.ActorID)
 		return

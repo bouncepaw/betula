@@ -23,6 +23,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/settings"
 	apsvc "git.sr.ht/~bouncepaw/betula/svc/activitypub"
 	"git.sr.ht/~bouncepaw/betula/svc/activitypub/assembly"
+	"git.sr.ht/~bouncepaw/betula/svc/activitypub/parsing"
 	archivingsvc "git.sr.ht/~bouncepaw/betula/svc/archiving"
 	feedssvc "git.sr.ht/~bouncepaw/betula/svc/feeds"
 	helpingsvc "git.sr.ht/~bouncepaw/betula/svc/helping"
@@ -105,6 +106,7 @@ func newController() web.Controller {
 		htmlSanitizer  = wwwgw.NewSanitizer()
 		webfinger      = webfingergw.New()
 		asm            = assembly.New(settings.SiteURL, settings.AdminUsername)
+		guesser        = parsing.NewGuesser()
 
 		// One day, all shall be in services!
 		svcSettings  = settingssvc.New(repoSettings, "v1.8.1", settings.SiteDomain)
@@ -145,6 +147,7 @@ func newController() web.Controller {
 		WWW:           www,
 		HTMLSanitizer: htmlSanitizer,
 		Assembly:      asm,
+		Guesser:       guesser,
 
 		RepoRemoteBookmark: repoRemoteBookmark,
 		RepoActor:          repoActor,

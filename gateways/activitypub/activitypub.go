@@ -20,11 +20,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"git.sr.ht/~bouncepaw/betula/fediverse/activities"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/settings"
+	"git.sr.ht/~bouncepaw/betula/svc/activitypub/parsing"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -37,6 +37,8 @@ type ActivityPub struct {
 }
 
 var _ apports.ActivityPub = &ActivityPub{}
+
+var noteParser = parsing.NewNoteParser()
 
 func NewActivityPub(
 	actorRepo apports.ActorRepository,
@@ -195,12 +197,12 @@ func (ap *ActivityPub) DerefRemoteBookmark(ctx context.Context, id string) (type
 	}
 	defer resp.Body.Close()
 
-	var object activities.Dict
+	var object apports.Dict
 	if err := json.NewDecoder(io.LimitReader(resp.Body, 128_000)).Decode(&object); err != nil {
 		return types.RemoteBookmark{}, err
 	}
 
-	bookmark, err := activities.RemoteBookmarkFromDict(object)
+	bookmark, err := noteParser.BookmarkFromNote(object)
 	if err != nil {
 		return types.RemoteBookmark{}, err
 	}

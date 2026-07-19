@@ -4,37 +4,29 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package activities
+package parsing
 
 import (
 	"database/sql"
+	"encoding/json"
 	"html/template"
 	"slices"
 	"strings"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-type (
-	CreateNoteReport struct {
-		Bookmark        types.RemoteBookmark
-		LikesCollection *Collection
-	}
+type NoteParser struct{}
 
-	UpdateNoteReport struct {
-		Bookmark        types.RemoteBookmark
-		ActorID         string
-		LikesCollection *Collection
-	}
+var _ apports.NoteParser = (*NoteParser)(nil)
 
-	DeleteNoteReport struct {
-		ActorID    string
-		BookmarkID string
-	}
-)
+func NewNoteParser() *NoteParser {
+	return &NoteParser{}
+}
 
-func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error) {
+func (p *NoteParser) BookmarkFromNote(object apports.Dict) (note *types.RemoteBookmark, err error) {
 	if typ := getString(object, "type"); typ != "Note" && typ != "Page" && typ != "Article" {
 		return nil, ErrNotNote
 	}
@@ -76,7 +68,7 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 		return nil, ErrEmptyField
 	}
 	for _, rawamnt := range attachments {
-		amnt, ok := rawamnt.(Dict)
+		amnt, ok := rawamnt.(apports.Dict)
 		if !ok {
 			continue
 		}
@@ -100,7 +92,7 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 	}
 
 	// Grabbing the source text
-	source, ok := object["source"].(Dict)
+	source, ok := object["source"].(apports.Dict)
 	if ok {
 		switch types.SourceType(getString(source, "mediaType")) {
 		case types.SourceMycomarkup:
@@ -115,7 +107,7 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 	// Collecting tags
 	tags, ok := object["tag"].([]any)
 	for _, anytag := range tags {
-		tag, ok := anytag.(Dict)
+		tag, ok := anytag.(apports.Dict)
 		if !ok {
 			continue
 		}
@@ -134,26 +126,26 @@ func RemoteBookmarkFromDict(object Dict) (note *types.RemoteBookmark, err error)
 	return &bookmark, nil
 }
 
-func guessCreateNote(activity Dict) (report any, err error) {
-	object, ok := activity["object"].(Dict)
+func (p *NoteParser) GuessCreateNote(activity apports.Dict) (report any, err error) {
+	object, ok := activity["object"].(apports.Dict)
 	if !ok {
 		return nil, ErrNoObject
 	}
 
-	bookmark, err := RemoteBookmarkFromDict(object)
+	bookmark, err := p.BookmarkFromNote(object)
 	if err != nil {
 		return nil, err
 	}
 	bookmark.Activity = activity["original activity"].([]byte)
 
-	cnr := CreateNoteReport{
+	cnr := apports.CreateNoteReport{
 		Bookmark: *bookmark,
 	}
 
 	if object["likes"] != nil {
 		switch likesCollection := object["likes"].(type) {
 		case string: // Don't care, not fetching.
-		case Dict: // Now we're talking!
+		case apports.Dict: // Now we're talking!
 			cnr.LikesCollection, err = collectionFromDict(likesCollection)
 			if err != nil {
 				return nil, err
@@ -163,19 +155,19 @@ func guessCreateNote(activity Dict) (report any, err error) {
 	return cnr, nil
 }
 
-func guessUpdateNote(activity Dict) (report any, err error) {
-	object, ok := activity["object"].(Dict)
+func (p *NoteParser) GuessUpdateNote(activity apports.Dict) (report any, err error) {
+	object, ok := activity["object"].(apports.Dict)
 	if !ok {
 		return nil, ErrNoObject
 	}
 
-	bookmark, err := RemoteBookmarkFromDict(object)
+	bookmark, err := p.BookmarkFromNote(object)
 	if err != nil {
 		return nil, err
 	}
 	bookmark.Activity = activity["original activity"].([]byte)
 
-	unr := UpdateNoteReport{
+	unr := apports.UpdateNoteReport{
 		ActorID:  getIDSomehow(activity, "actor"),
 		Bookmark: *bookmark,
 	}
@@ -186,7 +178,7 @@ func guessUpdateNote(activity Dict) (report any, err error) {
 	if object["likes"] != nil {
 		switch likesCollection := object["likes"].(type) {
 		case string: // Don't care, not fetching.
-		case Dict: // Now we're talking!
+		case apports.Dict: // Now we're talking!
 			unr.LikesCollection, err = collectionFromDict(likesCollection)
 			if err != nil {
 				return nil, err
@@ -197,8 +189,8 @@ func guessUpdateNote(activity Dict) (report any, err error) {
 	return unr, nil
 }
 
-func guessDeleteNote(activity Dict) (report any, err error) {
-	deletion := DeleteNoteReport{
+func (p *NoteParser) GuessDeleteNote(activity apports.Dict) (report any, err error) {
+	deletion := apports.DeleteNoteReport{
 		ActorID:    getIDSomehow(activity, "actor"),
 		BookmarkID: getIDSomehow(activity, "object"),
 	}
@@ -206,4 +198,24 @@ func guessDeleteNote(activity Dict) (report any, err error) {
 		return nil, ErrHostMismatch
 	}
 	return deletion, nil
+}
+
+func collectionFromDict(dict apports.Dict) (*apports.Collection, error) {
+	// A bit ineffective innit.
+	j, err := json.Marshal(dict)
+	if err != nil {
+		return nil, err
+	}
+
+	var collection apports.Collection
+	err = json.Unmarshal(j, &collection)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = collection.Valid(); err != nil {
+		return nil, err
+	}
+
+	return &collection, nil
 }
