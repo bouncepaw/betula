@@ -3,19 +3,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package activities
+package parsing
 
 import (
-	"embed"
 	"io"
 	"testing"
 
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"github.com/nalgeon/be"
 )
-
-//go:embed testdata/*
-var fs embed.FS
 
 func TestGuessCreateNote(t *testing.T) {
 	f, err := fs.Open("testdata/Create{Note} 1.json")

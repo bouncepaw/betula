@@ -18,6 +18,8 @@ import (
 )
 
 var (
+	ErrNoType       = errors.New("type absent or invalid")
+	ErrUnknownType  = errors.New("unknown activity type")
 	ErrNotNote      = errors.New("not a Note")
 	ErrEmptyField   = errors.New("empty field")
 	ErrHostMismatch = errors.New("host mismatch")

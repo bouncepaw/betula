@@ -4,17 +4,22 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package activities
+package parsing
 
 import (
+	"embed"
 	"errors"
 	"reflect"
 	"testing"
 
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
-	"git.sr.ht/~bouncepaw/betula/svc/activitypub/parsing"
 	"github.com/nalgeon/be"
 )
+
+//go:embed testdata/*
+var fs embed.FS
+
+var testGuesser = NewGuesser()
 
 const json1 = `
 {
@@ -99,8 +104,8 @@ var table = []struct {
 		AnnounceID: "https://links.alice/84",
 		ObjectID:   "https://links.bob/42",
 	}},
-	{jsonNoId, parsing.ErrNoId, nil},
-	{jsonBadId, parsing.ErrNoId, nil},
+	{jsonNoId, ErrNoId, nil},
+	{jsonBadId, ErrNoId, nil},
 	{badJson, errors.New("invalid character 'L' looking for beginning of value"), nil},
 	{jsonSallyOffered, ErrUnknownType, nil},
 	// one might want to write many more tests

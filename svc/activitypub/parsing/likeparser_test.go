@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package activities
+package parsing
 
 import (
 	"fmt"
@@ -13,8 +13,6 @@ import (
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"github.com/nalgeon/be"
 )
-
-var testGuesser = NewGuesser()
 
 func readParseGuess(t *testing.T, fileName string) (any, []byte) {
 	f, err := fs.Open(fmt.Sprintf("testdata/%s", fileName))

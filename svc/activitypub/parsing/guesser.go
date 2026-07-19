@@ -4,18 +4,17 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package activities
+package parsing
 
 import (
 	"encoding/json"
 	"log/slog"
 
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
-	"git.sr.ht/~bouncepaw/betula/svc/activitypub/parsing"
 )
 
 type Guesser struct {
-	guesserMap map[string]func(Dict) (any, error)
+	guesserMap map[string]func(apports.Dict) (any, error)
 
 	noteParser     apports.NoteParser
 	followParser   apports.FollowParser
@@ -27,12 +26,12 @@ var _ apports.Guesser = (*Guesser)(nil)
 
 func NewGuesser() *Guesser {
 	g := &Guesser{
-		noteParser:     parsing.NewNoteParser(),
-		followParser:   parsing.NewFollowParser(),
-		likeParser:     parsing.NewLikeParser(),
-		announceParser: parsing.NewAnnounceParser(),
+		noteParser:     NewNoteParser(),
+		followParser:   NewFollowParser(),
+		likeParser:     NewLikeParser(),
+		announceParser: NewAnnounceParser(),
 	}
-	g.guesserMap = map[string]func(Dict) (any, error){
+	g.guesserMap = map[string]func(apports.Dict) (any, error){
 		"Announce": g.announceParser.GuessAnnounce,
 		"Undo":     g.guessUndo,
 		"Follow":   g.followParser.GuessFollow,
@@ -46,8 +45,8 @@ func NewGuesser() *Guesser {
 	return g
 }
 
-func (g *Guesser) guessUndo(activity Dict) (any, error) {
-	objectMap, ok := activity["object"].(Dict)
+func (g *Guesser) guessUndo(activity apports.Dict) (any, error) {
+	objectMap, ok := activity["object"].(apports.Dict)
 	if !ok {
 		return nil, ErrNoObject
 	}
@@ -66,7 +65,7 @@ func (g *Guesser) guessUndo(activity Dict) (any, error) {
 
 func (g *Guesser) Guess(raw []byte) (report any, err error) {
 	var (
-		activity = Dict{
+		activity = apports.Dict{
 			"original activity": raw,
 		}
 		val any
