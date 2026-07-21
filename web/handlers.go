@@ -40,7 +40,7 @@ import (
 	helpingports "git.sr.ht/~bouncepaw/betula/ports/helping"
 	imexports "git.sr.ht/~bouncepaw/betula/ports/imex"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
-	"git.sr.ht/~bouncepaw/betula/ports/notif"
+	notifports "git.sr.ht/~bouncepaw/betula/ports/notif"
 	remarkingports "git.sr.ht/~bouncepaw/betula/ports/remarking"
 	remotebookmarksports "git.sr.ht/~bouncepaw/betula/ports/remotebookmarks"
 	searchingports "git.sr.ht/~bouncepaw/betula/ports/searching"
@@ -410,9 +410,13 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		user, host, isRemote = strings.Cut(userAtHost, "@")
 		authed               = auth.AuthorizedFromRequest(rq)
 		ourUsername          = settings.AdminUsername()
+		ourDomain            = settings.SiteDomain()
 	)
 
 	switch {
+	case isRemote && user == ourUsername && strings.EqualFold(host, ourDomain):
+		slog.Info("Redirecting to index", "user", user, "host", host)
+		http.Redirect(w, rq, "/", http.StatusSeeOther)
 	case isRemote && !authed:
 		slog.Warn("Unauthorized request of remote profile, rejecting", "userAtHost", userAtHost)
 		handlerUnauthorized(w, rq)
