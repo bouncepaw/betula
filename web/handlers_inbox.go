@@ -6,6 +6,7 @@
 package web
 
 import (
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -40,17 +41,27 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 
 	switch report := report.(type) {
 	case apports.CreateNoteReport:
-		status, err := ctrl.RepoActor.SubscriptionStatus(rq.Context(), report.Bookmark.ActorID)
-		if err != nil {
-			slog.Error("Failed to get subscription status", "actorID", report.Bookmark.ActorID, "err", err)
-			return
-		}
-		if !status.WeFollowThem() {
-			slog.Info("Received bookmark from non-follower, ignoring", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
-			return
+		err = ctrl.SvcRemarking.ReceiveCreateRemark(rq.Context(), remarkingports.EventCreateRemark{
+			Bookmark: report.Bookmark,
+		})
+		if err != nil && !errors.Is(err, remarkingports.ErrRemarkOfRemote) {
+			slog.Error("Failed to receive remark of our bookmark", "err", err)
+			// no return
 		}
 
-		slog.Info("Received bookmark from follower", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
+		if !errors.Is(err, remarkingports.ErrRemarkOfRemote) {
+			status, err := ctrl.RepoActor.SubscriptionStatus(rq.Context(), report.Bookmark.ActorID)
+			if err != nil {
+				slog.Error("Failed to get subscription status", "actorID", report.Bookmark.ActorID, "err", err)
+				return
+			}
+			if !status.WeFollowThem() {
+				slog.Info("Received bookmark from non-followed, ignoring", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
+				return
+			}
+		}
+
+		slog.Info("Received bookmark", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
 		ctrl.RepoRemoteBookmark.InsertRemoteBookmark(report.Bookmark)
 
 		if report.LikesCollection != nil {

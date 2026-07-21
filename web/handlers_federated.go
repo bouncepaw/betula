@@ -19,12 +19,11 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"time"
 
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	"git.sr.ht/~bouncepaw/betula/fediverse/fedisearch"
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
-	"git.sr.ht/~bouncepaw/betula/jobs"
-	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/settings"
@@ -106,7 +105,7 @@ func getTimeline(w http.ResponseWriter, rq *http.Request) {
 	bookmarks, total := ctrl.RepoRemoteBookmark.GetRemoteBookmarks(currentPage)
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, total)
 
-	renderedBookmarks := fediverse.RenderRemoteBookmarks(ctrl.HTMLSanitizer, bookmarks)
+	renderedBookmarks, _ := ctrl.SvcRemoteBookmarks.Render(rq.Context(), bookmarks)
 	if err := ctrl.SvcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
 		slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 	}
@@ -358,17 +357,25 @@ reposting:
 		bookmark.Tags = nil // 🐸
 	}
 
+	bookmark.CreationTime = time.Now().UTC().Format(types.TimeLayout)
 	id, err := localBookmarks.InsertBookmark(rq.Context(), *bookmark)
 	if err != nil {
 		slog.Error("Failed to insert repost bookmark", "err", err)
 		http.Error(w, "Failed to save repost", http.StatusInternalServerError)
 		return
 	}
+	bookmark.ID = int(id)
+
+	if settings.FederationEnabled() && formData.Visibility == types.Public {
+		err = ctrl.SvcRemarking.BroadcastCreateRemark(rq.Context(), *bookmark)
+		if err != nil {
+			slog.Error("Failed to broadcast remark", "err", err, "url", formData.URL, "id", id)
+			http.Error(w, "Failed to broadcast remark", http.StatusInternalServerError)
+			return
+		}
+	}
 
 	http.Redirect(w, rq, fmt.Sprintf("/%d", id), http.StatusSeeOther)
-	if settings.FederationEnabled() && formData.Visibility == types.Public {
-		jobs.ScheduleDatum(jobtype.SendAnnounce, id)
-	}
 }
 
 type dataFedisearch struct {
@@ -406,7 +413,7 @@ func handlerFediSearch(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	renderedBookmarks, nextState, err := prevState.FetchPage(ctrl.HTMLSanitizer)
+	renderedBookmarks, nextState, err := prevState.FetchPage(rq.Context(), ctrl.SvcRemoteBookmarks)
 	if err != nil {
 		slog.Error("Failed to fetch federated search bookmarks",
 			"query", query, "err", err)

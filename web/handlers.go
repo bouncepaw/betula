@@ -79,6 +79,8 @@ type Controller struct {
 	SvcImEx      imexports.Service
 	SvcFollow    apports.FollowService
 
+	SvcRemoteBookmarks remotebookmarksports.Service
+
 	Assembly      apports.Assembly
 	Guesser       apports.Guesser
 	ActivityPub   apports.ActivityPub
@@ -439,7 +441,7 @@ func handlerAt(w http.ResponseWriter, rq *http.Request) {
 		currentPage := extractPage(rq)
 		bookmarks, total := ctrl.RepoRemoteBookmark.GetRemoteBookmarksBy(actor.ID, currentPage)
 
-		renderedBookmarks := fediverse.RenderRemoteBookmarks(ctrl.HTMLSanitizer, bookmarks)
+		renderedBookmarks, _ := ctrl.SvcRemoteBookmarks.Render(rq.Context(), bookmarks)
 		if err := ctrl.SvcLiking.FillLikes(rq.Context(), nil, renderedBookmarks); err != nil {
 			slog.Error("Failed to fill likes for remote bookmarks", "err", err)
 		}

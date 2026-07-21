@@ -24,9 +24,9 @@ type Guesser struct {
 
 var _ apports.Guesser = (*Guesser)(nil)
 
-func NewGuesser() *Guesser {
+func NewGuesser(siteURLFn func() string) *Guesser {
 	g := &Guesser{
-		noteParser:     NewNoteParser(),
+		noteParser:     NewNoteParser(siteURLFn),
 		followParser:   NewFollowParser(),
 		likeParser:     NewLikeParser(),
 		announceParser: NewAnnounceParser(),

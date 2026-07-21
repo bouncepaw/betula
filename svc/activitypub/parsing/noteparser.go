@@ -7,10 +7,12 @@
 package parsing
 
 import (
+	"cmp"
 	"database/sql"
 	"encoding/json"
 	"html/template"
 	"slices"
+	"strconv"
 	"strings"
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
@@ -18,12 +20,16 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-type NoteParser struct{}
+type NoteParser struct {
+	siteURLFn func() string
+}
 
 var _ apports.NoteParser = (*NoteParser)(nil)
 
-func NewNoteParser() *NoteParser {
-	return &NoteParser{}
+func NewNoteParser(siteURLFn func() string) *NoteParser {
+	return &NoteParser{
+		siteURLFn: siteURLFn,
+	}
 }
 
 func (p *NoteParser) BookmarkFromNote(object apports.Dict) (note *types.RemoteBookmark, err error) {
@@ -31,27 +37,18 @@ func (p *NoteParser) BookmarkFromNote(object apports.Dict) (note *types.RemoteBo
 		return nil, ErrNotNote
 	}
 	bookmark := types.RemoteBookmark{
-		// Invariants
-		RemarkedID: sql.NullString{},
-
 		// Required fields
 		ID:              getString(object, "id"),
-		ActorID:         getString(object, "attributedTo"),
+		ActorID:         cmp.Or(getString(object, "actor"), getString(object, "attributedTo")),
 		Title:           getString(object, "name"),
 		DescriptionHTML: template.HTML(getString(object, "content")),
 		PublishedAt:     getTime(object, "published"),
 
 		// Optional fields
-		UpdatedAt: sql.NullString{},
-		Source:    sql.NullString{},
-		Tags:      nil,
-	}
-
-	if updated := getTime(object, "updated"); updated != "" {
-		bookmark.UpdatedAt = sql.NullString{
-			String: updated,
-			Valid:  true,
-		}
+		RemarkedID: bxstr.NullStringFromString(getString(object, "quote")),
+		UpdatedAt:  bxstr.NullStringFromString(getTime(object, "updated")),
+		Source:     sql.NullString{},
+		Tags:       nil,
 	}
 
 	// The web representation of the note, if any. Falls back to ID downstream.
@@ -64,18 +61,17 @@ func (p *NoteParser) BookmarkFromNote(object apports.Dict) (note *types.RemoteBo
 
 	// Grabbing URL
 	attachments, ok := object["attachment"].([]any)
-	if !ok {
-		return nil, ErrEmptyField
-	}
-	for _, rawamnt := range attachments {
-		amnt, ok := rawamnt.(apports.Dict)
-		if !ok {
-			continue
-		}
-		if getString(amnt, "type") == "Link" {
-			if href := getString(amnt, "href"); bxstr.IsValidURL(href) {
-				bookmark.URL = href
-				break
+	if ok {
+		for _, rawamnt := range attachments {
+			amnt, ok := rawamnt.(apports.Dict)
+			if !ok {
+				continue
+			}
+			if getString(amnt, "type") == "Link" {
+				if href := getString(amnt, "href"); bxstr.IsValidURL(href) {
+					bookmark.URL = href
+					break
+				}
 			}
 		}
 	}
@@ -86,7 +82,7 @@ func (p *NoteParser) BookmarkFromNote(object apports.Dict) (note *types.RemoteBo
 	}
 
 	// Verify required fields.
-	mustBeNonEmpty := []string{bookmark.ID, bookmark.ActorID, bookmark.Title, bookmark.PublishedAt, bookmark.URL}
+	mustBeNonEmpty := []string{bookmark.ID, bookmark.ActorID, bookmark.PublishedAt}
 	if slices.Contains(mustBeNonEmpty, "") {
 		return nil, ErrEmptyField
 	}
@@ -121,6 +117,18 @@ func (p *NoteParser) BookmarkFromNote(object apports.Dict) (note *types.RemoteBo
 			Name: name,
 			// Rest of struct not needed
 		})
+	}
+
+	if !bookmark.IsRegularBookmark() && !bookmark.IsRemark() {
+		return nil, ErrNotBookmark
+	}
+	if bookmark.RemarkedID.Valid && strings.HasPrefix(bookmark.RemarkedID.String, p.siteURLFn()) {
+		s := strings.TrimPrefix(bookmark.RemarkedID.String, p.siteURLFn()+"/")
+		_, err = strconv.Atoi(s)
+		if err != nil {
+			return nil, err
+		}
+		bookmark.RemarkedID.String = s
 	}
 
 	return &bookmark, nil

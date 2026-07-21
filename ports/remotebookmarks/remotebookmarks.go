@@ -24,4 +24,9 @@ type (
 		InsertRemoteBookmark(b types.RemoteBookmark)
 		UpdateRemoteBookmark(b types.RemoteBookmark)
 	}
+
+	Service interface {
+		Render(context.Context, []types.RemoteBookmark) ([]types.RenderedRemoteBookmark, error)
+		GetRemoteBookmarkByID(ctx context.Context, id string) (types.RemoteBookmark, error)
+	}
 )

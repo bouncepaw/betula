@@ -25,11 +25,13 @@ type (
 		BroadcastToFollowers(ctx context.Context, activity []byte) error
 		RefetchAllActors(ctx context.Context) error
 		DerefRemoteBookmark(ctx context.Context, id string) (types.RemoteBookmark, error)
+		Deref(ctx context.Context, id string) (Dict, error)
 	}
 
 	Actor interface {
 		ID() string
 		Acct() string
+		PreferredUsername() string
 		DisplayedName() string
 
 		SendSerializedActivity(activity []byte) error

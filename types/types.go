@@ -71,7 +71,8 @@ type Bookmark struct {
 	// Visibility sets who can see the post.
 	Visibility Visibility
 	// RepostOf is URL of the post reposted. Nil if this is an original post.
-	RepostOf *string
+	RepostOf   *string
+	RemarkText *string
 	// OriginalAuthor is ID of the author of the original bookmark. Might be invalid even if RepostOf is not nil
 	OriginalAuthor sql.NullString
 }

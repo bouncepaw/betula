@@ -20,16 +20,15 @@ import (
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/svc/activitypub/assembly"
-	"git.sr.ht/~bouncepaw/betula/types"
 	notiftypes "git.sr.ht/~bouncepaw/betula/types/notif"
 )
 
 // TODO: all shall be in services one day...
 var (
-	repoNotif          = db.New()
-	repoLocalBookmarks = db.NewLocalBookmarksRepo()
-	repoActor          = db.NewActorRepo()
-	asm                = assembly.New(settings.SiteURL, settings.AdminUsername)
+	repoNotif                           = db.New()
+	repoLocalBookmarks                  = db.NewLocalBookmarksRepo()
+	repoActor                           = db.NewActorRepo()
+	asm                apports.Assembly = assembly.New(settings.SiteURL, settings.AdminUsername)
 )
 
 func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.Job) {
@@ -52,7 +51,6 @@ func callForJSON[T any](jobcat jobtype.JobCategory, next func(T)) func(jobtype.J
 }
 
 var catmap = map[jobtype.JobCategory]func(job jobtype.Job){
-	jobtype.SendAnnounce:        notifyAboutMyRepost,
 	jobtype.SendAcceptFollow:    callForJSON[apports.FollowReport](jobtype.SendAcceptFollow, sendAcceptFollow),
 	jobtype.SendRejectFollow:    callForJSON[apports.FollowReport](jobtype.SendRejectFollow, sendRejectFollow),
 	jobtype.ReceiveAcceptFollow: callForJSON[apports.FollowReport](jobtype.ReceiveAcceptFollow, receiveAcceptFollow),
@@ -181,52 +179,4 @@ func sendAcceptFollow(report apports.FollowReport) {
 			slog.Error("Failed to store follow notification", "err", err)
 		}
 	}
-}
-
-func notifyAboutMyRepost(job jobtype.Job) {
-	var postId int
-	switch v := job.Payload.(type) {
-	case int64:
-		postId = int(v)
-	default:
-		slog.Error("Unexpected payload for notify job", "payloadType", fmt.Sprintf("%T", v), "payload", v)
-		return
-	}
-
-	post, err := repoLocalBookmarks.GetBookmarkByID(context.Background(), postId)
-	if err != nil {
-		slog.Error("Failed to notify about bookmark", "bookmarkID", postId, "err", err)
-		return
-	}
-
-	if post.RepostOf == nil {
-		slog.Warn("Bookmark is not a repost, skipping notify", "bookmarkID", postId)
-		return
-	}
-
-	if post.Visibility != types.Public {
-		slog.Info("Bookmark (repost) is not public, not notifying", "bookmarkID", postId)
-		return
-	}
-
-	activity, err := asm.NewAnnounce(
-		*post.RepostOf,
-		fmt.Sprintf("%s/%d", settings.SiteURL(), postId),
-	)
-	if err != nil {
-		slog.Error("Failed to create Announce activity", "err", err)
-		return
-	}
-
-	// TODO: this will have to change. Avoid sending twice if reposting a follower
-	err = sendActivity(*post.RepostOf, activity)
-	if err != nil {
-		slog.Error("Failed to send repost activity", "err", err)
-		return
-	}
-
-	broadcastToFollowers(jobtype.Job{
-		Category: jobtype.SendAnnounce,
-		Payload:  activity,
-	})
 }

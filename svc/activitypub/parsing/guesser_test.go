@@ -12,14 +12,15 @@ import (
 	"reflect"
 	"testing"
 
-	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"github.com/nalgeon/be"
+
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 )
 
 //go:embed testdata/*
 var fs embed.FS
 
-var testGuesser = NewGuesser()
+var testGuesser = NewGuesser(func() string { return "TEST" })
 
 const json1 = `
 {

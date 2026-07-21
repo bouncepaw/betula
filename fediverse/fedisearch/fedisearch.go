@@ -23,13 +23,14 @@ import (
 	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/fediverse"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
-	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
+	remotebookmarksports "git.sr.ht/~bouncepaw/betula/ports/remotebookmarks"
+	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/svc/activitypub/parsing"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 var actorRepo = db.NewActorRepo()
-var noteParser = parsing.NewNoteParser()
+var noteParser = parsing.NewNoteParser(settings.SiteURL)
 
 type Request struct {
 	Version string `json:"version"`
@@ -174,7 +175,8 @@ func (s *State) RequestsToMake() []Request {
 }
 
 func (s *State) FetchPage(
-	sanitizer wwwports.HTMLSanitizer,
+	ctx context.Context,
+	renderer remotebookmarksports.Service,
 ) ([]types.RenderedRemoteBookmark, *State, error) {
 	var newState = &State{
 		Query:    s.Query,
@@ -214,7 +216,7 @@ func (s *State) FetchPage(
 	newState.Unseen = slices.DeleteFunc(newState.Unseen, func(s string) bool {
 		return slices.Contains(requestedActors, s)
 	})
-	var rendered = fediverse.RenderRemoteBookmarks(sanitizer, bookmarks)
+	rendered, _ := renderer.Render(ctx, bookmarks)
 	return rendered, newState, nil
 }
 

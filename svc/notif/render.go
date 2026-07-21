@@ -41,6 +41,7 @@ type notificationTemplateData struct {
 	Acct          string
 	DisplayedName string
 	RemarkURL     string
+	RemarkText    template.HTML
 	BookmarkID    int
 }
 
@@ -52,7 +53,7 @@ var (
 	<a href="/{{.Acct}}">{{.DisplayedName}}</a> followed you!
 </div>`))
 	remarkNotificationTemplate = template.Must(template.New("remark notification").Parse(`<div class="notif" notif-cat="remark">
-	<a href="/{{.Acct}}">{{.DisplayedName}}</a> <a href="{{.RemarkURL}}">reposted</a> <a href="/{{.BookmarkID}}">{{.BookmarkID}}.</a>
+	<a href="/{{.Acct}}">{{.DisplayedName}}</a> <a href="{{.RemarkURL}}">remarked</a> <a href="/{{.BookmarkID}}">{{.BookmarkID}}: {{.RemarkText}}</a>
 </div>`))
 )
 
@@ -145,15 +146,13 @@ func (n *renderedNotification) remarkAsHTML() (template.HTML, error) {
 		return "", err
 	}
 
-	// TODO: s/repost/remark when the time comes
-	// TODO: link/show local representation of the remark after the big refac
-	// TODO: support the case with remark text
 	return renderTemplate(
 		remarkNotificationTemplate,
 		notificationTemplateData{
 			Acct:          actor.Acct(),
 			DisplayedName: actor.DisplayedName,
 			RemarkURL:     payload.RemarkURL,
+			RemarkText:    payload.RemarkText,
 			BookmarkID:    payload.BookmarkID,
 		},
 	)

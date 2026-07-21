@@ -57,6 +57,10 @@ func (a *Actor) Acct() string {
 	return fmt.Sprintf("@%s@%s", a.preferredUsername, a.domain)
 }
 
+func (a *Actor) PreferredUsername() string {
+	return a.preferredUsername
+}
+
 func (a *Actor) DisplayedName() string {
 	return a.displayedName
 }

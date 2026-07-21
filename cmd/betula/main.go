@@ -31,6 +31,7 @@ import (
 	likingsvc "git.sr.ht/~bouncepaw/betula/svc/liking"
 	notifsvc "git.sr.ht/~bouncepaw/betula/svc/notif"
 	remarkingsvc "git.sr.ht/~bouncepaw/betula/svc/remarking"
+	remotebookmarkssvc "git.sr.ht/~bouncepaw/betula/svc/remotebookmarks"
 	searchsvc "git.sr.ht/~bouncepaw/betula/svc/searching"
 	settingssvc "git.sr.ht/~bouncepaw/betula/svc/settings"
 	"git.sr.ht/~bouncepaw/betula/web"
@@ -106,7 +107,7 @@ func newController() web.Controller {
 		htmlSanitizer  = wwwgw.NewSanitizer()
 		webfinger      = webfingergw.New()
 		asm            = assembly.New(settings.SiteURL, settings.AdminUsername)
-		guesser        = parsing.NewGuesser()
+		guesser        = parsing.NewGuesser(settings.SiteURL)
 
 		// One day, all shall be in services!
 		svcSettings  = settingssvc.New(repoSettings, "v1.8.1", settings.SiteDomain)
@@ -119,7 +120,24 @@ func newController() web.Controller {
 			repoNotif,
 			activityPub,
 			asm)
-		svcRemarking = remarkingsvc.New(activityPub, repoRemarks, repoRemoteBookmark, repoActor)
+		svcRemarking = remarkingsvc.New(
+			activityPub,
+			repoRemarks,
+			repoRemoteBookmark,
+			repoActor,
+			asm,
+			repoNotif,
+			settings.FederationEnabled,
+		)
+		svcRemoteBookmarks = remotebookmarkssvc.New(
+			htmlSanitizer,
+			repoLocalBookmark,
+			repoRemoteBookmark,
+			activityPub,
+			settings.SiteURL,
+			settings.AdminUsername,
+			settings.SiteDomain,
+		)
 		svcFeeds     = feedssvc.New(repoLocalBookmark)
 		svcSearching = searchsvc.New(repoSearch)
 		svcHelping   = helpingsvc.New()
@@ -142,6 +160,8 @@ func newController() web.Controller {
 		SvcSettings:  svcSettings,
 		SvcImEx:      svcImEx,
 		SvcFollow:    svcFollow,
+
+		SvcRemoteBookmarks: svcRemoteBookmarks,
 
 		ActivityPub:   activityPub,
 		WWW:           www,

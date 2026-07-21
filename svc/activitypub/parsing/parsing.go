@@ -26,6 +26,7 @@ var (
 	ErrNoObject     = errors.New("object absent or invalid")
 	ErrNoActor      = errors.New("actor absent or invalid")
 	ErrNoId         = errors.New("id absent or invalid")
+	ErrNotBookmark  = errors.New("not a bookmark")
 )
 
 func getIDSomehow(activity apports.Dict, field string) string {

@@ -9,9 +9,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"strings"
 	"time"
+
+	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 
 	"golang.org/x/net/html"
 
@@ -35,26 +36,69 @@ func (asm *Assembler) DeleteNote(postID int) (json.RawMessage, error) {
 	return json.Marshal(activity)
 }
 
-func (asm *Assembler) NoteFromBookmark(bookmark types.Bookmark) (apports.Dict, error) {
-	if bookmark.ID == 0 {
-		return nil, errors.New("an empty ID was passed")
-	}
-	// Generating the timestamp
-	t, err := time.Parse(types.TimeLayout, bookmark.CreationTime)
-	if err != nil {
-		return nil, err
-	}
-	published := t.Format(time.RFC3339)
+var theCoolContext = []any{
+	atContext,
+	apports.Dict{
+		"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
 
+		// https://codeberg.org/fediverse/fep/src/branch/main/fep/044f/fep-044f.md#advertising-a-quote-policy
+		"gts": "https://gotosocial.org/ns#",
+		"interactionPolicy": map[string]string{
+			"@id":   "gts:interactionPolicy",
+			"@type": "@id",
+		},
+		"canQuote": map[string]string{
+			"@id":   "gts:canQuote",
+			"@type": "@id",
+		},
+		"automaticApproval": map[string]string{
+			"@id":   "gts:automaticApproval",
+			"@type": "@id",
+		},
+
+		// https://codeberg.org/fediverse/fep/src/branch/main/fep/044f/fep-044f.md#compatibility-with-other-quote-implementations
+		"quoteUrl":       "as:quoteUrl",
+		"quoteUri":       "http://fedibird.com/ns#quoteUri",
+		"_misskey_quote": "https://misskey-hub.net/ns/#_misskey_quote",
+		"quote": map[string]string{
+			"@id":   "https://w3id.org/fep/044f#quote",
+			"@type": "@id",
+		},
+	},
+}
+
+func (asm *Assembler) writeContentAndTags(
+	object apports.Dict,
+	url *string,
+	title *string,
+	text string,
+	quotedObjectID *string,
+	bmTags []types.Tag,
+) {
 	// Generating the contents
 	var content strings.Builder
-	var tags []any
 
-	content.WriteString(fmt.Sprintf(`<h3><a href="%s">%s</a></h3>`, html.EscapeString(bookmark.URL), html.EscapeString(bookmark.Title)))
-	content.WriteString(string(myco.MarkupToHTML(bookmark.Description)))
-	if len(bookmark.Tags) > 0 {
+	if url != nil && title != nil {
+		content.WriteString(fmt.Sprintf(
+			`<h3><a href="%s">%s</a></h3>`,
+			html.EscapeString(*url),
+			html.EscapeString(*title),
+		))
+
+		object["attachment"] = []apports.Dict{
+			{ // Lemmy-style.
+				"href": *url,
+				"type": "Link",
+			},
+		}
+		object["name"] = *title
+	}
+	content.WriteString(string(myco.MarkupToHTML(text)))
+
+	var tags []any
+	if len(bmTags) > 0 {
 		content.WriteString("<p>")
-		for i, tag := range bookmark.Tags {
+		for i, tag := range bmTags {
 			if tag.Name == "" {
 				continue
 			}
@@ -84,14 +128,44 @@ func (asm *Assembler) NoteFromBookmark(bookmark types.Bookmark) (apports.Dict, e
 		}
 		content.WriteString("</p>")
 	}
+	if len(tags) > 0 {
+		object["tag"] = tags
+	}
+
+	// https://codeberg.org/fediverse/fep/src/branch/main/fep/044f/fep-044f.md#backward-compatibility-considerations
+	if quotedObjectID != nil {
+		re := html.EscapeString(*quotedObjectID)
+		notice := fmt.Sprintf(
+			`
+
+<span class="quote-inline"><br/>RE: <a href="%s">%s</a></span>`,
+			re, re)
+		content.WriteString(notice)
+	}
+
+	object["content"] = strings.ReplaceAll(
+		strings.ReplaceAll(content.String(), "\t", ""),
+		">\n", ">")
+	object["source"] = map[string]string{
+		// Misskey-style. They put text/x.misskeymarkdown though.
+		"content":   text,
+		"mediaType": "text/mycomarkup",
+	}
+}
+
+func (asm *Assembler) NoteFromBookmark(bookmark types.Bookmark) (apports.Dict, error) {
+	if bookmark.ID == 0 {
+		return nil, errors.New("an empty ID was passed")
+	}
+	// Generating the timestamp
+	t, err := time.Parse(types.TimeLayout, bookmark.CreationTime)
+	if err != nil {
+		return nil, err
+	}
+	published := t.Format(time.RFC3339)
 
 	object := apports.Dict{
-		"@context": []any{
-			atContext,
-			apports.Dict{
-				"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
-			},
-		},
+		"@context":     theCoolContext,
 		"type":         "Note",
 		"id":           fmt.Sprintf("%s/%d", asm.siteURLFn(), bookmark.ID),
 		"actor":        asm.actor(),
@@ -100,27 +174,33 @@ func (asm *Assembler) NoteFromBookmark(bookmark types.Bookmark) (apports.Dict, e
 			publicAudience,
 			fmt.Sprintf("%s/followers", asm.siteURLFn()),
 		},
-		"content": strings.ReplaceAll(
-			strings.ReplaceAll(content.String(), "\t", ""),
-			">\n", ">"),
-		"name": bookmark.Title,
-		"attachment": []apports.Dict{
-			{ // Lemmy-style.
-				"href": bookmark.URL,
-				"type": "Link",
+		"published": published,
+
+		// https://codeberg.org/fediverse/fep/src/branch/main/fep/044f/fep-044f.md#advertising-a-quote-policy
+		"interactionPolicy": apports.Dict{
+			"canQuote": map[string]string{
+				"automaticApproval": "https://www.w3.org/ns/activitystreams#Public",
 			},
 		},
-		"source": map[string]string{
-			// Misskey-style. They put text/x.misskeymarkdown though.
-			"content":   bookmark.Description,
-			"mediaType": "text/mycomarkup",
-		},
-		"published": published,
 	}
 
-	if len(tags) > 0 {
-		object["tag"] = tags
+	if bookmark.RepostOf == nil {
+		asm.writeContentAndTags(object, &bookmark.URL, &bookmark.Title, bookmark.Description, nil, bookmark.Tags)
+	} else {
+		// https://codeberg.org/fediverse/fep/src/branch/main/fep/044f/fep-044f.md#compatibility-with-other-quote-implementations
+		// Deliberately no quote Link object in the tag list.
+		quoteFields := []string{"quote", "quoteUrl", "quoteUri", "_misskey_quote"}
+		for _, field := range quoteFields {
+			object[field] = *bookmark.RepostOf
+		}
+
+		text := ""
+		if bookmark.RemarkText != nil {
+			text = *bookmark.RemarkText
+		}
+		asm.writeContentAndTags(object, nil, nil, text, bookmark.RepostOf, bookmark.Tags)
 	}
+
 	return object, nil
 }
 
@@ -133,14 +213,9 @@ func (asm *Assembler) makeNoteAction(bookmark types.Bookmark) (apports.Dict, err
 	delete(object, "@context")
 
 	activity := apports.Dict{
-		"@context": []any{
-			atContext,
-			apports.Dict{
-				"Hashtag": "https://www.w3.org/ns/activitystreams#Hashtag",
-			},
-		},
-		"actor":  asm.actor(),
-		"object": object,
+		"@context": theCoolContext,
+		"actor":    asm.actor(),
+		"object":   object,
 	}
 	return activity, nil
 }

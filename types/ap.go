@@ -122,6 +122,18 @@ func (rb RemoteBookmark) RepresentationURL() string {
 	return rb.ID
 }
 
+func (rb RemoteBookmark) IsValidObject() bool {
+	return rb.ID != "" && rb.ActorID != "" && rb.PublishedAt != ""
+}
+
+func (rb RemoteBookmark) IsRegularBookmark() bool {
+	return rb.IsValidObject() && rb.Title != "" && rb.URL != "" && !rb.RemarkedID.Valid
+}
+
+func (rb RemoteBookmark) IsRemark() bool {
+	return rb.IsValidObject() && rb.Title == "" && rb.URL == "" && rb.RemarkedID.Valid
+}
+
 type RenderedRemoteBookmark struct {
 	ID string
 

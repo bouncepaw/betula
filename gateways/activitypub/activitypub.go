@@ -38,7 +38,7 @@ type ActivityPub struct {
 
 var _ apports.ActivityPub = &ActivityPub{}
 
-var noteParser = parsing.NewNoteParser()
+var noteParser = parsing.NewNoteParser(settings.SiteURL)
 
 func NewActivityPub(
 	actorRepo apports.ActorRepository,
@@ -181,10 +181,10 @@ func (ap *ActivityPub) RefetchAllActors(ctx context.Context) error {
 	return err
 }
 
-func (ap *ActivityPub) DerefRemoteBookmark(ctx context.Context, id string) (types.RemoteBookmark, error) {
-	req, err := http.NewRequest(http.MethodGet, id, nil)
+func (ap *ActivityPub) Deref(ctx context.Context, id string) (apports.Dict, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, id, nil)
 	if err != nil {
-		return types.RemoteBookmark{}, err
+		return nil, err
 	}
 	req.Header.Set("User-Agent", settings.UserAgent())
 	req.Header.Set("Accept", types.OtherActivityType)
@@ -193,12 +193,20 @@ func (ap *ActivityPub) DerefRemoteBookmark(ctx context.Context, id string) (type
 	signing.SignRequest(req, nil)
 	resp, err := ap.httpClient.Do(req)
 	if err != nil {
-		return types.RemoteBookmark{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	var object apports.Dict
 	if err := json.NewDecoder(io.LimitReader(resp.Body, 128_000)).Decode(&object); err != nil {
+		return nil, err
+	}
+	return object, nil
+}
+
+func (ap *ActivityPub) DerefRemoteBookmark(ctx context.Context, id string) (types.RemoteBookmark, error) {
+	object, err := ap.Deref(ctx, id)
+	if err != nil {
 		return types.RemoteBookmark{}, err
 	}
 

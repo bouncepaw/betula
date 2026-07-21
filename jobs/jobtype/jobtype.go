@@ -11,10 +11,6 @@ package jobtype
 type JobCategory string
 
 const (
-	SendAnnounce JobCategory = "notify about my repost"
-
-	/* I changed the style from now. The new style is below. */
-
 	SendAcceptFollow    JobCategory = "Send Accept{Follow}"
 	SendRejectFollow    JobCategory = "Send Reject{Follow}"
 	ReceiveAcceptFollow JobCategory = "Receive Accept{Follow}"
