@@ -34,8 +34,8 @@ type (
 
 	Repository interface {
 		// RemarksOf returns all remarks known about the specified bookmark.
-		RemarksOf(ctx context.Context, bookmarkID int) ([]types.RepostInfo, error)
-		SaveRemark(ctx context.Context, bookmarkID int, remark types.RepostInfo) error
+		RemarksOf(ctx context.Context, bookmarkID int) ([]types.RemarkInfo, error)
+		SaveRemark(ctx context.Context, bookmarkID int, remark types.RemarkInfo) error
 		DeleteRemark(ctx context.Context, bookmarkID int, remarkURL string) error
 	}
 
@@ -51,13 +51,13 @@ type (
 	}
 	EventLegacyRemark struct {
 		ActorID        string
-		AnnounceID     string // id of the repost
-		ObjectID       string // object that was reposted
+		AnnounceID     string // id of the remark
+		ObjectID       string // object that was remarked
 		SourceActivity []byte // raw JSON of the Announce activity
 	}
 	EventLegacyUnremark struct {
 		ActorID    string
-		AnnounceID string // id of the repost
-		ObjectID   string // object that was reposted
+		AnnounceID string // id of the remark
+		ObjectID   string // object that was remarked
 	}
 )

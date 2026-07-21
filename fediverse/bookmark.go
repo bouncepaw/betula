@@ -54,7 +54,7 @@ func fetchFedi(uri string) (*types.Bookmark, error) {
 		Title:       bookmark.Title,
 		Description: bookmark.Source.String,
 		Visibility:  types.Public,
-		RepostOf:    &uri,
+		RemarkOf:    &uri,
 		OriginalAuthor: sql.NullString{
 			String: bookmark.ActorID,
 			Valid:  true,
@@ -62,15 +62,15 @@ func fetchFedi(uri string) (*types.Bookmark, error) {
 	}, nil
 }
 
-// FetchBookmarkAsRepost fetches a bookmark on the given address.
-func FetchBookmarkAsRepost(uri string) (*types.Bookmark, error) {
+// FetchBookmarkAsRemark fetches a bookmark on the given address.
+func FetchBookmarkAsRemark(uri string) (*types.Bookmark, error) {
 	bookmark, err := fetchFedi(uri)
 	if err != nil {
-		slog.Error("Failed to fetch bookmark for repost", "uri", uri, "err", err)
+		slog.Error("Failed to fetch bookmark for remark", "uri", uri, "err", err)
 		return nil, err
 	}
 
-	slog.Info("Fetched bookmark for repost", "uri", uri, "bookmark", bookmark)
+	slog.Info("Fetched bookmark for remark", "uri", uri, "bookmark", bookmark)
 	return bookmark, nil
-	// NOTE: IndieWeb-style reposts are no longer supported.
+	// NOTE: IndieWeb-style remarks are no longer supported.
 }

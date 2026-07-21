@@ -41,7 +41,7 @@ func (svc *Service) receiveLegacyRemarkLocal(
 
 	slog.Info("Received legacy remark",
 		"actorID", event.ActorID, "bookmarkID", localBookmarkID, "remarkURL", event.AnnounceID)
-	err = svc.remarkRepo.SaveRemark(ctx, localBookmarkID, types.RepostInfo{
+	err = svc.remarkRepo.SaveRemark(ctx, localBookmarkID, types.RemarkInfo{
 		URL:  event.AnnounceID,
 		Name: event.ActorID,
 	})

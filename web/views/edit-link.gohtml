@@ -1,16 +1,16 @@
 {{define "title"}}Edit link{{end}}
 {{define "body"}}
 	<main>
-		{{if .RepostOf}}
+		{{if .RemarkOf}}
 		<article>
-			<h2>Edit repost</h2>
+			<h2>Edit remark</h2>
 
 			<form supports-ctrl-enter method="post" action="/edit-link-tags/{{.ID}}">
 				<div class="tags-field">
 					<label for="link-tags">Tags comma-separated</label>
 					<input type="text" id="link-tags" name="tags"
 						   value="{{.Tags | catsTogether}}" placeholder="video, programming" autocomplete="off">
-					<p class="input-caption">You can only edit tags of reposts.</p>
+					<p class="input-caption">You can only edit tags of remarks.</p>
 					<input type="hidden" name="next" value="/{{.ID}}">
 				</div>
 				<input type="submit" class="btn" value="Save tags">
@@ -40,9 +40,9 @@
 		</article>
 		{{end}}
 		<article>
-			{{if .RepostOf}}
-                <h2>Delete repost</h2>
-			    <p>The original bookmark owner will be notified of the repost being removed.</p>
+			{{if .RemarkOf}}
+                <h2>Delete remark</h2>
+			    <p>The original bookmark owner will be notified of the remark being removed.</p>
 			{{else}}
                 <h2>Delete bookmark</h2>
 			{{end}}

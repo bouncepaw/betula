@@ -18,8 +18,8 @@ type (
 		// IncludedTags and ExcludedTags filter results by tag.
 		IncludedTags []string
 		ExcludedTags []string
-		// RepostsOnly keeps only reposts when set.
-		RepostsOnly bool
+		// RemarksOnly keeps only remarks when set.
+		RemarksOnly bool
 		// Authorized controls visibility: private bookmarks are included only
 		// when set.
 		Authorized bool

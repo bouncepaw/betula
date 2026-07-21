@@ -1,4 +1,4 @@
-{{define "title"}}Repost{{end}}
+{{define "title"}}Remark{{end}}
 {{define "body"}}
 	<main>
 		<article>
@@ -9,29 +9,29 @@
 				<h2>Invalid URL</h2>
 				<p>The link you have passed, <code>{{.URL}}</code>, is invalid. Please enter a correct URL.</p>
             {{else if .ErrorImpossible}}
-				<h2>Repost impossible</h2>
-				<p>The page you entered does not support Betula's reposts. Is it running Betula? Is it the right page?</p>
+				<h2>Remark impossible</h2>
+				<p>The page you entered does not support Betula's remarks. Is it running Betula? Is it the right page?</p>
 				<p>Do you want to <a href="/save-link?title={{.FoundData.PostName}}&url={{.URL}}&description={{.FoundData.Mycomarkup}}&tags={{.FoundData.Tags | catStringsTogether}}">save this link</a> instead? Saving never fails.</p>
 			{{else if .ErrorTimeout}}
 	            <h2>Server timed out</h2>
-	            <p>The page takes too long to load, cannot repost now.</p>
+	            <p>The page takes too long to load, cannot remark now.</p>
 		            <!-- Keep in sync with the similar line in the previous branch! -->
 	            <p>Do you want to <a href="/save-link?title={{.FoundData.PostName}}&url={{.URL}}&description={{.FoundData.Mycomarkup}}&tags={{.FoundData.Tags | catStringsTogether}}">save this link</a> instead? Saving never fails.</p>
             {{else if .Err}}
 	            <h2>Error</h2>
 	            <p>Error message: {{.Err.Error}}.</p>
             {{else}}
-				<h2>Repost (experimental)</h2>
-				<p>Share bookmark from other Betulæ and compatible software quickly. Reposts link back the original bookmarks. You can edit the reposts' data freely.</p>
+				<h2>Remark</h2>
+				<p>Share bookmark from other Betulæ and compatible software quickly. Remarks link back the original bookmarks.</p>
             {{end}}
-			<form supports-ctrl-enter method="post" action="/repost">
+			<form supports-ctrl-enter method="post" action="/remark">
 				<div>
 					<label for="link-url">URL</label>
 					<input type="text" id="link-url" name="url" value="{{.URL}}" autocomplete="off" placeholder="https://links.example.org/42">
 				</div>
 
 				<div class="visibility-field">
-					<label class="visibility-field-title">Who can see the repost?</label>
+					<label class="visibility-field-title">Who can see the remark?</label>
 					<input id="link-public" type="radio" name="visibility" value="public"{{if .Visibility}} checked{{end}}>
 					<label for="link-public">Everyone</label>
 
@@ -44,7 +44,7 @@
 					<label for="copy-tags">Copy their tags</label>
 				</div>
 
-				<input type="submit" class="btn" value="Repost">
+				<input type="submit" class="btn" value="Remark">
 			</form>
 		</article>
 	</main>

@@ -64,8 +64,8 @@ order by CreationTime desc
 			continue
 		}
 
-		isRepost := post.RepostOf != nil
-		if isRepost {
+		isRemark := post.RemarkOf != nil
+		if isRemark {
 			continue // for now
 		}
 
@@ -126,8 +126,8 @@ order by CreationTime desc
 			continue
 		}
 
-		isRepost := post.RepostOf != nil
-		if !isRepost && query.RepostsOnly {
+		isRemark := post.RemarkOf != nil
+		if !isRemark && query.RemarksOnly {
 			continue
 		}
 

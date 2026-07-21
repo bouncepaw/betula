@@ -25,17 +25,17 @@ func NewRemarksRepo() *RemarksRepo {
 	return &RemarksRepo{}
 }
 
-func (repo *RemarksRepo) RemarksOf(ctx context.Context, bookmarkID int) ([]types.RepostInfo, error) {
+func (repo *RemarksRepo) RemarksOf(ctx context.Context, bookmarkID int) ([]types.RemarkInfo, error) {
 	rows, err := db.QueryContext(ctx, `select RepostURL, ReposterName, RepostedAt from KnownReposts where PostID = ?`, bookmarkID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var remarks []types.RepostInfo
+	var remarks []types.RemarkInfo
 	for rows.Next() {
 		var (
-			remark    types.RepostInfo
+			remark    types.RemarkInfo
 			timestamp string
 		)
 		if err := rows.Scan(&remark.URL, &remark.Name, &timestamp); err != nil {
@@ -50,7 +50,7 @@ func (repo *RemarksRepo) RemarksOf(ctx context.Context, bookmarkID int) ([]types
 	return remarks, rows.Err()
 }
 
-func (repo *RemarksRepo) SaveRemark(ctx context.Context, bookmarkID int, remark types.RepostInfo) error {
+func (repo *RemarksRepo) SaveRemark(ctx context.Context, bookmarkID int, remark types.RemarkInfo) error {
 	const q = `
 insert into KnownReposts (RepostURL, PostID, ReposterName)
 values (?, ?, ?)

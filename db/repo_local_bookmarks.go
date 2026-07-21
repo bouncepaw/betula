@@ -40,7 +40,7 @@ func scanBookmarks(rows *sql.Rows) ([]types.Bookmark, error) {
 	var bookmarks []types.Bookmark
 	for rows.Next() {
 		var bm types.Bookmark
-		if err := rows.Scan(&bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RepostOf, &bm.OriginalAuthor); err != nil {
+		if err := rows.Scan(&bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RemarkOf, &bm.OriginalAuthor); err != nil {
 			return nil, err
 		}
 		bookmarks = append(bookmarks, bm)
@@ -74,7 +74,7 @@ func (repo *RepoLocalBookmarks) GetBookmarkByID(
 	`, id)
 
 	var b types.Bookmark
-	err := row.Scan(&b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RepostOf, &b.OriginalAuthor)
+	err := row.Scan(&b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RemarkOf, &b.OriginalAuthor)
 	return b, err
 }
 
@@ -92,12 +92,12 @@ func (repo *RepoLocalBookmarks) InsertBookmark(
 		res, err = tx.ExecContext(ctx, `
 insert into Bookmarks (URL, Title, Description, Visibility, RepostOf, OriginalAuthorID)
 values (?, ?, ?, ?, ?, ?);
-`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RepostOf, bm.OriginalAuthor)
+`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RemarkOf, bm.OriginalAuthor)
 	} else {
 		res, err = tx.ExecContext(ctx, `
 insert into Bookmarks (URL, Title, Description, Visibility, RepostOf, OriginalAuthorID, CreationTime)
 values (?, ?, ?, ?, ?, ?, ?);
-`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RepostOf, bm.OriginalAuthor, bm.CreationTime)
+`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RemarkOf, bm.OriginalAuthor, bm.CreationTime)
 	}
 	if err != nil {
 		return 0, errors.Join(err, tx.Rollback())
@@ -284,7 +284,7 @@ set
     OriginalAuthorID = ?
 where
     ID = ? and DeletionTime is null;
-`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RepostOf, bm.OriginalAuthor, bm.ID)
+`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RemarkOf, bm.OriginalAuthor, bm.ID)
 	if err != nil {
 		return errors.Join(err, tx.Rollback())
 	}

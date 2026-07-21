@@ -29,8 +29,8 @@ type (
 
 	AnnounceReport struct {
 		ActorID    string
-		AnnounceID string // id of the repost
-		ObjectID   string // object that was reposted
+		AnnounceID string // id of the remark
+		ObjectID   string // object that was remarked
 	}
 
 	FollowReport struct {

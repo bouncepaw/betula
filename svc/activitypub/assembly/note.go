@@ -184,21 +184,21 @@ func (asm *Assembler) NoteFromBookmark(bookmark types.Bookmark) (apports.Dict, e
 		},
 	}
 
-	if bookmark.RepostOf == nil {
+	if bookmark.RemarkOf == nil {
 		asm.writeContentAndTags(object, &bookmark.URL, &bookmark.Title, bookmark.Description, nil, bookmark.Tags)
 	} else {
 		// https://codeberg.org/fediverse/fep/src/branch/main/fep/044f/fep-044f.md#compatibility-with-other-quote-implementations
 		// Deliberately no quote Link object in the tag list.
 		quoteFields := []string{"quote", "quoteUrl", "quoteUri", "_misskey_quote"}
 		for _, field := range quoteFields {
-			object[field] = *bookmark.RepostOf
+			object[field] = *bookmark.RemarkOf
 		}
 
 		text := ""
 		if bookmark.RemarkText != nil {
 			text = *bookmark.RemarkText
 		}
-		asm.writeContentAndTags(object, nil, nil, text, bookmark.RepostOf, bookmark.Tags)
+		asm.writeContentAndTags(object, nil, nil, text, bookmark.RemarkOf, bookmark.Tags)
 	}
 
 	return object, nil

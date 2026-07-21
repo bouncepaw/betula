@@ -139,8 +139,8 @@ func init() {
 	mux.HandleFunc("GET /bookmarklet", adminOnly(getBookmarklet))
 
 	// Create & Modify
-	mux.HandleFunc("GET /repost", adminOnly(getRepost))
-	mux.HandleFunc("POST /repost", adminOnly(postRepost))
+	mux.HandleFunc("GET /remark", adminOnly(getRemark))
+	mux.HandleFunc("POST /remark", adminOnly(postRemark))
 
 	mux.HandleFunc("GET /save-link", adminOnly(getSaveBookmark))
 	mux.HandleFunc("POST /save-link", adminOnly(postSaveBookmark))
@@ -1580,7 +1580,7 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 
 type dataBookmark struct {
 	Bookmark types.Bookmark
-	Reposts  []types.RepostInfo
+	Remarks  []types.RemarkInfo
 
 	LikeCounter int
 	LikedByUs   bool
@@ -1628,7 +1628,7 @@ func renderBookmark(
 
 	common := emptyCommon()
 	common.head = template.HTML(fmt.Sprintf(`<link rel="alternate" type="text/mycomarkup" href="/text/%d">`, bookmark.ID))
-	if bookmark.RepostOf == nil {
+	if bookmark.RemarkOf == nil {
 		common.head += template.HTML(fmt.Sprintf(`
 <link rel="alternate" type="%s" href="/%d"'>`, types.OtherActivityType, bookmark.ID))
 	}
@@ -1659,17 +1659,17 @@ func renderBookmark(
 		bookmark.Tags = tags
 	}
 
-	var reposts []types.RepostInfo
+	var remarks []types.RemarkInfo
 	if r, err := ctrl.RepoRemarks.RemarksOf(rq.Context(), bookmark.ID); err != nil {
-		slog.Warn("Failed to fetch reposts for bookmark", "bookmarkID", bookmark.ID, "err", err)
+		slog.Warn("Failed to fetch remarks for bookmark", "bookmarkID", bookmark.ID, "err", err)
 		notifications = append(notifications,
 			SystemNotification{
 				Category: NotificationFailure,
 				Body: template.HTML(fmt.Sprintf(
-					"Failed to fetch reposts: %s", err)),
+					"Failed to fetch remarks: %s", err)),
 			})
 	} else {
-		reposts = r
+		remarks = r
 	}
 
 	var (
@@ -1698,7 +1698,7 @@ func renderBookmark(
 
 	return dataBookmark{
 		Bookmark:         bookmark,
-		Reposts:          reposts,
+		Remarks:          remarks,
 		Archives:         archives,
 		HighlightArchive: highlightArchive,
 		dataCommon:       common,

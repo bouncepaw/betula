@@ -130,9 +130,9 @@ func getBookmarkFedi(w http.ResponseWriter, rq *http.Request) {
 	if !ok {
 		return
 	}
-	if bookmark.RepostOf != nil {
+	if bookmark.RemarkOf != nil {
 		// TODO: decide
-		slog.Warn("Get bookmark object of repost not implemented", "bookmarkID", bookmark.ID)
+		slog.Warn("Get bookmark object of remark not implemented", "bookmarkID", bookmark.ID)
 		handlerNotFound(w, rq)
 		return
 	}
@@ -292,7 +292,7 @@ func getWellKnownNodeInfo(w http.ResponseWriter, rq *http.Request) {
 	}
 }
 
-type dataRepost struct {
+type dataRemark struct {
 	*dataCommon
 
 	ErrorInvalidURL,
@@ -306,8 +306,8 @@ type dataRepost struct {
 	CopyTags   bool
 }
 
-func repostFormData(rq *http.Request) dataRepost {
-	return dataRepost{
+func remarkFormData(rq *http.Request) dataRemark {
+	return dataRemark{
 		dataCommon: emptyCommon(),
 		URL:        rq.FormValue("url"),
 		Visibility: types.VisibilityFromString(rq.FormValue("visibility")),
@@ -315,12 +315,12 @@ func repostFormData(rq *http.Request) dataRepost {
 	}
 }
 
-func getRepost(w http.ResponseWriter, rq *http.Request) {
-	templateExec(w, rq, templateRepost, repostFormData(rq))
+func getRemark(w http.ResponseWriter, rq *http.Request) {
+	templateExec(w, rq, templateRemark, remarkFormData(rq))
 }
 
-func postRepost(w http.ResponseWriter, rq *http.Request) {
-	formData := repostFormData(rq)
+func postRemark(w http.ResponseWriter, rq *http.Request) {
+	formData := remarkFormData(rq)
 	// Input validation
 	if formData.URL == "" {
 		formData.ErrorEmptyURL = true
@@ -330,11 +330,11 @@ func postRepost(w http.ResponseWriter, rq *http.Request) {
 		goto fetchRemoteBookmark
 	}
 	w.WriteHeader(http.StatusBadRequest)
-	templateExec(w, rq, templateRepost, formData)
+	templateExec(w, rq, templateRemark, formData)
 	return
 
 fetchRemoteBookmark:
-	bookmark, err := fediverse.FetchBookmarkAsRepost(formData.URL)
+	bookmark, err := fediverse.FetchBookmarkAsRemark(formData.URL)
 	if errors.Is(err, fediverse.ErrNotBookmark) {
 		formData.ErrorImpossible = true
 	} else if err != nil {
@@ -346,13 +346,13 @@ fetchRemoteBookmark:
 			formData.Err = err
 		}
 	} else {
-		goto reposting
+		goto remarking
 	}
 	w.WriteHeader(http.StatusBadRequest)
-	templateExec(w, rq, templateRepost, formData)
+	templateExec(w, rq, templateRemark, formData)
 	return
 
-reposting:
+remarking:
 	if !formData.CopyTags {
 		bookmark.Tags = nil // 🐸
 	}
@@ -360,8 +360,8 @@ reposting:
 	bookmark.CreationTime = time.Now().UTC().Format(types.TimeLayout)
 	id, err := localBookmarks.InsertBookmark(rq.Context(), *bookmark)
 	if err != nil {
-		slog.Error("Failed to insert repost bookmark", "err", err)
-		http.Error(w, "Failed to save repost", http.StatusInternalServerError)
+		slog.Error("Failed to insert remark bookmark", "err", err)
+		http.Error(w, "Failed to save remark", http.StatusInternalServerError)
 		return
 	}
 	bookmark.ID = int(id)

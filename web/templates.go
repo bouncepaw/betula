@@ -116,7 +116,7 @@ var templateStatus = templateFrom(nil, "status")
 // Meaningful views.
 var templateSaveLink = templateFrom(funcMapForForm, "link-form-fragment", "save-link")
 var templateEditLink = templateFrom(funcMapForForm, "link-form-fragment", "edit-link")
-var templateRepost = templateFrom(funcMapForForm, "repost")
+var templateRemark = templateFrom(funcMapForForm, "remark")
 var templatePost = templateFrom(funcMapForBookmarks, "post-fragment", "post")
 var templateFeed = templateFrom(funcMapForBookmarks, "paginator-fragment", "post-fragment", "feed")
 var templateSearch = templateFrom(funcMapForBookmarks, "paginator-fragment", "post-fragment", "search")
@@ -161,7 +161,7 @@ var funcMapForBookmarks = template.FuncMap{
 		// len("2000-00-00") == 10
 		return stamp[:10] // Pray 🙏
 	},
-	// originalAuthor renders the OriginalAuthor of a reposted bookmark. When it
+	// originalAuthor renders the OriginalAuthor of a remarked bookmark. When it
 	// is a URL, it is treated as a fediverse actor ID: we look the actor up and
 	// show their preferred username as a profile link. Otherwise (or when the
 	// actor is unknown) it is shown as plain text.

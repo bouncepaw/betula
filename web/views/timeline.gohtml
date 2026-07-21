@@ -46,7 +46,7 @@
                     <input type="submit" class="btn-control" value="{{if .LikedByUs}}Unlike {{.LikeCounter}}{{else}}Like{{if .LikeCounter}} {{.LikeCounter}}{{end}}{{end}}">
                 </form>
                 {{if not .RemarkedID.Valid}}
-                <a href="/repost?url={{.ID}}" class="btn-control" target="_blank">Remark</a>
+                <a href="/remark?url={{.ID}}" class="btn-control" target="_blank">Remark</a>
                 {{end}}
             {{end}}
                 <button class="btn-control" onclick="copyTextElem({{.URL}}, this)">Copy</button>

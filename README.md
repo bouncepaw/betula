@@ -15,7 +15,7 @@
 * Publish bookmarks, along with optional title and description/notes formatted with [Mycomarkup](https://links.bouncepaw.com/help/en/mycomarkup).
 * Add tags to your bookmarks.
 * Fediverse:
-  * Like and repost bookmarks from other Betula instances, and other software, sometimes.
+  * Like bookmarks and remark them from other Betula instances, and other compatible software.
   * Other Fediverse software such as Mastodon can follow Betula instances.
   * Follow other Betula instances and receive new bookmarks in your Timeline!
 * Make archive copies of web pages.

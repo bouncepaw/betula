@@ -39,9 +39,9 @@ func (p *AnnounceParser) GuessAnnounce(activity apports.Dict) (any, error) {
 
 func (p *AnnounceParser) GuessUndoAnnounce(object apports.Dict) (any, error) {
 	var report apports.UndoAnnounceReport
-	switch repost := object["id"].(type) {
+	switch remark := object["id"].(type) {
 	case string:
-		report.AnnounceID = repost
+		report.AnnounceID = remark
 	}
 	switch original := object["object"].(type) {
 	case string:

@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 )
 
-func (asm *Assembler) NewAnnounce(originalURL string, repostURL string) (json.RawMessage, error) {
+func (asm *Assembler) NewAnnounce(originalURL string, remarkURL string) (json.RawMessage, error) {
 	activity := map[string]any{
 		"@context": atContext,
 		"type":     "Announce",
@@ -18,7 +18,7 @@ func (asm *Assembler) NewAnnounce(originalURL string, repostURL string) (json.Ra
 			"id":                asm.actor(),
 			"preferredUsername": asm.adminUsernameFn(),
 		},
-		"id":     repostURL,
+		"id":     remarkURL,
 		"object": originalURL,
 	}
 	return json.Marshal(activity)

@@ -5,7 +5,7 @@
 		<div class="notif" notif-cat="{{.Category}}">{{.Body}}</div>
 		{{end}}{{end}}
 		<article class="post-page h-entry">
-		{{if .Bookmark.RepostOf}}
+		{{if .Bookmark.RemarkOf}}
 			<div class="bookmark-remark">
 				<div class="actor-link">
 					<a href="/@{{$root.AdminUsername}}" class="profile-link">{{$root.AdminUsername}}</a>
@@ -21,7 +21,7 @@
 				<a class="u-bookmark-of h-cite" href="/go/{{.Bookmark.ID}}">{{shortenLink .Bookmark.URL}}</a>
 			</div>
 
-		{{if .Bookmark.RepostOf}}
+		{{if .Bookmark.RemarkOf}}
 			<div class="myco e-content">
 				{{if .Bookmark.OriginalAuthor.Valid}}
 					<div class="actor-link">{{originalAuthor .Bookmark.OriginalAuthor.String}}</div>
@@ -62,13 +62,13 @@
 				{{end}}
 				<button class="btn-control" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy</button>
 				<a class="btn-control" style="margin-left:auto" href="/edit-link/{{.Bookmark.ID}}">Edit</a>
-				{{if .Bookmark.RepostOf}}<a class="btn-control" href="{{.Bookmark.RepostOf}}">Open original</a>{{end}}
+				{{if .Bookmark.RemarkOf}}<a class="btn-control" href="{{.Bookmark.RemarkOf}}">Open original</a>{{end}}
 				<a class="btn-control" href="/{{.Bookmark.ID}}">{{.Bookmark.ID}}.</a>
 			{{else}}
 				<button class="btn-control" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy</button>
 				{{if .LikeCounter}}{{.LikeCounter}} like{{if ne .LikeCounter 1}}s{{end}}{{end}}
-				{{if .Bookmark.RepostOf}}<a class="btn-control" style="margin-left:auto" href="{{.Bookmark.RepostOf}}">Open original</a>{{end}}
-				<a class="btn-control" {{if not .Bookmark.RepostOf}}style="margin-left:auto"{{end}} href="/{{.Bookmark.ID}}">{{.Bookmark.ID}}.</a>
+				{{if .Bookmark.RemarkOf}}<a class="btn-control" style="margin-left:auto" href="{{.Bookmark.RemarkOf}}">Open original</a>{{end}}
+				<a class="btn-control" {{if not .Bookmark.RemarkOf}}style="margin-left:auto"{{end}} href="/{{.Bookmark.ID}}">{{.Bookmark.ID}}.</a>
 			{{end}}
 			</div>
 		</article>
@@ -95,10 +95,10 @@
 			{{end}}
 		</article>
 		{{end}}
-		{{if and .Reposts (not .Bookmark.RepostOf)}}
+		{{if and .Remarks (not .Bookmark.RemarkOf)}}
 		<article class="bookmark-section">
-			<h3>{{len .Reposts}} remark{{if gt (len .Reposts) 1}}s{{end}}</h3>
-			{{range .Reposts}}
+			<h3>{{len .Remarks}} remark{{if gt (len .Remarks) 1}}s{{end}}</h3>
+			{{range .Remarks}}
 				<div class="remark-entry">
 					<span class="actor-link">{{originalAuthor .Name}}</span>
 					remarked at

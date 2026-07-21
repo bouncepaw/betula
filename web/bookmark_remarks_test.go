@@ -18,7 +18,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-func TestRenderBookmarkIncludesReposts(t *testing.T) {
+func TestRenderBookmarkIncludesRemarks(t *testing.T) {
 	db.InitInMemoryDB()
 
 	bm := types.Bookmark{
@@ -34,8 +34,8 @@ func TestRenderBookmarkIncludesReposts(t *testing.T) {
 	ctrl.RepoRemarks = db.NewRemarksRepo()
 	ctrl.RepoTags = db.NewTagsRepo()
 	var (
-		re1 = types.RepostInfo{URL: "https://links.alice/1", Name: "Alice", Timestamp: time.Now()}
-		re2 = types.RepostInfo{URL: "https://links.bob/2", Name: "Bob", Timestamp: time.Now()}
+		re1 = types.RemarkInfo{URL: "https://links.alice/1", Name: "Alice", Timestamp: time.Now()}
+		re2 = types.RemarkInfo{URL: "https://links.bob/2", Name: "Bob", Timestamp: time.Now()}
 	)
 	be.Err(t, ctrl.RepoRemarks.SaveRemark(t.Context(), bookmark.ID, re1), nil)
 	be.Err(t, ctrl.RepoRemarks.SaveRemark(t.Context(), bookmark.ID, re2), nil)
@@ -44,5 +44,5 @@ func TestRenderBookmarkIncludesReposts(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	data := renderBookmark(bookmark, w, r, false)
-	be.Equal(t, len(data.Reposts), 2)
+	be.Equal(t, len(data.Remarks), 2)
 }

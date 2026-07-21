@@ -22,7 +22,7 @@ var (
 	excludeTagRe = regexp.MustCompile(`-#([^?!:#@<>*|'"&%{}\\\s]+)\s*`)
 	includeTagRe = regexp.MustCompile(`#([^?!:#@<>*|'"&%{}\\\s]+)\s*`)
 	// TODO: argument will be added in a future version
-	includeRepostRe = regexp.MustCompile(`\brepost:()\s*`)
+	includeRemarkRe = regexp.MustCompile(`\bremark:()\s*`)
 )
 
 type Service struct {
@@ -60,13 +60,13 @@ func (svc *Service) ForFederated(query string, offset, limit uint) (bookmarks []
 func (svc *Service) For(query string, authorized bool, page uint) (bookmarksInPage []types.Bookmark, totalBookmarks uint) {
 	query, excludedTags := svc.extractWithRegex(query, excludeTagRe)
 	query, includedTags := svc.extractWithRegex(query, includeTagRe)
-	query, includedRepostMarkers := svc.extractWithRegex(query, includeRepostRe)
+	query, includedRemarkMarkers := svc.extractWithRegex(query, includeRemarkRe)
 
 	bookmarksInPage, totalBookmarks, err := svc.repo.Search(context.Background(), searchingports.Query{
 		Text:         query,
 		IncludedTags: includedTags,
 		ExcludedTags: excludedTags,
-		RepostsOnly:  len(includedRepostMarkers) != 0,
+		RemarksOnly:  len(includedRemarkMarkers) != 0,
 		Authorized:   authorized,
 		Page:         page,
 	})

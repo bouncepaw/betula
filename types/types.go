@@ -70,10 +70,10 @@ type Bookmark struct {
 	Description string
 	// Visibility sets who can see the post.
 	Visibility Visibility
-	// RepostOf is URL of the post reposted. Nil if this is an original post.
-	RepostOf   *string
+	// RemarkOf is URL of the post remarked. Nil if this is an original post.
+	RemarkOf   *string
 	RemarkText *string
-	// OriginalAuthor is ID of the author of the original bookmark. Might be invalid even if RepostOf is not nil
+	// OriginalAuthor is ID of the author of the original bookmark. Might be invalid even if RemarkOf is not nil
 	OriginalAuthor sql.NullString
 }
 
@@ -239,7 +239,7 @@ func PaginatorFromURL(url *url.URL, currentPage uint, totalPosts uint) (pages []
 	return pages
 }
 
-type RepostInfo struct {
+type RemarkInfo struct {
 	Timestamp time.Time
 	URL       string
 	Name      string

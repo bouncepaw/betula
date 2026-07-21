@@ -89,7 +89,7 @@ type (
 		NewUndoLike(likedObjectID, recipientID string) (json.RawMessage, error)
 		NewAccept(acceptedActivity Dict) (json.RawMessage, error)
 		NewReject(rejectedActivity Dict) (json.RawMessage, error)
-		NewAnnounce(originalURL, repostURL string) (json.RawMessage, error)
+		NewAnnounce(originalURL, remarkURL string) (json.RawMessage, error)
 		NewFollowFromUs(objectID string) (json.RawMessage, error)
 		NewUndoFollowFromUs(objectID string) (json.RawMessage, error)
 		DeleteNote(postID int) (json.RawMessage, error)
