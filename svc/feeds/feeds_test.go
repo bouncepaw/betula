@@ -18,7 +18,7 @@ func TestFiveLastDays(t *testing.T) {
 	db.InitInMemoryDB()
 	db.MoreTestingBookmarks()
 	svc := New(db.NewLocalBookmarksRepo())
-	days, dayStamps, dayPosts, err := svc.fiveLastDays(
+	days, dayStamps, dayBookmarks, err := svc.fiveLastDays(
 		time.Date(2023, 3, 21, 0, 0, 0, 0, time.UTC))
 	be.Err(t, err, nil)
 
@@ -30,7 +30,7 @@ func TestFiveLastDays(t *testing.T) {
 	}
 
 	correctBookmarkCounts := []int{2, 1, 0, 1, 0}
-	for i, posts := range dayPosts {
-		be.Equal(t, correctBookmarkCounts[i], len(posts))
+	for i, bookmarks := range dayBookmarks {
+		be.Equal(t, correctBookmarkCounts[i], len(bookmarks))
 	}
 }

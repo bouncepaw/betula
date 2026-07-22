@@ -88,17 +88,17 @@ ExpectStatus 303
 Post '/register' -F name=bo -F pass=un
 Check
 
-Test 'Access non-existent post'
+Test 'Access non-existent bookmark'
 ExpectStatus 404
 Get '/1'
 Check
 
-Test 'Create a post'
+Test 'Create a bookmark'
 ExpectStatus 303
 Post '/save-link' -F url=https://bouncepaw.com -F title=Bouncepaw
 Check
 
-Test 'Access the freshly-created post'
+Test 'Access the freshly-created bookmark'
 ExpectStatus 200
 Get '/1'
 Check

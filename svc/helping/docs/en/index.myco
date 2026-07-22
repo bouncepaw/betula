@@ -10,13 +10,13 @@ Every Betula installation comes with a full copy of this documentation. Use the 
 Press the [[/save-link | Save link]] link. There are multiple fields there:
 
 * **URL** is the URL (address) of a web page. This is the only required field.
-* **Title** is the title of the post that will be created when you save the link. If you leave it empty, Betula will do its best to quess a title.
+* **Title** is the title of the bookmark that will be created when you save the link. If you leave it empty, Betula will do its best to quess a title.
 * **Description** is a place for notes, excerpts and conclusions from the saved link. Express your opinion here. You can format the text with [[/help/en/mycomarkup | Mycomarkup]].
-* Set **visibility** for your post. Make posts with sensitive or too boring information visible only for you.
+* Set **visibility** for your bookmark. Make bookmarks with sensitive or too boring information visible only for you.
 * **Tags** are separated with commas. Keywords and topics make good tags. Try to add at least one tag. For federated servers, prefer short English-language tags, that's what most servers do.
 
 == Tags
-On [[/tag | Tags]] page you can see all your tags. Unauthorized users only see tags that have public posts. Don't be scared if you end up having hundreds of tags with 1 to 3 bookmarks each. This is normal.
+On [[/tag | Tags]] page you can see all your tags. Unauthorized users only see tags that have public bookmarks. Don't be scared if you end up having hundreds of tags with 1 to 3 bookmarks each. This is normal.
 
 == Settings
 You really should [[/settings | set up your settings]].

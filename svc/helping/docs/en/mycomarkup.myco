@@ -6,7 +6,7 @@ See also:
 => https://mycorrhiza.wiki/help/en/mycomarkup | Mycomarkup in Mycorrhiza
 
 = Blocks
-Mycomarkup provides the following blocks in post and tag descriptions.
+Mycomarkup provides the following blocks in bookmark and tag descriptions.
 
 == Paragraph
 **Paragraph** is the most basic block. Paragraphs are separated by empty lines:
@@ -46,17 +46,17 @@ You can link just like that: https://example.com
 
 It is a good idea to wrap links in double brackets: [[https://example.com]]. If you want, you can even set a title: [[https://example.com | Example link]].
 
-You can link local pages. To link the fourth post, use [[/4]]. To link a tag, use [[/tag/tag_name]]. Look at the address bar on the pages you want to link to see the address.
+You can link local pages. To link the fourth bookmark, use [[/4]]. To link a tag, use [[/tag/tag_name]]. Look at the address bar on the pages you want to link to see the address.
 ```
 
 > You can link just like that: https://example.com
 >
 > It is a good idea to wrap links in double brackets: [[https://example.com]]. If you want, you can even set a title: [[https://example.com | Example link]].
 >
-> You can link local pages. To link the fourth post, use [[/4]]. To link a tag, use [[/tag/tag_name]]. Look at the address bar on the pages you want to link to see the address.
+> You can link local pages. To link the fourth bookmark, use [[/4]]. To link a tag, use [[/tag/tag_name]]. Look at the address bar on the pages you want to link to see the address.
 
 == Quotes
-**Quotes** are used to show an excerpt from a different place, most often, the very document linked in the post. Quote the part you like the most, so you can find it later.
+**Quotes** are used to show an excerpt from a different place, most often, the very document linked in the bookmark. Quote the part you like the most, so you can find it later.
 
 Prepend multiple lines with the `>` character, and they will be shown as a quote:
 
@@ -150,7 +150,7 @@ table {
 ```
 
 == Thematic breaks
-**Thematic breaks** are horizontals line that separate information. In Betula, you would rarely need them, as the information is already separated into posts.
+**Thematic breaks** are horizontals line that separate information. In Betula, you would rarely need them, as the information is already separated into bookmarks.
 
 ```myco
 ----

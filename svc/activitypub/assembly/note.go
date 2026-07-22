@@ -20,8 +20,8 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
-func (asm *Assembler) DeleteNote(postID int) (json.RawMessage, error) {
-	id := fmt.Sprintf("%s/%d", asm.siteURLFn(), postID)
+func (asm *Assembler) DeleteNote(bookmarkID int) (json.RawMessage, error) {
+	id := fmt.Sprintf("%s/%d", asm.siteURLFn(), bookmarkID)
 	activity := apports.Dict{
 		"@context": atContext,
 		"type":     "Delete",
@@ -220,37 +220,37 @@ func (asm *Assembler) makeNoteAction(bookmark types.Bookmark) (apports.Dict, err
 	return activity, nil
 }
 
-func (asm *Assembler) CreateNote(post types.Bookmark) (json.RawMessage, error) {
-	activity, err := asm.makeNoteAction(post)
+func (asm *Assembler) CreateNote(bookmark types.Bookmark) (json.RawMessage, error) {
+	activity, err := asm.makeNoteAction(bookmark)
 	if err != nil {
 		return nil, err
 	}
 	activity["type"] = "Create"
-	activity["id"] = fmt.Sprintf("%s/%d?create", asm.siteURLFn(), post.ID)
+	activity["id"] = fmt.Sprintf("%s/%d?create", asm.siteURLFn(), bookmark.ID)
 	return json.Marshal(activity)
 }
 
-func (asm *Assembler) UpdateNote(post types.Bookmark) (json.RawMessage, error) {
-	activity, err := asm.makeNoteAction(post)
+func (asm *Assembler) UpdateNote(bookmark types.Bookmark) (json.RawMessage, error) {
+	activity, err := asm.makeNoteAction(bookmark)
 	if err != nil {
 		return nil, err
 	}
 	activity["type"] = "Update"
-	activity["id"] = fmt.Sprintf("%s/%d?update", asm.siteURLFn(), post.ID)
+	activity["id"] = fmt.Sprintf("%s/%d?update", asm.siteURLFn(), bookmark.ID)
 	activity["object"].(apports.Dict)["updated"] = time.Now().UTC().Format(time.RFC3339)
 	return json.Marshal(activity)
 }
 
-func (asm *Assembler) UpdateNoteWithLikes(post types.Bookmark, likeCounter int) (json.RawMessage, error) {
-	activity, err := asm.makeNoteAction(post)
+func (asm *Assembler) UpdateNoteWithLikes(bookmark types.Bookmark, likeCounter int) (json.RawMessage, error) {
+	activity, err := asm.makeNoteAction(bookmark)
 	if err != nil {
 		return nil, err
 	}
 	activity["type"] = "Update"
-	activity["id"] = fmt.Sprintf("%s/%d?update", asm.siteURLFn(), post.ID)
+	activity["id"] = fmt.Sprintf("%s/%d?update", asm.siteURLFn(), bookmark.ID)
 	activity["object"].(apports.Dict)["updated"] = time.Now().UTC().Format(time.RFC3339)
 
-	likeCollectionID := fmt.Sprintf("%s/%d?likes", asm.siteURLFn(), post.ID)
+	likeCollectionID := fmt.Sprintf("%s/%d?likes", asm.siteURLFn(), bookmark.ID)
 	activity["object"].(apports.Dict)["likes"] = apports.Collection{
 		ID:         &likeCollectionID,
 		Type:       "Collection",

@@ -47,16 +47,16 @@ create table Subscriptions
 -- END DROPPED
 
 -- DROPPED IN 13: extended
--- IncomingPosts lists all known posts that were sent from who we follow our way.
--- These posts can and will be deleted at user's will.
+-- IncomingPosts lists all known bookmarks that were sent from who we follow our way.
+-- These bookmarks can and will be deleted at user's will.
 --
--- We don't have Visibility and DeletedAt fields. If we have the post, it's public
+-- We don't have Visibility and DeletedAt fields. If we have the bookmark, it's public
 -- enough for our purposes. DeletedAt bears no value, we'll just drop deleted
--- posts.
+-- bookmarks.
 create table IncomingPosts
 (
-    ID          text primary key, -- ActivityPub's URL, serves as post's URL.
-    RepostOf    text,             -- nullable. Distinguishes if this is an original post or not
+    ID          text primary key, -- ActivityPub's URL, serves as bookmark's URL.
+    RepostOf    text,             -- nullable. Distinguishes if this is an original bookmark or not
 
     Title       text not null,
     Description text not null,

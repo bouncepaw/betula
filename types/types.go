@@ -30,7 +30,7 @@ import (
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/util"
 )
 
-// Visibility determines where the post is seen.
+// Visibility determines where the bookmark is seen.
 //
 // Perhaps in the future Unlisted visibility will also be introduced,
 // see https://todo.sr.ht/~bouncepaw/betula/65
@@ -59,7 +59,7 @@ type Bookmark struct {
 	ID int
 	// CreationTime is like 2006-01-02 15:04:05.
 	CreationTime string
-	// Tags are the tags this post has. Do not set this field by yourself.
+	// Tags are the tags this bookmark has. Do not set this field by yourself.
 	Tags []Tag
 
 	// URL is a URL with any protocol.
@@ -68,9 +68,9 @@ type Bookmark struct {
 	Title string
 	// Description is a Mycomarkup-formatted document.
 	Description string
-	// Visibility sets who can see the post.
+	// Visibility sets who can see the bookmark.
 	Visibility Visibility
-	// RemarkOf is URL of the post remarked. Nil if this is an original post.
+	// RemarkOf is URL of the bookmark remarked. Nil if this is an original bookmark.
 	RemarkOf   *string
 	RemarkText *string
 	// OriginalAuthor is ID of the author of the original bookmark. Might be invalid even if RemarkOf is not nil
@@ -216,8 +216,8 @@ func countPages(totalBookmarks uint) uint {
 	return uint(math.Ceil(float64(totalBookmarks) / float64(BookmarksPerPage)))
 }
 
-func PaginatorFromURL(url *url.URL, currentPage uint, totalPosts uint) (pages []Page) {
-	totalPages := countPages(totalPosts)
+func PaginatorFromURL(url *url.URL, currentPage uint, totalBookmarks uint) (pages []Page) {
+	totalPages := countPages(totalBookmarks)
 	values := url.Query()
 	pages = make([]Page, totalPages)
 

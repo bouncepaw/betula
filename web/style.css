@@ -164,7 +164,7 @@ p + form {
 .invisible {
     display: none;
 }
-.post-visibility-private {
+.bookmark-visibility-private {
     font-weight: bold;
 }
 .date-heading {
@@ -228,7 +228,7 @@ main {
 main > article:first-of-type {
     margin-top: 0;
 }
-a.edit-post-btn {
+a.edit-bookmark-btn {
     float: right;
     font-size: small;
     margin: 2px;
@@ -242,7 +242,7 @@ a.edit-post-btn {
     border-radius: 0 0 .25rem .25rem;
 }
 .bookmark-controls .btn,
-.bookmark-controls .post-visibility {
+.bookmark-controls .bookmark-visibility {
     height: 1.625rem;
     border: none;
     background: transparent;
@@ -271,8 +271,8 @@ a.edit-post-btn {
     display: inline-block;
     text-decoration: none;
 }
-.post-page .u-repost-of,
-.post-page .u-bookmark-of {
+.bookmark-page .u-repost-of,
+.bookmark-page .u-bookmark-of {
     font-size: 1rem;
     line-height: 150%;
 }
@@ -423,7 +423,7 @@ pre {
 .date-link .dt-published {
     text-decoration: underline;
 }
-.edit-post-link {
+.edit-bookmark-link {
     float: right;
 }
 
@@ -838,8 +838,8 @@ main .notif:last-of-type {
     .p-category,
     .p-category:hover,
     .p-category:visited,
-    .edit-post-btn,
-    .edit-post-btn:visited,
+    .edit-bookmark-btn,
+    .edit-bookmark-btn:visited,
     .date-heading a,
     .date-link,
     .card-line a,
@@ -904,8 +904,8 @@ main .notif:last-of-type {
     .p-category,
     .p-category:hover,
     .p-category:visited,
-    .edit-post-btn,
-    .edit-post-btn:visited,
+    .edit-bookmark-btn,
+    .edit-bookmark-btn:visited,
     .date-heading a,
     .date-link,
     .card-line a,

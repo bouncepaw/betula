@@ -12,35 +12,35 @@ import (
 )
 
 type errorTemplate interface {
-	emptyUrl(post types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request)
-	invalidUrl(post types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request)
-	titleNotFound(post types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request)
+	emptyUrl(bookmark types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request)
+	invalidUrl(bookmark types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request)
+	titleNotFound(bookmark types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request)
 }
 
 /* Error templates for edit link currentPage */
 
-func (d dataEditLink) emptyUrl(post types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
+func (d dataEditLink) emptyUrl(bookmark types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 	templateExec(w, rq, templateEditLink, dataEditLink{
-		Bookmark:      post,
+		Bookmark:      bookmark,
 		dataCommon:    data,
 		ErrorEmptyURL: true,
 	})
 }
 
-func (d dataEditLink) invalidUrl(post types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
+func (d dataEditLink) invalidUrl(bookmark types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 	templateExec(w, rq, templateEditLink, dataEditLink{
-		Bookmark:        post,
+		Bookmark:        bookmark,
 		dataCommon:      data,
 		ErrorInvalidURL: true,
 	})
 }
 
-func (d dataEditLink) titleNotFound(post types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
+func (d dataEditLink) titleNotFound(bookmark types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 	templateExec(w, rq, templateEditLink, dataEditLink{
-		Bookmark:           post,
+		Bookmark:           bookmark,
 		dataCommon:         data,
 		ErrorTitleNotFound: true,
 	})
@@ -48,28 +48,28 @@ func (d dataEditLink) titleNotFound(post types.Bookmark, data *dataCommon, w htt
 
 /* Error templates for save link currentPage */
 
-func (d dataSaveLink) emptyUrl(post types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
+func (d dataSaveLink) emptyUrl(bookmark types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 	templateExec(w, rq, templateSaveLink, dataSaveLink{
-		Bookmark:      post,
+		Bookmark:      bookmark,
 		dataCommon:    data,
 		ErrorEmptyURL: true,
 	})
 }
 
-func (d dataSaveLink) invalidUrl(post types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
+func (d dataSaveLink) invalidUrl(bookmark types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 	templateExec(w, rq, templateSaveLink, dataSaveLink{
-		Bookmark:        post,
+		Bookmark:        bookmark,
 		dataCommon:      data,
 		ErrorInvalidURL: true,
 	})
 }
 
-func (d dataSaveLink) titleNotFound(post types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
+func (d dataSaveLink) titleNotFound(bookmark types.Bookmark, data *dataCommon, w http.ResponseWriter, rq *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 	templateExec(w, rq, templateSaveLink, dataSaveLink{
-		Bookmark:           post,
+		Bookmark:           bookmark,
 		dataCommon:         data,
 		ErrorTitleNotFound: true,
 	})

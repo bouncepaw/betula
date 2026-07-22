@@ -30,10 +30,10 @@ func TestCleanerLinkParts(t *testing.T) {
 	check("tel:+55551234567", "tel:+55551234567", "")
 }
 
-func TestGroupPostsByDate(t *testing.T) {
+func TestGroupBookmarksByDate(t *testing.T) {
 	tests := []struct {
 		args             []Bookmark
-		wantGroupedPosts []LocalBookmarkGroup
+		wantGroupedBookmarks []LocalBookmarkGroup
 	}{
 		{
 			[]Bookmark{
@@ -105,7 +105,7 @@ func TestGroupPostsByDate(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(strconv.Itoa(i+1), func(t *testing.T) {
-			be.Equal(t, GroupLocalBookmarksByDate(RenderLocalBookmarks(tt.args)), tt.wantGroupedPosts)
+			be.Equal(t, GroupLocalBookmarksByDate(RenderLocalBookmarks(tt.args)), tt.wantGroupedBookmarks)
 		})
 	}
 }

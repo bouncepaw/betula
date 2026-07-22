@@ -119,7 +119,7 @@ func TestRenameTag(t *testing.T) {
 }
 
 // tests SetTagsFor and TagsForBookmarkByID.
-func TestPostTags(t *testing.T) {
+func TestBookmarkTags(t *testing.T) {
 	initInMemoryTags()
 	ctx := context.Background()
 	repo := NewTagsRepo()

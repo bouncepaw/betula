@@ -27,9 +27,10 @@ func TestBookmarkCount(t *testing.T) {
 	be.Equal(t, count, 1)
 }
 
-func TestAddPost(t *testing.T) {
+func TestAddBookmark(t *testing.T) {
 	InitInMemoryDB()
-	post := types.Bookmark{
+	repo := NewLocalBookmarksRepo()
+	_, err := repo.InsertBookmark(t.Context(), types.Bookmark{
 		CreationTime: "2023-03-18",
 		Tags: []types.Tag{
 			{Name: "cat"},
@@ -39,9 +40,7 @@ func TestAddPost(t *testing.T) {
 		Title:       "Betula",
 		Description: "",
 		Visibility:  types.Public,
-	}
-	repo := NewLocalBookmarksRepo()
-	_, err := repo.InsertBookmark(t.Context(), post)
+	})
 	be.Err(t, err, nil)
 	count, err := repo.BookmarkCount(t.Context(), true)
 	be.Err(t, err, nil)

@@ -255,7 +255,7 @@ func getNodeInfo(w http.ResponseWriter, rq *http.Request) {
 				"activeHalfyear": 1,
 				"activeMonth":    1,
 			},
-			"localPosts":    bookmarkCount,
+			"localBookmarks":    bookmarkCount,
 			"localComments": 0,
 		},
 		"metadata": map[string]string{

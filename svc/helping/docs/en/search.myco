@@ -1,10 +1,10 @@
 = Advanced search
-You can use the search bar to look up posts with a query. There are several tricks for using the search bar which are described in this document.
+You can use the search bar to look up bookmarks with a query. There are several tricks for using the search bar which are described in this document.
 
 == Look for substring
 Query: `text`.
 
-Result: all posts that have `text` in its title, text or URL.
+Result: all bookmarks that have `text` in its title, text or URL.
 
 Notes:
 * The text is case-insensitive, so queries `text` and `TEXT` yield the same results.
@@ -13,7 +13,7 @@ Notes:
 == Require tag
 Query: `#tag`, `#tag1 #tag_two`.
 
-Results: all posts that have all the provided tags at once.
+Results: all bookmarks that have all the provided tags at once.
 
 Notes:
 * Use _ instead of spaces in the tag names.
@@ -23,7 +23,7 @@ Notes:
 == Exclude tag
 Query: `-#tag`, `-#tag1 -#tag2`.
 
-Results: all posts that do not have the provided tags.
+Results: all bookmarks that do not have the provided tags.
 
 Notes:
 * Use _ instead of spaces in the tag names.

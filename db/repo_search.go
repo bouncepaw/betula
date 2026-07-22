@@ -51,27 +51,27 @@ order by CreationTime desc
 	var ignoredBookmarks uint = 0
 	bookmarksToIgnore := query.Offset
 
-	for _, post := range unfilteredBookmarks {
-		if !textOK(post, text) {
+	for _, bookmark := range unfilteredBookmarks {
+		if !textOK(bookmark, text) {
 			continue
 		}
 
-		post.Tags, err = tagsForBookmarkByID(ctx, db, post.ID)
+		bookmark.Tags, err = tagsForBookmarkByID(ctx, db, bookmark.ID)
 		if err != nil {
 			return nil, 0, err
 		}
-		if !tagsOK(post.Tags, query.IncludedTags, query.ExcludedTags) {
+		if !tagsOK(bookmark.Tags, query.IncludedTags, query.ExcludedTags) {
 			continue
 		}
 
-		isRemark := post.RemarkOf != nil
+		isRemark := bookmark.RemarkOf != nil
 		if isRemark {
 			continue // for now
 		}
 
 		totalResults++
 		if ignoredBookmarks >= bookmarksToIgnore && i < query.Limit {
-			results = append(results, post)
+			results = append(results, bookmark)
 			i++
 		} else {
 			ignoredBookmarks++
@@ -113,27 +113,27 @@ order by CreationTime desc
 	// astra.
 	//
 	// We can't even parallelize it.
-	for _, post := range unfilteredBookmarks {
-		if !textOK(post, text) {
+	for _, bookmark := range unfilteredBookmarks {
+		if !textOK(bookmark, text) {
 			continue
 		}
 
-		post.Tags, err = tagsForBookmarkByID(ctx, db, post.ID)
+		bookmark.Tags, err = tagsForBookmarkByID(ctx, db, bookmark.ID)
 		if err != nil {
 			return nil, 0, err
 		}
-		if !tagsOK(post.Tags, query.IncludedTags, query.ExcludedTags) {
+		if !tagsOK(bookmark.Tags, query.IncludedTags, query.ExcludedTags) {
 			continue
 		}
 
-		isRemark := post.RemarkOf != nil
+		isRemark := bookmark.RemarkOf != nil
 		if !isRemark && query.RemarksOnly {
 			continue
 		}
 
 		totalResults++
 		if ignoredBookmarks >= bookmarksToIgnore && i < types.BookmarksPerPage {
-			results = append(results, post)
+			results = append(results, bookmark)
 			i++
 		} else {
 			ignoredBookmarks++
@@ -143,19 +143,19 @@ order by CreationTime desc
 }
 
 // true if keep, false if discard.
-func textOK(post types.Bookmark, text string) bool {
-	return strings.Contains(strings.ToLower(post.Title), text) ||
-		strings.Contains(strings.ToLower(post.Description), text) ||
-		strings.Contains(strings.ToLower(post.URL), text)
+func textOK(bookmark types.Bookmark, text string) bool {
+	return strings.Contains(strings.ToLower(bookmark.Title), text) ||
+		strings.Contains(strings.ToLower(bookmark.Description), text) ||
+		strings.Contains(strings.ToLower(bookmark.URL), text)
 }
 
 // true if keep, false if discard. All slices are sorted.
-func tagsOK(postTags []types.Tag, includedTags, excludedTags []string) bool {
+func tagsOK(bookmarkTags []types.Tag, includedTags, excludedTags []string) bool {
 	J, K := len(includedTags), len(excludedTags)
 	j, k := 0, 0
 	includeMask := make([]bool, J)
-	for _, postTag := range postTags {
-		name := postTag.Name
+	for _, bookmarkTag := range bookmarkTags {
+		name := bookmarkTag.Name
 		switch {
 		case k < K && excludedTags[k] == name:
 			return false

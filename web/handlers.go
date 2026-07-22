@@ -106,7 +106,9 @@ func init() {
 	mux.HandleFunc("GET /help", getHelp)
 	mux.HandleFunc("GET /text/{id}", getText)
 	mux.HandleFunc("GET /digest-rss", getDigestRSS)
+	// NOTE(Danila Gorelko): deprecated.
 	mux.HandleFunc("GET /posts-rss", getBookmarksRSS)
+	mux.HandleFunc("GET /bookmarks-rss", getBookmarksRSS)
 	mux.HandleFunc("GET /go/{id}", getGo)
 	mux.HandleFunc("GET /about", getAbout)
 
@@ -307,7 +309,7 @@ func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
 		slog.Info("Deleted archive", "id", archiveID, "bookmarkID", bookmarkID)
 	}
 
-	templateExec(w, rq, templatePost, templateData)
+	templateExec(w, rq, templateBookmark, templateData)
 }
 
 func getArtifact(w http.ResponseWriter, rq *http.Request) {
@@ -1261,43 +1263,43 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 	slog.Info("Edited bookmark", "bookmarkID", bookmark.ID)
 
 	if settings.FederationEnabled() {
-		go func(post types.Bookmark, oldVisibility types.Visibility) {
+		go func(bookmark types.Bookmark, oldVisibility types.Visibility) {
 			wasPublic := oldVisibility == types.Public
-			isPublic := post.Visibility == types.Public
+			isPublic := bookmark.Visibility == types.Public
 
-			// The post remains private.
+			// The bookmark remains private.
 			if !wasPublic && !isPublic {
 				return
 			}
 
-			// The post was hidden by the author. Let's broadcast Delete.
+			// The bookmark was hidden by the author. Let's broadcast Delete.
 			if wasPublic && !isPublic {
-				data, err := ctrl.Assembly.DeleteNote(post.ID)
+				data, err := ctrl.Assembly.DeleteNote(bookmark.ID)
 				if err != nil {
-					slog.Error("Failed to create Delete{Note} activity for bookmark", "bookmarkID", post.ID, "err", err)
+					slog.Error("Failed to create Delete{Note} activity for bookmark", "bookmarkID", bookmark.ID, "err", err)
 					return
 				}
 				jobs.ScheduleDatum(jobtype.SendDeleteNote, data)
 				return
 			}
 
-			post.CreationTime = time.Now().UTC().Format(types.TimeLayout) // It shall match the one generated in DB
+			bookmark.CreationTime = time.Now().UTC().Format(types.TimeLayout) // It shall match the one generated in DB
 
-			// The post was unpublic, but became public. Let's broadcast Create.
+			// The bookmark was unpublic, but became public. Let's broadcast Create.
 			if !wasPublic && isPublic {
-				data, err := ctrl.Assembly.CreateNote(post)
+				data, err := ctrl.Assembly.CreateNote(bookmark)
 				if err != nil {
-					slog.Error("Failed to create Create{Note} activity for bookmark", "bookmarkID", post.ID, "err", err)
+					slog.Error("Failed to create Create{Note} activity for bookmark", "bookmarkID", bookmark.ID, "err", err)
 					return
 				}
 				jobs.ScheduleDatum(jobtype.SendCreateNote, data)
 				return
 			}
 
-			// The post remains public
-			data, err := ctrl.Assembly.UpdateNote(post)
+			// The bookmark remains public
+			data, err := ctrl.Assembly.UpdateNote(bookmark)
 			if err != nil {
-				slog.Error("Failed to create Update{Note} activity for bookmark", "bookmarkID", post.ID, "err", err)
+				slog.Error("Failed to create Update{Note} activity for bookmark", "bookmarkID", bookmark.ID, "err", err)
 				return
 			}
 			jobs.ScheduleDatum(jobtype.SendUpdateNote, data)
@@ -1554,11 +1556,11 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 
 	another := rq.FormValue("another")
 	if another == "true" {
-		var anotherPost types.Bookmark
-		anotherPost.Visibility = types.Public
+		var anotherBookmark types.Bookmark
+		anotherBookmark.Visibility = types.Public
 		templateExec(w, rq, templateSaveLink, dataSaveLink{
 			dataCommon: common,
-			Bookmark:   anotherPost,
+			Bookmark:   anotherBookmark,
 			Another:    true,
 		})
 		return
@@ -1604,7 +1606,7 @@ func getBookmarkWeb(w http.ResponseWriter, rq *http.Request) {
 	}
 	slog.Info("Get bookmark page", "bookmarkID", bookmark.ID)
 	var data = renderBookmark(*bookmark, w, rq, true)
-	templateExec(w, rq, templatePost, data)
+	templateExec(w, rq, templateBookmark, data)
 }
 
 func renderBookmark(
@@ -1727,7 +1729,7 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 	common := emptyCommon()
 	common.head = template.HTML(fmt.Sprintf(`
 	<link rel="alternate" type="application/rss+xml" title="Daily digest feed (recommended)" href="/digest-rss">
-	<link rel="alternate" type="application/rss+xml" title="Individual bookmarks feed" href="/posts-rss">
+	<link rel="alternate" type="application/rss+xml" title="Individual bookmarks feed" href="/bookmarks-rss">
 	<link rel="alternate" type='%[1]s' href="/@%[3]s">
 	<link rel="alternate" type='%[2]s' href="/@%[3]s">
 `, types.ActivityType, types.OtherActivityType, settings.AdminUsername()))

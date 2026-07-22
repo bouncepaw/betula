@@ -18,9 +18,9 @@ HTTP Signatures implementation taken from Honk.
 Betula only supports likes. No dislikes or emoji reactions.
 
 ## Repost notification
-Public reposts are reported to authors of original posts.
+Public reposts are reported to authors of original bookmarks.
 
-A notification like this is made when Alice reposts Bob's post 42, and her repost gets number 84:
+A notification like this is made when Alice reposts Bob's bookmark 42, and her repost gets number 84:
 
 ```json
 {
@@ -41,7 +41,7 @@ A notification like this is made when Alice reposts Bob's post 42, and her repos
 You are to verify the repost yourself. We use microformats.
 
 ## Repost cancellation
-If a repost is turned into a regular post or deleted, you will get a notification like this:
+If a repost is turned into a regular bookmark or deleted, you will get a notification like this:
 
 ```json
 {
