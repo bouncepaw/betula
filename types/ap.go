@@ -52,6 +52,16 @@ func (a Actor) Acct() string {
 	return fmt.Sprintf("@%s@%s", a.PreferredUsername, a.Domain)
 }
 
+func RenderedAuthorLink(id string, actor Actor, found bool) template.HTML {
+	if !found {
+		return template.HTML(template.HTMLEscapeString(id))
+	}
+	return template.HTML(fmt.Sprintf(
+		`<a class="profile-link" href="/%s">%s</a>`,
+		template.HTMLEscapeString(actor.Acct()),
+		template.HTMLEscapeString(actor.PreferredUsername)))
+}
+
 type SubscriptionRelation string
 
 const (

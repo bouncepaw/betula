@@ -32,6 +32,17 @@ func (headingRule) Rewrite(n *html.Node) *html.Node {
 	return p
 }
 
+type dropClassRule struct{}
+
+func (dropClassRule) Matches(n *html.Node) bool {
+	const fep044fQuoteReNotice = "quote-inline"
+	return slices.Contains(strings.Fields(dom.GetAttribute(n, "class")), fep044fQuoteReNotice)
+}
+
+func (dropClassRule) Rewrite(n *html.Node) *html.Node {
+	return dom.CreateTextNode("")
+}
+
 type classFilterRule struct{}
 
 func (classFilterRule) Matches(n *html.Node) bool {

@@ -99,6 +99,8 @@ The sanitizer will keep classes if they begin with microformats prefixes or are 
 * `ellipsis`
 * `invisible`
 
+_Elements with the `quote-inline` class are dropped entirely, together with their contents. Betula emits such an element as a FEP-044f `RE:` notice on outgoing notes, other software does something similar._
+
 Links will be kept if the protocol is supported, and converted to text otherwise. _Kept links will get classes `wikilink` ,`wikilink_external`, and `wikilink_<protocol>`._ The following link protocols are supported:
 
 * `http`

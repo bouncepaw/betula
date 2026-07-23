@@ -22,6 +22,7 @@ type Rule interface {
 
 var defaultRules = []Rule{
 	headingRule{},
+	dropClassRule{},
 	classFilterRule{},
 }
 

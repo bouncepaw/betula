@@ -95,6 +95,13 @@ func TestEscape(t *testing.T) {
 			`<ol start="3" reversed=""><li value="5">item</li></ol>`)
 	})
 
+	t.Run("Drops quote-inline element with its contents", func(t *testing.T) {
+		t.Parallel()
+		be.Equal(t,
+			escape(`<p>hi</p><span class="quote-inline"><br/>RE: <a href="https://a.example/1">https://a.example/1</a></span>`),
+			`<p>hi</p>`)
+	})
+
 	t.Run("Injected rule runs before default rules", func(t *testing.T) {
 		t.Parallel()
 		got := string(Escape(template.HTML(`<a href="https://example.example">x</a>`), localizeLinks{}))

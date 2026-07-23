@@ -7,9 +7,12 @@
 package notiftypes
 
 import (
+	"database/sql"
 	"encoding/json"
 	"html/template"
 	"time"
+
+	"git.sr.ht/~bouncepaw/betula/types"
 )
 
 type (
@@ -21,10 +24,13 @@ type (
 		BookmarkID int    `json:"bookmark_id"`
 	}
 	RemarkPayload struct {
-		ActorID    string        `json:"actor_id"`
-		BookmarkID int           `json:"bookmark_id"`
-		RemarkURL  string        `json:"remark_url"`
-		RemarkText template.HTML `json:"remark_text"`
+		ActorID    string `json:"actor_id"`
+		BookmarkID int    `json:"bookmark_id"`
+		RemarkURL  string `json:"remark_url"`
+
+		Source          sql.NullString   `json:"source"`
+		SourceType      types.SourceType `json:"source_type"`
+		DescriptionHTML template.HTML    `json:"description_html"`
 	}
 	FollowPayload struct {
 		ActorID string `json:"actor_id"`

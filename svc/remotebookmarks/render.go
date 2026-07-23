@@ -20,6 +20,7 @@ import (
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	"git.sr.ht/~bouncepaw/betula/pkg/myco"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
+	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -28,6 +29,16 @@ func (r *Service) ourID() string {
 }
 
 func (r *Service) renderRemoteDescription(
+	source sql.NullString,
+	sourceType types.SourceType,
+	descriptionHTML template.HTML,
+) template.HTML {
+	// NOTE(bouncepaw): Not the prettiest solution.
+	return RenderRemoteDescription(r.sanitizer, source, sourceType, descriptionHTML)
+}
+
+func RenderRemoteDescription(
+	sanitizer wwwports.HTMLSanitizer,
 	source sql.NullString,
 	sourceType types.SourceType,
 	descriptionHTML template.HTML,
@@ -42,7 +53,7 @@ func (r *Service) renderRemoteDescription(
 	case source.Valid:
 		return myco.MarkupToHTML(source.String)
 	default:
-		return r.sanitizer.Sanitize(descriptionHTML)
+		return sanitizer.Sanitize(descriptionHTML)
 	}
 }
 

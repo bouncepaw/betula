@@ -250,6 +250,10 @@ type RemarkInfo struct {
 	Timestamp time.Time
 	URL       string
 	Name      string
+
+	Source          sql.NullString
+	SourceType      SourceType
+	DescriptionHTML template.HTML
 } // TODO: move it somewhere more appropriate.
 
 // TimeLayout is the time layout used across Betula.

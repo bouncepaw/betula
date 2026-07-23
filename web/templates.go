@@ -29,6 +29,7 @@ import (
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/settings"
 	notiftypes "git.sr.ht/~bouncepaw/betula/svc/notif"
+	remotebookmarkssvc "git.sr.ht/~bouncepaw/betula/svc/remotebookmarks"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -161,22 +162,21 @@ var funcMapForBookmarks = template.FuncMap{
 		// len("2000-00-00") == 10
 		return stamp[:10] // Pray 🙏
 	},
-	// originalAuthor renders the OriginalAuthor of a remarked bookmark. When it
-	// is a URL, it is treated as a fediverse actor ID: we look the actor up and
-	// show their preferred username as a profile link. Otherwise (or when the
-	// actor is unknown) it is shown as plain text.
 	"originalAuthor": func(id string) template.HTML {
-		escaped := template.HTMLEscapeString(id)
 		if u, err := url.Parse(id); err == nil && u.IsAbs() {
 			actor, err := ctrl.RepoActor.GetActorByID(
 				context.Background(), id, apports.GetActorsOpts{})
-			if err == nil {
-				return template.HTML(fmt.Sprintf(
-					`<a class="profile-link" href="%s">%s</a>`,
-					escaped, template.HTMLEscapeString(actor.PreferredUsername)))
-			}
+			return types.RenderedAuthorLink(id, actor, err == nil)
 		}
-		return template.HTML(escaped)
+		return types.RenderedAuthorLink(id, types.Actor{}, false)
+	},
+	"remarkText": func(remark types.RemarkInfo) template.HTML {
+		return remotebookmarkssvc.RenderRemoteDescription(
+			ctrl.HTMLSanitizer,
+			remark.Source,
+			remark.SourceType,
+			remark.DescriptionHTML,
+		)
 	},
 }
 

@@ -9,6 +9,8 @@ package db
 
 import (
 	"context"
+	"database/sql"
+	"html/template"
 	"log/slog"
 	"time"
 
@@ -26,7 +28,12 @@ func NewRemarksRepo() *RemarksRepo {
 }
 
 func (repo *RemarksRepo) RemarksOf(ctx context.Context, bookmarkID int) ([]types.RemarkInfo, error) {
-	rows, err := db.QueryContext(ctx, `select RepostURL, ReposterName, RepostedAt from KnownReposts where PostID = ?`, bookmarkID)
+	const q = `
+select KR.RepostURL, KR.ReposterName, KR.RepostedAt, T.Source, T.SourceType, T.HTML
+from KnownReposts KR
+left join Timeline T on T.ID = KR.RepostURL
+where KR.PostID = ?`
+	rows, err := db.QueryContext(ctx, q, bookmarkID)
 	if err != nil {
 		return nil, err
 	}
@@ -35,12 +42,16 @@ func (repo *RemarksRepo) RemarksOf(ctx context.Context, bookmarkID int) ([]types
 	var remarks []types.RemarkInfo
 	for rows.Next() {
 		var (
-			remark    types.RemarkInfo
-			timestamp string
+			remark          types.RemarkInfo
+			timestamp       string
+			sourceType      sql.NullString
+			descriptionHTML sql.NullString
 		)
-		if err := rows.Scan(&remark.URL, &remark.Name, &timestamp); err != nil {
+		if err := rows.Scan(&remark.URL, &remark.Name, &timestamp, &remark.Source, &sourceType, &descriptionHTML); err != nil {
 			return nil, err
 		}
+		remark.SourceType = types.SourceTypeFromDB(sourceType)
+		remark.DescriptionHTML = template.HTML(descriptionHTML.String)
 		remark.Timestamp, err = time.Parse(types.TimeLayout, timestamp)
 		if err != nil {
 			slog.Error("Failed to parse remark timestamp", "bookmarkID", bookmarkID, "err", err)

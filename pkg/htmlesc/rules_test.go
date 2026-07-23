@@ -60,6 +60,23 @@ func TestHeadingRule(t *testing.T) {
 	})
 }
 
+func TestDropClassRule(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Matches quote-inline among other tokens", func(t *testing.T) {
+		t.Parallel()
+		be.True(t, dropClassRule{}.Matches(parseFirst(t, `<span class="foo quote-inline">x</span>`)))
+		be.True(t, !dropClassRule{}.Matches(parseFirst(t, `<span class="quote-inlines">x</span>`)))
+		be.True(t, !dropClassRule{}.Matches(parseFirst(t, `<span>x</span>`)))
+	})
+
+	t.Run("Rewrites to empty text node dropping contents", func(t *testing.T) {
+		t.Parallel()
+		got := render(t, dropClassRule{}.Rewrite(parseFirst(t, `<span class="quote-inline"><br/>RE: <a href="/x">x</a></span>`)))
+		be.Equal(t, got, ``)
+	})
+}
+
 func TestClassFilterRule(t *testing.T) {
 	t.Parallel()
 

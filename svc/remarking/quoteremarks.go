@@ -90,10 +90,12 @@ func (svc *Service) ReceiveCreateRemark(
 	}
 
 	err = svc.notifRepo.Store(ctx, notiftypes.KindRemark, notiftypes.RemarkPayload{
-		ActorID:    event.Bookmark.ActorID,
-		BookmarkID: id,
-		RemarkURL:  event.Bookmark.RepresentationURL(),
-		RemarkText: event.Bookmark.DescriptionHTML, // TODO: think about that, and add to legacy remarks
+		ActorID:         event.Bookmark.ActorID,
+		BookmarkID:      id,
+		RemarkURL:       event.Bookmark.RepresentationURL(),
+		Source:          event.Bookmark.Source,
+		SourceType:      event.Bookmark.SourceType,
+		DescriptionHTML: event.Bookmark.DescriptionHTML, // TODO: add to legacy remarks
 	})
 	if err != nil {
 		return fmt.Errorf("failed to store remark notification: %w", err)

@@ -106,6 +106,7 @@
 					<span class="actor-link">{{originalAuthor .Name}}</span>
 					remarked at
 					{{if .URL}}<a href="{{.URL}}">{{.Timestamp.Format "2006-01-02 15:04"}}</a>{{else}}{{.Timestamp.Format "2006-01-02 15:04"}}{{end}}
+					{{$text := remarkText .}}{{if $text}}<blockquote>{{$text}}</blockquote>{{end}}
 				</div>
 			{{end}}
 		</article>
