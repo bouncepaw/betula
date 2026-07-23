@@ -1,19 +1,22 @@
 {{define "title"}}Edit link{{end}}
 {{define "body"}}
 	<main>
-		{{if .RemarkOf}}
+		{{if .RemarkedID}}
 		<article>
 			<h2>Edit remark</h2>
 
 			<form supports-ctrl-enter method="post" action="/edit-link-tags/{{.ID}}">
+				<div>
+					<label for="remark-text">Your remark</label>
+					<textarea id="remark-text" name="remark-text" placeholder="Styling with Mycomarkup is supported. **Bold**, //italic//, [[link]].">{{.RemarkTextString}}</textarea>
+				</div>
 				<div class="tags-field">
 					<label for="link-tags">Tags comma-separated</label>
 					<input type="text" id="link-tags" name="tags"
 						   value="{{.Tags | catsTogether}}" placeholder="video, programming" autocomplete="off">
-					<p class="input-caption">You can only edit tags of remarks.</p>
 					<input type="hidden" name="next" value="/{{.ID}}">
 				</div>
-				<input type="submit" class="btn" value="Save tags">
+				<input type="submit" class="btn" value="Save">
 			</form>
 		</article>
 		{{else}}
@@ -40,7 +43,7 @@
 		</article>
 		{{end}}
 		<article>
-			{{if .RemarkOf}}
+			{{if .RemarkedID}}
                 <h2>Delete remark</h2>
 			    <p>The original bookmark owner will be notified of the remark being removed.</p>
 			{{else}}

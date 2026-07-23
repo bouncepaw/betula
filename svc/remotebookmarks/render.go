@@ -214,6 +214,9 @@ func (r *Service) Render(
 
 		switch {
 		case raw.IsRemark():
+			if raw.HasRemarkText() {
+				render.RemarkText = r.renderRemoteDescription(raw.Source, raw.SourceType, raw.DescriptionHTML)
+			}
 			if id, err := strconv.Atoi(raw.RemarkedID.String); err == nil {
 				if !r.fillLocalRemark(ctx, &render, id) {
 					continue

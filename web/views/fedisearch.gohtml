@@ -34,6 +34,9 @@
                 </div>
                 remarked
             </div>
+        {{if .RemarkText}}<div class="remark-text">
+                <div class="myco e-content">{{.RemarkText}}</div>
+            </div>{{end}}
         {{end}}
             <div class="bookmark-title">
                 <h4 class="p-name"><a class="u-url" href="{{.URL}}">{{.Title}}</a></h4>

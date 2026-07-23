@@ -5,7 +5,7 @@
 		<div class="notif" notif-cat="{{.Category}}">{{.Body}}</div>
 		{{end}}{{end}}
 		<article class="bookmark-page h-entry">
-		{{if .Bookmark.RemarkOf}}
+		{{if .Bookmark.RemarkedID}}
 			<div class="bookmark-remark">
 				<div class="actor-link">
 					<a href="/@{{$root.AdminUsername}}" class="profile-link">{{$root.AdminUsername}}</a>
@@ -15,13 +15,16 @@
 					<span class="bookmark-visibility" data-visibility="private">Private</span>
 				{{end}}
 			</div>
+			{{if .Bookmark.RemarkText}}
+				<div class="remark-text"><div class="myco e-content">{{mycomarkup .Bookmark.RemarkTextString}}</div></div>
+			{{end}}
 		{{end}}
 			<div class="bookmark-title">
 				<h4 class="p-name"><a class="u-url" href="/go/{{.Bookmark.ID}}">{{.Bookmark.Title}}</a></h4>
 				<a class="u-bookmark-of h-cite" href="/go/{{.Bookmark.ID}}">{{shortenLink .Bookmark.URL}}</a>
 			</div>
 
-		{{if .Bookmark.RemarkOf}}
+		{{if .Bookmark.RemarkedID}}
 			<div class="myco e-content">
 				{{if .Bookmark.OriginalAuthor.Valid}}
 					<div class="actor-link">{{originalAuthor .Bookmark.OriginalAuthor.String}}</div>
@@ -62,13 +65,13 @@
 				{{end}}
 				<button class="btn-control" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy</button>
 				<a class="btn-control" style="margin-left:auto" href="/edit-link/{{.Bookmark.ID}}">Edit</a>
-				{{if .Bookmark.RemarkOf}}<a class="btn-control" href="{{.Bookmark.RemarkOf}}">Open original</a>{{end}}
+				{{if .Bookmark.RemarkedID}}<a class="btn-control" href="{{.Bookmark.RemarkedID}}">Open original</a>{{end}}
 				<a class="btn-control" href="/{{.Bookmark.ID}}">{{.Bookmark.ID}}.</a>
 			{{else}}
 				<button class="btn-control" onclick="copyTextElem({{.Bookmark.URL}}, this)">Copy</button>
 				{{if .LikeCounter}}{{.LikeCounter}} like{{if ne .LikeCounter 1}}s{{end}}{{end}}
-				{{if .Bookmark.RemarkOf}}<a class="btn-control" style="margin-left:auto" href="{{.Bookmark.RemarkOf}}">Open original</a>{{end}}
-				<a class="btn-control" {{if not .Bookmark.RemarkOf}}style="margin-left:auto"{{end}} href="/{{.Bookmark.ID}}">{{.Bookmark.ID}}.</a>
+				{{if .Bookmark.RemarkedID}}<a class="btn-control" style="margin-left:auto" href="{{.Bookmark.RemarkedID}}">Open original</a>{{end}}
+				<a class="btn-control" {{if not .Bookmark.RemarkedID}}style="margin-left:auto"{{end}} href="/{{.Bookmark.ID}}">{{.Bookmark.ID}}.</a>
 			{{end}}
 			</div>
 		</article>
@@ -95,7 +98,7 @@
 			{{end}}
 		</article>
 		{{end}}
-		{{if and .Remarks (not .Bookmark.RemarkOf)}}
+		{{if and .Remarks (not .Bookmark.RemarkedID)}}
 		<article class="bookmark-section">
 			<h3>{{len .Remarks}} remark{{if gt (len .Remarks) 1}}s{{end}}</h3>
 			{{range .Remarks}}

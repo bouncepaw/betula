@@ -54,7 +54,7 @@ func fetchFedi(uri string) (*types.Bookmark, error) {
 		Title:       bookmark.Title,
 		Description: bookmark.Source.String,
 		Visibility:  types.Public,
-		RemarkOf:    &uri,
+		RemarkedID:  &uri,
 		OriginalAuthor: sql.NullString{
 			String: bookmark.ActorID,
 			Valid:  true,

@@ -26,7 +26,12 @@
             {{end}}
 			<form supports-ctrl-enter method="post" action="/remark">
 				<div>
-					<label for="link-url">URL</label>
+					<label for="remark-text">Your remark</label>
+					<textarea id="remark-text" name="remark-text" placeholder="Styling with Mycomarkup is supported. **Bold**, //italic//, [[link]].">{{.RemarkText}}</textarea>
+				</div>
+
+				<div>
+					<label for="link-url">Remarked bookmark's URL</label>
 					<input type="text" id="link-url" name="url" value="{{.URL}}" autocomplete="off" placeholder="https://links.example.org/42">
 				</div>
 

@@ -1,4 +1,4 @@
-Last checked: 2026-06-21
+Last checked: 2026-07-22
 
 | **Version** | **Description**                                                               |
 |-------------|-------------------------------------------------------------------------------|
@@ -17,5 +17,6 @@ Last checked: 2026-06-21
 | 18          | table Notifications                                                           |
 | 19          | tables Likes, LikeCollections                                                 |
 | 20          | table Timeline                                                                |
+| 21          | changes Bookmarks                                                             |
 
 The code for DB versions 1 to 5 never gets executed.

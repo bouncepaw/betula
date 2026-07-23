@@ -40,7 +40,7 @@ func scanBookmarks(rows *sql.Rows) ([]types.Bookmark, error) {
 	var bookmarks []types.Bookmark
 	for rows.Next() {
 		var bm types.Bookmark
-		if err := rows.Scan(&bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RemarkOf, &bm.OriginalAuthor); err != nil {
+		if err := rows.Scan(&bm.ID, &bm.URL, &bm.Title, &bm.Description, &bm.Visibility, &bm.CreationTime, &bm.RemarkedID, &bm.OriginalAuthor, &bm.RemarkText); err != nil {
 			return nil, err
 		}
 		bookmarks = append(bookmarks, bm)
@@ -68,13 +68,13 @@ func (repo *RepoLocalBookmarks) GetBookmarkByID(
 	id int,
 ) (types.Bookmark, error) {
 	row := db.QueryRowContext(ctx, `
-		select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID 
+		select ID, URL, Title, Description, Visibility, CreationTime, RemarkedID, OriginalAuthorID, RemarkText 
 		from Bookmarks
 		where ID = ? and DeletionTime is null
 	`, id)
 
 	var b types.Bookmark
-	err := row.Scan(&b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RemarkOf, &b.OriginalAuthor)
+	err := row.Scan(&b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RemarkedID, &b.OriginalAuthor, &b.RemarkText)
 	return b, err
 }
 
@@ -90,14 +90,14 @@ func (repo *RepoLocalBookmarks) InsertBookmark(
 	var res sql.Result
 	if bm.CreationTime == "" {
 		res, err = tx.ExecContext(ctx, `
-insert into Bookmarks (URL, Title, Description, Visibility, RepostOf, OriginalAuthorID)
-values (?, ?, ?, ?, ?, ?);
-`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RemarkOf, bm.OriginalAuthor)
+insert into Bookmarks (URL, Title, Description, Visibility, RemarkedID, OriginalAuthorID, RemarkText)
+values (?, ?, ?, ?, ?, ?, ?);
+`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RemarkedID, bm.OriginalAuthor, bm.RemarkText)
 	} else {
 		res, err = tx.ExecContext(ctx, `
-insert into Bookmarks (URL, Title, Description, Visibility, RepostOf, OriginalAuthorID, CreationTime)
-values (?, ?, ?, ?, ?, ?, ?);
-`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RemarkOf, bm.OriginalAuthor, bm.CreationTime)
+insert into Bookmarks (URL, Title, Description, Visibility, RemarkedID, OriginalAuthorID, RemarkText, CreationTime)
+values (?, ?, ?, ?, ?, ?, ?, ?);
+`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RemarkedID, bm.OriginalAuthor, bm.RemarkText, bm.CreationTime)
 	}
 	if err != nil {
 		return 0, errors.Join(err, tx.Rollback())
@@ -152,7 +152,7 @@ select count(ID) from Bookmarks where DeletionTime is null and (Visibility = 1 o
 	}
 
 	rows, err := tx.QueryContext(ctx, `
-select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
+select ID, URL, Title, Description, Visibility, CreationTime, RemarkedID, OriginalAuthorID, RemarkText
 from Bookmarks
 where DeletionTime is null and (Visibility = 1 or ?)
 order by CreationTime desc
@@ -189,7 +189,7 @@ func (repo *RepoLocalBookmarks) BookmarksForDay(
 
 	rows, err := tx.QueryContext(ctx, `
 select
-	ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
+	ID, URL, Title, Description, Visibility, CreationTime, RemarkedID, OriginalAuthorID, RemarkText
 from
 	Bookmarks
 where
@@ -238,7 +238,7 @@ where
 
 	rows, err := tx.QueryContext(ctx, `
 select
-	ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
+	ID, URL, Title, Description, Visibility, CreationTime, RemarkedID, OriginalAuthorID, RemarkText
 from
 	Bookmarks
 inner join
@@ -276,15 +276,16 @@ func (repo *RepoLocalBookmarks) EditBookmark(
 	_, err = tx.ExecContext(ctx, `
 update Bookmarks
 set
-    URL = ?,
-    Title = ?,
-    Description = ?,
-    Visibility = ?,
-	RepostOf = ?,
-    OriginalAuthorID = ?
+	URL = ?,
+	Title = ?,
+	Description = ?,
+	Visibility = ?,
+	RemarkedID = ?,
+	OriginalAuthorID = ?,
+	RemarkText = ?
 where
-    ID = ? and DeletionTime is null;
-`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RemarkOf, bm.OriginalAuthor, bm.ID)
+	ID = ? and DeletionTime is null;
+`, bm.URL, bm.Title, bm.Description, bm.Visibility, bm.RemarkedID, bm.OriginalAuthor, bm.RemarkText, bm.ID)
 	if err != nil {
 		return errors.Join(err, tx.Rollback())
 	}
@@ -317,7 +318,7 @@ func (repo *RepoLocalBookmarks) RandomBookmarks(
 	rows, err := tx.QueryContext(ctx, `
 select * from
 (
-	select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
+	select ID, URL, Title, Description, Visibility, CreationTime, RemarkedID, OriginalAuthorID, RemarkText
 	from Bookmarks
 	where DeletionTime is null and (Visibility = 1 or ?)
 	order by random() limit ?

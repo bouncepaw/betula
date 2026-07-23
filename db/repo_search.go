@@ -33,7 +33,7 @@ func (repo *SearchRepo) SearchOffset(ctx context.Context, query searchingports.O
 	sort.Strings(query.ExcludedTags)
 
 	rows, err := db.QueryContext(ctx, `
-select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
+select ID, URL, Title, Description, Visibility, CreationTime, RemarkedID, OriginalAuthorID, RemarkText
 from Bookmarks
 where DeletionTime is null and Visibility = 1
 order by CreationTime desc
@@ -64,7 +64,7 @@ order by CreationTime desc
 			continue
 		}
 
-		isRemark := bookmark.RemarkOf != nil
+		isRemark := bookmark.RemarkedID != nil
 		if isRemark {
 			continue // for now
 		}
@@ -86,7 +86,7 @@ func (repo *SearchRepo) Search(ctx context.Context, query searchingports.Query) 
 	sort.Strings(query.ExcludedTags)
 
 	rows, err := db.QueryContext(ctx, `
-select ID, URL, Title, Description, Visibility, CreationTime, RepostOf, OriginalAuthorID
+select ID, URL, Title, Description, Visibility, CreationTime, RemarkedID, OriginalAuthorID, RemarkText
 from Bookmarks
 where DeletionTime is null and (Visibility = 1 or ?)
 order by CreationTime desc
@@ -126,7 +126,7 @@ order by CreationTime desc
 			continue
 		}
 
-		isRemark := bookmark.RemarkOf != nil
+		isRemark := bookmark.RemarkedID != nil
 		if !isRemark && query.RemarksOnly {
 			continue
 		}

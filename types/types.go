@@ -70,11 +70,18 @@ type Bookmark struct {
 	Description string
 	// Visibility sets who can see the bookmark.
 	Visibility Visibility
-	// RemarkOf is URL of the bookmark remarked. Nil if this is an original bookmark.
-	RemarkOf   *string
+	// RemarkedID is URL of the bookmark remarked. Nil if this is an original bookmark.
+	RemarkedID *string
 	RemarkText *string
-	// OriginalAuthor is ID of the author of the original bookmark. Might be invalid even if RemarkOf is not nil
+	// OriginalAuthor is ID of the author of the original bookmark. Might be invalid even if RemarkedID is not nil
 	OriginalAuthor sql.NullString
+}
+
+func (b Bookmark) RemarkTextString() string {
+	if b.RemarkText == nil {
+		return ""
+	}
+	return *b.RemarkText
 }
 
 func RenderLocalBookmarks(bookmarks []Bookmark) []RenderedLocalBookmark {

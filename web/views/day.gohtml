@@ -6,7 +6,7 @@
 	</article>
 {{range .Bookmarks}}
 	<article class="h-entry" id="{{.ID}}">
-	{{if .RemarkOf}}
+	{{if .RemarkedID}}
 		<div class="bookmark-remark">
 			<div class="actor-link">
 				<a href="/@{{$root.AdminUsername}}" class="profile-link">{{$root.AdminUsername}}</a>
@@ -22,7 +22,7 @@
 			<a class="u-bookmark-of h-cite" href="/go/{{.ID}}">{{shortenLink .URL}}</a>
 		</div>
 
-	{{if .RemarkOf}}
+	{{if .RemarkedID}}
 		<div class="myco e-content">
 			{{if .OriginalAuthor.Valid}}
 				<div class="actor-link">{{originalAuthor .OriginalAuthor.String}}</div>
@@ -49,13 +49,13 @@
 		{{if $root.Authorized}}
 			<button class="btn-control" onclick="copyTextElem({{.URL}}, this)">Copy</button>
 			<a class="btn-control" style="margin-left:auto" href="/edit-link/{{.ID}}">Edit</a>
-			{{if .RemarkOf}}<a class="btn-control" href="{{.RemarkOf}}">Open original</a>{{end}}
+			{{if .RemarkedID}}<a class="btn-control" href="{{.RemarkedID}}">Open original</a>{{end}}
 			<a class="btn-control" href="/{{.ID}}">{{.ID}}.</a>
 		{{else}}
 			<button class="btn-control" onclick="copyTextElem({{.URL}}, this)">Copy</button>
 			{{if gt .LikeCounter 0}}{{if .LikeCounter}}{{.LikeCounter}} like{{if ne .LikeCounter 1}}s{{end}}{{end}}{{end}}
-			{{if .RemarkOf}}<a class="btn-control" style="margin-left:auto" href="{{.RemarkOf}}">Open original</a>{{end}}
-			<a class="btn-control" {{if not .RemarkOf}}style="margin-left:auto"{{end}} href="/{{.ID}}">{{.ID}}.</a>
+			{{if .RemarkedID}}<a class="btn-control" style="margin-left:auto" href="{{.RemarkedID}}">Open original</a>{{end}}
+			<a class="btn-control" {{if not .RemarkedID}}style="margin-left:auto"{{end}} href="/{{.ID}}">{{.ID}}.</a>
 		{{end}}
 		</div>
 	</article>

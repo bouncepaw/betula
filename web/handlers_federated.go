@@ -130,7 +130,7 @@ func getBookmarkFedi(w http.ResponseWriter, rq *http.Request) {
 	if !ok {
 		return
 	}
-	if bookmark.RemarkOf != nil {
+	if bookmark.RemarkedID != nil {
 		// TODO: decide
 		slog.Warn("Get bookmark object of remark not implemented", "bookmarkID", bookmark.ID)
 		handlerNotFound(w, rq)
@@ -255,8 +255,8 @@ func getNodeInfo(w http.ResponseWriter, rq *http.Request) {
 				"activeHalfyear": 1,
 				"activeMonth":    1,
 			},
-			"localBookmarks":    bookmarkCount,
-			"localComments": 0,
+			"localBookmarks": bookmarkCount,
+			"localComments":  0,
 		},
 		"metadata": map[string]string{
 			"nodeName":        settings.SiteName(),
@@ -302,6 +302,7 @@ type dataRemark struct {
 	Err error
 
 	URL        string
+	RemarkText string
 	Visibility types.Visibility
 	CopyTags   bool
 }
@@ -310,6 +311,7 @@ func remarkFormData(rq *http.Request) dataRemark {
 	return dataRemark{
 		dataCommon: emptyCommon(),
 		URL:        rq.FormValue("url"),
+		RemarkText: rq.FormValue("remark-text"),
 		Visibility: types.VisibilityFromString(rq.FormValue("visibility")),
 		CopyTags:   rq.FormValue("copy-tags") == "true",
 	}
@@ -355,6 +357,10 @@ fetchRemoteBookmark:
 remarking:
 	if !formData.CopyTags {
 		bookmark.Tags = nil // 🐸
+	}
+
+	if formData.RemarkText != "" {
+		bookmark.RemarkText = &formData.RemarkText
 	}
 
 	bookmark.CreationTime = time.Now().UTC().Format(types.TimeLayout)

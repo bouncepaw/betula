@@ -1,4 +1,5 @@
 -- SPDX-FileCopyrightText: 2022-2025 Betula contributors
+-- SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 --
 -- SPDX-License-Identifier: AGPL-3.0-only
 
@@ -11,8 +12,9 @@ create table Bookmarks (
     CreationTime text not null default current_timestamp,
     DeletionTime text,
 
-    RepostOf text,
+    RepostOf text, -- Later renamed to RemarkedID in 21.sql
     OriginalAuthorID text
+    -- RemarkText later added in 21.sql.
 );
 
 insert into Bookmarks

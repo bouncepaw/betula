@@ -134,6 +134,13 @@ func (rb RemoteBookmark) IsRemark() bool {
 	return rb.IsValidObject() && rb.Title == "" && rb.URL == "" && rb.RemarkedID.Valid
 }
 
+func (rb RemoteBookmark) HasRemarkText() bool {
+	if rb.Source.Valid {
+		return strings.TrimSpace(rb.Source.String) != ""
+	}
+	return strings.TrimSpace(string(rb.DescriptionHTML)) != ""
+}
+
 type RenderedRemoteBookmark struct {
 	ID string
 
@@ -151,6 +158,7 @@ type RenderedRemoteBookmark struct {
 	URL         string
 	WebURL      string
 	Description template.HTML
+	RemarkText  template.HTML
 	Tags        []Tag
 	PublishedAt time.Time
 

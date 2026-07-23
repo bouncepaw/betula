@@ -1093,16 +1093,29 @@ func mixUpTitleLink(title *string, addr *string) {
 	}
 }
 
+// NOTE(bouncepaw): Not exactly EditBookmarkTags, will get to that later.
+// It edits remark.
 func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 	id, ok := extractBookmarkID(w, rq)
 	if !ok {
 		return
 	}
 
-	tags := types.SplitTags(rq.FormValue("tags"))
-	if err := ctrl.RepoTags.SetTagsFor(rq.Context(), id, tags); err != nil {
-		slog.Error("Failed to set tags for bookmark", "bookmarkID", id, "err", err)
-		http.Error(w, "Failed to set tags", http.StatusInternalServerError)
+	bookmark, err := localBookmarks.GetBookmarkByID(rq.Context(), id)
+	if err != nil {
+		slog.Error("Failed to load remark for editing", "bookmarkID", id, "err", err)
+		http.Error(w, "Failed to load remark", http.StatusInternalServerError)
+		return
+	}
+	bookmark.Tags = types.SplitTags(rq.FormValue("tags"))
+	if remarkText := rq.FormValue("remark-text"); remarkText != "" {
+		bookmark.RemarkText = &remarkText
+	} else {
+		bookmark.RemarkText = nil
+	}
+	if err := localBookmarks.EditBookmark(rq.Context(), bookmark); err != nil {
+		slog.Error("Failed to edit remark", "bookmarkID", id, "err", err)
+		http.Error(w, "Failed to edit remark", http.StatusInternalServerError)
 		return
 	}
 
@@ -1110,6 +1123,7 @@ func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 	http.Redirect(w, rq, next, http.StatusSeeOther)
 
 	if settings.FederationEnabled() {
+		// TODO: synchronous
 		go func(id int) {
 			// the handler never modifies the bookmark visibility, so we don't care about the past, so we only look at the current value
 			bookmark, err := localBookmarks.GetBookmarkByID(context.Background(), id)
@@ -1634,7 +1648,7 @@ func renderBookmark(
 
 	common := emptyCommon()
 	common.head = template.HTML(fmt.Sprintf(`<link rel="alternate" type="text/mycomarkup" href="/text/%d">`, bookmark.ID))
-	if bookmark.RemarkOf == nil {
+	if bookmark.RemarkedID == nil {
 		common.head += template.HTML(fmt.Sprintf(`
 <link rel="alternate" type="%s" href="/%d"'>`, types.OtherActivityType, bookmark.ID))
 	}

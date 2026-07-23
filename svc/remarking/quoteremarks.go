@@ -21,7 +21,7 @@ func (svc *Service) BroadcastCreateRemark(ctx context.Context, bookmark types.Bo
 		return nil
 	case bookmark.Visibility != types.Public:
 		return nil
-	case bookmark.RemarkOf == nil:
+	case bookmark.RemarkedID == nil:
 		return fmt.Errorf("bookmark %d. of %q is not a remark", bookmark.ID, bookmark.URL)
 	}
 
@@ -35,7 +35,7 @@ func (svc *Service) BroadcastCreateRemark(ctx context.Context, bookmark types.Bo
 		return fmt.Errorf("failed to broadcast remark Note: %w", err)
 	}
 
-	origActor, err := svc.activityPub.AuthorOfRemoteBookmark(*bookmark.RemarkOf)
+	origActor, err := svc.activityPub.AuthorOfRemoteBookmark(*bookmark.RemarkedID)
 	if err != nil {
 		return fmt.Errorf("failed to determine author of remote bookmark: %w", err)
 	}
