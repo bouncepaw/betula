@@ -104,16 +104,28 @@ func (svc *Service) ReceiveCreateRemark(
 	return nil
 }
 
-func (svc *Service) ReceiveUpdateRemark(
-	ctx context.Context,
-	event remarkingports.EventUpdateRemark,
-) error {
-	return fmt.Errorf("unimplemented")
-}
-
 func (svc *Service) ReceiveDeleteRemark(
 	ctx context.Context,
 	event remarkingports.EventDeleteRemark,
 ) error {
-	return fmt.Errorf("unimplemented")
+	bm, found := svc.remoteBookmarksRepo.GetRemoteBookmarkByID(event.BookmarkID)
+	if !found {
+		// Whatever, brother.
+		return nil
+	}
+
+	if !bm.RemarkedID.Valid {
+		return fmt.Errorf(
+			"failed to receive delete remark %s: %w",
+			bm.ID,
+			remarkingports.ErrNotRemark,
+		)
+	}
+
+	id, err := strconv.Atoi(bm.RemarkedID.String)
+	if err != nil {
+		return remarkingports.ErrRemarkOfRemote
+	}
+
+	return svc.remarkRepo.DeleteRemark(ctx, id, bm.ID)
 }

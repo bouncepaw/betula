@@ -6,7 +6,6 @@
 package web
 
 import (
-	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -15,12 +14,14 @@ import (
 	"git.sr.ht/~bouncepaw/betula/fediverse/signing"
 	"git.sr.ht/~bouncepaw/betula/jobs"
 	"git.sr.ht/~bouncepaw/betula/jobs/jobtype"
+	"git.sr.ht/~bouncepaw/betula/pkg/bxerr"
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	apports "git.sr.ht/~bouncepaw/betula/ports/activitypub"
 	"git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/ports/remarking"
 )
 
+// TODO: In a future refactoring, properly move these to services. The logic here is convoluted.
 func postInbox(w http.ResponseWriter, rq *http.Request) {
 	data, err := io.ReadAll(io.LimitReader(rq.Body, 32*1024*1024)) // Read no more than 32 KiB.
 	if err != nil {
@@ -44,12 +45,12 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		err = ctrl.SvcRemarking.ReceiveCreateRemark(rq.Context(), remarkingports.EventCreateRemark{
 			Bookmark: report.Bookmark,
 		})
-		if err != nil && !errors.Is(err, remarkingports.ErrRemarkOfRemote) {
+		if err != nil && !bxerr.Among(err, remarkingports.ErrNotRemark, remarkingports.ErrRemarkOfRemote) {
 			slog.Error("Failed to receive remark of our bookmark", "err", err)
 			// no return
 		}
 
-		if !errors.Is(err, remarkingports.ErrRemarkOfRemote) {
+		if !bxerr.Among(err, remarkingports.ErrNotRemark, remarkingports.ErrRemarkOfRemote) {
 			status, err := ctrl.RepoActor.SubscriptionStatus(rq.Context(), report.Bookmark.ActorID)
 			if err != nil {
 				slog.Error("Failed to get subscription status", "actorID", report.Bookmark.ActorID, "err", err)
@@ -86,7 +87,7 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 		if !exists {
-			// TODO: maybe store them?
+			// TODO: maybe store them? If so, check follow status.
 			slog.Info("Received update for unknown bookmark, ignoring", "actorID", report.Bookmark.ActorID, "bookmarkID", report.Bookmark.ID)
 			return
 		}
@@ -112,14 +113,25 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 		}
 
 	case apports.DeleteNoteReport:
-		_, err := fediverse.RequestActorByID(report.ActorID)
-		if err != nil {
-			slog.Error("Failed to fetch actor", "err", err)
-			return
+		err = ctrl.SvcRemarking.ReceiveDeleteRemark(rq.Context(), remarkingports.EventDeleteRemark{
+			BookmarkID: report.BookmarkID,
+			ActorID:    report.ActorID,
+		})
+		if err != nil && !bxerr.Among(err, remarkingports.ErrNotRemark, remarkingports.ErrRemarkOfRemote) {
+			slog.Error("Failed to receive delete of a remark of our bookmark", "err", err)
+			// no return
 		}
-		if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
-			slog.Error("Failed to verify signature", "actorID", report.ActorID)
-			return
+
+		if !bxerr.Among(err, remarkingports.ErrNotRemark, remarkingports.ErrRemarkOfRemote) {
+			_, err = fediverse.RequestActorByID(report.ActorID)
+			if err != nil {
+				slog.Error("Failed to fetch actor", "err", err)
+				return
+			}
+			if signedOK := signing.VerifyRequestSignature(rq, data); !signedOK {
+				slog.Error("Failed to verify signature", "actorID", report.ActorID)
+				return
+			}
 		}
 
 		slog.Info("Deleted remote bookmark", "actorID", report.ActorID, "bookmarkID", report.BookmarkID)

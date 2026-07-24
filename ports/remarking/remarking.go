@@ -25,7 +25,6 @@ type (
 		// ReceiveCreateRemark saves information about the remark being a remark
 		// of a bookmark of ours. Fails if it's not the case.
 		ReceiveCreateRemark(context.Context, EventCreateRemark) error
-		ReceiveUpdateRemark(context.Context, EventUpdateRemark) error
 		ReceiveDeleteRemark(context.Context, EventDeleteRemark) error
 
 		ReceiveLegacyRemark(context.Context, EventLegacyRemark) error
@@ -42,11 +41,8 @@ type (
 	EventCreateRemark struct {
 		Bookmark types.RemoteBookmark
 	}
-	EventUpdateRemark struct {
-		Bookmark types.RemoteBookmark
-	}
 	EventDeleteRemark struct {
-		RemarkID   string
+		ActorID    string
 		BookmarkID string
 	}
 	EventLegacyRemark struct {

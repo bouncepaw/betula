@@ -14,3 +14,12 @@ func IgnoreAkin(err error, akin ...error) error {
 	}
 	return err
 }
+
+func Among(err error, us ...error) bool {
+	for _, e := range us {
+		if errors.Is(err, e) {
+			return true
+		}
+	}
+	return false
+}
