@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -86,4 +87,11 @@ func SetCredentials(name, pass string) {
 	}
 	Initialize()
 	settings.Index()
+}
+
+func ResetPassword() error {
+	if err := settingsRepo.ResetPassword(context.Background()); err != nil {
+		return err
+	}
+	return nil
 }

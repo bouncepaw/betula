@@ -40,12 +40,16 @@ import (
 
 func main() {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
-	var port uint
-	var versionFlag bool
+	var (
+		port          uint
+		versionFlag   bool
+		resetPassword bool
+	)
 
 	flag.BoolVar(&versionFlag, "version", false, "Print version and exit.")
 	flag.UintVar(&port, "port", 0, "Port number. "+
 		"The value gets written to a database file and is used immediately.")
+	flag.BoolVar(&resetPassword, "reset-password", false, "Reset password in the database.")
 	flag.Usage = func() {
 		_, _ = fmt.Fprintf(
 			flag.CommandLine.Output(),
@@ -72,10 +76,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Hello Betula!")
-
 	db.Initialize(filename)
 	defer db.Finalize()
+
+	if resetPassword {
+		if err := auth.ResetPassword(); err != nil {
+			slog.Error("Failed to reset password", "err", err)
+			os.Exit(1)
+		}
+		fmt.Println("Password reset successfully.")
+	}
+
+	fmt.Println("Hello Betula!")
+
 	settings.Index()
 	auth.Initialize()
 	// If the user provided a non-zero port, use it. Write it to the DB. It will be picked up later by settings.Index(). If they did not provide such a port, whatever, settings.Index() will figure something out 🙏

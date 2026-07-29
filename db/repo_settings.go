@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2024 Danila Gorelko
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -65,6 +66,15 @@ insert or replace into BetulaMeta (Key, Value) values
 `,
 		settingsports.BetulaMetaAdminUsername, name,
 		settingsports.BetulaMetaAdminPasswordHash, hash,
+	)
+	return err
+}
+
+func (repo *SettingsRepo) ResetPassword(ctx context.Context) error {
+	_, err := db.ExecContext(ctx, `
+delete from BetulaMeta where Key = ?;
+`,
+		settingsports.BetulaMetaAdminPasswordHash,
 	)
 	return err
 }

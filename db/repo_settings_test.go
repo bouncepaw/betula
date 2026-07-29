@@ -30,3 +30,14 @@ func TestSetCredentials(t *testing.T) {
 	be.Err(t, err, nil)
 	be.Equal(t, hash, tropicfish)
 }
+
+func TestResetPassword(t *testing.T) {
+	InitInMemoryDB()
+	ctx := t.Context()
+	repo := &SettingsRepo{}
+	be.Err(t, repo.SetCredentials(ctx, pufferfish, tropicfish), nil)
+	be.Err(t, repo.ResetPassword(ctx), nil)
+	hash, err := repo.MetaEntryString(ctx, settingsports.BetulaMetaAdminPasswordHash)
+	be.Err(t, err, nil)
+	be.Equal(t, hash, "")
+}
