@@ -134,7 +134,7 @@ func (repo *dbArchivesRepo) FetchForBookmark(bookmarkID int64) ([]types.Archive,
 	slog.Debug("Fetched archives for bookmark",
 		"bookmarkID", bookmarkID,
 		"archivesLen", len(archives))
-	return archives, nil
+	return archives, rows.Err()
 }
 
 func NewArchivesRepo() archivingports.ArchivesRepo {

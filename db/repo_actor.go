@@ -84,7 +84,7 @@ func (repo *ActorRepo) AllActorIDs(ctx context.Context) ([]string, error) {
 		}
 		actorIDs = append(actorIDs, actorID)
 	}
-	return actorIDs, nil
+	return actorIDs, rows.Err()
 }
 
 func (repo *ActorRepo) StoreActor(ctx context.Context, a types.Actor) error {

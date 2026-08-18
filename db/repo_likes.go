@@ -117,7 +117,7 @@ func (repo *RepoLikes) ActorsThatLiked(
 			weLiked = true
 		}
 	}
-	return actors, weLiked, nil
+	return actors, weLiked, rows.Err()
 }
 
 func (repo *RepoLikes) LikedObjectForLike(

@@ -66,7 +66,7 @@ func (repo *RepoNotif) GetAll(ctx context.Context) ([]notiftypes.Notification, e
 
 		notifications = append(notifications, notification)
 	}
-	return notifications, nil
+	return notifications, rows.Err()
 }
 
 func (repo *RepoNotif) DeleteAll(ctx context.Context) error {
