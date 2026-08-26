@@ -32,7 +32,7 @@ func TestCleanerLinkParts(t *testing.T) {
 
 func TestGroupBookmarksByDate(t *testing.T) {
 	tests := []struct {
-		args             []Bookmark
+		args                 []Bookmark
 		wantGroupedBookmarks []LocalBookmarkGroup
 	}{
 		{
@@ -61,40 +61,30 @@ func TestGroupBookmarksByDate(t *testing.T) {
 			[]LocalBookmarkGroup{
 				{"2024-01-10", []RenderedLocalBookmark{
 					{
-						Bookmark: Bookmark{
-							CreationTime: "2024-01-10 15:35",
-							Title:        "I spilled energy drink on my MacBook keyboard.",
-						},
+						CreationTime: "2024-01-10 15:35",
+						Title:        "I spilled energy drink on my MacBook keyboard.",
 					},
 					{
-						Bookmark: Bookmark{
-							CreationTime: "2024-01-10 15:37",
-							Title:        "Why did I even buy it? I don't drink energy drinks!",
-						},
+						CreationTime: "2024-01-10 15:37",
+						Title:        "Why did I even buy it? I don't drink energy drinks!",
 					},
 				}},
 				{"2024-01-11", []RenderedLocalBookmark{
 					{
-						Bookmark: Bookmark{
-							CreationTime: "2024-01-11 10:00",
-							Title:        "I ordered some compressed air.",
-						},
+						CreationTime: "2024-01-11 10:00",
+						Title:        "I ordered some compressed air.",
 					},
 				}},
 				{"2024-01-12", []RenderedLocalBookmark{
 					{
-						Bookmark: Bookmark{
-							CreationTime: "2024-01-12 12:45",
-							Title:        "I hope it will help me.",
-						},
+						CreationTime: "2024-01-12 12:45",
+						Title:        "I hope it will help me.",
 					},
 				}},
 				{"2026-01-01", []RenderedLocalBookmark{
 					{
-						Bookmark: Bookmark{
-							CreationTime: "2026-01-01 10:00",
-							Title:        "It never did. Key 2 malfunctions to this day.",
-						},
+						CreationTime: "2026-01-01 10:00",
+						Title:        "It never did. Key 2 malfunctions to this day.",
 					},
 				}},
 			},

@@ -8,6 +8,6 @@ when:
 
 steps:
   - name: golangci-lint
-    image: golangci/golangci-lint:v2.6
+    image: golangci/golangci-lint:v2.13.1
     commands:
       - golangci-lint run

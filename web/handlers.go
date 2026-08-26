@@ -1060,10 +1060,8 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 	common.searchQuery = "#" + tagName
 	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalBookmarks)
 	templateExec(w, rq, templateTag, dataTag{
-		Tag: types.Tag{
-			Name:        tagName,
-			Description: description,
-		},
+		Name:                 tagName,
+		Description:          description,
 		BookmarkGroupsInPage: groups,
 		TotalBookmarks:       totalBookmarks,
 		dataCommon:           common,

@@ -114,10 +114,8 @@ func GroupLocalBookmarksByDate(ungroupedBookmarks []RenderedLocalBookmark) (grou
 	}
 
 	ungroupedBookmarks = append(ungroupedBookmarks, RenderedLocalBookmark{
-		Bookmark: Bookmark{
-			CreationTime: "9999-99-99 99:99",
-			Title:        "cutoff",
-		}})
+		CreationTime: "9999-99-99 99:99",
+		Title:        "cutoff"})
 
 	// len(2006-01-02)
 	const datelen = 10
