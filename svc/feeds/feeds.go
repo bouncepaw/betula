@@ -105,7 +105,7 @@ func (svc *Service) BookmarksFeed() (*rss.Feed, error) {
 				Link:   bm.URL,
 				Author: author,
 				Description: rss.CData{
-					bookmarkDescription(bm),
+					Data: bookmarkDescription(bm),
 				},
 				PubDate: creationTime.Format(rssTimeFormat),
 			}
@@ -148,7 +148,7 @@ func bookmarkDescription(bm types.Bookmark) string {
 		if i > 0 {
 			tagBuf.WriteString(", ")
 		}
-		tagBuf.WriteString(fmt.Sprintf(`<a href="/tag/%s">%s</a>`, tag.Name, tag.Name))
+		fmt.Fprintf(&tagBuf, `<a href="/tag/%s">%s</a>`, tag.Name, tag.Name)
 	}
 
 	return fmt.Sprintf(
