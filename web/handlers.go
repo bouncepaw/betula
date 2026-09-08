@@ -744,6 +744,7 @@ func getDay(w http.ResponseWriter, rq *http.Request) {
 		http.Error(w, "Failed to load bookmarks", http.StatusInternalServerError)
 		return
 	}
+
 	bookmarks := types.RenderLocalBookmarks(dayBookmarks)
 	if err := ctrl.SvcLiking.FillLikes(rq.Context(), bookmarks, nil); err != nil {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)

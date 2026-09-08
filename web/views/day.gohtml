@@ -3,6 +3,9 @@
 <main class="h-feed">{{$root := .}}
 	<article>{{$cnt := len .Bookmarks}}
 		<h2 class="p-name"><span class="mv-count">{{$cnt}}</span> bookmark{{if ne $cnt 1}}s{{end}} for {{.DayStamp}}</h2>
+		{{if eq $cnt 0}}
+			<p>No bookmarks saved on this day.</p>
+		{{end}}
 	</article>
 {{range .Bookmarks}}
 	<article class="h-entry" id="{{.ID}}">
@@ -59,10 +62,6 @@
 		{{end}}
 		</div>
 	</article>
-{{- else -}}
-	{{if ne .TotalBookmarks 0}}
-		<article>Page not found. Choose a page from the paginator below.</article>
-	{{end}}
 {{end}}
 </main>
 {{end}}
