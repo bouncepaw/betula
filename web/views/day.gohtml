@@ -62,6 +62,11 @@
 		{{end}}
 		</div>
 	</article>
-{{end}}
+{{- else -}}
+	{{if ne .TotalBookmarks 0}}
+		<article>Page not found. Choose a page from the paginator below.</article>
+	{{end}}
+{{- end -}}
+{{template "paginator" .}}
 </main>
 {{end}}

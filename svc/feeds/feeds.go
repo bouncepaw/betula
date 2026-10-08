@@ -127,7 +127,7 @@ func (svc *Service) fiveLastDays(now time.Time) (days []time.Time, dayStamps []s
 		day = time.Date(day.Year(), day.Month(), day.Day(), 23, 59, 59, 0, time.UTC)
 		days[i] = day
 		dayStamps[i] = day.Format(time.DateOnly)
-		dayBookmarks[i], err = svc.bmRepo.BookmarksForDay(context.Background(), false, dayStamps[i])
+		dayBookmarks[i], _, err = svc.bmRepo.BookmarksForDay(context.Background(), false, dayStamps[i])
 		if err != nil {
 			return nil, nil, nil, err
 		}

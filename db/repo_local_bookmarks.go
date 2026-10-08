@@ -3,6 +3,7 @@
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -15,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 
+	"git.sr.ht/~bouncepaw/betula/pkg/bxslices"
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
@@ -68,7 +70,7 @@ func (repo *RepoLocalBookmarks) GetBookmarkByID(
 	id int,
 ) (types.Bookmark, error) {
 	row := db.QueryRowContext(ctx, `
-		select ID, URL, Title, Description, Visibility, CreationTime, RemarkedID, OriginalAuthorID, RemarkText 
+		select ID, URL, Title, Description, Visibility, CreationTime, RemarkedID, OriginalAuthorID, RemarkText
 		from Bookmarks
 		where ID = ? and DeletionTime is null
 	`, id)
@@ -181,10 +183,35 @@ func (repo *RepoLocalBookmarks) BookmarksForDay(
 	ctx context.Context,
 	authorized bool,
 	dayStamp string,
-) ([]types.Bookmark, error) {
+	page ...uint,
+) (bookmarks []types.Bookmark, total uint, err error) {
+	var (
+		limit  int
+		offset int
+	)
+	p := bxslices.FirstOrEmpty(page)
+	if p == 0 {
+		limit = -1
+		offset = 0
+	} else {
+		limit = int(types.BookmarksPerPage)
+		offset = int(types.BookmarksPerPage * (p - 1))
+	}
+
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+
+	if err = tx.QueryRowContext(ctx, `
+select
+	count(ID)
+from
+	Bookmarks
+where
+	DeletionTime is null and (Visibility = 1 or ?) and CreationTime like ?
+`, authorized, dayStamp+"%").Scan(&total); err != nil {
+		return nil, 0, errors.Join(err, tx.Rollback())
 	}
 
 	rows, err := tx.QueryContext(ctx, `
@@ -195,21 +222,22 @@ from
 where
 	DeletionTime is null and (Visibility = 1 or ?) and CreationTime like ?
 order by
-	CreationTime desc;
-`, authorized, dayStamp+"%")
+	CreationTime desc
+limit ? offset ?;
+`, authorized, dayStamp+"%", limit, offset)
 	if err != nil {
-		return nil, errors.Join(err, tx.Rollback())
+		return nil, 0, errors.Join(err, tx.Rollback())
 	}
-	bookmarks, err := scanBookmarks(rows)
+	bookmarks, err = scanBookmarks(rows)
 	if err != nil {
-		return nil, errors.Join(err, tx.Rollback())
+		return nil, 0, errors.Join(err, tx.Rollback())
 	}
 
 	bookmarks, err = repo.tagsForManyBookmarks(ctx, tx, bookmarks)
 	if err != nil {
-		return nil, errors.Join(err, tx.Rollback())
+		return nil, 0, errors.Join(err, tx.Rollback())
 	}
-	return bookmarks, tx.Commit()
+	return bookmarks, total, tx.Commit()
 }
 
 func (repo *RepoLocalBookmarks) BookmarksWithTag(

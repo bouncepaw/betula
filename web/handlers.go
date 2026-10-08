@@ -722,12 +722,14 @@ var dayStampRegex = regexp.MustCompile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 
 type dataDay struct {
 	*dataCommon
-	DayStamp  string
-	Bookmarks []types.RenderedLocalBookmark
+	DayStamp       string
+	Bookmarks      []types.RenderedLocalBookmark
+	TotalBookmarks uint
 }
 
 func getDay(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
+	currentPage := extractPage(rq)
 	dayStamp := rq.PathValue("dayStamp")
 	// If no day given, default to today.
 	if dayStamp == "" {
@@ -738,7 +740,7 @@ func getDay(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	dayBookmarks, err := localBookmarks.BookmarksForDay(rq.Context(), authed, dayStamp)
+	dayBookmarks, totalBookmarks, err := localBookmarks.BookmarksForDay(rq.Context(), authed, dayStamp, currentPage)
 	if err != nil {
 		slog.Error("Failed to get bookmarks for day", "dayStamp", dayStamp, "err", err)
 		http.Error(w, "Failed to load bookmarks", http.StatusInternalServerError)
@@ -750,10 +752,13 @@ func getDay(w http.ResponseWriter, rq *http.Request) {
 		slog.Error("Failed to fill likes for local bookmarks", "err", err)
 	}
 
+	common := emptyCommon()
+	common.paginator = types.PaginatorFromURL(rq.URL, currentPage, totalBookmarks)
 	templateExec(w, rq, templateDay, dataDay{
-		dataCommon: emptyCommon(),
-		DayStamp:   dayStamp,
-		Bookmarks:  bookmarks,
+		dataCommon:     common,
+		DayStamp:       dayStamp,
+		Bookmarks:      bookmarks,
+		TotalBookmarks: totalBookmarks,
 	})
 }
 

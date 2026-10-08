@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -44,7 +45,7 @@ type (
 		InsertBookmark(context.Context, types.Bookmark) (int64, error)
 		GetBookmarkIDByURL(context.Context, string) (int, error)
 		Bookmarks(ctx context.Context, authorized bool, page uint) ([]types.Bookmark, uint, error)
-		BookmarksForDay(ctx context.Context, authorized bool, dayStamp string) ([]types.Bookmark, error)
+		BookmarksForDay(ctx context.Context, authorized bool, dayStamp string, page ...uint) ([]types.Bookmark, uint, error)
 		BookmarksWithTag(ctx context.Context, authorized bool, tagName string, page uint) ([]types.Bookmark, uint, error)
 		RandomBookmarks(ctx context.Context, authorized bool, n uint) ([]types.Bookmark, uint, error)
 		DeleteBookmark(ctx context.Context, id int) error
