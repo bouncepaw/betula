@@ -1,5 +1,5 @@
 # 🌳 Betula, the federated bookmark manager
-![A screenshot of Betula, featuring several bookmarks](https://joinbetula.org/media/betula-v1.8.0.png)
+![A screenshot of Betula, featuring several bookmarks](https://joinbetula.org/media/betula-v1.9.0.png)
 
 [![Hits-of-Code](https://hitsofcode.com/sourcehut/~bouncepaw/betula?branch=master)](https://hitsofcode.com/sourcehut/~bouncepaw/betula/view?branch=master)
 [![Pipeline status](https://ci.codeberg.org/api/badges/15546/status.svg)](https://ci.codeberg.org/api/badges/15546/status.svg)
