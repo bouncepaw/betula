@@ -48,7 +48,7 @@ func (svc *Service) ReceiveLike(ctx context.Context, event likingports.EventLike
 		return err
 	}
 
-	go svc.broadcastBookmarkUpdate(localBookmarkID)
+	go svc.broadcastBookmarkUpdate(context.TODO(), localBookmarkID)
 
 	svc.logger.Info("Received Like",
 		"id", event.LikeID, "actorID", event.ActorID, "objectID", event.LikedObjectID)
@@ -70,15 +70,15 @@ func (svc *Service) ReceiveUndoLike(ctx context.Context, event likingports.Event
 	if err != nil {
 		return err
 	}
-	go svc.broadcastBookmarkUpdate(localBookmarkID)
+	go svc.broadcastBookmarkUpdate(context.TODO(), localBookmarkID)
 
 	svc.logger.Info("Received Undo{Like}",
 		"id", event.UndoLikeID, "actorID", event.ActorID, "likeID", event.LikeID)
 	return nil
 }
 
-func (svc *Service) broadcastBookmarkUpdate(localBookmarkID int) {
-	err := svc.broadcastBookmarkAsUpdated(context.TODO(), localBookmarkID)
+func (svc *Service) broadcastBookmarkUpdate(ctx context.Context, localBookmarkID int) {
+	err := svc.broadcastBookmarkAsUpdated(ctx, localBookmarkID)
 	if err != nil {
 		svc.logger.Error("Failed to broadcast like-induced Update{Note}",
 			"err", err, "localBookmarkID", localBookmarkID)

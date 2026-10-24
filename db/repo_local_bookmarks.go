@@ -77,6 +77,12 @@ func (repo *RepoLocalBookmarks) GetBookmarkByID(
 
 	var b types.Bookmark
 	err := row.Scan(&b.ID, &b.URL, &b.Title, &b.Description, &b.Visibility, &b.CreationTime, &b.RemarkedID, &b.OriginalAuthor, &b.RemarkText)
+
+	b.Tags, err = tagsForBookmarkByID(ctx, db, b.ID)
+	if err != nil {
+		return types.Bookmark{}, err
+	}
+
 	return b, err
 }
 

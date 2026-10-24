@@ -20,19 +20,20 @@ import (
 
 func TestRenderBookmarkIncludesRemarks(t *testing.T) {
 	db.InitInMemoryDB()
+	ctrl.RepoRemarks = db.NewRemarksRepo()
+	ctrl.RepoTags = db.NewTagsRepo()
+	ctrl.RepoLocalBookmarks = db.NewLocalBookmarksRepo()
 
 	bm := types.Bookmark{
 		URL:        "https://example.com",
 		Title:      "Example",
 		Visibility: types.Public,
 	}
-	id, err := localBookmarks.InsertBookmark(t.Context(), bm)
+	id, err := ctrl.RepoLocalBookmarks.InsertBookmark(t.Context(), bm)
 	be.Err(t, err, nil)
-	bookmark, err := localBookmarks.GetBookmarkByID(t.Context(), int(id))
+	bookmark, err := ctrl.RepoLocalBookmarks.GetBookmarkByID(t.Context(), int(id))
 	be.Err(t, err, nil)
 
-	ctrl.RepoRemarks = db.NewRemarksRepo()
-	ctrl.RepoTags = db.NewTagsRepo()
 	var (
 		re1 = types.RemarkInfo{URL: "https://links.alice/1", Name: "Alice", Timestamp: time.Now()}
 		re2 = types.RemarkInfo{URL: "https://links.bob/2", Name: "Bob", Timestamp: time.Now()}

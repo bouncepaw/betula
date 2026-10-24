@@ -6,6 +6,7 @@ package likingsvc
 
 import (
 	"context"
+	"strconv"
 )
 
 func (svc *Service) Unlike(ctx context.Context, bookmarkID string) error {
@@ -14,7 +15,7 @@ func (svc *Service) Unlike(ctx context.Context, bookmarkID string) error {
 		return err
 	}
 
-	if err := svc.likeRepo.DeleteOurLikeOf(ctx, bookmarkID); err != nil {
+	if err = svc.likeRepo.DeleteOurLikeOf(ctx, bookmarkID); err != nil {
 		return err
 	}
 
@@ -28,6 +29,14 @@ func (svc *Service) Unlike(ctx context.Context, bookmarkID string) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		localBookmarkID, err := strconv.Atoi(bookmarkID)
+		if err != nil {
+			svc.logger.Warn("Failed to parse liked local bookmark ID",
+				"bookmarkID", bookmarkID, "err", err)
+			// no return
+		}
+		go svc.broadcastBookmarkUpdate(context.TODO(), localBookmarkID)
 	}
 	return nil
 }

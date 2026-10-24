@@ -186,5 +186,6 @@ func newController() web.Controller {
 		RepoActor:          repoActor,
 		RepoRemarks:        repoRemarks,
 		RepoTags:           repoTags,
+		RepoLocalBookmarks: repoLocalBookmark,
 	}
 }

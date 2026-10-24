@@ -6,6 +6,8 @@ package likingsvc
 
 import (
 	"context"
+	"strconv"
+
 	likingports "git.sr.ht/~bouncepaw/betula/ports/liking"
 )
 
@@ -32,6 +34,14 @@ func (svc *Service) Like(ctx context.Context, bookmarkID string) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		localBookmarkID, err := strconv.Atoi(bookmarkID)
+		if err != nil {
+			svc.logger.Warn("Failed to parse liked local bookmark ID",
+				"bookmarkID", bookmarkID, "err", err)
+			// no return
+		}
+		go svc.broadcastBookmarkUpdate(context.TODO(), localBookmarkID)
 	}
 	return nil
 }

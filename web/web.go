@@ -21,7 +21,6 @@ import (
 	"strconv"
 	"strings"
 
-	"git.sr.ht/~bouncepaw/betula/db"
 	"git.sr.ht/~bouncepaw/betula/types"
 
 	"git.sr.ht/~bouncepaw/betula/auth"
@@ -29,8 +28,6 @@ import (
 )
 
 var serverRestartChannel = make(chan struct{})
-
-var localBookmarks = db.NewLocalBookmarksRepo()
 
 func StartServer(c Controller) {
 	ctrl = c
@@ -114,7 +111,7 @@ func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, 
 		return nil, false
 	}
 
-	bookmark, err := localBookmarks.GetBookmarkByID(rq.Context(), id)
+	bookmark, err := ctrl.RepoLocalBookmarks.GetBookmarkByID(rq.Context(), id)
 	if err != nil {
 		slog.Info("Bookmark not found", "path", rq.URL.Path, "id", id, "err", err)
 		handlerNotFound(w, rq)
@@ -127,14 +124,6 @@ func extractBookmark(w http.ResponseWriter, rq *http.Request) (*types.Bookmark, 
 		handlerUnauthorized(w, rq)
 		return nil, false
 	}
-
-	tags, err := ctrl.RepoTags.TagsForBookmarkByID(rq.Context(), bookmark.ID)
-	if err != nil {
-		slog.Error("Failed to fetch tags for bookmark", "path", rq.URL.Path, "id", id, "err", err)
-		handlerNotFound(w, rq)
-		return nil, false
-	}
-	bookmark.Tags = tags
 
 	return &bookmark, true
 }

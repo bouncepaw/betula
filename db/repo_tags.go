@@ -172,7 +172,7 @@ order by TagName;
 	var tags []types.Tag
 	for rows.Next() {
 		var tag types.Tag
-		if err := rows.Scan(&tag.Name); err != nil {
+		if err = rows.Scan(&tag.Name); err != nil {
 			return nil, err
 		}
 		tags = append(tags, tag)

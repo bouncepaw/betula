@@ -231,7 +231,7 @@ func getNodeInfo(w http.ResponseWriter, rq *http.Request) {
 	// See:
 	// => https://github.com/jhass/nodeinfo/blob/main/schemas/2.0/example.json
 	// => https://mastodon.social/nodeinfo/2.0
-	bookmarkCount, err := localBookmarks.BookmarkCount(rq.Context(), false)
+	bookmarkCount, err := ctrl.RepoLocalBookmarks.BookmarkCount(rq.Context(), false)
 	if err != nil {
 		slog.Error("Failed to count bookmarks for /nodeinfo/2.0", "err", err)
 		http.Error(w, "Failed to gather node info", http.StatusInternalServerError)
@@ -364,7 +364,7 @@ remarking:
 	}
 
 	bookmark.CreationTime = time.Now().UTC().Format(types.TimeLayout)
-	id, err := localBookmarks.InsertBookmark(rq.Context(), *bookmark)
+	id, err := ctrl.RepoLocalBookmarks.InsertBookmark(rq.Context(), *bookmark)
 	if err != nil {
 		slog.Error("Failed to insert remark bookmark", "err", err)
 		http.Error(w, "Failed to save remark", http.StatusInternalServerError)

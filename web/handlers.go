@@ -88,6 +88,7 @@ type Controller struct {
 	HTMLSanitizer wwwports.HTMLSanitizer
 
 	// FIXME: Layer boundary violation.
+	RepoLocalBookmarks likingports.LocalBookmarkRepository
 	RepoRemoteBookmark remotebookmarksports.RemoteBookmarkRepository
 	RepoActor          apports.ActorRepository
 	RepoRemarks        remarkingports.Repository
@@ -268,7 +269,7 @@ func postDeleteArchive(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	bookmark, err := localBookmarks.GetBookmarkByID(rq.Context(), int(bookmarkID))
+	bookmark, err := ctrl.RepoLocalBookmarks.GetBookmarkByID(rq.Context(), int(bookmarkID))
 	if err != nil {
 		slog.Info("Bookmark not found", "bookmarkID", bookmarkID, "err", err)
 		handlerNotFound(w, rq)
@@ -367,7 +368,7 @@ func getRandom(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
 	common := emptyCommon()
 
-	bookmarks, totalBookmarks, err := localBookmarks.RandomBookmarks(rq.Context(), authed, 20)
+	bookmarks, totalBookmarks, err := ctrl.RepoLocalBookmarks.RandomBookmarks(rq.Context(), authed, 20)
 	if err != nil {
 		slog.Error("Failed to get random bookmarks", "err", err)
 		http.Error(w, "Failed to load bookmarks", http.StatusInternalServerError)
@@ -495,7 +496,7 @@ type dataMyProfile struct {
 
 func getMyProfile(w http.ResponseWriter, rq *http.Request) {
 	authed := auth.AuthorizedFromRequest(rq)
-	bookmarkCount, err := localBookmarks.BookmarkCount(rq.Context(), authed)
+	bookmarkCount, err := ctrl.RepoLocalBookmarks.BookmarkCount(rq.Context(), authed)
 	if err != nil {
 		slog.Error("Failed to count bookmarks", "err", err)
 		http.Error(w, "Failed to load profile", http.StatusInternalServerError)
@@ -740,7 +741,7 @@ func getDay(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	dayBookmarks, totalBookmarks, err := localBookmarks.BookmarksForDay(rq.Context(), authed, dayStamp, currentPage)
+	dayBookmarks, totalBookmarks, err := ctrl.RepoLocalBookmarks.BookmarksForDay(rq.Context(), authed, dayStamp, currentPage)
 	if err != nil {
 		slog.Error("Failed to get bookmarks for day", "dayStamp", dayStamp, "err", err)
 		http.Error(w, "Failed to load bookmarks", http.StatusInternalServerError)
@@ -843,14 +844,14 @@ func postDeleteBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	bookmark, err := localBookmarks.GetBookmarkByID(rq.Context(), id)
+	bookmark, err := ctrl.RepoLocalBookmarks.GetBookmarkByID(rq.Context(), id)
 	if err != nil {
 		slog.Info("Trying to delete a non-existent bookmark", "err", err)
 		handlerNotFound(w, rq)
 		return
 	}
 
-	if err := localBookmarks.DeleteBookmark(rq.Context(), id); err != nil {
+	if err := ctrl.RepoLocalBookmarks.DeleteBookmark(rq.Context(), id); err != nil {
 		slog.Error("Failed to delete bookmark", "bookmarkID", id, "err", err)
 		http.Error(w, "Failed to delete bookmark", http.StatusInternalServerError)
 		return
@@ -1043,7 +1044,7 @@ func getTag(w http.ResponseWriter, rq *http.Request) {
 	currentPage := extractPage(rq)
 	authed := auth.AuthorizedFromRequest(rq)
 
-	bookmarks, totalBookmarks, err := localBookmarks.BookmarksWithTag(rq.Context(), authed, tagName, currentPage)
+	bookmarks, totalBookmarks, err := ctrl.RepoLocalBookmarks.BookmarksWithTag(rq.Context(), authed, tagName, currentPage)
 	if err != nil {
 		slog.Error("Failed to get bookmarks with tag", "tag", tagName, "err", err)
 		http.Error(w, "Failed to load bookmarks", http.StatusInternalServerError)
@@ -1105,7 +1106,7 @@ func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	bookmark, err := localBookmarks.GetBookmarkByID(rq.Context(), id)
+	bookmark, err := ctrl.RepoLocalBookmarks.GetBookmarkByID(rq.Context(), id)
 	if err != nil {
 		slog.Error("Failed to load remark for editing", "bookmarkID", id, "err", err)
 		http.Error(w, "Failed to load remark", http.StatusInternalServerError)
@@ -1117,7 +1118,7 @@ func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 	} else {
 		bookmark.RemarkText = nil
 	}
-	if err := localBookmarks.EditBookmark(rq.Context(), bookmark); err != nil {
+	if err := ctrl.RepoLocalBookmarks.EditBookmark(rq.Context(), bookmark); err != nil {
 		slog.Error("Failed to edit remark", "bookmarkID", id, "err", err)
 		http.Error(w, "Failed to edit remark", http.StatusInternalServerError)
 		return
@@ -1130,7 +1131,7 @@ func postEditBookmarkTags(w http.ResponseWriter, rq *http.Request) {
 		// TODO: synchronous
 		go func(id int) {
 			// the handler never modifies the bookmark visibility, so we don't care about the past, so we only look at the current value
-			bookmark, err := localBookmarks.GetBookmarkByID(context.Background(), id)
+			bookmark, err := ctrl.RepoLocalBookmarks.GetBookmarkByID(context.Background(), id)
 			if err != nil {
 				slog.Error("Failed to federate bookmark", "bookmarkID", id, "err", err)
 				return
@@ -1167,13 +1168,6 @@ func getEditBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	tags, err := ctrl.RepoTags.TagsForBookmarkByID(rq.Context(), bookmark.ID)
-	if err != nil {
-		slog.Error("Failed to get tags for bookmark", "bookmarkID", bookmark.ID, "err", err)
-		http.Error(w, "Failed to load bookmark", http.StatusInternalServerError)
-		return
-	}
-	bookmark.Tags = tags
 	templateExec(w, rq, templateEditLink, dataEditLink{
 		Bookmark:   *bookmark,
 		dataCommon: commonWithAutoCompletion(),
@@ -1217,7 +1211,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 	saveDuplicate := rq.FormValue("duplicate") == "true"
 
 	if oldURL != newURL && !saveDuplicate {
-		existingBookmarkID, err := localBookmarks.GetBookmarkIDByURL(rq.Context(), newURL)
+		existingBookmarkID, err := ctrl.RepoLocalBookmarks.GetBookmarkIDByURL(rq.Context(), newURL)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			slog.Error("Failed to look up bookmark by URL", "url", newURL, "err", err)
 		}
@@ -1272,7 +1266,7 @@ func postEditBookmark(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if err := localBookmarks.EditBookmark(rq.Context(), *bookmark); err != nil {
+	if err := ctrl.RepoLocalBookmarks.EditBookmark(rq.Context(), *bookmark); err != nil {
 		slog.Error("Failed to edit bookmark", "bookmarkID", bookmark.ID, "err", err)
 		http.Error(w, "Failed to edit bookmark", http.StatusInternalServerError)
 		return
@@ -1543,7 +1537,7 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 
 	// Check if a bookmark with this URL already exists.
 	if !saveDuplicate {
-		existingBookmarkID, err := localBookmarks.GetBookmarkIDByURL(rq.Context(), bookmark.URL)
+		existingBookmarkID, err := ctrl.RepoLocalBookmarks.GetBookmarkIDByURL(rq.Context(), bookmark.URL)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			slog.Error("Failed to look up bookmark by URL", "url", bookmark.URL, "err", err)
 		}
@@ -1564,7 +1558,7 @@ func postSaveBookmark(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	// No duplicate found, insert a new bookmark
-	id, err := localBookmarks.InsertBookmark(rq.Context(), bookmark)
+	id, err := ctrl.RepoLocalBookmarks.InsertBookmark(rq.Context(), bookmark)
 	if err != nil {
 		slog.Error("Failed to insert bookmark", "err", err)
 		http.Error(w, "Failed to save bookmark", http.StatusInternalServerError)
@@ -1671,18 +1665,6 @@ func renderBookmark(
 		}
 	}
 
-	if tags, err := ctrl.RepoTags.TagsForBookmarkByID(rq.Context(), bookmark.ID); err != nil {
-		slog.Warn("Failed to fetch tags for bookmark", "bookmarkID", bookmark.ID, "err", err)
-		notifications = append(notifications,
-			SystemNotification{
-				Category: NotificationFailure,
-				Body: template.HTML(fmt.Sprintf(
-					"Failed to fetch tags: %s", err)),
-			})
-	} else {
-		bookmark.Tags = tags
-	}
-
 	var remarks []types.RemarkInfo
 	if r, err := ctrl.RepoRemarks.RemarksOf(rq.Context(), bookmark.ID); err != nil {
 		slog.Warn("Failed to fetch remarks for bookmark", "bookmarkID", bookmark.ID, "err", err)
@@ -1753,7 +1735,7 @@ func getIndex(w http.ResponseWriter, rq *http.Request) {
 `, types.ActivityType, types.OtherActivityType, settings.AdminUsername()))
 
 	currentPage := extractPage(rq)
-	bookmarks, totalBookmarks, err := localBookmarks.Bookmarks(rq.Context(), authed, currentPage)
+	bookmarks, totalBookmarks, err := ctrl.RepoLocalBookmarks.Bookmarks(rq.Context(), authed, currentPage)
 	if err != nil {
 		slog.Error("Failed to get bookmarks", "err", err)
 		http.Error(w, "Failed to load bookmarks", http.StatusInternalServerError)
