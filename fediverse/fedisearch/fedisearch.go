@@ -271,7 +271,7 @@ func (s *State) doRequest(i int, req Request,
 	}
 
 	mutex.Lock()
-	if resp.MoreAvailable != 0 {
+	if resp.MoreAvailable > 0 {
 		newState.Expected[req.To] = resp.MoreAvailable
 	}
 	newState.Seen[req.To] = newState.Seen[req.To] + len(foundBookmarks)
@@ -321,6 +321,11 @@ func (choice Choice) fillFor(expected map[string]int, unseen []string, random *r
 		for i, actor := range keys {
 			if i == picking {
 				break
+			}
+
+			if expected[actor] <= 0 {
+				delete(expected, actor)
+				continue
 			}
 
 			var a = min(5, expected[actor])
