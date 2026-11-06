@@ -34,9 +34,13 @@ func (ap *ActivityPub) dereferenceActorID(actorID string) (types.Actor, error) {
 		return types.Actor{}, fmt.Errorf("failed to request actor: status %d", resp.StatusCode)
 	}
 
-	data, err := io.ReadAll(resp.Body)
+	const maxActorSize = 1 << 20 // 1 MiB
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxActorSize+1))
 	if err != nil {
 		return types.Actor{}, fmt.Errorf("failed to request actor: %w", err)
+	}
+	if len(data) > maxActorSize {
+		return types.Actor{}, fmt.Errorf("failed to request actor: response exceeds %d bytes", maxActorSize)
 	}
 
 	var a types.Actor

@@ -23,6 +23,8 @@ import (
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
+const maxActorDocumentSize = 1 << 20 // 1 MiB
+
 // RequestActorByNickname returns actor by string like @bouncepaw@links.bouncepaw.com or bouncepaw@links.bouncepaw.com. The returned value might be from the cache and perhaps stale.
 func RequestActorByNickname(nickname string) (*types.Actor, error) {
 	user, host, ok := strings.Cut(strings.TrimPrefix(nickname, "@"), "@")
@@ -97,9 +99,12 @@ func dereferenceActorID(actorID string) (*types.Actor, error) {
 		return nil, fmt.Errorf("requesting actor: status not 200, id est %d", resp.StatusCode)
 	}
 
-	data, err := io.ReadAll(resp.Body)
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxActorDocumentSize+1))
 	if err != nil {
 		return nil, fmt.Errorf("requesting actor: %w", err)
+	}
+	if len(data) > maxActorDocumentSize {
+		return nil, errors.New("requesting actor: response body too large")
 	}
 
 	var a types.Actor
