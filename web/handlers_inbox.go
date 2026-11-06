@@ -134,6 +134,18 @@ func postInbox(w http.ResponseWriter, rq *http.Request) {
 			}
 		}
 
+		ownerID, err := ctrl.RepoRemoteBookmark.GetActorIDFor(report.BookmarkID)
+		if err != nil {
+			slog.Error("Failed to find the author of the deleted bookmark",
+				"err", err, "bookmarkID", report.BookmarkID)
+			return
+		}
+		if ownerID != report.ActorID {
+			slog.Info("Delete of someone else's bookmark, ignoring",
+				"actorID", report.ActorID, "bookmarkID", report.BookmarkID, "ownerID", ownerID)
+			return
+		}
+
 		slog.Info("Deleted remote bookmark", "actorID", report.ActorID, "bookmarkID", report.BookmarkID)
 		err = ctrl.RepoRemoteBookmark.Delete(rq.Context(), report.BookmarkID)
 		if err != nil {
