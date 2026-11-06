@@ -622,13 +622,13 @@ func getStyle(w http.ResponseWriter, rq *http.Request) {
 	_, err = io.Copy(w, file)
 	if err != nil {
 		slog.Error("Failed to write style to response", "err", err)
-		os.Exit(1)
+		return
 	}
 
 	_, err = io.WriteString(w, settings.CustomCSS())
 	if err != nil {
 		slog.Error("Failed to write custom CSS", "err", err)
-		os.Exit(1)
+		return
 	}
 
 	// Look at how detailed my error messages are! In a function that will
