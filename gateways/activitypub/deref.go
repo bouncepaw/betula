@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Danila Gorelko
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Iaroslav Angliuster <https://mysh.dev>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
