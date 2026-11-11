@@ -1,6 +1,6 @@
 module git.sr.ht/~bouncepaw/betula
 
-go 1.27.3
+go 1.27.4
 
 require (
 	codeberg.org/bouncepaw/obelisk-ng v0.10.2
@@ -9,9 +9,9 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/mileusna/useragent v1.3.5
 	github.com/nalgeon/be v0.3.0
-	github.com/ncruces/go-sqlite3 v0.35.6
+	github.com/ncruces/go-sqlite3 v0.37.0
 	golang.org/x/crypto v0.58.0
-	golang.org/x/net v0.61.0
+	golang.org/x/net v0.62.0
 )
 
 require (
@@ -21,11 +21,11 @@ require (
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
-	github.com/ncruces/go-sqlite3-wasm/v6 v6.3.35401 // indirect
+	github.com/ncruces/go-sqlite3-wasm/v6 v6.6.35401 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tdewolff/parse/v2 v2.8.20 // indirect
-	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 )

@@ -8,12 +8,12 @@ when:
 
 steps:
   - name: build
-    image: golang:1.27.3
+    image: golang:1.27.4
     commands:
       - go build -v ./...
 
   - name: test
-    image: golang:1.27.3
+    image: golang:1.27.4
     depends_on:
       - build
     commands:
