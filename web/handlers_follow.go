@@ -79,6 +79,16 @@ type dataActorList struct {
 // If other AP-enabled software behaves differently, this needs
 // to be revised.
 func collectionStub(w http.ResponseWriter, id string) {
+	/*
+		NOTE(hugmouse): Just in case I checked source code of the following software with Activity Pub integration to see if this behavior is expected and the results are:
+
+		* Mastodon: checks for totalItems field being present before setting counters, but absence doesn't result in error
+		* Pleroma: just reports 0
+		* GoToSocial: ignores, skips updates. After this update I think followers value in there might be stuck on the previous counter
+		* Friendica: checks for totalItems, does not update if absent (similarly to GoToSocial)
+		* Misskey: checks for totalItems being set, doesn't care if its missing though
+		* Pixelfed: ignores totalItems
+	*/
 	w.Header().Set("Content-Type", types.OtherActivityType)
 	_ = json.NewEncoder(w).Encode(map[string]string{
 		"@context": "https://www.w3.org/ns/activitystreams",
