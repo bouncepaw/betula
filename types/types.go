@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2023 Danila Gorelko
 // SPDX-FileCopyrightText: 2023 Goldstein
-// SPDX-FileCopyrightText: 2023 ninedraft
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2023 ninedraft
 // SPDX-FileCopyrightText: 2024 Danila Gorelko
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>

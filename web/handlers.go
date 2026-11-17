@@ -1,15 +1,15 @@
 // SPDX-FileCopyrightText: 2023 Danila Gorelko
-// SPDX-FileCopyrightText: 2023 ninedraft
 // SPDX-FileCopyrightText: 2023 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2023 Umar Getagazov <umar@handlerug.me>
+// SPDX-FileCopyrightText: 2023 ninedraft
 // SPDX-FileCopyrightText: 2024 Danila Gorelko
 // SPDX-FileCopyrightText: 2024 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2025 Danila Gorelko
 // SPDX-FileCopyrightText: 2025 Guilherme Puida Moreira
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2026 Danila Gorelko
-// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2026 Iaroslav Angliuster <https://mysh.dev>
+// SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 

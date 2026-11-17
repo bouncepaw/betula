@@ -7,6 +7,8 @@ export CGO_ENABLED=0
 ALL_FILES := $(shell find . -type f -name '*.go*') web/style.css web/pix/* db/scripts/*.sql
 HELP_SPACING := 25
 
+PYTHON ?= python3
+
 .PHONY: help betula debug-run clean test lint lint-fix crosscompile
 
 betula: $(ALL_FILES) ## Build the betula binary
@@ -22,6 +24,10 @@ lint: ## Run the linter
 
 lint-fix: ## Fix lint issues
 	golangci-lint run --fix
+
+spdx-fix: ## Fix SPDX entries order
+	$(PYTHON) cmd/spdxorder.py --fix
+	reuse lint
 
 clean: ## Clean up build artifacts
 	rm -rf betula dst

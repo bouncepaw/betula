@@ -11,3 +11,4 @@ steps:
     image: fsfe/reuse
     commands:
       - reuse lint
+      - python3 cmd/spdxorder.py
