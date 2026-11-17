@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Timur Ismagilov <https://bouncepaw.com>
 // SPDX-FileCopyrightText: 2026 Timur Ismagilov <https://bouncepaw.com>
+// SPDX-FileCopyrightText: 2026 Iaroslav Angliuster <https://mysh.dev>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log/slog"
@@ -14,6 +16,7 @@ import (
 
 	"git.sr.ht/~bouncepaw/betula/pkg/bxstr"
 	wwwports "git.sr.ht/~bouncepaw/betula/ports/www"
+	"git.sr.ht/~bouncepaw/betula/settings"
 	"git.sr.ht/~bouncepaw/betula/types"
 )
 
@@ -63,6 +66,33 @@ type dataActorList struct {
 	Actors        []renderedActor
 	Focus         bool
 	Notifications []SystemNotification
+}
+
+// collectionStub serves empty OrderedCollection.
+//
+// It's better than simply returning a 404 response,
+// since, for example, GoToSocial treats anything other
+// than a 200 as an error and logs it as such.
+// However, if we have an advertised URL and this stub,
+// GoToSocial detects this as a valid account and stays silent.
+//
+// If other AP-enabled software behaves differently, this needs
+// to be revised.
+func collectionStub(w http.ResponseWriter, id string) {
+	w.Header().Set("Content-Type", types.OtherActivityType)
+	_ = json.NewEncoder(w).Encode(map[string]string{
+		"@context": "https://www.w3.org/ns/activitystreams",
+		"id":       id,
+		"type":     "OrderedCollection",
+	})
+}
+
+func getFollowersFedi(w http.ResponseWriter, rq *http.Request) {
+	collectionStub(w, settings.SiteURL()+"/followers")
+}
+
+func getFollowingFedi(w http.ResponseWriter, rq *http.Request) {
+	collectionStub(w, settings.SiteURL()+"/following")
 }
 
 func getFollowersWeb(w http.ResponseWriter, rq *http.Request) {

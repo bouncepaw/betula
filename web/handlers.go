@@ -177,8 +177,8 @@ func init() {
 	// Federation interface
 	mux.HandleFunc("POST /follow", adminOnly(federatedOnly(postFollow)))
 	mux.HandleFunc("POST /unfollow", adminOnly(federatedOnly(postUnfollow)))
-	mux.HandleFunc("GET /following", fediverseWebFork(nil, getFollowingWeb))
-	mux.HandleFunc("GET /followers", fediverseWebFork(nil, getFollowersWeb))
+	mux.HandleFunc("GET /following", fediverseWebFork(getFollowingFedi, adminOnly(getFollowingWeb)))
+	mux.HandleFunc("GET /followers", fediverseWebFork(getFollowersFedi, adminOnly(getFollowersWeb)))
 	mux.HandleFunc("GET /timeline", adminOnly(federatedOnly(getTimeline)))
 	mux.HandleFunc("POST /like", adminOnly(federatedOnly(postLike)))
 	mux.HandleFunc("POST /unlike", adminOnly(federatedOnly(postUnlike)))
