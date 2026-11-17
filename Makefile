@@ -29,6 +29,9 @@ spdx-fix: ## Fix SPDX entries order
 	$(PYTHON) cmd/spdxorder.py --fix
 	reuse lint
 
+tag: ## Make a git tag for a new release
+	$(PYTHON) cmd/genlog.py
+
 clean: ## Clean up build artifacts
 	rm -rf betula dst
 
